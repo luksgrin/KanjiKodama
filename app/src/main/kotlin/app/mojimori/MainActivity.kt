@@ -1,0 +1,22 @@
+package app.mojimori
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import app.mojimori.feature.dashboard.DashboardScreen
+import app.mojimori.ui.theme.MojiMoriTheme
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        setContent {
+            MojiMoriTheme {
+                DashboardScreen()
+            }
+        }
+    }
+}
