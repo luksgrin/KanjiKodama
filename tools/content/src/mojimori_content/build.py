@@ -23,13 +23,13 @@ def _load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
-def run(blocks: list[str], *, out_dir: Path = OUT_DIR, refresh: bool = False, log=print) -> Path:
+def run(blocks: list[str], *, out_dir: Path = OUT_DIR, refresh_upstream: bool = False, log=print) -> Path:
     t0 = time.time()
     blocks = [b.upper() for b in blocks]
     for b in blocks:
         if b not in BLOCKS:
             raise ValueError(f"unknown block {b}")
-    fetch_all(refresh=refresh, log=log)
+    fetch_all(refresh_upstream=refresh_upstream, log=log)
 
     log("parsing KANJIDIC2…")
     kd = kanjidic2.parse(cache_path("kanjidic2"))

@@ -26,11 +26,25 @@ def _blocks(blocks: list[str] | None) -> list[str]:
 
 
 @app.command()
-def fetch(refresh: Annotated[bool, typer.Option(help="Re-download and re-pin checksums.")] = False) -> None:
-    """Download all sources into .cache and pin checksums."""
+def fetch(
+    refresh_upstream: Annotated[bool, typer.Option(help="Download from upstream and re-pin checksums.")] = False,
+) -> None:
+    """Download all sources into .cache (snapshot mirror first) and verify checksums."""
     from .fetch import fetch_all
 
-    fetch_all(refresh=refresh)
+    fetch_all(refresh_upstream=refresh_upstream)
+
+
+@app.command()
+def snapshot(
+    tag: Annotated[str | None, typer.Option(help="Release tag (default: today's date).")] = None,
+) -> None:
+    """Publish the cached, lock-verified sources as a new release of the data repository."""
+    from datetime import UTC, datetime
+
+    from .fetch import snapshot as make_snapshot
+
+    make_snapshot(tag or datetime.now(UTC).strftime("%Y-%m-%d"))
 
 
 @app.command()
@@ -52,13 +66,13 @@ def classify() -> None:
 def build(
     blocks: Annotated[list[str] | None, typer.Option("--blocks", "-b", help="Blocks to build (default: N5).")] = None,
     out: Annotated[Path | None, typer.Option(help="Output directory (default: tools/content/out).")] = None,
-    refresh: Annotated[bool, typer.Option(help="Re-download sources.")] = False,
+    refresh_upstream: Annotated[bool, typer.Option(help="Re-download sources from upstream and re-pin.")] = False,
 ) -> None:
     """Run the full pipeline for the given blocks."""
     from .build import run
     from .config import OUT_DIR
 
-    run(_blocks(blocks), out_dir=out or OUT_DIR, refresh=refresh)
+    run(_blocks(blocks), out_dir=out or OUT_DIR, refresh_upstream=refresh_upstream)
 
 
 if __name__ == "__main__":

@@ -15,6 +15,9 @@ LOCK_FILE = TOOL_DIR / "sources.lock.json"
 
 KANJIVG_RELEASE = "20260714"
 
+# Private snapshot mirror of the raw upstream files (GitHub releases, one tag per snapshot).
+DATA_REPO = "luksgrin/MojiMoriData"
+
 
 @dataclass(frozen=True)
 class Source:

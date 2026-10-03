@@ -50,6 +50,11 @@ Exit criteria: `uv run mojimori-content build -b N5` is deterministic, passes va
 and without seed lists, every level has 80–180 words, and the report shows correct series for
 工, 交, 寺 as smoke tests. With a seed list present, the report shows its placement.
 
+Data freeze: raw upstream files are frozen in the private repo `luksgrin/MojiMoriData` as dated
+GitHub releases (first snapshot `2026-10-03`, 14 files, 52 MB). `sources.lock.json` names the
+snapshot and pins every checksum; `fetch` reads the snapshot first and only `fetch
+--refresh-upstream` followed by `snapshot` moves to new upstream data.
+
 Notes from the first builds: tanos.co.uk was unreachable, so the JLPT lists come from two MIT
 mirrors of the same data (kanji-data JSON for kanji, elzup/jlpt-word-list for vocabulary).
 KanjiVG leaves some stroke groups unnamed (the right half of 行, the top of 白); the pipeline

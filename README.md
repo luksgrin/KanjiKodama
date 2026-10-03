@@ -28,13 +28,15 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"  
 Release builds sign with the debug key unless `keystore.properties` exists
 (see `keystore.properties.example`). The "Release APK (manual)" workflow in GitHub Actions builds a release APK on demand.
 
-Content pipeline:
+Content pipeline (needs the `gh` CLI logged in, because sources come from the private snapshot
+repo [MojiMoriData](https://github.com/luksgrin/MojiMoriData)):
 
 ```sh
 cd tools/content
 uv sync
 uv run mojimori-content build -b N5 -b N4   # writes out/content.db and out/report.html
 uv run pytest
+uv run mojimori-content fetch --refresh-upstream && uv run mojimori-content snapshot   # new data freeze
 ```
 
 ## Layout

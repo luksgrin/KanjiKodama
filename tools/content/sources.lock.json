@@ -1,4 +1,9 @@
 {
+  "_snapshot": {
+    "created": "2026-10-03",
+    "repo": "luksgrin/MojiMoriData",
+    "tag": "2026-10-03"
+  },
   "jlpt_kanji": {
     "fetched": "2026-10-03",
     "sha256": "561b72ea9df703c58fae0c68585812e172aaa7611d2fcee6719d55fd2dfd4fa4",

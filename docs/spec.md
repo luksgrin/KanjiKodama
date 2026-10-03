@@ -434,8 +434,9 @@ bundled as a second read-only database (kept separate so N5–N1 builds stay fas
 keys (kanji literal, component slug, JMdict sequence id), so a content update never invalidates
 progress.
 
-**Content pipeline** (`tools/content/`): download sources with pinned versions and checksums
-→ parse → classify every KANJIDIC2 kanji into a block (N5…N1 from the JLPT lists, else Obscure
+**Content pipeline** (`tools/content/`): download sources from the private snapshot repository
+(`luksgrin/MojiMoriData`, one GitHub release per dated snapshot, checksums pinned in
+`sources.lock.json`; upstream is only contacted when a snapshot is deliberately refreshed) → parse → classify every KANJIDIC2 kanji into a block (N5…N1 from the JLPT lists, else Obscure
 sub-tier from grade / JIS level) → decompose kanji → derive phonetic series and reliability →
 compute level ordering → apply YAML overrides → select vocabulary (JLPT lists, seed lists,
 JMdict priorities) and sentences → emit databases and an HTML validation report. Validation rules: every
