@@ -1,0 +1,6 @@
+# Pin a kanji to a level ordinal inside its block (1 = first level of that block). Example:
+#
+# N5:
+#   日: 1
+#   本: 1
+{}

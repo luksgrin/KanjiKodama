@@ -1,0 +1,48 @@
+# Names and meanings for components. Keys are the component glyph as it appears in KanjiVG,
+# or "<kanji>:<part>" for stroke groups that KanjiVG leaves unnamed. Overrides the pipeline's
+# built-in defaults and KANJIDIC2 meanings. `variant_of` links a form to its base component.
+# The report lists components that still have no name.
+
+"行:right":
+  name: step (right)
+  meaning: small step, right half of 行 (亍)
+"白:top":
+  name: drop
+  meaning: the small drop stroke on top of 白
+"円:part2":
+  name: inner cross
+  meaning: the inner strokes of 円
+"北:left":
+  name: person (facing left)
+  meaning: left half of 北, a person turned away
+"先:top":
+  name: sprout top
+  meaning: top of 先 (a growing plant, cf. 生)
+"左:kamae":
+  name: left hand
+  meaning: left hand, as in 左 右 友 有
+  variant_of: 𠂇
+"赤:bottom":
+  name: flames
+  meaning: fire at the bottom of 赤
+"方:bottom":
+  name: hooked base
+  meaning: the hooked bottom of 方
+"立:bottom":
+  name: base
+  meaning: the base strokes of 立
+"夜:part3":
+  name: dot
+  meaning: the final stroke of 夜
+"龶":
+  name: growing top
+  meaning: top of 青 (生 without its base)
+"⺕":
+  name: hand (broom)
+  meaning: hand holding a broom, as in 急 雪
+"𠂊":
+  name: bent top
+  meaning: bent top stroke, as in 色 急
+"龰":
+  name: foot (bottom)
+  meaning: foot / stop, bottom of 走 足

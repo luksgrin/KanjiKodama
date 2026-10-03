@@ -1,0 +1,72 @@
+{
+  "jlpt_kanji": {
+    "fetched": "2026-10-03",
+    "sha256": "561b72ea9df703c58fae0c68585812e172aaa7611d2fcee6719d55fd2dfd4fa4",
+    "url": "https://raw.githubusercontent.com/davidluzgouveia/kanji-data/master/kanji.json"
+  },
+  "jlpt_vocab_n1": {
+    "fetched": "2026-10-03",
+    "sha256": "bea8e456d4719bed019e642f24aa249564f9dbf551dc04b267d317c772daf780",
+    "url": "https://raw.githubusercontent.com/elzup/jlpt-word-list/master/src/n1.csv"
+  },
+  "jlpt_vocab_n2": {
+    "fetched": "2026-10-03",
+    "sha256": "6b804f6d0365646740d979cc1ff6890dd85ea35833cf1a5ccfac415e79d6891b",
+    "url": "https://raw.githubusercontent.com/elzup/jlpt-word-list/master/src/n2.csv"
+  },
+  "jlpt_vocab_n3": {
+    "fetched": "2026-10-03",
+    "sha256": "5828232b852f8d43e7d5ee09e9d8c218ed8e315ccbb425cd4d9205c77f5be6e3",
+    "url": "https://raw.githubusercontent.com/elzup/jlpt-word-list/master/src/n3.csv"
+  },
+  "jlpt_vocab_n4": {
+    "fetched": "2026-10-03",
+    "sha256": "10377b5d9a0289991b79532deb30cbe70892a2251cd013a21d62ca2a75cf5c76",
+    "url": "https://raw.githubusercontent.com/elzup/jlpt-word-list/master/src/n4.csv"
+  },
+  "jlpt_vocab_n5": {
+    "fetched": "2026-10-03",
+    "sha256": "8863a96442adeadfa3510edb84bd60b158ed6b3839172b93cab2ceb026e5ef8a",
+    "url": "https://raw.githubusercontent.com/elzup/jlpt-word-list/master/src/n5.csv"
+  },
+  "jmdict": {
+    "fetched": "2026-10-03",
+    "sha256": "76a91691b63094bf2aedca93cb889c7396945fe961e478f13081d839c9684e0c",
+    "url": "http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz"
+  },
+  "kanjidic2": {
+    "fetched": "2026-10-03",
+    "sha256": "d13ae54a6a0c63a09684f1ab7829c23a93f27214af802258cabf07f11b7a1b5d",
+    "url": "http://www.edrdg.org/kanjidic/kanjidic2.xml.gz"
+  },
+  "kanjivg": {
+    "fetched": "2026-10-03",
+    "sha256": "d4a8e5e11533fe6a5d81a158b2c153964322641d2982c90a919461f3c06dca6b",
+    "url": "https://github.com/KanjiVG/kanjivg/releases/download/r20260714/kanjivg-20260714.xml.gz"
+  },
+  "kradfile": {
+    "fetched": "2026-10-03",
+    "sha256": "0c5487c1de77e36ffb5bde652f469f2de9c52efc8320137c115506f3500e9c5f",
+    "url": "http://ftp.edrdg.org/pub/Nihongo/kradfile.gz"
+  },
+  "radkfile": {
+    "fetched": "2026-10-03",
+    "sha256": "20baf276a98173466c29c373668e044719809f510487695fe40abfd0269a004e",
+    "url": "http://ftp.edrdg.org/pub/Nihongo/radkfile.gz"
+  },
+  "tatoeba_en": {
+    "fetched": "2026-10-03",
+    "sha256": "5f7ebf552bd3925dfd33236ccb6a210c5ba02b365e4a39964fb658e1209e87d9",
+    "url": "https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences.tsv.bz2"
+  },
+  "tatoeba_ja": {
+    "fetched": "2026-10-03",
+    "sha256": "dd942845be225766229fa6391cbb7796c6b8bdcaea38809e65720cc406dace93",
+    "url": "https://downloads.tatoeba.org/exports/per_language/jpn/jpn_sentences.tsv.bz2"
+  },
+  "tatoeba_links": {
+    "fetched": "2026-10-03",
+    "sha256": "b078aebb6b6b1e568fe0cb4683a4ae02e17d23b3a08f8a2b0bbb88e83ec697fa",
+    "url": "https://downloads.tatoeba.org/exports/per_language/jpn/jpn-eng_links.tsv.bz2"
+  }
+}

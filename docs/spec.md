@@ -82,14 +82,16 @@ the components those kanji need, and about 90–110 vocabulary words built from 
 numbered continuously across blocks, so the learner is always "on Level 37 (N3)". Levels are
 the unit of day-to-day progression and of level-up celebrations, exactly as in WaniKani.
 
-| Block   | Kanji (approx.) | Levels | Level numbers | Nickname (forest theme) |
-|---------|-----------------|--------|---------------|-------------------------|
-| N5      | 80–100          | 4      | 1–4           | Sprout                  |
-| N4      | 170–180         | 7      | 5–11          | Sapling                 |
-| N3      | 360–370         | 15     | 12–26         | Grove                   |
-| N2      | 380–420         | 16     | 27–42         | Forest                  |
-| N1      | ~1,200          | 48     | 43–90         | Canopy                  |
-| Obscure | ~8,000–10,000   | open-ended (~350+) | 91+ | Deep Woods          |
+| Block   | Kanji (measured) | Levels | Level numbers | Nickname (forest theme) |
+|---------|------------------|--------|---------------|-------------------------|
+| N5      | 79               | 4      | 1–4           | Sprout                  |
+| N4      | 166              | 7      | 5–11          | Sapling                 |
+| N3      | 367              | 15     | 12–26         | Grove                   |
+| N2      | 367              | 15     | 27–41         | Forest                  |
+| N1      | 1,232            | 50     | 42–91         | Canopy                  |
+| Obscure | 7,896            | 317    | 92–408        | Deep Woods              |
+
+Counts come from the pipeline's classification of KANJIDIC2 against the JLPT lists (phase 1).
 
 Kanji membership for N5–N1 comes from a documented community list (the JLPT has published no
 official kanji list since 2010; see §6).
@@ -97,10 +99,10 @@ official kanji list since 2010; see §6).
 **The Obscure block** contains every kanji in KANJIDIC2 that is not in N5–N1 and has at least
 one reading and one meaning. It is ordered in sub-tiers:
 
-1. Obscure I — remaining jōyō kanji (jōyō kanji absent from all JLPT lists).
-2. Obscure II — jinmeiyō kanji (the name-kanji list).
-3. Obscure III — hyōgai kanji in JIS X 0208 level 1, by frequency.
-4. Obscure IV — JIS X 0208 level 2, then JIS X 0212/0213, by frequency where known.
+1. Obscure I — remaining jōyō kanji (jōyō kanji absent from all JLPT lists): 172.
+2. Obscure II — jinmeiyō kanji (the name-kanji list): 587.
+3. Obscure III — hyōgai kanji in JIS X 0208 level 1, by frequency: 297.
+4. Obscure IV — JIS X 0208 level 2, then JIS X 0212/0213, by frequency where known: 6,840.
 
 Old forms (kyūjitai, e.g. 學 for 学) and variants are included and taught as linked items
 ("old form of 学": same readings and meaning, its own stroke order). In the Obscure block the
@@ -134,9 +136,10 @@ pedagogically awkward.
    okurigana, sokuon changes (学校 がっこう). Fields: word, readings, meanings, part of speech,
    JLPT level of the word, example sentences, notes.
 
-   **Volume target**: about 4 words per kanji in N5–N2 and 3 per kanji in N1, giving roughly
-   8,000 words by the end of N1, plus a kana-only strand spread over N5–N3. That is ~90–110
-   words per level.
+   **Volume target**: every word on the JLPT vocabulary lists whose kanji are taught, plus at
+   least 4 words per kanji in N5–N2 and 3 per kanji in N1, plus a kana-only strand spread over
+   each block's levels. Measured on N5 and N4 that is 110–170 words per level (roughly 1,600
+   words by the end of N4), heavier than WaniKani; the lesson cap keeps the daily load bounded.
 
    **Selection**: candidates are JMdict entries whose kanji are all taught by the target level.
    They are ranked, and the top of the ranking fills each level to its quota:
@@ -144,8 +147,11 @@ pedagogically awkward.
    2. words present in any **seed list** in `content/seed_words/*.csv` (plain lists of surface
       forms; a WaniKani-style word list is the intended first seed, but the pipeline runs
       identically with the directory empty);
-   3. JMdict priority tags (news1, ichi1, spec1, nf01–nf24);
+   3. JMdict priority tags (news1, ichi1, spec1, nf01–nf48), filling each level to about 100;
    4. remaining JMdict entries by priority until every kanji has ≥ 4 (N5–N2) or ≥ 3 (N1) words.
+
+   Words usually written in kana (JMdict `uk`) are taught in kana unless the JLPT list uses the
+   kanji spelling. Rare or irregular kanji spellings are never used.
 
    A word is placed at the level where its last kanji is taught. Readings and meanings always
    come from JMdict. Every taught kanji outside Obscure has at least one word.
@@ -169,10 +175,12 @@ What the learner is taught, per kanji:
 - **Prediction before reveal**: in the lesson, the app shows the decomposition and asks
   "You know 工 = コウ. What do you expect 江 to be?" before showing the real reading. In
   reviews this is implicit; in drills (4.7) it is the whole exercise.
-- **Reliability**: each series carries a reliability score computed over the kanji in the
-  curriculum. Members are classified as **exact** (same on'yomi), **regular variant** (voicing
-  or vowel-length shift such as コウ→ゴウ, コウ→ク, ハク→バク), or **irregular**. The learner
-  sees "工 → コウ: 7 of 8 members follow the rule" and sees the exceptions named.
+- **Reliability**: each series carries a reliability score computed over the N5–N1 kanji
+  (Obscure rarities are excluded from the statistic). Members are classified as **exact** (same
+  on'yomi), **regular variant** (voicing or vowel-length shift such as コウ→ゴウ, コウ→コ,
+  ハク→バク), or **irregular** (anything else, e.g. コウ→クウ or コウ→カク). The learner sees
+  "工 → コウ: 7 of 9 members follow the rule" and sees the exceptions named. Measured on the
+  real data: 口→コウ 85 %, 工→コウ 78 %, 交→コウ 100 %, 寺→ジ 57 %.
 - **Present but not phonetic**: some kanji contain a component that carries no sound (工 in 左).
   These are labelled so the learner learns *when not to* apply the heuristic.
 - **Multi-reading components**: a component with two established series readings (生: セイ and

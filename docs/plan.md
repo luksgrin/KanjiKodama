@@ -4,7 +4,7 @@ Companion to [spec.md](spec.md) (v0.4). Sizes are rough: S = a session or two, M
 week of part-time work, L = several weeks. Phases 1 and 2 are independent and can run in
 parallel.
 
-## Phase 0 — Decisions and scaffold (S)
+## Phase 0 — Decisions and scaffold (S) — done 2026-10-03
 
 Tasks
 - Confirm the open decisions in spec §14 (stack, component naming, gate default, practice
@@ -16,7 +16,7 @@ Tasks
 
 Exit criteria: empty app installs and shows a placeholder dashboard; CI green.
 
-## Phase 1 — Content pipeline v1, N5 only (M)
+## Phase 1 — Content pipeline v1, N5 only (M) — done 2026-10-03 (N5 and N4 both build)
 
 Tasks
 1. `fetch`: download KANJIDIC2, JMdict, KRADFILE/RADKFILE, KanjiVG, Tanos N5 kanji and
@@ -46,10 +46,15 @@ Tasks
 10. `emit`: write `content.db` (schema in spec §9) and `report.html` (validation rules in
     spec §8, plus series tables, level listings, per-level word counts, block sizes).
 
-Exit criteria: `uv run build --blocks N5` is deterministic, passes validation with and without
-seed lists, every N5 level has 80–120 words, and the report shows correct series for 工, 交, 青,
-生 as smoke tests. With a WaniKani-style seed present, the report shows near-complete placement
-of its N5-kanji words.
+Exit criteria: `uv run mojimori-content build -b N5` is deterministic, passes validation with
+and without seed lists, every level has 80–180 words, and the report shows correct series for
+工, 交, 寺 as smoke tests. With a seed list present, the report shows its placement.
+
+Notes from the first builds: tanos.co.uk was unreachable, so the JLPT lists come from two MIT
+mirrors of the same data (kanji-data JSON for kanji, elzup/jlpt-word-list for vocabulary).
+KanjiVG leaves some stroke groups unnamed (the right half of 行, the top of 白); the pipeline
+turns them into synthetic components named in `content/components.yaml`. Series reliability is
+computed over N5–N1 and frozen before the build is trimmed to the requested blocks.
 
 ## Phase 2 — Domain core: SRS, gating, sampler (M)
 

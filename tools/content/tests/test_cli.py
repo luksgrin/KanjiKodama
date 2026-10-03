@@ -1,16 +1,24 @@
+import pytest
+import typer
 from typer.testing import CliRunner
 
-from mojimori_content.cli import app
+from mojimori_content.cli import _blocks, app
 
 runner = CliRunner()
 
 
-def test_build_accepts_known_blocks() -> None:
-    result = runner.invoke(app, ["build", "--blocks", "N5", "--blocks", "n4"])
+def test_blocks_helper_normalises_and_defaults() -> None:
+    assert _blocks(None) == ["N5"]
+    assert _blocks(["n5", "N4", "obscure"]) == ["N5", "N4", "OBSCURE"]
+
+
+def test_blocks_helper_rejects_unknown() -> None:
+    with pytest.raises(typer.BadParameter):
+        _blocks(["N9"])
+
+
+def test_help_lists_commands() -> None:
+    result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "N5, N4" in result.output
-
-
-def test_build_rejects_unknown_block() -> None:
-    result = runner.invoke(app, ["build", "--blocks", "N9"])
-    assert result.exit_code != 0
+    for cmd in ("fetch", "classify", "build"):
+        assert cmd in result.output

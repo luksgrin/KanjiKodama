@@ -9,8 +9,9 @@ on'yomi from it. Open data only, no accounts, no paid services.
 
 ## Status
 
-Phase 0 done: Gradle multi-module scaffold, CI, content-pipeline skeleton. Phase 1 (content
-pipeline for N5) is next.
+Phases 0 and 1 done: Gradle multi-module scaffold, CI, and a content pipeline that builds
+`content.db` for N5 and N4 from open sources in about 12 seconds. Phase 2 (SRS engine,
+gating and practice sampler) is next.
 
 ## Building
 
@@ -32,7 +33,7 @@ Content pipeline:
 ```sh
 cd tools/content
 uv sync
-uv run mojimori-content build --blocks N5
+uv run mojimori-content build -b N5 -b N4   # writes out/content.db and out/report.html
 uv run pytest
 ```
 
