@@ -61,7 +61,7 @@ KanjiVG leaves some stroke groups unnamed (the right half of 行, the top of 白
 turns them into synthetic components named in `content/components.yaml`. Series reliability is
 computed over N5–N1 and frozen before the build is trimmed to the requested blocks.
 
-## Phase 2 — Domain core: SRS, gating, sampler (M)
+## Phase 2 — Domain core: SRS, gating, sampler (M) — done 2026-10-03
 
 Pure Kotlin in `core/model` and `core/srs`, no Android dependencies.
 
@@ -79,6 +79,14 @@ Tasks
   returns locked items; converter round-trips every reading in the N5 content DB.
 
 Exit criteria: 100 % of spec rules covered by JVM tests.
+
+Delivered in `core/model` (Curriculum, Assignment, ReviewRecord, PracticeRecord, SrsSettings,
+PracticeSettings) and `core/srs` (SrsStage, StageTransition, Scheduler, UnlockEngine,
+LessonQueue, ReviewQueue, PracticeSampler, AnswerChecker, KanaConverter); 75 JVM tests. Times
+are epoch milliseconds so the modules stay free of JVM/Android date types. Two behaviours worth
+knowing: `KanaConverter.toHiragana` turns a trailing lone "n" into ん (for submitted answers)
+while `toHiraganaLive` keeps it latin (for typing); the sampler's block weights are 60/25/15 at
+Focus 0.5, uniform at 0, current-block-only at 1.
 
 ## Phase 3 — App MVP loop (L)
 

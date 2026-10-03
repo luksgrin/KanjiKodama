@@ -9,9 +9,11 @@ on'yomi from it. Open data only, no accounts, no paid services.
 
 ## Status
 
-Phases 0 and 1 done: Gradle multi-module scaffold, CI, and a content pipeline that builds
-`content.db` for N5 and N4 from open sources in about 12 seconds. Phase 2 (SRS engine,
-gating and practice sampler) is next.
+Phases 0–2 done: Gradle multi-module scaffold and CI; a content pipeline that builds
+`content.db` for N5 and N4 from frozen open sources in about 12 seconds; and the pure Kotlin
+domain core (SRS scheduler, unlock and block-gate engine, lesson/review queues, practice
+sampler, answer checker, romaji→kana converter) with 75 JVM tests. Phase 3 (the app loop:
+content and progress databases, dashboard, lessons, reviews, practice) is next.
 
 ## Building
 
