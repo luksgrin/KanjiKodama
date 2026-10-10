@@ -21,12 +21,12 @@ public final class Identification {
     /**
      * The name of the app.
      */
-    public static final String APP_NAME = "Smouldering Durtles";
+    public static final String APP_NAME = "MojiMori";
 
     /**
      * The name of the app as used in a User-Agent HTTP header.
      */
-    public static final String APP_NAME_UA = "Smouldering Durtles";
+    public static final String APP_NAME_UA = "MojiMori";
 
     /**
      * The name of the app as used in URI schemes.
@@ -36,27 +36,27 @@ public final class Identification {
     /**
      * The name of the author.
      */
-    public static final String AUTHOR_NAME = "Jerry Cooke";
+    public static final String AUTHOR_NAME = "luksgrin";
 
     /**
      * The email address of the author.
      */
-    public static final String AUTHOR_EMAIL = "contact@jhcooke.com";
+    public static final String AUTHOR_EMAIL = "";
 
     /**
      * The WaniKani username of the author.
      */
-    public static final String AUTHOR_USERNAME = "joeni";
+    public static final String AUTHOR_USERNAME = "";
 
     /**
      * Support URL for the app.
      */
-    public static final String SUPPORT_URL = "https://www.jhcooke.com/sd";
+    public static final String SUPPORT_URL = "https://github.com/luksgrin/MojiMori";
 
     /**
      * Store URL for the app.
      */
-    public static final String STORE_URL = "https://www.jhcooke.com/sd";
+    public static final String STORE_URL = "https://github.com/luksgrin/MojiMori";
 
     private Identification() {
         //

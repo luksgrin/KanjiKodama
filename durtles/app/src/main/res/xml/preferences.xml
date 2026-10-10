@@ -1260,6 +1260,28 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:key="progress" app:title="Progress">
+
+        <Preference
+            app:title="Save progress to a file"
+            app:key="progress_save"
+            app:singleLineTitle="false"
+            app:summary="Save a copy of your progress, for example to Google Drive (choose Drive in the file picker)"/>
+
+        <Preference
+            app:title="Restore progress from a file"
+            app:key="progress_restore"
+            app:singleLineTitle="false"
+            app:summary="Replace local progress with a saved copy"/>
+
+        <Preference
+            app:title="Import progress from WaniKani"
+            app:key="progress_import_wanikani"
+            app:singleLineTitle="false"
+            app:summary="Replace local progress with your WaniKani account's progress, using an API token"/>
+
+    </PreferenceCategory>
+
     <PreferenceCategory app:key="about" app:title="Other actions">
 
         <Preference

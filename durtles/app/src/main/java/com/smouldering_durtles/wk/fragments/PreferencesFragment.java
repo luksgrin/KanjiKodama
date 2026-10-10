@@ -17,6 +17,7 @@
 package com.smouldering_durtles.wk.fragments;
 
 import com.smouldering_durtles.wk.local.LocalMode;
+import com.smouldering_durtles.wk.local.ProgressPreferences;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -84,6 +85,8 @@ import static com.smouldering_durtles.wk.util.TextUtil.renderHtml;
  * Fragment for preferences.
  */
 public final class PreferencesFragment extends PreferenceFragmentCompat {
+    private final ProgressPreferences progressPreferences = new ProgressPreferences(this);
+
     @Override
     public void onCreatePreferences(final @Nullable Bundle savedInstanceState, final @Nullable String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
@@ -293,6 +296,8 @@ public final class PreferencesFragment extends PreferenceFragmentCompat {
         setOnClickGoToActivity("font_import", FontImportActivity.class);
         setOnClickGoToActivity("keyboard_help", KeyboardHelpActivity.class);
         setOnClickGoToActivity("data_import_export", DataImportExportActivity.class);
+
+        progressPreferences.attach();
 
         // Must run last: the code above re-shows some account-only entries.
         LocalMode.applyToPreferences(this);

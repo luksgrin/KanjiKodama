@@ -1,0 +1,117 @@
+/*
+ * MojiMori local mode: one-shot import of WaniKani progress through the API.
+ * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
+ */
+
+package com.smouldering_durtles.wk.tasks;
+
+import com.smouldering_durtles.wk.GlobalSettings;
+import com.smouldering_durtles.wk.WkApplication;
+import com.smouldering_durtles.wk.api.model.ApiAssignment;
+import com.smouldering_durtles.wk.api.model.ApiLevelProgression;
+import com.smouldering_durtles.wk.api.model.ApiReviewStatistic;
+import com.smouldering_durtles.wk.api.model.ApiStudyMaterial;
+import com.smouldering_durtles.wk.api.model.ApiUser;
+import com.smouldering_durtles.wk.db.AppDatabase;
+import com.smouldering_durtles.wk.local.ProgressStore;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+/**
+ * Pulls the learner's assignments, review statistics, study materials and level progressions from WaniKani
+ * and replaces all local progress with them. This is the only place local mode talks to the WaniKani API,
+ * and it only runs when the learner asks for it and confirms.
+ *
+ * <p>Everything is downloaded first; local progress is only touched once every download succeeded.</p>
+ */
+public final class WaniKaniImporter {
+    private WaniKaniImporter() {
+        //
+    }
+
+    /**
+     * Check the token and fetch the account name and level, without changing anything.
+     *
+     * @param apiKey the personal access token
+     * @return the user
+     * @throws Exception with a readable message when the token or the network fails
+     */
+    public static ApiUser checkToken(final String apiKey) throws Exception {
+        final AppDatabase db = WkApplication.getDatabase();
+        final @Nullable String previousKey = GlobalSettings.Api.getApiKey();
+        GlobalSettings.Api.setApiKey(apiKey);
+        db.propertiesDao().setApiKeyRejected(false);
+        db.propertiesDao().setApiInError(false);
+        final @Nullable ApiUser user = ApiTask.singleEntityApiCall("/v2/user", ApiUser.class);
+        final boolean rejected = db.propertiesDao().isApiKeyRejected();
+        db.propertiesDao().setApiKeyRejected(false);
+        db.propertiesDao().setApiInError(false);
+        if (user == null) {
+            GlobalSettings.Api.setApiKey(previousKey);
+            throw new IllegalStateException(rejected
+                    ? "WaniKani rejected this API token."
+                    : "Could not reach WaniKani. Check the connection and try again.");
+        }
+        return user;
+    }
+
+    /**
+     * Download everything and replace local progress with it.
+     *
+     * @param user the user returned by {@link #checkToken(String)}
+     * @return a short summary of what was imported
+     * @throws Exception with a readable message if a download failed; local progress is then unchanged
+     */
+    public static String importAll(final ApiUser user) throws Exception {
+        final AppDatabase db = WkApplication.getDatabase();
+        final List<ApiAssignment> assignments = new ArrayList<>();
+        final List<ApiReviewStatistic> statistics = new ArrayList<>();
+        final List<ApiStudyMaterial> materials = new ArrayList<>();
+        final List<ApiLevelProgression> levels = new ArrayList<>();
+
+        final boolean ok = ApiTask.collectionApiCall("/v2/assignments", ApiAssignment.class, assignments::add)
+                && ApiTask.collectionApiCall("/v2/review_statistics", ApiReviewStatistic.class, statistics::add)
+                && ApiTask.collectionApiCall("/v2/study_materials", ApiStudyMaterial.class, materials::add)
+                && ApiTask.collectionApiCall("/v2/level_progressions", ApiLevelProgression.class, levels::add);
+        db.propertiesDao().setApiKeyRejected(false);
+        db.propertiesDao().setApiInError(false);
+        if (!ok) {
+            throw new IllegalStateException("The download from WaniKani was interrupted. Local progress was not changed.");
+        }
+
+        db.runInTransaction(() -> {
+            ProgressStore.resetProgress(db);
+            for (final @Nullable ApiAssignment a: assignments) {
+                if (a != null) {
+                    db.subjectSyncDao().insertOrUpdateAssignment(a);
+                }
+            }
+            for (final @Nullable ApiReviewStatistic s: statistics) {
+                if (s != null) {
+                    db.subjectSyncDao().insertOrUpdateReviewStatistic(s);
+                }
+            }
+            for (final @Nullable ApiStudyMaterial m: materials) {
+                if (m != null) {
+                    db.subjectSyncDao().insertOrUpdateStudyMaterial(m, false);
+                }
+            }
+            for (final @Nullable ApiLevelProgression p: levels) {
+                if (p != null) {
+                    db.levelProgressionDao().insertOrUpdate(p);
+                }
+            }
+            db.propertiesDao().setUserLevel(Math.max(1, user.getLevel()));
+            if (user.getUsername() != null) {
+                db.propertiesDao().setUsername(user.getUsername());
+            }
+        });
+        ProgressStore.afterChange(db);
+
+        return "Imported level " + db.propertiesDao().getUserLevel() + ": " + assignments.size() + " items, "
+                + statistics.size() + " review statistics, " + materials.size() + " notes.";
+    }
+}
