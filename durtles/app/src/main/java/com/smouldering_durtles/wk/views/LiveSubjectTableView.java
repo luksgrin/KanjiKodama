@@ -110,7 +110,7 @@ public abstract class LiveSubjectTableView extends TableLayout {
             if (i >= getChildCount()) {
                 final LiveSubjectTableRowView row = new LiveSubjectTableRowView(getContext());
                 final LayoutParams rowLayoutParams = new LayoutParams(0, 0);
-                rowLayoutParams.setMargins(0, 0, 0, 0);
+                rowLayoutParams.setMargins(0, 0, 0, (int) (4 * getResources().getDisplayMetrics().density));
                 rowLayoutParams.width = MATCH_PARENT;
                 rowLayoutParams.height = WRAP_CONTENT;
                 addView(row, rowLayoutParams);
