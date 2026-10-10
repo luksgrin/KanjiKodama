@@ -112,4 +112,5 @@
     <color name="wkNordStrokeDiagramGhostColor">#2E3440</color>
 
     <color name="wkBlackColorBackground">#000000</color>
+    <color name="mojimori_icon_background">#1B4332</color>
 </resources>
