@@ -160,6 +160,17 @@ public final class WkApplication extends MultiDexApplication {
             }
             ed.putBoolean("mojimori_quiz_glyph_bump_applied", true).apply();
         }
+        // MojiMori: the quiz answer field is 22 now; raise it if still at an earlier default (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_answer_22_applied", false)) {
+            final Object v = themePrefs.getAll().get("font_size_question_edit");
+            final android.content.SharedPreferences.Editor ed = themePrefs.edit();
+            if (v instanceof Integer && ((Integer) v == 14 || (Integer) v == 16 || (Integer) v == 20)) {
+                ed.putInt("font_size_question_edit", 22);
+            } else if ("14".equals(v) || "16".equals(v) || "20".equals(v)) {
+                ed.putString("font_size_question_edit", "22");
+            }
+            ed.putBoolean("mojimori_answer_22_applied", true).apply();
+        }
         instance = application;
         database = AppDatabase.getInstance();
         DbLogger.initializeInstance(database);

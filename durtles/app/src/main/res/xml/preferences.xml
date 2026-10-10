@@ -715,7 +715,7 @@
             app:key="font_size_question_edit"
             app:title="Font size of answer input text box"
             app:singleLineTitle="false"
-            app:defaultValue="20"
+            app:defaultValue="22"
             app:min="10"
             android:max="32"
             app:seekBarIncrement="1"

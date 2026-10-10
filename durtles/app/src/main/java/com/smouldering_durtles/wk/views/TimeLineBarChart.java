@@ -72,6 +72,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
     private final Rect rect = new Rect();
     private int colorPrimary = 0;
     private int colorPrimaryTonedDown = 0;
+    private int levelUpColor = 0;
     private int colorWaterfall = 0;
     private float density = 1.0f;
     private float originX = 0;
@@ -125,6 +126,17 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
             colorWaterfall = ThemeUtil.getColor(R.attr.colorWaterfallLine);
             density = context.getResources().getDisplayMetrics().density;
             arrowIcon = ContextCompat.getDrawable(getContext(), ActiveTheme.getCurrentTheme().getLevelUpArrowDrawableId());
+            // MojiMori: level-up arrow and count in mint (a deeper mint on light grounds, for contrast).
+            final int ground = ThemeUtil.getColor(R.attr.tileColorBackground);
+            final boolean lightGround = androidx.core.graphics.ColorUtils.calculateLuminance(ground) > 0.5;
+            levelUpColor = lightGround ? 0xFF3FA383 : ThemeUtil.getColor(androidx.appcompat.R.attr.colorAccent);
+            if (com.smouldering_durtles.wk.local.LocalMode.ENABLED) {
+                arrowIcon = ContextCompat.getDrawable(getContext(), R.drawable.mm_arrow_up);
+            }
+            if (arrowIcon != null) {
+                arrowIcon = arrowIcon.mutate();
+                arrowIcon.setColorFilter(new android.graphics.PorterDuffColorFilter(levelUpColor, android.graphics.PorterDuff.Mode.SRC_IN));
+            }
             init();
         });
     }
@@ -323,7 +335,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         final float countAscent = paint.ascent();
         final float countDescent = paint.descent();
         paint.setTextSize(density * 11);
-        paint.setColor(colorPrimaryTonedDown);
+        paint.setColor(levelUpColor);
         float lastX = -1;
 
         for (int i=0; i<entries.size(); i++) {
