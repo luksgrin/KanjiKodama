@@ -26,6 +26,152 @@ import java.util.List;
  */
 @SuppressWarnings({"JavaDoc", "WeakerAccess", "RedundantSuppression"})
 public enum ActiveTheme {
+    MOJIMORI_LIGHT(
+            true,
+            R.style.MojiMoriLightTheme,
+            R.drawable.ic_arrow_up_small,
+            new int[] {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+            new int[] {0xFF1976D2, 0xFFE91E63, 0xFF7B1FA2, 0xFF7B1FA2},
+            new int[] {0xFF1976D2, 0xFFE91E63, 0xFF7B1FA2, 0xFF7B1FA2},
+            new int[] {0xFF1976D2, 0xFFE91E63, 0xFF7B1FA2, 0xFF7B1FA2},
+            new int[] {0xFFE9F2EA, 0xFFB7C9BD, 0xFFD81B60, 0xFF8E24AA, 0xFF1E88E5, 0xFF00ACC1, 0xFF424242},
+            new int[] {0xFFF48FB1, 0xFFF06292, 0xFFEC407A, 0xFFD81B60},
+            new int[] {0xFFAB47BC, 0xFF8E24AA},
+            new int[] {0xFF2D6A4F, 0xFFD81B60, 0xFFEC407A, 0xFFF06292, 0xFFF48FB1, 0xFFF8BBD0, 0xFFFCE4EC, 0xFFFDF0F5, 0xFFB7C9BD, 0xFFE9F2EA},
+            new int[] {0xFF909000, 0xFF909000, 0xFF00A000, 0xFFA00000, 0xFFFFFFFF, 0xFF909000}) {
+        @Override
+        protected void loadCustomizations() {
+            final List<Integer> custom = GlobalSettings.Display.getThemeCustomizations(this);
+            for (int i=0; i<4; i++) {
+                final int color = custom.get(i);
+                subjectTypeTextColors[i] = baseSubjectTypeTextColors[i];
+                subjectTypeBackgroundColors[i] = (color == 0) ? baseSubjectTypeBackgroundColors[i] : color;
+                subjectTypeButtonBackgroundColors[i] = (color == 0) ? baseSubjectTypeButtonBackgroundColors[i] : color;
+            }
+            for (int i=0; i<4; i++) {
+                if (i < 3) {
+                    final int color = custom.get(i);
+                    subjectTypeBucketColors[i] = (color == 0) ? baseSubjectTypeBucketColors[i] : color;
+                }
+            }
+            for (int i=0; i<7; i++) {
+                final int color = custom.get(i+4);
+                stageBucketColors7[i] = (color == 0) ? baseStageBucketColors[i] : color;
+            }
+            final int[] prePassed = new int[4];
+            final int[] passed = new int[2];
+            for (int i=0; i<4; i++) {
+                final int color = custom.get(i+11);
+                prePassed[i] = (color == 0) ? baseStagePrePassedBucketColors[i] : color;
+            }
+            for (int i=0; i<2; i++) {
+                final int color = custom.get(i+15);
+                passed[i] = (color == 0) ? baseStagePassedBucketColors[i] : color;
+            }
+            for (int i=0; i<10; i++) {
+                final int color = custom.get(i+17);
+                levelProgressionBucketColors[i] = (color == 0) ? baseLevelProgressionBucketColors[i] : color;
+            }
+            for (int i=0; i<6; i++) {
+                final int color = custom.get(i+27);
+                ankiColors[i] = (color == 0) ? baseAnkiColors[i] : color;
+            }
+            stageBucketColors4[0] = stageBucketColors7[2];
+            stageBucketColors4[1] = stageBucketColors7[3];
+            stageBucketColors4[2] = stageBucketColors7[4];
+            stageBucketColors4[3] = stageBucketColors7[5];
+            stageBucketColors5[0] = stageBucketColors7[2];
+            stageBucketColors5[1] = stageBucketColors7[3];
+            stageBucketColors5[2] = stageBucketColors7[4];
+            stageBucketColors5[3] = stageBucketColors7[5];
+            stageBucketColors5[4] = stageBucketColors7[6];
+            stageDeepBucketColors[0] = stageBucketColors7[0];
+            stageDeepBucketColors[1] = stageBucketColors7[1];
+            stageDeepBucketColors[2] = prePassed[0];
+            stageDeepBucketColors[3] = prePassed[1];
+            stageDeepBucketColors[4] = prePassed[2];
+            stageDeepBucketColors[5] = prePassed[3];
+            stageDeepBucketColors[6] = passed[0];
+            stageDeepBucketColors[7] = passed[1];
+            stageDeepBucketColors[8] = stageBucketColors7[4];
+            stageDeepBucketColors[9] = stageBucketColors7[5];
+            stageDeepBucketColors[10] = stageBucketColors7[6];
+            dirty = false;
+        }
+    },
+    MOJIMORI_DARK(
+            true,
+            R.style.MojiMoriDarkTheme,
+            R.drawable.ic_arrow_up_small_dark,
+            new int[] {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+            new int[] {0xFF1976D2, 0xFFE91E63, 0xFF7B1FA2, 0xFF7B1FA2},
+            new int[] {0xFF1976D2, 0xFFE91E63, 0xFF7B1FA2, 0xFF7B1FA2},
+            new int[] {0xFF1976D2, 0xFFE91E63, 0xFF7B1FA2, 0xFF7B1FA2},
+            new int[] {0xFF16241C, 0xFF5C6B63, 0xFFD81B60, 0xFF8E24AA, 0xFF1E88E5, 0xFF00ACC1, 0xFF616161},
+            new int[] {0xFFF48FB1, 0xFFF06292, 0xFFEC407A, 0xFFD81B60},
+            new int[] {0xFFAB47BC, 0xFF8E24AA},
+            new int[] {0xFF52B788, 0xFFD81B60, 0xFFEC407A, 0xFFF06292, 0xFFF48FB1, 0xFFF8BBD0, 0xFFAD7A90, 0xFF7D5A6A, 0xFF5C6B63, 0xFF16241C},
+            new int[] {0xFF606000, 0xFF606000, 0xFF006000, 0xFF600000, 0xFFE8E8E8, 0xFF606000}) {
+        @Override
+        protected void loadCustomizations() {
+            final List<Integer> custom = GlobalSettings.Display.getThemeCustomizations(this);
+            for (int i=0; i<4; i++) {
+                final int color = custom.get(i);
+                subjectTypeTextColors[i] = baseSubjectTypeTextColors[i];
+                subjectTypeBackgroundColors[i] = (color == 0) ? baseSubjectTypeBackgroundColors[i] : color;
+                subjectTypeButtonBackgroundColors[i] = (color == 0) ? baseSubjectTypeButtonBackgroundColors[i] : color;
+            }
+            for (int i=0; i<4; i++) {
+                if (i < 3) {
+                    final int color = custom.get(i);
+                    subjectTypeBucketColors[i] = (color == 0) ? baseSubjectTypeBucketColors[i] : color;
+                }
+            }
+            for (int i=0; i<7; i++) {
+                final int color = custom.get(i+4);
+                stageBucketColors7[i] = (color == 0) ? baseStageBucketColors[i] : color;
+            }
+            final int[] prePassed = new int[4];
+            final int[] passed = new int[2];
+            for (int i=0; i<4; i++) {
+                final int color = custom.get(i+11);
+                prePassed[i] = (color == 0) ? baseStagePrePassedBucketColors[i] : color;
+            }
+            for (int i=0; i<2; i++) {
+                final int color = custom.get(i+15);
+                passed[i] = (color == 0) ? baseStagePassedBucketColors[i] : color;
+            }
+            for (int i=0; i<10; i++) {
+                final int color = custom.get(i+17);
+                levelProgressionBucketColors[i] = (color == 0) ? baseLevelProgressionBucketColors[i] : color;
+            }
+            for (int i=0; i<6; i++) {
+                final int color = custom.get(i+27);
+                ankiColors[i] = (color == 0) ? baseAnkiColors[i] : color;
+            }
+            stageBucketColors4[0] = stageBucketColors7[2];
+            stageBucketColors4[1] = stageBucketColors7[3];
+            stageBucketColors4[2] = stageBucketColors7[4];
+            stageBucketColors4[3] = stageBucketColors7[5];
+            stageBucketColors5[0] = stageBucketColors7[2];
+            stageBucketColors5[1] = stageBucketColors7[3];
+            stageBucketColors5[2] = stageBucketColors7[4];
+            stageBucketColors5[3] = stageBucketColors7[5];
+            stageBucketColors5[4] = stageBucketColors7[6];
+            stageDeepBucketColors[0] = stageBucketColors7[0];
+            stageDeepBucketColors[1] = stageBucketColors7[1];
+            stageDeepBucketColors[2] = prePassed[0];
+            stageDeepBucketColors[3] = prePassed[1];
+            stageDeepBucketColors[4] = prePassed[2];
+            stageDeepBucketColors[5] = prePassed[3];
+            stageDeepBucketColors[6] = passed[0];
+            stageDeepBucketColors[7] = passed[1];
+            stageDeepBucketColors[8] = stageBucketColors7[4];
+            stageDeepBucketColors[9] = stageBucketColors7[5];
+            stageDeepBucketColors[10] = stageBucketColors7[6];
+            dirty = false;
+        }
+    },
     LIGHT(
             true,
             R.style.WKLightTheme,

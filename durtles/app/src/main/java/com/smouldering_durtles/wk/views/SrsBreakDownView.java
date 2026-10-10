@@ -101,7 +101,8 @@ public final class SrsBreakDownView extends ConstraintLayout {
                         ActiveTheme.getShallowStageBucketColors5()[i],
                         PorterDuff.Mode.SRC_ATOP));
             }
-            if (ActiveTheme.getCurrentTheme() == ActiveTheme.LIGHT) {
+            final ActiveTheme current = ActiveTheme.getCurrentTheme();
+            if (current == ActiveTheme.LIGHT || current == ActiveTheme.MOJIMORI_LIGHT || current == ActiveTheme.MOJIMORI_DARK) {
                 counts.get(i).setShadowLayer(3, 1, 1, Color.BLACK);
             }
             else {

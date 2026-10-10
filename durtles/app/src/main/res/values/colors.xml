@@ -113,4 +113,33 @@
 
     <color name="wkBlackColorBackground">#000000</color>
     <color name="mojimori_icon_background">#1B4332</color>
+    <!-- MojiMori theme palette -->
+    <color name="mmOnColor">#FFFFFF</color>
+    <color name="mmLightcolorPrimary">#1B4332</color>
+    <color name="mmLightcolorPrimaryDark">#081C15</color>
+    <color name="mmLightcolorPrimaryLight">#2D6A4F</color>
+    <color name="mmLightcolorPrimaryTonedDown">#40916C</color>
+    <color name="mmLightcolorAccent">#52B788</color>
+    <color name="mmLightcolorBackground">#F4F7F3</color>
+    <color name="mmLightcolorDivider">#B7C9BD</color>
+    <color name="mmLighttoolbarColorBackground">#1B4332</color>
+    <color name="mmLightbrowseLevelButtonColorBackground">#D8F3DC</color>
+    <color name="mmLighttileColorBackground">#E9F2EA</color>
+    <color name="mmLightcolorLevelProgressTarget">#6B4F3A</color>
+    <color name="mmLightbuttonHighlightColor">#95D5B2</color>
+    <color name="mmLightwindowBackground">#F4F7F3</color>
+    <color name="mmDarkcolorPrimary">#52B788</color>
+    <color name="mmDarkcolorPrimaryDark">#081C15</color>
+    <color name="mmDarkcolorPrimaryLight">#74C69D</color>
+    <color name="mmDarkcolorPrimaryTonedDown">#40916C</color>
+    <color name="mmDarkcolorAccent">#95D5B2</color>
+    <color name="mmDarkcolorControlActivated">#52B788</color>
+    <color name="mmDarkcolorBackground">#0F1A14</color>
+    <color name="mmDarkcolorDivider">#2D3B33</color>
+    <color name="mmDarktoolbarColorBackground">#1B4332</color>
+    <color name="mmDarkbrowseLevelButtonColorBackground">#1B4332</color>
+    <color name="mmDarktileColorBackground">#16241C</color>
+    <color name="mmDarkcolorLevelProgressTarget">#C9A27E</color>
+    <color name="mmDarkbuttonHighlightColor">#2D6A4F</color>
+    <color name="mmDarkwindowBackground">#0F1A14</color>
 </resources>

@@ -242,6 +242,43 @@
         <item name="WK_Button_Borderless">@style/WK.Button.Borderless</item>
     </style>
 
+
+    <!-- MojiMori forest palette: forest green #1B4332, moss #52B788, bark #6B4F3A -->
+    <style name="MojiMoriLightTheme" parent="WKLightTheme">
+        <item name="colorPrimary">@color/mmLightcolorPrimary</item>
+        <item name="colorPrimaryDark">@color/mmLightcolorPrimaryDark</item>
+        <item name="colorPrimaryInverse">@color/mmOnColor</item>
+        <item name="colorPrimaryLight">@color/mmLightcolorPrimaryLight</item>
+        <item name="colorPrimaryTonedDown">@color/mmLightcolorPrimaryTonedDown</item>
+        <item name="colorAccent">@color/mmLightcolorAccent</item>
+        <item name="colorBackground">@color/mmLightcolorBackground</item>
+        <item name="colorDivider">@color/mmLightcolorDivider</item>
+        <item name="toolbarColorBackground">@color/mmLighttoolbarColorBackground</item>
+        <item name="browseLevelButtonColorBackground">@color/mmLightbrowseLevelButtonColorBackground</item>
+        <item name="tileColorBackground">@color/mmLighttileColorBackground</item>
+        <item name="colorLevelProgressTarget">@color/mmLightcolorLevelProgressTarget</item>
+        <item name="buttonHighlightColor">@color/mmLightbuttonHighlightColor</item>
+        <item name="android:windowBackground">@color/mmLightwindowBackground</item>
+    </style>
+
+    <style name="MojiMoriDarkTheme" parent="WKDarkTheme">
+        <item name="colorPrimary">@color/mmDarkcolorPrimary</item>
+        <item name="colorPrimaryDark">@color/mmDarkcolorPrimaryDark</item>
+        <item name="colorPrimaryInverse">@color/mmOnColor</item>
+        <item name="colorPrimaryLight">@color/mmDarkcolorPrimaryLight</item>
+        <item name="colorPrimaryTonedDown">@color/mmDarkcolorPrimaryTonedDown</item>
+        <item name="colorAccent">@color/mmDarkcolorAccent</item>
+        <item name="colorControlActivated">@color/mmDarkcolorControlActivated</item>
+        <item name="colorBackground">@color/mmDarkcolorBackground</item>
+        <item name="colorDivider">@color/mmDarkcolorDivider</item>
+        <item name="toolbarColorBackground">@color/mmDarktoolbarColorBackground</item>
+        <item name="browseLevelButtonColorBackground">@color/mmDarkbrowseLevelButtonColorBackground</item>
+        <item name="tileColorBackground">@color/mmDarktileColorBackground</item>
+        <item name="colorLevelProgressTarget">@color/mmDarkcolorLevelProgressTarget</item>
+        <item name="buttonHighlightColor">@color/mmDarkbuttonHighlightColor</item>
+        <item name="android:windowBackground">@color/mmDarkwindowBackground</item>
+    </style>
+
     <style name="WKToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
     </style>
 

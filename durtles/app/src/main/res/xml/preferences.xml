@@ -89,7 +89,7 @@
             app:singleLineTitle="false"
             app:entries="@array/themes"
             app:entryValues="@array/themeValues"
-            app:defaultValue="LIGHT"/>
+            app:defaultValue="MOJIMORI_LIGHT"/>
 
         <ListPreference
             app:key="nightTheme"
@@ -97,7 +97,7 @@
             app:singleLineTitle="false"
             app:entries="@array/themes"
             app:entryValues="@array/themeValues"
-            app:defaultValue="DARK"/>
+            app:defaultValue="MOJIMORI_DARK"/>
 
         <Preference
             app:title="Theme Customisation"

@@ -113,6 +113,15 @@ public final class WkApplication extends MultiDexApplication {
     }
 
     private static void initialize(final WkApplication application) {
+        // MojiMori: switch existing installs to the MojiMori themes once; later choices are respected.
+        final android.content.SharedPreferences themePrefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(application);
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_theme_applied", false)) {
+            themePrefs.edit()
+                    .putString("theme", "MOJIMORI_LIGHT")
+                    .putString("nightTheme", "MOJIMORI_DARK")
+                    .putBoolean("mojimori_theme_applied", true)
+                    .apply();
+        }
         instance = application;
         database = AppDatabase.getInstance();
         DbLogger.initializeInstance(database);
