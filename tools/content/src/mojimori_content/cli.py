@@ -75,5 +75,16 @@ def build(
     run(_blocks(blocks), out_dir=out or OUT_DIR, refresh_upstream=refresh_upstream)
 
 
+@app.command("export-sound")
+def export_sound(
+    out: Annotated[Path | None, typer.Option(help="Output file.")] = None,
+) -> None:
+    """Export component roles and phonetic series for the offline app."""
+    from .config import REPO_DIR
+    from .export_sound import export
+
+    export(out or REPO_DIR / "durtles/app/src/main/assets/sound-components.db")
+
+
 if __name__ == "__main__":
     app()

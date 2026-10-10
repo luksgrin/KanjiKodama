@@ -16,6 +16,9 @@
 
 package com.smouldering_durtles.wk.views;
 
+import static com.smouldering_durtles.wk.util.TextUtil.renderHtml;
+import com.smouldering_durtles.wk.enums.SubjectType;
+import com.smouldering_durtles.wk.local.SoundComponents;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -93,6 +96,8 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
     private final ViewProxy readingMnemonic = new ViewProxy();
     private final ViewProxy readingHint = new ViewProxy();
     private final ViewProxy readingNote = new ViewProxy();
+    private final ViewProxy soundDivider = new ViewProxy();
+    private final ViewProxy soundInfo = new ViewProxy();
     private final ViewProxy partsOfSpeechDivider = new ViewProxy();
     private final ViewProxy partsOfSpeech = new ViewProxy();
     private final ViewProxy strokeOrderDivider = new ViewProxy();
@@ -285,6 +290,8 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
         readingMnemonic.setDelegate(this, R.id.readingMnemonic);
         readingHint.setDelegate(this, R.id.readingHint);
         readingNote.setDelegate(this, R.id.readingNote);
+        soundDivider.setDelegate(this, R.id.soundDivider);
+        soundInfo.setDelegate(this, R.id.soundInfo);
         partsOfSpeechDivider.setDelegate(this, R.id.partsOfSpeechDivider);
         partsOfSpeech.setDelegate(this, R.id.partsOfSpeech);
         strokeOrderDivider.setDelegate(this, R.id.strokeOrderDivider);
@@ -589,6 +596,13 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
         readingNote.setJapaneseLocale();
         readingNote.setLinkMovementMethod();
         readingNote.setVisibility(showReadingRelated && subject.hasReadingNote());
+
+        // MojiMori: parts and sound component
+        final @Nullable String soundHtml = subject.getType() == SubjectType.WANIKANI_KANJI ? SoundComponents.renderHtml(subject) : null;
+        soundDivider.setVisibility(showReadingRelated && soundHtml != null);
+        soundInfo.setText(soundHtml == null ? "" : renderHtml(soundHtml));
+        soundInfo.setJapaneseLocale();
+        soundInfo.setVisibility(showReadingRelated && soundHtml != null);
 
         // Parts of speech
         partsOfSpeechDivider.setVisibility(showMeaningRelated && subject.hasPartsOfSpeech());

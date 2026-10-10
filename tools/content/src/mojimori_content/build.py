@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -23,14 +24,25 @@ def _load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
-def run(blocks: list[str], *, out_dir: Path = OUT_DIR, refresh_upstream: bool = False, log=print) -> Path:
-    t0 = time.time()
-    blocks = [b.upper() for b in blocks]
-    for b in blocks:
-        if b not in BLOCKS:
-            raise ValueError(f"unknown block {b}")
-    fetch_all(refresh_upstream=refresh_upstream, log=log)
+@dataclass
+class Analysis:
+    kd: dict
+    kvg: dict
+    jlpt_words: list
+    classified: dict
+    raw_uses: dict
+    radical_kvg: dict
+    phonetic_of: dict
+    all_series: list
+    series_info: dict
+    series_by_id: dict
+    comp_names: dict
+    pins_all: dict
 
+
+def analyse(*, refresh_upstream: bool = False, log=print) -> Analysis:
+    """Parse sources, classify, decompose and derive phonetic series for every kanji."""
+    fetch_all(refresh_upstream=refresh_upstream, log=log)
     log("parsing KANJIDIC2…")
     kd = kanjidic2.parse(cache_path("kanjidic2"))
     log(f"  {len(kd)} kanji")
@@ -89,6 +101,22 @@ def run(blocks: list[str], *, out_dir: Path = OUT_DIR, refresh_upstream: bool = 
             s_.freeze()
     series_by_id = {s.id: s for s in all_series}
     log(f"phonetic series: {len(all_series)} covering {len(series_info)} kanji")
+
+    return Analysis(kd, kvg, jlpt_words, classified, raw_uses, radical_kvg, phonetic_of, all_series,
+                    series_info, series_by_id, comp_names, pins_all)
+
+
+def run(blocks: list[str], *, out_dir: Path = OUT_DIR, refresh_upstream: bool = False, log=print) -> Path:
+    t0 = time.time()
+    blocks = [b.upper() for b in blocks]
+    for b in blocks:
+        if b not in BLOCKS:
+            raise ValueError(f"unknown block {b}")
+    a = analyse(refresh_upstream=refresh_upstream, log=log)
+    kd, kvg, jlpt_words, classified = a.kd, a.kvg, a.jlpt_words, a.classified
+    raw_uses, radical_kvg, phonetic_of = a.raw_uses, a.radical_kvg, a.phonetic_of
+    all_series, series_info, series_by_id = a.all_series, a.series_info, a.series_by_id
+    comp_names, pins_all = a.comp_names, a.pins_all
 
     # ---- order every block so global level numbers are stable
     block_literals: dict[str, list[str]] = defaultdict(list)

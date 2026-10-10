@@ -33,6 +33,7 @@ tools/content/__pycache__/
 *.db
 *.db-journal
 !app/src/main/assets/content.db
+!durtles/app/src/main/assets/sound-components.db
 
 # Private inputs: seed word lists are personal and never committed
 content/seed_words/*

@@ -17,3 +17,10 @@ def test_classify():
     assert kana.classify("コウ", "コウ") == "exact"
     assert kana.classify("ゴウ", "コウ") == "variant"
     assert kana.classify("カク", "コウ") == "irregular"
+
+
+def test_export_hiragana_conversion():
+    from mojimori_content.export_sound import hira
+
+    assert hira("コウ") == "こう"
+    assert hira("ジョウ") == "じょう"
