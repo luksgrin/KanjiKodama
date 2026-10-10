@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.services;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import android.content.Intent;
 
 import com.smouldering_durtles.wk.GlobalSettings;
@@ -96,7 +97,7 @@ public final class ApiTaskService extends JobIntentService {
                 GlobalSettings.setFirstTimeSetup(1);
                 LiveFirstTimeSetup.getInstance().forceUpdate();
             }
-            if (Session.getInstance().isInactive()) {
+            if (!LocalMode.ENABLED && Session.getInstance().isInactive()) {
                 final Collection<Long> assignmentSubjectIds = db.subjectViewsDao().getPatchedAssignments();
                 if (!assignmentSubjectIds.isEmpty()) {
                     db.assertGetPatchedAssignmentsTask(assignmentSubjectIds);

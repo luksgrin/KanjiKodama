@@ -16,6 +16,9 @@
 
 package com.smouldering_durtles.wk;
 
+import com.smouldering_durtles.wk.local.LocalContent;
+import com.smouldering_durtles.wk.local.LocalMode;
+import com.smouldering_durtles.wk.local.LocalProgression;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -255,6 +258,19 @@ public final class WkApplication extends MultiDexApplication {
             final AppDatabase db = requireNonNull(database);
 
             db.propertiesDao().preload();
+
+            if (LocalMode.ENABLED) {
+                safe(() -> {
+                    LocalContent.importIfNeeded(requireNonNull(instance), db);
+                    LocalProgression.update(db);
+                    db.getOpenHelper().getWritableDatabase().execSQL("DELETE FROM task_definition WHERE taskClass NOT LIKE '%LoadReferenceDataTask'"
+                            + " AND taskClass NOT LIKE '%ScanAudioDownloadStatusTask'");
+                    if (LocalContent.hasContent(db) && GlobalSettings.getFirstTimeSetup() == 0) {
+                        GlobalSettings.setFirstTimeSetup(1);
+                        LiveFirstTimeSetup.getInstance().update();
+                    }
+                });
+            }
 
             safe(() -> {
                 db.propertiesDao().deleteProperty("migration_done_audio1");

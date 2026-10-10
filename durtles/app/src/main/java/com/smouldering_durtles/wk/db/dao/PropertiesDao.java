@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.db.dao;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import android.annotation.SuppressLint;
 
 import androidx.room.Dao;
@@ -450,6 +451,9 @@ public abstract class PropertiesDao {
      * @return the level, or 3 if not known
      */
     public final int getUserMaxLevelGranted() {
+        if (LocalMode.ENABLED) {
+            return LocalMode.MAX_LEVEL;
+        }
         final long end = getLongProperty("user_max_level_granted_checked", -MONTH);
         if (end == 0 || System.currentTimeMillis() > end) {
             return 3;

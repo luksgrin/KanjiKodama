@@ -16,6 +16,8 @@
 
 package com.smouldering_durtles.wk.jobs;
 
+import com.smouldering_durtles.wk.local.LocalMode;
+import com.smouldering_durtles.wk.local.LocalProgression;
 import static com.smouldering_durtles.wk.Constants.SECOND;
 import static com.smouldering_durtles.wk.enums.SessionItemState.REPORTED;
 import static com.smouldering_durtles.wk.enums.SessionType.LESSON;
@@ -239,7 +241,10 @@ public final class ReportSessionItemJob extends Job {
             }
         }
 
-        if (type.isReportingTaskNeeded()) {
+        if (LocalMode.ENABLED) {
+            LocalProgression.update(db);
+        }
+        else if (type.isReportingTaskNeeded()) {
             db.assertReportSessionItemTask(ts, subjectId, assignmentId, type, itemMeaningIncorrect, itemReadingIncorrect, justPassed);
         }
 

@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.activities;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -291,7 +292,7 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
                 return;
             }
 
-            if (GlobalSettings.Api.getSyncOnOpen() && (lastPause == 0 && lastResume == 0
+            if (!LocalMode.ENABLED && GlobalSettings.Api.getSyncOnOpen() && (lastPause == 0 && lastResume == 0
                     || lastResume < lastPause && System.currentTimeMillis() - lastPause > 3 * MINUTE)) {
                 JobRunnerService.schedule(AutoSyncNowJob.class, "");
             }
@@ -299,7 +300,7 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
 
             PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
 
-            if (!showWithoutApiKey()) {
+            if (!showWithoutApiKey() && !LocalMode.ENABLED) {
                 final @Nullable String apiKey = GlobalSettings.Api.getApiKey();
                 if (isEmpty(apiKey)) {
                     goToActivity(NoApiKeyHelpActivity.class);

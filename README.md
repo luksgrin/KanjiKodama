@@ -9,11 +9,19 @@ on'yomi from it. Open data only, no accounts, no paid services.
 
 ## Status
 
-Phases 0–2 done: Gradle multi-module scaffold and CI; a content pipeline that builds
-`content.db` for N5 and N4 from frozen open sources in about 12 seconds; and the pure Kotlin
-domain core (SRS scheduler, unlock and block-gate engine, lesson/review queues, practice
-sampler, answer checker, romaji→kana converter) with 75 JVM tests. Phase 3 (the app loop:
-content and progress databases, dashboard, lessons, reviews, practice) is next.
+Pivoted on 2026-10-10 to an offline fork of Smouldering Durtles in `durtles/`, loaded with a
+private WaniKani content dump (see the pivot section of `docs/plan.md`). It runs fully offline in
+WaniKani order with local unlocks and level-ups. Next: clean-up, then component/on'yomi teaching,
+then a JLPT curriculum mode.
+
+Building the fork (the content asset is generated from `wani-data/` if present):
+
+```sh
+cd durtles
+./gradlew assembleDebug        # installs as "MojiMori - Debug", id app.mojimori.wk.debug
+```
+
+The sections below describe the earlier Kotlin app, kept for reference.
 
 ## Building
 

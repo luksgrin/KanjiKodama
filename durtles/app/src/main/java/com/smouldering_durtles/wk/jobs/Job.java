@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.jobs;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import static com.smouldering_durtles.wk.Constants.DAY;
 import static com.smouldering_durtles.wk.Constants.HOUR;
 import static com.smouldering_durtles.wk.Constants.MINUTE;
@@ -70,6 +71,14 @@ public abstract class Job {
      */
     public static void assertDueTasks(final long hourlySkew) {
         final AppDatabase db = WkApplication.getDatabase();
+
+        if (LocalMode.ENABLED) {
+            // Offline fork: no API sync; only the bundled reference data (JLPT, Joyo, stroke order).
+            if (db.propertiesDao().getReferenceDataVersion() != REFERENCE_DATA_VERSION) {
+                db.loadReferenceData();
+            }
+            return;
+        }
 
         final OnlineStatus onlineStatus = WkApplication.getInstance().getOnlineStatus();
         boolean canTriggerApiTasks = onlineStatus != NO_CONNECTION;

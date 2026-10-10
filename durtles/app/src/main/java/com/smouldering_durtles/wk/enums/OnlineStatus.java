@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.enums;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.GlobalSettings;
 
 /**
@@ -48,7 +49,7 @@ public enum OnlineStatus {
 
         @Override
         public boolean canCallApi() {
-            return true;
+            return !LocalMode.ENABLED;
         }
     },
 
@@ -63,7 +64,7 @@ public enum OnlineStatus {
 
         @Override
         public boolean canCallApi() {
-            return GlobalSettings.Api.getNetworkRule() != NetworkRule.WIFI_ONLY;
+            return !LocalMode.ENABLED && GlobalSettings.Api.getNetworkRule() != NetworkRule.WIFI_ONLY;
         }
     };
 

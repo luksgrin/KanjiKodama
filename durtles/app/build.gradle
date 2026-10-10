@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     defaultConfig {
-        applicationId "com.smouldering_durtles.wk"
+        applicationId "app.mojimori.wk"
         minSdkVersion 21
         targetSdkVersion 36
         compileSdk = 36
@@ -120,3 +120,9 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-Xlint:unchecked'
     options.deprecation = true
 }
+// MojiMori: regenerate assets/wk-content.db from the private dump in ../wani-data when present.
+def buildWkAsset = tasks.register('buildWkAsset', Exec) {
+    workingDir = rootProject.projectDir
+    commandLine 'python3', 'tools/build_wk_asset.py'
+}
+tasks.named('preBuild') { dependsOn buildWkAsset }

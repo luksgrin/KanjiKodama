@@ -1,5 +1,33 @@
 # MojiMori — Implementation Plan
 
+## Pivot 2026-10-10: fork Smouldering Durtles
+
+WaniKani provided a full content dump (in Smouldering Durtles' own database format) with
+permission for internal use. The app is now an offline fork of
+[Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles) (Apache-2.0), imported
+under `durtles/` as a git subtree so upstream fixes can still be pulled. The dump lives in
+`wani-data/` and the generated `durtles/app/src/main/assets/wk-content.db` is built from it by
+`durtles/tools/build_wk_asset.py`; both are git-ignored and never pushed.
+
+There is one scheduler and two curricula. SRS timing is identical in both. A curriculum is only
+the `level` and `lessonPosition` of each subject, so switching modes re-sorts what unlocks next
+without touching progress.
+
+| Step | Scope | Status |
+|------|-------|--------|
+| B1 | Offline fork in WaniKani order: bundled content import, local unlocks and level-ups (`durtles/.../local/`), no API calls, no login, no level cap | done 2026-10-10, verified on an API 36 emulator |
+| B2 | Clean-up: hide account/API settings and sync buttons, audio strategy (download once or text-to-speech), signed release build | next |
+| B3 | Component and on'yomi teaching: phonetic-series section on kanji pages, fed by `tools/content` series data mapped onto WaniKani kanji and radicals | planned |
+| A | JLPT curriculum mode: a second level/lessonPosition mapping (JLPT blocks, block gate) and a setting to switch; add the 255 N1 kanji WaniKani lacks from open data | planned |
+
+The earlier Kotlin app (`app/`, `core/`, `feature/`) and the open-data pipeline (`tools/content`)
+stay in the repo. The pipeline supplies the phonetic-series and JLPT data for B3 and A; the Kotlin
+app is superseded and kept for reference until those steps no longer need it.
+
+---
+
+## Original plan (pre-pivot)
+
 Companion to [spec.md](spec.md) (v0.4). Sizes are rough: S = a session or two, M = about a
 week of part-time work, L = several weeks. Phases 1 and 2 are independent and can run in
 parallel.

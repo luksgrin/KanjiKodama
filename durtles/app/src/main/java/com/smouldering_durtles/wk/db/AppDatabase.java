@@ -16,6 +16,9 @@
 
 package com.smouldering_durtles.wk.db;
 
+import com.smouldering_durtles.wk.local.LocalContent;
+import com.smouldering_durtles.wk.local.LocalMode;
+import com.smouldering_durtles.wk.local.LocalProgression;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -646,6 +649,9 @@ public abstract class AppDatabase extends RoomDatabase {
      * Make sure there are tasks to update all of the core API models.
      */
     public final void assertRefreshForAllModels() {
+        if (LocalMode.ENABLED) {
+            return;
+        }
         assertGetUserTask();
         assertGetAssignmentsTask();
         assertGetReviewStatisticsTask();
@@ -687,6 +693,14 @@ public abstract class AppDatabase extends RoomDatabase {
         srsSystemDao().deleteAll();
         sessionItemDao().deleteAll();
         levelProgressionDao().deleteAll();
+        if (LocalMode.ENABLED) {
+            // Offline fork: a reset means starting over from the bundled content.
+            propertiesDao().setUserLevel(1);
+            LocalContent.importIfNeeded(WkApplication.getInstance(), this);
+            LocalProgression.update(this);
+            loadReferenceData();
+            return;
+        }
         assertGetSubjectsTask();
         assertRefreshForAllModels();
         GlobalSettings.setFirstTimeSetup(0);

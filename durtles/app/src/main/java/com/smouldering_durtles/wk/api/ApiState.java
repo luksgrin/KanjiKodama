@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.api;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.db.AppDatabase;
@@ -86,6 +87,9 @@ public enum ApiState {
      * @return the state
      */
     public static ApiState getCurrentApiState() {
+        if (LocalMode.ENABLED) {
+            return OK;
+        }
         final @Nullable String apiKey = GlobalSettings.Api.getApiKey();
         if (isEmpty(apiKey)) {
             return API_KEY_MISSING;

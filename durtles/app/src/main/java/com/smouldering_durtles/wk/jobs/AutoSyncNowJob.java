@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.jobs;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.db.AppDatabase;
 
@@ -34,6 +35,9 @@ public final class AutoSyncNowJob extends Job {
 
     @Override
     public void runLocal() {
+        if (LocalMode.ENABLED) {
+            return;
+        }
         final AppDatabase db = WkApplication.getDatabase();
         db.assertRefreshForAllModels();
         db.propertiesDao().setLastAudioScanDate(0);
