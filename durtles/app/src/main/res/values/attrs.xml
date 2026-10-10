@@ -63,4 +63,9 @@
     <attr name="WK_TextView_Normal" format="reference"/>
     <attr name="WK_TextView_Large" format="reference"/>
     <attr name="WK_Button_Borderless" format="reference"/>
+    <attr name="mmOutline" format="reference|color"/>
+    <attr name="mmShadow" format="reference|color"/>
+    <attr name="mmButtonFill" format="reference|color"/>
+    <attr name="mmButtonLight" format="reference|color"/>
+    <attr name="mmButtonShade" format="reference|color"/>
 </resources>

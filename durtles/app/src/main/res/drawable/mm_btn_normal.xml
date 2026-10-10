@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pixel pill button: hard shadow, outline, fill, top highlight, bottom shade. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="5dp"><shape android:shape="rectangle"><corners android:radius="999dp"/><solid android:color="?attr/mmOutline"/></shape></item>
+    <item android:bottom="5dp"><shape android:shape="rectangle"><corners android:radius="999dp"/><solid android:color="?attr/mmOutline"/></shape></item>
+    <item android:left="3dp" android:right="3dp" android:top="3dp" android:bottom="8dp"><shape android:shape="rectangle"><corners android:radius="999dp"/><solid android:color="?attr/mmButtonShade"/></shape></item>
+    <item android:left="3dp" android:right="3dp" android:top="3dp" android:bottom="12dp"><shape android:shape="rectangle"><corners android:radius="999dp"/><solid android:color="?attr/mmButtonFill"/></shape></item>
+    <item android:left="14dp" android:right="14dp" android:top="6dp" android:height="3dp" android:gravity="top"><shape android:shape="rectangle"><corners android:radius="2dp"/><solid android:color="?attr/mmButtonLight"/></shape></item>
+</layer-list>

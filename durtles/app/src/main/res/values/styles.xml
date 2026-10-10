@@ -16,6 +16,11 @@
 
 <resources>
     <style name="WKLightTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="mmOutline">#333333</item>
+        <item name="mmShadow">#55000000</item>
+        <item name="mmButtonFill">#DDDDDD</item>
+        <item name="mmButtonLight">#F2F2F2</item>
+        <item name="mmButtonShade">#BBBBBB</item>
         <item name="colorPrimary">@color/wkLightColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkLightColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkLightColorPrimaryInverse</item>
@@ -53,6 +58,11 @@
     </style>
 
     <style name="WKDarkWaniKaniTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="mmOutline">#333333</item>
+        <item name="mmShadow">#55000000</item>
+        <item name="mmButtonFill">#DDDDDD</item>
+        <item name="mmButtonLight">#F2F2F2</item>
+        <item name="mmButtonShade">#BBBBBB</item>
         <item name="colorPrimary">@color/wkLightColorPrimaryLight</item>
         <item name="colorPrimaryDark">@color/wkDarkBrowseLevelButtonColorBackground</item>
         <item name="colorPrimaryInverse">@color/wkLightColorPrimaryInverse</item>
@@ -91,6 +101,11 @@
     </style>
 
     <style name="WKDarkTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="mmOutline">#333333</item>
+        <item name="mmShadow">#55000000</item>
+        <item name="mmButtonFill">#DDDDDD</item>
+        <item name="mmButtonLight">#F2F2F2</item>
+        <item name="mmButtonShade">#BBBBBB</item>
         <item name="colorPrimary">@color/wkDarkColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkDarkColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkDarkColorPrimaryInverse</item>
@@ -129,6 +144,11 @@
     </style>
 
     <style name="WKBlackWaniKaniTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="mmOutline">#333333</item>
+        <item name="mmShadow">#55000000</item>
+        <item name="mmButtonFill">#DDDDDD</item>
+        <item name="mmButtonLight">#F2F2F2</item>
+        <item name="mmButtonShade">#BBBBBB</item>
         <item name="colorPrimary">@color/wkLightColorPrimaryLight</item>
         <item name="colorPrimaryDark">@color/wkDarkBrowseLevelButtonColorBackground</item>
         <item name="colorPrimaryInverse">@color/wkLightColorPrimaryInverse</item>
@@ -167,6 +187,11 @@
     </style>
 
     <style name="WKBlackTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="mmOutline">#333333</item>
+        <item name="mmShadow">#55000000</item>
+        <item name="mmButtonFill">#DDDDDD</item>
+        <item name="mmButtonLight">#F2F2F2</item>
+        <item name="mmButtonShade">#BBBBBB</item>
         <item name="colorPrimary">@color/wkDarkColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkDarkColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkDarkColorPrimaryInverse</item>
@@ -205,6 +230,11 @@
     </style>
 
     <style name="WKNordPolarNightAuroraTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="mmOutline">#333333</item>
+        <item name="mmShadow">#55000000</item>
+        <item name="mmButtonFill">#DDDDDD</item>
+        <item name="mmButtonLight">#F2F2F2</item>
+        <item name="mmButtonShade">#BBBBBB</item>
         <item name="colorPrimary">@color/wkNordColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkNordColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkNordColorPrimaryInverse</item>
@@ -243,43 +273,62 @@
     </style>
 
 
-    <!-- MojiMori forest palette: forest green #1B4332, moss #52B788, bark #6B4F3A -->
+    <!-- MojiMori Pixel Forest: pastel pixel UI; Japanese text always falls back to a clean font. -->
     <style name="MojiMoriLightTheme" parent="WKLightTheme">
-        <item name="colorPrimary">@color/mmLightcolorPrimary</item>
-        <item name="colorPrimaryDark">@color/mmLightcolorPrimaryDark</item>
-        <item name="colorPrimaryInverse">@color/mmOnColor</item>
-        <item name="colorPrimaryLight">@color/mmLightcolorPrimaryLight</item>
-        <item name="colorPrimaryTonedDown">@color/mmLightcolorPrimaryTonedDown</item>
-        <item name="colorAccent">@color/mmLightcolorAccent</item>
-        <item name="colorBackground">@color/mmLightcolorBackground</item>
-        <item name="colorDivider">@color/mmLightcolorDivider</item>
-        <item name="toolbarColorBackground">@color/mmLighttoolbarColorBackground</item>
-        <item name="browseLevelButtonColorBackground">@color/mmLightbrowseLevelButtonColorBackground</item>
-        <item name="tileColorBackground">@color/mmLighttileColorBackground</item>
-        <item name="colorLevelProgressTarget">@color/mmLightcolorLevelProgressTarget</item>
-        <item name="buttonHighlightColor">@color/mmLightbuttonHighlightColor</item>
-        <item name="android:windowBackground">@color/mmLightwindowBackground</item>
+        <item name="colorPrimary">@color/mmInkLight</item>
+        <item name="colorPrimaryDark">@color/mmInkLight</item>
+        <item name="colorPrimaryLight">@color/mmMutedLight</item>
+        <item name="colorPrimaryTonedDown">@color/mmTonedLight</item>
+        <item name="colorPrimaryInverse">@color/mmOnPastelLight</item>
+        <item name="colorAccent">@color/mmAccentLight</item>
+        <item name="colorControlActivated">@color/mmAccentLight</item>
+        <item name="colorBackground">@color/mmGroundLight</item>
+        <item name="colorDivider">@color/mmDividerLight</item>
+        <item name="toolbarColorBackground">@color/mmInkLight</item>
+        <item name="browseLevelButtonColorBackground">@color/mmMintLight</item>
+        <item name="tileColorBackground">@color/mmWindowLight</item>
+        <item name="colorLevelProgressTarget">@color/mmPeachLight</item>
+        <item name="buttonHighlightColor">@color/mmMintHiLight</item>
+        <item name="android:windowBackground">@color/mmGroundLight</item>
+        <item name="android:textColorPrimary">@color/mmInkLight</item>
+        <item name="android:fontFamily">@font/pixelify_sans</item>
+        <item name="fontFamily">@font/pixelify_sans</item>
+        <item name="mmOutline">@color/mmInkLight</item>
+        <item name="mmShadow">@color/mmShadowLight</item>
+        <item name="mmButtonFill">@color/mmMintLight</item>
+        <item name="mmButtonLight">@color/mmMintHiLight</item>
+        <item name="mmButtonShade">@color/mmMintLoLight</item>
     </style>
 
     <style name="MojiMoriDarkTheme" parent="WKDarkTheme">
-        <item name="colorPrimary">@color/mmDarkcolorPrimary</item>
-        <item name="colorPrimaryDark">@color/mmDarkcolorPrimaryDark</item>
-        <item name="colorPrimaryInverse">@color/mmOnColor</item>
-        <item name="colorPrimaryLight">@color/mmDarkcolorPrimaryLight</item>
-        <item name="colorPrimaryTonedDown">@color/mmDarkcolorPrimaryTonedDown</item>
-        <item name="colorAccent">@color/mmDarkcolorAccent</item>
-        <item name="colorControlActivated">@color/mmDarkcolorControlActivated</item>
-        <item name="colorBackground">@color/mmDarkcolorBackground</item>
-        <item name="colorDivider">@color/mmDarkcolorDivider</item>
-        <item name="toolbarColorBackground">@color/mmDarktoolbarColorBackground</item>
-        <item name="browseLevelButtonColorBackground">@color/mmDarkbrowseLevelButtonColorBackground</item>
-        <item name="tileColorBackground">@color/mmDarktileColorBackground</item>
-        <item name="colorLevelProgressTarget">@color/mmDarkcolorLevelProgressTarget</item>
-        <item name="buttonHighlightColor">@color/mmDarkbuttonHighlightColor</item>
-        <item name="android:windowBackground">@color/mmDarkwindowBackground</item>
+        <item name="colorPrimary">@color/mmInkDark</item>
+        <item name="colorPrimaryDark">@color/mmWindowDark</item>
+        <item name="colorPrimaryLight">@color/mmMutedDark</item>
+        <item name="colorPrimaryTonedDown">@color/mmTonedDark</item>
+        <item name="colorPrimaryInverse">@color/mmOnPastelDark</item>
+        <item name="colorAccent">@color/mmAccentDark</item>
+        <item name="colorControlActivated">@color/mmAccentDark</item>
+        <item name="colorBackground">@color/mmGroundDark</item>
+        <item name="colorDivider">@color/mmDividerDark</item>
+        <item name="toolbarColorBackground">@color/mmWindowDark</item>
+        <item name="browseLevelButtonColorBackground">@color/mmBarDark</item>
+        <item name="tileColorBackground">@color/mmWindowDark</item>
+        <item name="colorLevelProgressTarget">@color/mmPeachDark</item>
+        <item name="buttonHighlightColor">@color/mmMintHiDark</item>
+        <item name="android:windowBackground">@color/mmGroundDark</item>
+        <item name="android:textColorPrimary">@color/mmInkDark</item>
+        <item name="android:fontFamily">@font/pixelify_sans</item>
+        <item name="fontFamily">@font/pixelify_sans</item>
+        <item name="mmOutline">@color/mmShadowDark</item>
+        <item name="mmShadow">@color/mmShadowDark</item>
+        <item name="mmButtonFill">@color/mmMintDark</item>
+        <item name="mmButtonLight">@color/mmMintHiDark</item>
+        <item name="mmButtonShade">@color/mmMintLoDark</item>
     </style>
 
     <style name="WKToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="fontFamily">@font/silkscreen</item>
+        <item name="android:fontFamily">@font/silkscreen</item>
     </style>
 
     <style name="WK.TextView.XSmall" parent="WK.TextView.Normal">
@@ -342,6 +391,18 @@
     </style>
 
     <style name="WK.Button.Normal" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/mm_btn</item>
+        <item name="android:fontFamily">@font/silkscreen</item>
+        <item name="android:textColor">@color/mmInkLight</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:paddingLeft">22dp</item>
+        <item name="android:paddingRight">22dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
     </style>
 
     <style name="WK.Button.Borderless" parent="Widget.AppCompat.Button.Borderless">

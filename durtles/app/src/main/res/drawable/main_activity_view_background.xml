@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle" android:padding="0dp">
-    <solid android:color="?attr/tileColorBackground"/>
-    <corners android:radius="4dp"/>
-</shape>
+<!-- MojiMori panel: hard offset shadow, chunky outline, window fill. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:left="4dp" android:top="6dp"><shape android:shape="rectangle"><corners android:radius="14dp"/><solid android:color="?attr/mmShadow"/></shape></item>
+    <item android:right="4dp" android:bottom="6dp"><shape android:shape="rectangle"><corners android:radius="14dp"/><solid android:color="?attr/tileColorBackground"/><stroke android:width="3dp" android:color="?attr/mmOutline"/></shape></item>
+</layer-list>
