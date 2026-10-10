@@ -61,6 +61,10 @@ android {
     buildFeatures {
         compose = true
     }
+
+    androidResources {
+        noCompress += "db"
+    }
 }
 
 dependencies {
@@ -69,7 +73,12 @@ dependencies {
     implementation(project(":core:content"))
     implementation(project(":core:progress"))
     implementation(project(":core:ui"))
+    implementation(project(":core:study"))
     implementation(project(":feature:dashboard"))
+    implementation(project(":feature:lessons"))
+    implementation(project(":feature:reviews"))
+    implementation(project(":feature:practice"))
+    implementation(project(":feature:browse"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

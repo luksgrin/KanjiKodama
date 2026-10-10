@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -16,10 +18,15 @@ android {
     }
 }
 
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
 dependencies {
     api(project(":core:model"))
     api(project(":core:srs"))
-    implementation(libs.room.runtime)
+    api(libs.room.runtime)
     implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     implementation(libs.kotlinx.coroutines.core)
 }

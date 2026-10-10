@@ -88,7 +88,7 @@ knowing: `KanaConverter.toHiragana` turns a trailing lone "n" into ん (for subm
 while `toHiraganaLive` keeps it latin (for typing); the sampler's block weights are 60/25/15 at
 Focus 0.5, uniform at 0, current-block-only at 1.
 
-## Phase 3 — App MVP loop (L)
+## Phase 3 — App MVP loop (L) — done 2026-10-03 (verified on an API 36 emulator)
 
 Tasks
 - `core/content`: Room entities/DAOs for `content.db`, prepackaged from assets, versioned,
@@ -107,6 +107,15 @@ Tasks
 Exit criteria: full loop (lesson → 4 h → review → stage up → level-up) works on a device with
 N5 content; a practice session draws N5 items with refresher tags once N4 is current; Compose
 UI tests cover one review session and one practice session.
+
+Delivered: `core/content` (asset copy + SQLite DAO), `core/progress` (Room), `core/study`
+(StudyRepository, Hilt), `core/ui` (StrokeCanvas, SrsColors, QuestionCard), features
+dashboard, lessons, reviews, practice, browse (blocks → levels → item and series detail), and
+type-safe Navigation Compose routes. Verified by driving the app on a headless API 36 emulator
+with adb (lesson batches and quizzes, dashboard, browse). Compose UI tests are still open and
+move to phase 5. Known follow-up: a kanji that is also a component is taught twice at the same
+level (component lesson + kanji lesson), as in WaniKani; consider merging the component lesson
+into the kanji lesson when both share a level.
 
 ## Phase 4 — Component and phonetic teaching (M)
 

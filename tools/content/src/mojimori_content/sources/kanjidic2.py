@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import gzip
+import re
 from pathlib import Path
 
 from lxml import etree
 
 from ..model import KanjiEntry
+
+_RADICAL_GLOSS = re.compile(r"radical \(no\.? ?\d+\)", re.IGNORECASE)
 
 
 def _int(text: str | None) -> int | None:
@@ -33,6 +36,9 @@ def parse(path: Path) -> dict[str, KanjiEntry]:
                     for m in g.iterfind("meaning"):
                         if m.get("m_lang") in (None, "en"):
                             meanings.append(m.text)
+            # KANJIDIC glosses such as "one radical (no.1)" describe the radical table, not the kanji
+            cleaned = [m for m in meanings if not _RADICAL_GLOSS.search(m)]
+            meanings = cleaned or meanings
             variants = []
             for v in el.iterfind("misc/variant"):
                 if v.get("var_type") == "ucs" and v.text:

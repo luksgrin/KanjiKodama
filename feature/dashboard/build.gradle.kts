@@ -26,6 +26,8 @@ android {
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:srs"))
+    implementation(project(":core:content"))
+    implementation(project(":core:study"))
     implementation(project(":core:ui"))
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

@@ -23,3 +23,15 @@ def test_parse_keeps_entity_names(tmp_path):
     assert e.senses[0].glosses == ["inlet", "bay"]
     assert jmdict.priority_score(e.kforms[0].pri) == 12
     assert jmdict.priority_score([]) == 99
+
+
+def test_kanjidic_drops_radical_table_glosses(tmp_path):
+    from mojimori_content.sources import kanjidic2
+
+    xml = b"""<?xml version="1.0" encoding="UTF-8"?><kanjidic2><character><literal>\xe4\xb8\x80</literal>
+<codepoint><cp_value cp_type="ucs">4e00</cp_value></codepoint><misc><grade>1</grade></misc>
+<reading_meaning><rmgroup><reading r_type="ja_on">\xe3\x82\xa4\xe3\x83\x81</reading>
+<meaning>one</meaning><meaning>one radical (no.1)</meaning></rmgroup></reading_meaning></character></kanjidic2>"""
+    p = tmp_path / "kd.xml.gz"
+    p.write_bytes(gzip.compress(xml))
+    assert kanjidic2.parse(p)["一"].meanings == ["one"]

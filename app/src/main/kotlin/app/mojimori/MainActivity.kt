@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import app.mojimori.feature.dashboard.DashboardScreen
 import app.mojimori.ui.theme.MojiMoriTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,7 +14,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MojiMoriTheme {
-                DashboardScreen()
+                MojiMoriNavHost()
             }
         }
     }

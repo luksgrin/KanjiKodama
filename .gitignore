@@ -32,6 +32,7 @@ tools/content/__pycache__/
 .ruff_cache/
 *.db
 *.db-journal
+!app/src/main/assets/content.db
 
 # Private inputs: seed word lists are personal and never committed
 content/seed_words/*

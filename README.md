@@ -41,6 +41,20 @@ uv run pytest
 uv run mojimori-content fetch --refresh-upstream && uv run mojimori-content snapshot   # new data freeze
 ```
 
+## Running on an emulator
+
+Create a device once (the SDK's command-line tools must be installed; the `emulator` binary ships
+with the SDK):
+
+```sh
+sdkmanager --install "system-images;android-36;google_apis;arm64-v8a"
+avdmanager create avd -n mojimori -k "system-images;android-36;google_apis;arm64-v8a" -d pixel_6
+emulator -avd mojimori -no-window -no-audio -gpu swiftshader_indirect &   # headless; drop -no-window to watch
+./gradlew :app:installDebug && adb shell am start -n app.mojimori.debug/app.mojimori.MainActivity
+```
+
+Debug builds use the application id `app.mojimori.debug`, so they can live next to a release build.
+
 ## Layout
 
 ```

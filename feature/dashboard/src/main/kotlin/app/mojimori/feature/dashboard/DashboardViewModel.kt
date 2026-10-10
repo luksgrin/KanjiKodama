@@ -1,22 +1,49 @@
 package app.mojimori.feature.dashboard
 
 import androidx.lifecycle.ViewModel
-import app.mojimori.model.Block
-import app.mojimori.model.Level
+import androidx.lifecycle.viewModelScope
+import app.mojimori.content.KanjiSummary
+import app.mojimori.study.DashboardSnapshot
+import app.mojimori.study.StudyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class DashboardState(
-    val level: Level = Level(1, Block.N5),
-    val lessonsAvailable: Int = 0,
-    val reviewsAvailable: Int = 0,
+    val snapshot: DashboardSnapshot? = null,
+    val holding: List<KanjiSummary> = emptyList(),
 )
 
-/** Placeholder until progress and content repositories exist (phase 3). */
 @HiltViewModel
-class DashboardViewModel @Inject constructor() : ViewModel() {
-    private val _state = MutableStateFlow(DashboardState())
-    val state: StateFlow<DashboardState> = _state
+class DashboardViewModel @Inject constructor(private val repo: StudyRepository) : ViewModel() {
+    init {
+        viewModelScope.launch { repo.refreshUnlocks() }
+    }
+
+    /** Ticks every minute so "reviews available" and "next review" stay current without data changes. */
+    private val minuteTick = flow {
+        while (true) {
+            emit(Unit)
+            delay(60_000)
+        }
+    }
+
+    val state: StateFlow<DashboardState> = combine(repo.assignments, minuteTick) { map, _ -> build(map) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardState())
+
+    private suspend fun build(map: Map<app.mojimori.model.ItemKey, app.mojimori.model.Assignment>): DashboardState {
+        val snap = repo.dashboard(map)
+        val holding = repo.content.kanjiSummaries(snap.blockProgress.holding.take(60)).values.sortedBy { it.level }
+        return DashboardState(snap, holding)
+    }
+
+    fun refresh() {
+        viewModelScope.launch { repo.refreshUnlocks() }
+    }
 }
