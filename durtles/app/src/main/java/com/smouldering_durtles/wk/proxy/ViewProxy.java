@@ -262,6 +262,13 @@ public final class ViewProxy {
         }
     }
 
+    public void setQuizMargins(final int topDp, final int bottomDp) {
+        final @Nullable View delegate = getDelegate();
+        if (delegate instanceof SubjectInfoButtonView) {
+            ((SubjectInfoButtonView) delegate).setQuizMargins(topDp, bottomDp);
+        }
+    }
+
     public void setTypefaceConfiguration(final TypefaceConfiguration typefaceConfiguration) {
         final @Nullable View delegate = getDelegate();
         if (delegate instanceof SubjectInfoButtonView) {

@@ -149,6 +149,17 @@ public final class WkApplication extends MultiDexApplication {
             }
             ed.putBoolean("mojimori_quiz_font_bump_applied", true).apply();
         }
+        // MojiMori: the quiz glyph may grow 4 more (104); raise the cap if it is still at 100 (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_quiz_glyph_bump_applied", false)) {
+            final Object v = themePrefs.getAll().get("max_font_size_quiz_text");
+            final android.content.SharedPreferences.Editor ed = themePrefs.edit();
+            if (v instanceof Integer && (Integer) v == 100) {
+                ed.putInt("max_font_size_quiz_text", 104);
+            } else if ("100".equals(v)) {
+                ed.putString("max_font_size_quiz_text", "104");
+            }
+            ed.putBoolean("mojimori_quiz_glyph_bump_applied", true).apply();
+        }
         instance = application;
         database = AppDatabase.getInstance();
         DbLogger.initializeInstance(database);

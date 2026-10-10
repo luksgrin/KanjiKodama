@@ -216,6 +216,23 @@ public final class SubjectInfoButtonView extends View {
     }
 
     /**
+     * MojiMori: set the space reserved above and below the glyph in quiz mode. The quiz screens lay the counter
+     * and buttons out in their own rows, so they reserve almost nothing; other screens keep the defaults.
+     *
+     * @param topDp space above the glyph
+     * @param bottomDp space below the glyph
+     */
+    public void setQuizMargins(final int topDp, final int bottomDp) {
+        safe(() -> {
+            topMargin = dp2px(topDp);
+            bottomMargin = dp2px(bottomDp);
+            sizeSp = -1;
+            invalidate();
+            requestLayout();
+        });
+    }
+
+    /**
      * Get the width of the text when rendered, taking into account surrounding spacing.
      *
      * @param text the text to measure

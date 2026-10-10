@@ -703,7 +703,7 @@
             app:key="max_font_size_quiz_text"
             app:title="Max font size of main quiz question text"
             app:singleLineTitle="false"
-            app:defaultValue="100"
+            app:defaultValue="104"
             app:min="0"
             android:max="500"
             app:seekBarIncrement="1"

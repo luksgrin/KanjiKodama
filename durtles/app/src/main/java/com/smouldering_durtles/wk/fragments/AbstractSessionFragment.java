@@ -138,6 +138,9 @@ public abstract class AbstractSessionFragment extends AbstractFragment implement
         questionText.setSubject(subject, question, session.getType());
         questionText.setMaxSize(maxWidth, maxHeight);
         questionText.setSizeForQuiz(true);
+        if (!ankiMode) {
+            questionText.setQuizMargins(4, 4);
+        }
 
         // Toggle between typefaceConfiguration and DEFAULT on click
         questionText.setOnClickListener(v -> safe(() ->

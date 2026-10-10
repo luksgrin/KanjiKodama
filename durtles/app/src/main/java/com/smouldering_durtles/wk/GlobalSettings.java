@@ -1931,7 +1931,7 @@ public final class GlobalSettings {
          * @return the value
          */
         public static int getMaxFontSizeQuizText() {
-            return prefs().getInt("max_font_size_quiz_text", 100);
+            return prefs().getInt("max_font_size_quiz_text", 104);
         }
 
         /**
