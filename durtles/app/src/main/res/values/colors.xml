@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2019-2020 Ernst Jan Plugge <rmc@dds.nl>
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="customToastColorBackground">#FFFF80</color>
+    <color name="alternativeToastColorBackground">#00000000</color>
+
+
+    <color name="wkLightColorPrimary">#000000</color>
+    <color name="wkLightColorPrimaryDark">#000000</color>
+    <color name="wkLightColorPrimaryInverse">#FFFFFF</color>
+    <color name="wkLightColorPrimaryLight">#FFFFFF</color>
+    <color name="wkLightColorPrimaryTonedDown">#202020</color>
+    <color name="wkLightColorAccent">#202020</color>
+    <color name="wkLightColorBackground">#FFFFFF</color>
+    <color name="wkLightColorDivider">#202020</color>
+    <color name="wkLightToolbarColorBackground">#E80092</color>
+    <color name="wkLightBrowseLevelButtonColorBackground">#E80092</color>
+    <color name="wkLightTileColorBackground">#E8E8E8</color>
+    <color name="wkLightColorWaterfallLine">#D80088</color>
+    <color name="wkLightColorLevelProgressTarget">#000000</color>
+    <color name="wkLightCustomToastColorPrimary">#000000</color>
+    <color name="wkLightAlternativeToastColorPrimary">#FFFFFF</color>
+    <color name="wkLightCorrectColorBackground">#B7DAC7</color>
+    <color name="wkLightIncorrectColorBackground">#EAC2BC</color>
+    <color name="wkLightMeaningHintColor">#FFFFFF</color>
+    <color name="wkLightReadingHintColor">#000000</color>
+    <color name="wkLightEditTextHintColor">#202020</color>
+    <color name="wkLightEditTextHintColorInverse">#E8E8E8</color>
+    <color name="wkLightWindowBackground">#FFFFFF</color>
+    <color name="wkLightPitchInfoHeibanColor">#D20CA3</color>
+    <color name="wkLightPitchInfoOdakaColor">#0CD24D</color>
+    <color name="wkLightPitchInfoNakadakaColor">#27A2FF</color>
+    <color name="wkLightPitchInfoAtamadakaColor">#EA9316</color>
+    <color name="wkLightButtonHighlightColor">#9808F3</color>
+    <color name="wkLightStrokeDiagramGhostColor">#D0D0D0</color>
+
+    <color name="wkDarkColorPrimary">#BCBCBC</color>
+    <color name="wkDarkColorPrimaryDark">#000000</color>
+    <color name="wkDarkColorPrimaryInverse">#000000</color>
+    <color name="wkDarkColorPrimaryLight">#BCBCBC</color>
+    <color name="wkDarkColorPrimaryTonedDown">#BCBCBC</color>
+    <color name="wkDarkColorAccent">#A0A0A0</color>
+    <color name="wkDarkColorBackground">#232629</color>
+    <color name="wkDarkColorControlActivated">#925BDC</color>
+    <color name="wkDarkColorDivider">#BCBCBC</color>
+    <color name="wkDarkToolbarColorBackground">#1D2023</color>
+    <color name="wkDarkBrowseLevelButtonColorBackground">#404040</color>
+    <color name="wkDarkTileColorBackground">#1D2023</color>
+    <color name="wkDarkColorWaterfallLine">#1D99F3</color>
+    <color name="wkDarkColorLevelProgressTarget">#000000</color>
+    <color name="wkDarkCustomToastColorPrimary">#000000</color>
+    <color name="wkDarkAlternativeToastColorPrimary">#FFFFFF</color>
+    <color name="wkDarkCorrectColorBackground">#205020</color>
+    <color name="wkDarkIncorrectColorBackground">#502020</color>
+    <color name="wkDarkMeaningHintColor">#C0C0C0</color>
+    <color name="wkDarkReadingHintColor">#000000</color>
+    <color name="wkDarkEditTextHintColor">#202020</color>
+    <color name="wkDarkEditTextHintColorInverse">#E8E8E8</color>
+    <color name="wkDarkWindowBackground">#232629</color>
+    <color name="wkDarkPitchInfoHeibanColor">#D20CA3</color>
+    <color name="wkDarkPitchInfoOdakaColor">#0CD24D</color>
+    <color name="wkDarkPitchInfoNakadakaColor">#27A2FF</color>
+    <color name="wkDarkPitchInfoAtamadakaColor">#EA9316</color>
+    <color name="wkDarkButtonHighlightColor">#9808F3</color>
+    <color name="wkDarkStrokeDiagramGhostColor">#404040</color>
+
+    <color name="wkNordColorPrimary">#E5E9F0</color>
+    <color name="wkNordColorPrimaryDark">#2E3440</color>
+    <color name="wkNordColorPrimaryInverse">#D8DEE9</color>
+    <color name="wkNordColorPrimaryLight">#E5E9F0</color>
+    <color name="wkNordColorPrimaryTonedDown">#E5E9F0</color>
+    <color name="wkNordColorAccent">#88C0D0</color>
+    <color name="wkNordColorBackground">#2E3440</color>
+    <color name="wkNordColorControlActivated">#5E81AC</color>
+    <color name="wkNordColorDivider">#81A1C1</color>
+    <color name="wkNordToolbarColorBackground">#2E3440</color>
+    <color name="wkNordBrowseLevelButtonColorBackground">#2E3440</color>
+    <color name="wkNordTileColorBackground">#2E3440</color>
+    <color name="wkNordColorWaterfallLine">#88C0D0</color>
+    <color name="wkNordColorLevelProgressTarget">#D8DEE9</color>
+    <color name="wkNordCustomToastColorPrimary">#000000</color>
+    <color name="wkNordAlternativeToastColorPrimary">#E5E9F0</color>
+    <color name="wkNordCorrectColorBackground">#434C5E</color>
+    <color name="wkNordIncorrectColorBackground">#434C5E</color>
+    <color name="wkNordMeaningHintColor">#E5E9F0</color>
+    <color name="wkNordReadingHintColor">#434C5E</color>
+    <color name="wkNordEditTextHintColor">#434C5E</color>
+    <color name="wkNordEditTextHintColorInverse">#ECEFF4</color>
+    <color name="wkNordWindowBackground">#2E3440</color>
+    <color name="wkNordPitchInfoHeibanColor">#5E81AC</color>
+    <color name="wkNordPitchInfoOdakaColor">#81A1C1</color>
+    <color name="wkNordPitchInfoNakadakaColor">#88C0D0</color>
+    <color name="wkNordPitchInfoAtamadakaColor">#E5E9F0</color>
+    <color name="wkNordButtonHighlightColor">#88C0D0</color>
+    <color name="wkNordStrokeDiagramGhostColor">#2E3440</color>
+
+    <color name="wkBlackColorBackground">#000000</color>
+</resources>
