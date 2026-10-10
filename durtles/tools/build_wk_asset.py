@@ -6,10 +6,17 @@ The dump is in Smouldering Durtles' own table format. This script keeps only con
 progress so the app starts fresh. The output is git-ignored: WaniKani content is licensed to
 the owner for internal use only and must never be committed.
 
+Without a local dump, the cleaned file is downloaded from the private MojiMoriData release
+pinned in tools/wk-content.lock.json (needs the gh CLI logged in) and checked against its sha256.
+If neither is available the script exits 0, so builds without the content still succeed.
+
 Usage: python3 tools/build_wk_asset.py [dump.sql] [out.db]
-Exits 0 without output when no dump is present, so builds without the data still succeed.
 """
 import glob
+import hashlib
+import shutil
+import subprocess
+import tempfile
 import json
 import os
 import sqlite3
@@ -37,11 +44,41 @@ def find_dump():
     return max(files, key=os.path.getsize) if files else None
 
 
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def fetch_release(out):
+    """Download the pinned, already-cleaned content file from the private data repository."""
+    lock = json.load(open(os.path.join(HERE, "wk-content.lock.json")))
+    if os.path.exists(out) and sha256(out) == lock["sha256"]:
+        return  # already the pinned file
+    if not shutil.which("gh"):
+        print("build_wk_asset: no dump and no gh CLI; building without WaniKani content")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        r = subprocess.run(["gh", "release", "download", lock["tag"], "--repo", lock["repo"],
+                            "--pattern", lock["asset"], "--dir", tmp], capture_output=True, text=True)
+        got = os.path.join(tmp, lock["asset"])
+        if r.returncode != 0 or not os.path.exists(got):
+            print("build_wk_asset: could not download content release; building without it")
+            return
+        if sha256(got) != lock["sha256"]:
+            raise SystemExit("build_wk_asset: downloaded content does not match the pinned sha256")
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        shutil.move(got, out)
+        print(f"build_wk_asset: fetched {lock['tag']} from {lock['repo']}")
+
+
 def main():
     dump = sys.argv[1] if len(sys.argv) > 1 else find_dump()
     out = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_OUT
     if not dump or not os.path.exists(dump):
-        print("build_wk_asset: no WaniKani dump found; skipping")
+        fetch_release(out)
         return
     if os.path.exists(out) and os.path.getmtime(out) > max(os.path.getmtime(dump), os.path.getmtime(__file__)):
         return  # up to date
