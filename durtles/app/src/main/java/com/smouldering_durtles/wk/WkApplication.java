@@ -138,6 +138,17 @@ public final class WkApplication extends MultiDexApplication {
             }
             ed.putBoolean("mojimori_font_bump_applied", true).apply();
         }
+        // MojiMori: the quiz answer field is 4sp larger again (20); raise it if still at 14 or 16 (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_quiz_font_bump_applied", false)) {
+            final Object v = themePrefs.getAll().get("font_size_question_edit");
+            final android.content.SharedPreferences.Editor ed = themePrefs.edit();
+            if (v instanceof Integer && ((Integer) v == 14 || (Integer) v == 16)) {
+                ed.putInt("font_size_question_edit", 20);
+            } else if (v instanceof String && (v.equals("14") || v.equals("16"))) {
+                ed.putString("font_size_question_edit", "20");
+            }
+            ed.putBoolean("mojimori_quiz_font_bump_applied", true).apply();
+        }
         instance = application;
         database = AppDatabase.getInstance();
         DbLogger.initializeInstance(database);

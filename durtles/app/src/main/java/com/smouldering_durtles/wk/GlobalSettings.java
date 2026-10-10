@@ -1951,7 +1951,7 @@ public final class GlobalSettings {
          * @return the value
          */
         public static int getFontSizeQuestionEdit() {
-            return prefs().getInt("font_size_question_edit", 16);
+            return prefs().getInt("font_size_question_edit", 20);
         }
 
         /**

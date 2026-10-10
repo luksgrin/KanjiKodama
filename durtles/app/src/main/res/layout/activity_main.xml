@@ -236,7 +236,7 @@
             <com.smouldering_durtles.wk.views.TimeLineBarChart
                 android:id="@+id/timeLineBarChart"
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
+                android:layout_height="250dp"
                 android:layout_marginTop="8dp" />
 
             <com.smouldering_durtles.wk.views.SrsBreakDownView

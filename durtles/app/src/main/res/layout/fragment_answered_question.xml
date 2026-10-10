@@ -53,6 +53,7 @@
 
                 <TextView
                     android:id="@+id/progress"
+            android:textSize="20sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -65,6 +66,7 @@
 
                 <TextView
                     android:id="@+id/srsIndicator"
+            android:textSize="20sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -76,6 +78,7 @@
 
                 <Button
                     android:id="@+id/nextButton"
+            android:textSize="18sp"
                     style="@style/WK.Button.Borderless.Light"
             android:layout_margin="8dp"
                     android:layout_width="wrap_content"
@@ -87,6 +90,7 @@
 
                 <Button
                     android:id="@+id/specialButton1"
+            android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Special button 1"
@@ -100,6 +104,7 @@
 
                 <Button
                     android:id="@+id/specialButton2"
+            android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Special button 2"
@@ -112,6 +117,7 @@
 
                 <Button
                     android:id="@+id/specialButton3"
+            android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Special button 3"
@@ -125,6 +131,7 @@
 
                 <TextView
                     android:id="@+id/levelUpToastText"
+            android:textSize="20sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
@@ -159,7 +166,7 @@
                     android:paddingTop="2dp"
                     android:paddingBottom="4dp"
                     android:text=""
-                    android:textSize="16sp"
+                    android:textSize="20sp"
                     android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -181,7 +188,7 @@
                     android:paddingRight="16dp"
                     android:paddingBottom="4dp"
                     android:text=""
-                    android:textSize="16sp"
+                    android:textSize="20sp"
                     android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -216,6 +223,7 @@
 
             <TextView
                 android:id="@+id/questionType"
+            android:textSize="20sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
@@ -229,6 +237,7 @@
 
             <TextView
                 android:id="@+id/questionEdit"
+            android:textSize="20sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
@@ -240,6 +249,7 @@
 
             <TextView
                 android:id="@+id/closeMessageText"
+            android:textSize="20sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -252,6 +262,7 @@
 
             <TextView
                 android:id="@+id/digraphMatchText"
+            android:textSize="20sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -275,6 +286,7 @@
 
     <Button
         android:id="@+id/nextButton2"
+            android:textSize="18sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
