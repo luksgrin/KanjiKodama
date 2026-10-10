@@ -68,4 +68,5 @@
     <attr name="mmButtonFill" format="reference|color"/>
     <attr name="mmButtonLight" format="reference|color"/>
     <attr name="mmButtonShade" format="reference|color"/>
+    <attr name="mmOnHeader" format="reference|color"/>
 </resources>

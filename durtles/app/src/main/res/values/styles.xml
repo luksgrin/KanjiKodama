@@ -21,6 +21,7 @@
         <item name="mmButtonFill">#DDDDDD</item>
         <item name="mmButtonLight">#F2F2F2</item>
         <item name="mmButtonShade">#BBBBBB</item>
+        <item name="mmOnHeader">?attr/colorPrimaryLight</item>
         <item name="colorPrimary">@color/wkLightColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkLightColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkLightColorPrimaryInverse</item>
@@ -63,6 +64,7 @@
         <item name="mmButtonFill">#DDDDDD</item>
         <item name="mmButtonLight">#F2F2F2</item>
         <item name="mmButtonShade">#BBBBBB</item>
+        <item name="mmOnHeader">?attr/colorPrimaryLight</item>
         <item name="colorPrimary">@color/wkLightColorPrimaryLight</item>
         <item name="colorPrimaryDark">@color/wkDarkBrowseLevelButtonColorBackground</item>
         <item name="colorPrimaryInverse">@color/wkLightColorPrimaryInverse</item>
@@ -106,6 +108,7 @@
         <item name="mmButtonFill">#DDDDDD</item>
         <item name="mmButtonLight">#F2F2F2</item>
         <item name="mmButtonShade">#BBBBBB</item>
+        <item name="mmOnHeader">?attr/colorPrimaryLight</item>
         <item name="colorPrimary">@color/wkDarkColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkDarkColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkDarkColorPrimaryInverse</item>
@@ -149,6 +152,7 @@
         <item name="mmButtonFill">#DDDDDD</item>
         <item name="mmButtonLight">#F2F2F2</item>
         <item name="mmButtonShade">#BBBBBB</item>
+        <item name="mmOnHeader">?attr/colorPrimaryLight</item>
         <item name="colorPrimary">@color/wkLightColorPrimaryLight</item>
         <item name="colorPrimaryDark">@color/wkDarkBrowseLevelButtonColorBackground</item>
         <item name="colorPrimaryInverse">@color/wkLightColorPrimaryInverse</item>
@@ -192,6 +196,7 @@
         <item name="mmButtonFill">#DDDDDD</item>
         <item name="mmButtonLight">#F2F2F2</item>
         <item name="mmButtonShade">#BBBBBB</item>
+        <item name="mmOnHeader">?attr/colorPrimaryLight</item>
         <item name="colorPrimary">@color/wkDarkColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkDarkColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkDarkColorPrimaryInverse</item>
@@ -235,6 +240,7 @@
         <item name="mmButtonFill">#DDDDDD</item>
         <item name="mmButtonLight">#F2F2F2</item>
         <item name="mmButtonShade">#BBBBBB</item>
+        <item name="mmOnHeader">?attr/colorPrimaryLight</item>
         <item name="colorPrimary">@color/wkNordColorPrimary</item>
         <item name="colorPrimaryDark">@color/wkNordColorPrimaryDark</item>
         <item name="colorPrimaryInverse">@color/wkNordColorPrimaryInverse</item>
@@ -298,6 +304,7 @@
         <item name="mmButtonFill">@color/mmMintLight</item>
         <item name="mmButtonLight">@color/mmMintHiLight</item>
         <item name="mmButtonShade">@color/mmMintLoLight</item>
+        <item name="mmOnHeader">@color/mmOnPastelLight</item>
     </style>
 
     <style name="MojiMoriDarkTheme" parent="WKDarkTheme">
@@ -324,6 +331,7 @@
         <item name="mmButtonFill">@color/mmMintDark</item>
         <item name="mmButtonLight">@color/mmMintHiDark</item>
         <item name="mmButtonShade">@color/mmMintLoDark</item>
+        <item name="mmOnHeader">@color/mmOnPastelDark</item>
     </style>
 
     <style name="WKToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
@@ -349,8 +357,11 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- Text on the coloured quiz header. MojiMori: dark ink on pastel, bold. -->
     <style name="WK.TextView.Normal.Light" parent="WK.TextView.Normal">
-        <item name="android:textColor">?attr/colorPrimaryLight</item>
+        <item name="android:textColor">?attr/mmOnHeader</item>
+        <item name="android:fontFamily">@font/silkscreen</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="WK.TextView.BrowseLevelButton" parent="WK.TextView.Normal">
@@ -408,8 +419,20 @@
     <style name="WK.Button.Borderless" parent="Widget.AppCompat.Button.Borderless">
     </style>
 
+    <!-- Buttons on the coloured quiz header (Submit, Don't know, Next). MojiMori: compact pixel pills. -->
     <style name="WK.Button.Borderless.Light" parent="Widget.AppCompat.Button.Borderless">
-        <item name="android:textColor">?attr/colorPrimaryLight</item>
+        <item name="android:background">@drawable/mm_btn</item>
+        <item name="android:fontFamily">@font/silkscreen</item>
+        <item name="android:textColor">@color/mmInkLight</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="android:minHeight">46dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <style name="WK.Button.Borderless.CustomToast" parent="Widget.AppCompat.Button.Borderless">
