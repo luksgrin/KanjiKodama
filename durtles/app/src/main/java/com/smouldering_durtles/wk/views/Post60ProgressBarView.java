@@ -142,7 +142,7 @@ public final class Post60ProgressBarView extends View {
                     else {
                         paint.clearShadowLayer();
                     }
-                    paint.setTextSize(dp2px(10));
+                    paint.setTextSize(dp2px(12));
                     paint.setTextAlign(Paint.Align.CENTER);
                     final String longText = String.format(Locale.ROOT, "%.1f%%", (values[i] * 100.0f) / total);
                     paint.getTextBounds(longText, 0, longText.length(), rect);

@@ -1951,7 +1951,7 @@ public final class GlobalSettings {
          * @return the value
          */
         public static int getFontSizeQuestionEdit() {
-            return prefs().getInt("font_size_question_edit", 14);
+            return prefs().getInt("font_size_question_edit", 16);
         }
 
         /**
@@ -1960,7 +1960,7 @@ public final class GlobalSettings {
          * @return the value
          */
         public static int getFontSizeSubjectInfo() {
-            return prefs().getInt("font_size_subject_info", 14);
+            return prefs().getInt("font_size_subject_info", 16);
         }
 
         /**
@@ -1969,7 +1969,7 @@ public final class GlobalSettings {
          * @return the value
          */
         public static int getFontSizeLiveSubjectTable() {
-            return prefs().getInt("font_size_live_subject_table", 14);
+            return prefs().getInt("font_size_live_subject_table", 16);
         }
 
         /**
@@ -1978,7 +1978,7 @@ public final class GlobalSettings {
          * @return the value
          */
         public static int getFontSizeAnkiAnswer() {
-            return prefs().getInt("font_size_anki_answer", 18);
+            return prefs().getInt("font_size_anki_answer", 20);
         }
     }
 

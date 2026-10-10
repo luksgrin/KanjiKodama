@@ -28,12 +28,12 @@ public final class Constants {
     /**
      * Small font size for small text.
      */
-    public static final int FONT_SIZE_SMALL = 12;
+    public static final int FONT_SIZE_SMALL = 14;
 
     /**
      * Normal small-ish font size for most text.
      */
-    public static final int FONT_SIZE_NORMAL = 14;
+    public static final int FONT_SIZE_NORMAL = 16;
 
     /**
      * The number of DIPs to reserve for one column in the browse overview screen.

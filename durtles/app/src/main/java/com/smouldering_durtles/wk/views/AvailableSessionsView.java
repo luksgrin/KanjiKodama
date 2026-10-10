@@ -101,10 +101,10 @@ public final class AvailableSessionsView extends ConstraintLayout {
 
         final int numLessons = timeLine.getNumAvailableLessons();
         availableLessonsCount.setText(numLessons);
-        availableLessonsCount.setTextSize(narrow && numLessons >= 1000 ? 28 : 32);
+        availableLessonsCount.setTextSize(narrow && numLessons >= 1000 ? 30 : 34);
 
         final int numReviews = timeLine.getNumAvailableReviews();
         availableReviewsCount.setText(numReviews);
-        availableReviewsCount.setTextSize(narrow && numReviews >= 1000 ? 28 : 32);
+        availableReviewsCount.setTextSize(narrow && numReviews >= 1000 ? 30 : 34);
     }
 }

@@ -220,7 +220,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         paint.setStrokeWidth(0);
         canvas.drawLine(originX, originY, originX, originY - axisSizeY, paint);
 
-        paint.setTextSize(density * 10);
+        paint.setTextSize(density * 12);
         paint.setTextAlign(Paint.Align.RIGHT);
 
         if (axisIntervalY == 0) {
@@ -259,7 +259,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
     private void drawBars(final Canvas canvas) {
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         paint.setStrokeWidth(0);
-        paint.setTextSize(density * 10);
+        paint.setTextSize(density * 12);
         paint.setTextAlign(Paint.Align.CENTER);
 
         // The actual bars
@@ -317,7 +317,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
             labels.add(rectf);
         }
 
-        paint.setTextSize(density * 9);
+        paint.setTextSize(density * 11);
         paint.setColor(colorPrimaryTonedDown);
 
         // The count of level-up items, including the arrow icons
@@ -355,7 +355,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         }
 
         paint.setColor(colorPrimary);
-        paint.setTextSize(density * 10);
+        paint.setTextSize(density * 12);
 
         // The time labels on the X axis
         for (int i=0; i<entries.size(); i+=numShownBars/6) {
@@ -398,17 +398,17 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
     private void drawLegend(final Canvas canvas) {
         final float boxSize = density * 8;
         final float gapSize = density * 5;
-        final float rowHeight = density * 14;
+        final float rowHeight = density * 16;
         final float left = getPaddingLeft() + density * 4;
         final float right = getWidth() - getPaddingRight() - density * 4;
 
-        paint.setTextSize(density * 10);
+        paint.setTextSize(density * 12);
         paint.setTextAlign(Paint.Align.LEFT);
 
         // MojiMori: start inside the panel padding and wrap onto a second row instead of running off the edge.
         float x = left;
-        float boxY = originY + density * 16;
-        float textY = originY + density * 24;
+        float boxY = originY + density * 18;
+        float textY = originY + density * 27;
 
         for (int i=0; i<segmentColors.length; i++) {
             final String label = legendLabels[i];
@@ -456,11 +456,11 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
             return;
         }
 
-        paint.setTextSize(density * 10);
+        paint.setTextSize(density * 12);
 
         // MojiMori: room for a two-row legend below and the value labels above the tallest bar.
-        originY = getPaddingTop() + baseHeight - density * 44;
-        axisSizeY = baseHeight - density * 72;
+        originY = getPaddingTop() + baseHeight - density * 50;
+        axisSizeY = baseHeight - density * 80;
         if (axisSizeY <= 0) {
             return;
         }

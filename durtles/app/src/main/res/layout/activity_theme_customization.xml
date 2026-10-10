@@ -83,7 +83,7 @@
                             android:id="@+id/radicalSample" android:layout_width="match_parent" android:layout_height="wrap_content"
                             android:layout_margin="4dp" android:background="#404040" android:gravity="center"
                             android:clickable="true" android:focusable="true" android:focusableInTouchMode="false"
-                            android:textSize="24sp" android:text="亀"/>
+                            android:textSize="26sp" android:text="亀"/>
                     </FrameLayout>
 
                     <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
@@ -93,7 +93,7 @@
                         <TextView android:id="@+id/kanjiSample" android:layout_width="match_parent" android:layout_height="wrap_content"
                             android:layout_margin="4dp" android:background="#404040" android:gravity="center"
                             android:clickable="true" android:focusable="true" android:focusableInTouchMode="false"
-                            android:textSize="24sp" android:text="亀"/>
+                            android:textSize="26sp" android:text="亀"/>
                     </FrameLayout>
 
                     <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
@@ -103,7 +103,7 @@
                         <TextView android:id="@+id/vocabularySample" android:layout_width="match_parent" android:layout_height="wrap_content"
                             android:layout_margin="4dp" android:background="#404040" android:gravity="center"
                             android:clickable="true" android:focusable="true" android:focusableInTouchMode="false"
-                            android:textSize="24sp" android:text="亀"/>
+                            android:textSize="26sp" android:text="亀"/>
                     </FrameLayout>
 
                     <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
@@ -113,7 +113,7 @@
                         <TextView android:id="@+id/kanaVocabularySample" android:layout_width="match_parent" android:layout_height="wrap_content"
                             android:layout_margin="4dp" android:background="#404040" android:gravity="center"
                             android:clickable="true" android:focusable="true" android:focusableInTouchMode="false"
-                            android:textSize="24sp" android:text="亀"/>
+                            android:textSize="26sp" android:text="亀"/>
                     </FrameLayout>
 
                 </LinearLayout>

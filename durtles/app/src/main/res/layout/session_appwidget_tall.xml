@@ -35,7 +35,7 @@
         android:gravity="center"
         android:visibility="gone"
         android:textColor="@color/wkDarkColorPrimary"
-        android:textSize="12sp"
+        android:textSize="14sp"
         android:text=""/>
 
     <TextView
@@ -48,7 +48,7 @@
         android:gravity="center"
         android:visibility="gone"
         android:textColor="@color/wkDarkColorPrimary"
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:text=""/>
 
     <TextView
@@ -60,7 +60,7 @@
         android:gravity="center"
         android:visibility="gone"
         android:textColor="@color/wkDarkColorPrimary"
-        android:textSize="12sp"
+        android:textSize="14sp"
         android:text=""/>
 
     <TextView
@@ -71,7 +71,7 @@
         android:layout_weight="0"
         android:gravity="center"
         android:textColor="@color/wkDarkColorPrimary"
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:text=""/>
 
     <TextView
@@ -83,7 +83,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:gravity="center_horizontal|bottom"
         android:textColor="@color/wkDarkColorPrimary"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:text=""
         tools:ignore="SmallSp"/>
 

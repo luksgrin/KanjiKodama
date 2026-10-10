@@ -340,15 +340,15 @@
     </style>
 
     <style name="WK.TextView.XSmall" parent="WK.TextView.Normal">
-        <item name="android:textSize">11sp</item>
+        <item name="android:textSize">13sp</item>
     </style>
 
     <style name="WK.TextView.Small" parent="WK.TextView.Normal">
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
     <style name="WK.TextView.Normal" parent="Widget.AppCompat.TextView">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:background">@color/transparent</item>
     </style>
@@ -370,13 +370,13 @@
     </style>
 
     <style name="WK.TextView.CustomToast" parent="WK.TextView.Normal">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">?attr/customToastColorPrimary</item>
         <item name="android:background">@drawable/rounded_corners</item>
     </style>
 
     <style name="WK.TextView.AlternativeToast" parent="WK.TextView.Normal">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">?attr/alternativeToastColorPrimary</item>
         <item name="android:background">@drawable/alternative_toast</item>
     </style>
@@ -386,7 +386,7 @@
     </style>
 
     <style name="WK.TextView.Large" parent="WK.TextView.Normal">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">20sp</item>
     </style>
 
     <style name="WK.TextView.Large.Bold" parent="WK.TextView.Large">
@@ -394,18 +394,18 @@
     </style>
 
     <style name="WK.TextView.XLarge" parent="WK.TextView.Normal">
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">26sp</item>
     </style>
 
     <style name="WK.TextView.XXLarge" parent="WK.TextView.Normal">
-        <item name="android:textSize">32sp</item>
+        <item name="android:textSize">34sp</item>
     </style>
 
     <style name="WK.Button.Normal" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/mm_btn</item>
         <item name="android:fontFamily">@font/silkscreen</item>
         <item name="android:textColor">@color/mmInkLight</item>
-        <item name="android:textSize">13sp</item>
+        <item name="android:textSize">15sp</item>
         <item name="android:letterSpacing">0.08</item>
         <item name="android:minHeight">52dp</item>
         <item name="android:paddingLeft">22dp</item>
@@ -424,7 +424,7 @@
         <item name="android:background">@drawable/mm_btn</item>
         <item name="android:fontFamily">@font/silkscreen</item>
         <item name="android:textColor">@color/mmInkLight</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:letterSpacing">0.06</item>
         <item name="android:minHeight">46dp</item>
         <item name="android:minWidth">0dp</item>
@@ -440,7 +440,7 @@
     </style>
 
     <style name="WK.Switch.Normal" parent="Preference.SwitchPreferenceCompat">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
 </resources>

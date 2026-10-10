@@ -410,7 +410,7 @@ public final class StrokeDiagramView extends View implements Animator.AnimatorLi
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(size/50.0f);
         paint.setStrokeCap(Paint.Cap.ROUND);
-        textPaint.setTextSize(dp2px(10));
+        textPaint.setTextSize(dp2px(12));
 
         paint.setColor(ThemeUtil.getColor(R.attr.strokeDiagramGhostColor));
         textPaint.setColor(paint.getColor());

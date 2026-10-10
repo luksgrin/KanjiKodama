@@ -43,7 +43,7 @@
             android:layout_marginEnd="8dp"
             android:gravity="center_vertical|end"
             android:textColor="@color/wkDarkColorPrimary"
-            android:textSize="36sp"
+            android:textSize="38sp"
             android:text=""
             tools:ignore="NestedWeights"/>
 
@@ -55,7 +55,7 @@
             android:layout_weight="0"
             android:gravity="center_vertical|start"
             android:textColor="@color/wkDarkColorPrimary"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:text=""
             tools:ignore="NestedWeights"/>
 
@@ -74,7 +74,7 @@
         android:layout_gravity="bottom|end"
         android:gravity="bottom|end"
         android:textColor="@color/wkDarkColorPrimary"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:text=""
         tools:ignore="SmallSp"/>
 

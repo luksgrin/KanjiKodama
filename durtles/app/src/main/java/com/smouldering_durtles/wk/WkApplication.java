@@ -122,6 +122,22 @@ public final class WkApplication extends MultiDexApplication {
                     .putBoolean("mojimori_theme_applied", true)
                     .apply();
         }
+        // MojiMori: text is 2sp larger; move font settings still at the old defaults up by 2 (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_font_bump_applied", false)) {
+            final android.content.SharedPreferences.Editor ed = themePrefs.edit();
+            final String[][] fonts = {{"font_size_question_edit", "14"}, {"font_size_subject_info", "14"},
+                    {"font_size_live_subject_table", "14"}, {"font_size_anki_answer", "18"}};
+            for (final String[] f: fonts) {
+                final Object v = themePrefs.getAll().get(f[0]);
+                final int oldDefault = Integer.parseInt(f[1]);
+                if (v instanceof Integer && (Integer) v == oldDefault) {
+                    ed.putInt(f[0], oldDefault + 2);
+                } else if (v instanceof String && v.equals(f[1])) {
+                    ed.putString(f[0], Integer.toString(oldDefault + 2));
+                }
+            }
+            ed.putBoolean("mojimori_font_bump_applied", true).apply();
+        }
         instance = application;
         database = AppDatabase.getInstance();
         DbLogger.initializeInstance(database);
