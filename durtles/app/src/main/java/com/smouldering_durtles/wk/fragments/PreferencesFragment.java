@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.fragments;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -292,6 +293,9 @@ public final class PreferencesFragment extends PreferenceFragmentCompat {
         setOnClickGoToActivity("font_import", FontImportActivity.class);
         setOnClickGoToActivity("keyboard_help", KeyboardHelpActivity.class);
         setOnClickGoToActivity("data_import_export", DataImportExportActivity.class);
+
+        // Must run last: the code above re-shows some account-only entries.
+        LocalMode.applyToPreferences(this);
     }
 
     @Override

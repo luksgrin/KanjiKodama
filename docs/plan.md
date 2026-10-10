@@ -16,7 +16,8 @@ without touching progress.
 | Step | Scope | Status |
 |------|-------|--------|
 | B1 | Offline fork in WaniKani order: bundled content import, local unlocks and level-ups (`durtles/.../local/`), no API calls, no login, no level cap | done 2026-10-10, verified on an API 36 emulator |
-| B2 | Clean-up: hide account/API settings and sync buttons, audio strategy (download once or text-to-speech), signed release build | next |
+| B2 | Clean-up: account/API/sync settings and menu items hidden; resurrect and burn work locally; notes and synonyms stay local; local tasks (reference data, audio, pitch) run; provider ids renamed so it installs next to Smouldering Durtles; release signing via keystore.properties; manual release workflow builds the fork with content from MojiMoriData | done 2026-10-10 |
+| B2b | Audio: the dump only has links to WaniKani's public file server. In-app download works (levels 1-10: about 2,300 files, 56 MB). Open question: mirror one voice into a MojiMoriData release so audio is vendored too | open |
 | B3 | Component and on'yomi teaching: phonetic-series section on kanji pages, fed by `tools/content` series data mapped onto WaniKani kanji and radicals | planned |
 | A | JLPT curriculum mode: a second level/lessonPosition mapping (JLPT blocks, block gate) and a setting to switch; add the 255 N1 kanji WaniKani lacks from open data | planned |
 

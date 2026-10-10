@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.util;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.BuildConfig;
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.Identification;
@@ -88,6 +89,9 @@ public final class WebClient {
      * @return the value
      */
     public int getLastLoginState() {
+        if (LocalMode.ENABLED) {
+            return 1;
+        }
         return lastLoginState;
     }
 
@@ -96,6 +100,9 @@ public final class WebClient {
      * @return the value
      */
     public String getLastLoginMessage() {
+        if (LocalMode.ENABLED) {
+            return "Working offline";
+        }
         return lastLoginMessage;
     }
 
@@ -221,6 +228,9 @@ public final class WebClient {
      * Perform a login on the web site.
      */
     public void doLogin() {
+        if (LocalMode.ENABLED) {
+            return;
+        }
         safe(() -> {
             CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
             final @Nullable String password = GlobalSettings.Api.getWebPassword();
@@ -243,6 +253,9 @@ public final class WebClient {
      * @return true if it was successful
      */
     public boolean resurrect(final Subject subject) {
+        if (LocalMode.ENABLED) {
+            return true; // the caller patches the local assignment
+        }
         final String url = isEmpty(subject.getDocumentUrl()) ? DASHBOARD_URL : subject.getDocumentUrl();
         try (final @Nullable Response response1 = getUrl(url)) {
             if (response1 == null) {
@@ -272,6 +285,9 @@ public final class WebClient {
      * @return true if it was successful
      */
     public boolean burn(final Subject subject) {
+        if (LocalMode.ENABLED) {
+            return true; // the caller patches the local assignment
+        }
         final String url = isEmpty(subject.getDocumentUrl()) ? DASHBOARD_URL : subject.getDocumentUrl();
         try (final @Nullable Response response1 = getUrl(url)) {
             if (response1 == null) {

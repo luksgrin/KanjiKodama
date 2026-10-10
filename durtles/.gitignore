@@ -17,3 +17,6 @@ app/google-services.json
 # Generated from the private WaniKani dump; never commit
 app/src/main/assets/wk-content.db
 local.properties
+keystore.properties
+*.jks
+*.keystore

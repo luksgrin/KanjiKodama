@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.jobs;
 
+import com.smouldering_durtles.wk.local.LocalMode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.api.model.ApiStudyMaterial;
@@ -67,7 +68,9 @@ public final class SaveStudyMaterialJob extends Job {
         material.setSubjectId(subjectId);
         db.subjectSyncDao().insertOrUpdateStudyMaterial(material, true);
 
-        db.assertSubmitStudyMaterialTask(data);
+        if (!LocalMode.ENABLED) {
+            db.assertSubmitStudyMaterialTask(data);
+        }
 
         houseKeeping();
     }

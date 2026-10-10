@@ -1,13 +1,21 @@
 apply plugin: 'com.android.application'
 
+// MojiMori: optional release signing. Copy keystore.properties.example to keystore.properties.
+def keystoreProps = new Properties()
+def keystoreFile = rootProject.file('keystore.properties')
+if (keystoreFile.exists()) {
+    keystoreFile.withInputStream { keystoreProps.load(it) }
+}
+
 android {
     defaultConfig {
         applicationId "app.mojimori.wk"
         minSdkVersion 21
         targetSdkVersion 36
         compileSdk = 36
-        versionCode 89
-        versionName '1.2.8'
+        // Overridable from CI: -PversionName=0.2.0 -PversionCode=42
+        versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 100
+        versionName project.hasProperty('versionName') ? project.property('versionName') : '0.1.0'
         multiDexEnabled true
 
         vectorDrawables.useSupportLibrary = true
@@ -23,21 +31,31 @@ android {
             }
         }
     }
+    signingConfigs {
+        if (!keystoreProps.isEmpty()) {
+            release {
+                storeFile rootProject.file(keystoreProps.getProperty('storeFile'))
+                storePassword keystoreProps.getProperty('storePassword')
+                keyAlias keystoreProps.getProperty('keyAlias')
+                keyPassword keystoreProps.getProperty('keyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
-            resValue 'string', 'fileprovider_authority', 'com.smouldering_durtles.wk.fileprovider'
-            resValue 'string', 'searchprovider_authority', 'com.smouldering_durtles.wk.db.SubjectContentProvider'
+            resValue 'string', 'fileprovider_authority', 'app.mojimori.wk.fileprovider'
+            resValue 'string', 'searchprovider_authority', 'app.mojimori.wk.db.SubjectContentProvider'
             resValue 'string', 'applabel', '@string/label'
-            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"com.smouldering_durtles.wk.fileprovider"'
-            signingConfig signingConfigs.debug
+            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"app.mojimori.wk.fileprovider"'
+            signingConfig keystoreProps.isEmpty() ? signingConfigs.debug : signingConfigs.release
         }
         debug {
             applicationIdSuffix '.debug'
-            resValue 'string', 'fileprovider_authority', 'com.smouldering_durtles.wk.debug.fileprovider'
-            resValue 'string', 'searchprovider_authority', 'com.smouldering_durtles.wk.debug.db.SubjectContentProvider'
+            resValue 'string', 'fileprovider_authority', 'app.mojimori.wk.debug.fileprovider'
+            resValue 'string', 'searchprovider_authority', 'app.mojimori.wk.debug.db.SubjectContentProvider'
             resValue 'string', 'applabel', '@string/labelDebug'
-            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"com.smouldering_durtles.wk.debug.fileprovider"'
+            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"app.mojimori.wk.debug.fileprovider"'
         }
     }
     sourceSets {

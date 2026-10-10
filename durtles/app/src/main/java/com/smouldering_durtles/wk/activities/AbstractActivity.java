@@ -153,6 +153,7 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
             if (t != null && flushTasksItem != null) {
                 flushTasksItem.setVisible(!t.isEmpty());
             }
+            LocalMode.applyToMenu(menu);
         }
     }
 
@@ -435,6 +436,7 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
             muteItem.setTitle(title);
         }
 
+        LocalMode.applyToMenu(menu);
         return true;
     }
 
@@ -840,6 +842,7 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
                 if (syncItem != null) {
                     syncItem.setVisible(getCurrentSubject() != null);
                 }
+                LocalMode.applyToMenu(menu);
             }
         });
     }

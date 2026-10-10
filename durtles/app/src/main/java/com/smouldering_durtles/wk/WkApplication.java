@@ -263,8 +263,9 @@ public final class WkApplication extends MultiDexApplication {
                 safe(() -> {
                     LocalContent.importIfNeeded(requireNonNull(instance), db);
                     LocalProgression.update(db);
-                    db.getOpenHelper().getWritableDatabase().execSQL("DELETE FROM task_definition WHERE taskClass NOT LIKE '%LoadReferenceDataTask'"
-                            + " AND taskClass NOT LIKE '%ScanAudioDownloadStatusTask'");
+                    // Drop WaniKani sync tasks queued by older builds; keep audio, pitch and reference-data tasks.
+                    db.getOpenHelper().getWritableDatabase().execSQL("DELETE FROM task_definition WHERE taskClass LIKE '%.Get%Task'"
+                            + " OR taskClass LIKE '%.ReportSessionItemTask' OR taskClass LIKE '%.SubmitStudyMaterialTask'");
                     if (LocalContent.hasContent(db) && GlobalSettings.getFirstTimeSetup() == 0) {
                         GlobalSettings.setFirstTimeSetup(1);
                         LiveFirstTimeSetup.getInstance().update();

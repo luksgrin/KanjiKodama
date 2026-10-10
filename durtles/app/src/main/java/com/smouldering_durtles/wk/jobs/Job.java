@@ -77,6 +77,8 @@ public abstract class Job {
             if (db.propertiesDao().getReferenceDataVersion() != REFERENCE_DATA_VERSION) {
                 db.loadReferenceData();
             }
+            // Still run queued local tasks: reference data, audio and pitch-info downloads.
+            ApiTaskService.schedule();
             return;
         }
 

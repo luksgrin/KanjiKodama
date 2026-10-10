@@ -87,9 +87,9 @@
     </string-array>
 
     <string-array name="networkRules">
-        <item>Always allow sync and downloads</item>
-        <item>Always allow sync, downloads only on unmetered connections (WiFi)</item>
-        <item>Allow sync and downloads only on unmetered connections (WiFi)</item>
+        <item>Download audio on any connection</item>
+        <item>Download audio only on unmetered connections (WiFi)</item>
+        <item>Download audio only on unmetered connections (WiFi), same as above</item>
     </string-array>
 
     <string-array name="networkRuleValues">
