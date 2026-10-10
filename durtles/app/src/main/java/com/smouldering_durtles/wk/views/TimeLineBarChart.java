@@ -65,6 +65,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
     private final List<BarEntry> entries = new ArrayList<>();
     private int[] segmentColors = new int[0];
     private String[] legendLabels = new String[0];
+    private @Nullable Typeface chartTypeface = null;
     private int maxBarCount = 0;
     private int totalCount = 0;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -397,26 +398,36 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
     private void drawLegend(final Canvas canvas) {
         final float boxSize = density * 8;
         final float gapSize = density * 5;
+        final float rowHeight = density * 14;
+        final float left = getPaddingLeft() + density * 4;
+        final float right = getWidth() - getPaddingRight() - density * 4;
 
         paint.setTextSize(density * 10);
         paint.setTextAlign(Paint.Align.LEFT);
 
-        float x = density * 8;
-        final float boxY = originY + density * 18;
-        final float textY = originY + density * 26;
+        // MojiMori: start inside the panel padding and wrap onto a second row instead of running off the edge.
+        float x = left;
+        float boxY = originY + density * 16;
+        float textY = originY + density * 24;
 
         for (int i=0; i<segmentColors.length; i++) {
+            final String label = legendLabels[i];
+            paint.getTextBounds(label, 0, label.length(), rect);
+            final float itemWidth = boxSize + gapSize + rect.width();
+            if (x > left && x + itemWidth > right) {
+                x = left;
+                boxY += rowHeight;
+                textY += rowHeight;
+            }
             paint.setColor(segmentColors[i]);
             paint.setStyle(Paint.Style.FILL_AND_STROKE);
             paint.setStrokeWidth(0);
             canvas.drawRect(x, boxY, x + boxSize, boxY + boxSize, paint);
             x += boxSize + gapSize;
 
-            final String label = legendLabels[i];
             paint.setColor(colorPrimary);
             canvas.drawText(label, x, textY, paint);
-            paint.getTextBounds(label, 0, label.length(), rect);
-            x += rect.width() + gapSize;
+            x += rect.width() + gapSize * 2;
         }
     }
 
@@ -424,7 +435,15 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         final float baseWidth = getWidth() - getPaddingLeft() - getPaddingRight();
         final float baseHeight = getHeight() - getPaddingTop() - getPaddingBottom();
 
-        paint.setTypeface(Typeface.DEFAULT);
+        // MojiMori: the interface's pixel font (Latin only), falling back to the default if it cannot load.
+        if (chartTypeface == null) {
+            try {
+                chartTypeface = androidx.core.content.res.ResourcesCompat.getFont(getContext(), com.smouldering_durtles.wk.R.font.pixelify_sans);
+            } catch (final Exception e) {
+                chartTypeface = Typeface.DEFAULT;
+            }
+        }
+        paint.setTypeface(chartTypeface != null ? chartTypeface : Typeface.DEFAULT);
 
         if (totalCount == 0) {
             paint.setColor(colorPrimary);
@@ -439,8 +458,9 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
 
         paint.setTextSize(density * 10);
 
-        originY = getPaddingTop() + baseHeight - density * 30;
-        axisSizeY = baseHeight - density * 45;
+        // MojiMori: room for a two-row legend below and the value labels above the tallest bar.
+        originY = getPaddingTop() + baseHeight - density * 44;
+        axisSizeY = baseHeight - density * 72;
         if (axisSizeY <= 0) {
             return;
         }
