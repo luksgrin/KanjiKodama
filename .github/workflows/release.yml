@@ -10,7 +10,7 @@ on:
       create_github_release:
         description: "Also create a GitHub release with the APK attached (private repo)"
         type: boolean
-        default: false
+        default: true
 
 jobs:
   release:
@@ -42,7 +42,8 @@ jobs:
           python3 tools/build_wk_asset.py
           test -s app/src/main/assets/wk-content.db
 
-      - name: Restore signing key (optional secrets)
+      # Every release must carry the same signature, or Android refuses to update the installed app.
+      - name: Restore signing key
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
@@ -50,8 +51,8 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
-            echo "No signing secrets; release will be signed with the debug key."
-            exit 0
+            echo "::error::Signing secrets are missing; a release signed with a throwaway key could not be updated later."
+            exit 1
           fi
           echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > release.jks
           {
@@ -63,6 +64,11 @@ jobs:
 
       - name: Assemble release
         run: ./gradlew :app:assembleRelease --no-daemon -PversionName=${{ inputs.version_name }} -PversionCode=$((100 + ${{ github.run_number }}))
+
+      - name: Name the APK
+        run: |
+          mv app/build/outputs/apk/release/*.apk app/build/outputs/apk/release/mojimori-${{ inputs.version_name }}.apk
+          ls -la app/build/outputs/apk/release/
 
       - uses: actions/upload-artifact@v4
         with:
