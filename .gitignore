@@ -41,3 +41,6 @@ content/seed_words/*
 
 # Secrets
 .env
+
+# Private WaniKani data dump (internal use only, never committed)
+wani-data/
