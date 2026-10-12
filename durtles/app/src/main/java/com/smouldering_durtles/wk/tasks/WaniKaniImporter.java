@@ -13,6 +13,7 @@ import com.smouldering_durtles.wk.api.model.ApiReviewStatistic;
 import com.smouldering_durtles.wk.api.model.ApiStudyMaterial;
 import com.smouldering_durtles.wk.api.model.ApiUser;
 import com.smouldering_durtles.wk.db.AppDatabase;
+import com.smouldering_durtles.wk.local.Curriculum;
 import com.smouldering_durtles.wk.local.ProgressStore;
 
 import java.util.ArrayList;
@@ -109,6 +110,10 @@ public final class WaniKaniImporter {
                 db.propertiesDao().setUsername(user.getUsername());
             }
         });
+        if (Curriculum.getMode() == Curriculum.Mode.JLPT) {
+            // WaniKani's level means nothing in JLPT order: place the learner by what they know.
+            Curriculum.place(db);
+        }
         ProgressStore.afterChange(db);
 
         return "Imported level " + db.propertiesDao().getUserLevel() + ": " + assignments.size() + " items, "

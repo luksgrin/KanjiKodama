@@ -48,6 +48,10 @@ public final class LocalMode {
                 item.setVisible(false);
             }
         }
+        final @Nullable MenuItem fastTravel = menu.findItem(R.id.action_fast_travel);
+        if (fastTravel != null) {
+            fastTravel.setVisible(true);
+        }
     }
 
     /** Hide account-only preferences and retitle the API section. */

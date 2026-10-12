@@ -52,7 +52,7 @@ public final class LocalProgression {
 
         int level = Math.max(1, db.propertiesDao().getUserLevel());
         final int startLevel = level;
-        while (level < LocalMode.MAX_LEVEL && levelComplete(sql, level)) {
+        while (level < Curriculum.maxLevel() && levelComplete(sql, level)) {
             level++;
         }
         if (level != db.propertiesDao().getUserLevel()) {

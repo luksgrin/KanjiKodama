@@ -89,6 +89,9 @@ public final class ProgressStore {
         }
         sql.execSQL("UPDATE subject SET " + sets);
         sql.execSQL("DELETE FROM level_progression");
+        Curriculum.ensureTables(sql);
+        sql.execSQL("DELETE FROM mm_probation");
+        sql.execSQL("DELETE FROM mm_jump");
         db.sessionItemDao().deleteAll();
         db.propertiesDao().setSessionType(SessionType.NONE);
         Session.getInstance().reset();
@@ -124,6 +127,23 @@ public final class ProgressStore {
             }
         }
         root.put("subjects", subjects);
+
+        Curriculum.ensureTables(db.getOpenHelper().getWritableDatabase());
+        root.put("curriculum", Curriculum.getMode().name());
+        final JSONArray probation = new JSONArray();
+        try (final Cursor c = sql.query("SELECT id, since FROM mm_probation ORDER BY id")) {
+            while (c.moveToNext()) {
+                probation.put(new JSONArray().put(c.getLong(0)).put(c.getLong(1)));
+            }
+        }
+        root.put("probation", probation);
+        final JSONArray jumps = new JSONArray();
+        try (final Cursor c = sql.query("SELECT at, fromLevel, toLevel FROM mm_jump ORDER BY at")) {
+            while (c.moveToNext()) {
+                jumps.put(new JSONArray().put(c.getLong(0)).put(c.getInt(1)).put(c.getInt(2)));
+            }
+        }
+        root.put("jumps", jumps);
         return root.toString(1);
     }
 
@@ -137,7 +157,9 @@ public final class ProgressStore {
             throw new IllegalArgumentException("This progress file was made by a newer MojiMori.");
         }
         final java.text.DateFormat fmt = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT);
-        return "Saved " + fmt.format(new java.util.Date(root.optLong("exportedAt"))) + ", level " + root.optInt("userLevel", 1)
+        return "Saved " + fmt.format(new java.util.Date(root.optLong("exportedAt")))
+                + ("JLPT".equals(root.optString("curriculum")) ? ", JLPT order" : ", WaniKani order")
+                + ", level " + root.optInt("userLevel", 1)
                 + ", " + root.optJSONArray("subjects").length() + " items with progress.";
     }
 
@@ -162,10 +184,25 @@ public final class ProgressStore {
                     insert(sql, "level_progression", levels.getJSONObject(i), lpCols);
                 }
             }
+            final JSONArray probation = root.optJSONArray("probation");
+            if (probation != null) {
+                for (int i = 0; i < probation.length(); i++) {
+                    final JSONArray p = probation.getJSONArray(i);
+                    sql.execSQL("INSERT OR REPLACE INTO mm_probation (id, since) VALUES (?, ?)", new Object[] {p.getLong(0), p.getLong(1)});
+                }
+            }
+            final JSONArray jumps = root.optJSONArray("jumps");
+            if (jumps != null) {
+                for (int i = 0; i < jumps.length(); i++) {
+                    final JSONArray j = jumps.getJSONArray(i);
+                    sql.execSQL("INSERT INTO mm_jump (at, fromLevel, toLevel) VALUES (?, ?, ?)", new Object[] {j.getLong(0), j.getInt(1), j.getInt(2)});
+                }
+            }
             sql.setTransactionSuccessful();
         } finally {
             sql.endTransaction();
         }
+        Curriculum.adopt(db, "JLPT".equals(root.optString("curriculum")) ? Curriculum.Mode.JLPT : Curriculum.Mode.WANIKANI);
         db.propertiesDao().setUserLevel(Math.max(1, root.optInt("userLevel", 1)));
         afterChange(db);
     }

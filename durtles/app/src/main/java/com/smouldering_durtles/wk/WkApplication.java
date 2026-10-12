@@ -18,6 +18,7 @@ package com.smouldering_durtles.wk;
 
 import com.smouldering_durtles.wk.local.LocalContent;
 import com.smouldering_durtles.wk.local.LocalMode;
+import com.smouldering_durtles.wk.local.Curriculum;
 import com.smouldering_durtles.wk.local.LocalProgression;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
@@ -320,6 +321,7 @@ public final class WkApplication extends MultiDexApplication {
             if (LocalMode.ENABLED) {
                 safe(() -> {
                     LocalContent.importIfNeeded(requireNonNull(instance), db);
+                    Curriculum.ensureOrdering(requireNonNull(instance), db);
                     LocalProgression.update(db);
                     // Drop WaniKani sync tasks queued by older builds; keep audio, pitch and reference-data tasks.
                     db.getOpenHelper().getWritableDatabase().execSQL("DELETE FROM task_definition WHERE taskClass LIKE '%.Get%Task'"

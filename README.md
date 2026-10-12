@@ -20,14 +20,17 @@ readings. It is a fork of [Smouldering Durtles](https://github.com/jerryhcooke/s
 - **WaniKani import.** Settings → Progress → Import progress from WaniKani takes a personal API token
   and replaces local progress with the account's progress. This is the only time the app talks to
   WaniKani, and it asks for confirmation first.
+- **Two curriculum orders.** Settings → Progress → Curriculum order switches between WaniKani's
+  60 levels and JLPT order: N5, N4, N3, N2, N1, then an Obscure block for WaniKani kanji on no
+  JLPT list. Progress on every item is shared; switching only changes what unlocks next, and
+  places you on the first level where you have mastered less than 60% of the kanji. Locked kanji
+  below that level unlock right away as lessons.
+- **Fast travel (JLPT order).** From the main menu, jump up to 5 levels ahead. The kanji and
+  vocabulary you skip go on probation: they come up as reviews over the next 3 days, a correct
+  answer moves them to Guru and a wrong one sends them back to your lessons. The next jump
+  unlocks after 3 days, once every probation item has been answered.
 - **Pixel Forest theme.** Pastel greens, pixel fonts for Latin text, rounded panels, in light and
   dark variants. Japanese text always uses Zen Maru Gothic and never a pixel font.
-
-## Planned
-
-- **JLPT mode.** A second curriculum that teaches kanji in JLPT blocks (N5 → N1, then an "Obscure"
-  block with the remaining KANJIDIC2 kanji), finishing each block before starting the next. It
-  reuses the same SRS scheduler, and you can switch between it and WaniKani order.
 
 ## Installing
 
@@ -75,15 +78,20 @@ progress field cleared.
   `durtles/tools/wk-content.lock.json` and checks its sha256.
 - Without either, the app still builds, but has no lessons.
 
-`durtles/app/src/main/assets/sound-components.db` holds the component and sound-series data. It is
-committed, built from open data, and regenerated with the content pipeline:
+Two committed assets come from open data through the content pipeline:
+`durtles/app/src/main/assets/sound-components.db` (components and sound series) and
+`durtles/app/src/main/assets/jlpt-kanji.tsv` (the JLPT level of each kanji, with corrections in
+`content/jlpt_overrides.yaml`):
 
 ```sh
 cd tools/content
 uv sync
 uv run mojimori-content export-sound
+uv run mojimori-content export-jlpt
 uv run pytest
 ```
+
+App unit tests (JLPT order and placement): `cd durtles && ./gradlew testDebugUnitTest`.
 
 ### Signing
 
@@ -111,14 +119,15 @@ uv run durtles/tools/make_logo.py
 durtles/                 The app (Smouldering Durtles fork, Java, Gradle)
   app/src/main/java/com/smouldering_durtles/wk/local/
                          MojiMori additions: offline mode, local progression, sound
-                         components, progress save / restore
+                         components, curriculum orders, fast travel, progress save / restore
   tools/                 Content asset builder, logo generator, content lock file
 tools/content/           Python pipeline for open kanji data (KANJIDIC2, KRADFILE, JMdict,
-                         KanjiVG) that produces sound-components.db
-content/                 Hand-authored component, mnemonic and sound-series overrides
+                         KanjiVG, JLPT lists) that produces sound-components.db and
+                         jlpt-kanji.tsv
+content/                 Hand-authored component, mnemonic, sound-series and JLPT overrides
 docs/                    Spec and implementation plan
 app/, core/, feature/    Standalone Kotlin/Compose app built only from open data
-                         (JLPT-ordered N5 and N4 content), the groundwork for the JLPT mode
+                         (JLPT-ordered N5 and N4 content)
 .github/workflows/       CI (builds and tests on every push) and the manual release workflow
 ```
 

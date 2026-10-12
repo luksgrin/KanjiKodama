@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.jobs;
 
+import com.smouldering_durtles.wk.local.FastTravel;
 import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.local.LocalProgression;
 import static com.smouldering_durtles.wk.Constants.SECOND;
@@ -230,6 +231,9 @@ public final class ReportSessionItemJob extends Job {
 
         if (type == REVIEW) {
             justPassed = processReviewFinished(ts);
+            if (LocalMode.ENABLED) {
+                FastTravel.onReviewed(WkApplication.getDatabase(), subjectId, itemMeaningIncorrect + itemReadingIncorrect > 0);
+            }
 
             if (updateLiveData) {
                 LiveTimeLine.getInstance().update();

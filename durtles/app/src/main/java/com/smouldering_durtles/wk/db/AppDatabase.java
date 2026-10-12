@@ -18,6 +18,7 @@ package com.smouldering_durtles.wk.db;
 
 import com.smouldering_durtles.wk.local.LocalContent;
 import com.smouldering_durtles.wk.local.LocalMode;
+import com.smouldering_durtles.wk.local.Curriculum;
 import com.smouldering_durtles.wk.local.LocalProgression;
 import androidx.room.Database;
 import androidx.room.Room;
@@ -697,6 +698,7 @@ public abstract class AppDatabase extends RoomDatabase {
             // Offline fork: a reset means starting over from the bundled content.
             propertiesDao().setUserLevel(1);
             LocalContent.importIfNeeded(WkApplication.getInstance(), this);
+            Curriculum.ensureOrdering(WkApplication.getInstance(), this);
             LocalProgression.update(this);
             loadReferenceData();
             return;

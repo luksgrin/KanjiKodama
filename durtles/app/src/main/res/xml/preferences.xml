@@ -1263,6 +1263,18 @@
     <PreferenceCategory app:key="progress" app:title="Progress">
 
         <Preference
+            app:title="Curriculum order"
+            app:key="progress_curriculum"
+            app:singleLineTitle="false"
+            app:summary="WaniKani order"/>
+
+        <Preference
+            app:title="Fast travel"
+            app:key="progress_fast_travel"
+            app:singleLineTitle="false"
+            app:summary="JLPT order only: jump up to 5 levels ahead and prove what you already know"/>
+
+        <Preference
             app:title="Save progress to a file"
             app:key="progress_save"
             app:singleLineTitle="false"

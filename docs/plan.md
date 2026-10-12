@@ -19,7 +19,31 @@ without touching progress.
 | B2 | Clean-up: account/API/sync settings and menu items hidden; resurrect and burn work locally; notes and synonyms stay local; local tasks (reference data, audio, pitch) run; provider ids renamed so it installs next to Smouldering Durtles; release signing via keystore.properties; manual release workflow builds the fork with content from MojiMoriData | done 2026-10-10 |
 | B2b | Audio: the dump only has links to WaniKani's public file server. Decided: not vendored. Audio stays an on-demand download cached on the device ("Download audio" screen; levels 1-10 are about 2,300 files, 56 MB) and can be deleted from the same screen | decided 2026-10-10 |
 | B3 | Component and on'yomi teaching: a "Parts / Sound" section on every kanji page (lessons and item pages) showing each part's role, the phonetic component and its on'yomi, whether this kanji follows it, the series reliability over common kanji, and the other series members WaniKani teaches with their levels. Data: `durtles/app/src/main/assets/sound-components.db`, built from open data by `mojimori-content export-sound` (2,033 of 2,101 WaniKani kanji get parts, 1,307 a sound component). Follow-ups: a prediction prompt before the reading is revealed in lessons; fix questionable phonetic picks via `content/series_overrides.yaml` | done 2026-10-10 |
-| A | JLPT curriculum mode: a second level/lessonPosition mapping (JLPT blocks, block gate) and a setting to switch; add the 255 N1 kanji WaniKani lacks from open data | planned |
+| A | JLPT curriculum mode with placement on switching and fast travel (design below). Follow-up: the N1 kanji WaniKani lacks would need content from open data | done 2026-10-12, verified on an API 36 emulator |
+
+### Step A: JLPT order, placement and fast travel
+
+- **Order.** Kanji are grouped into blocks N5, N4, N3, N2, N1 and Obscure (WaniKani kanji on no
+  JLPT list), keep WaniKani's relative order inside a block, and are split evenly into levels of
+  at least 30 kanji so all blocks fit in 60 levels (currently N5 3, N4 5, N3 11, N2 10, N1 27,
+  Obscure 4). A radical goes to the level of the first kanji using it, a vocabulary item to the
+  level of its last kanji, everything else by its WaniKani level. Code: `local/JlptPlan.java`.
+  The kanji list is `durtles/app/src/main/assets/jlpt-kanji.tsv`, exported by
+  `mojimori-content export-jlpt` from Waller's lists, KANJIDIC2's old JLPT field for gaps, and
+  `content/jlpt_overrides.yaml`.
+- **Shared progress.** Progress is per subject and shared by both orders. Switching rewrites the
+  subject table's `level` and `lessonPosition`; WaniKani's own order is kept in the raw table
+  `mm_wk_order` so switching back restores it exactly. Anything unlocked stays unlocked.
+- **Placement.** After a switch (or a WaniKani import while in JLPT order) the learner lands on
+  the first level where less than 60% of the kanji are mastered (Guru or above). Locked kanji
+  below that level unlock right away as lessons (backfill). Code: `local/Placement.java`,
+  `local/Curriculum.java`.
+- **Fast travel (JLPT order only).** Jump up to 5 levels. Kanji and vocabulary of the skipped
+  levels that were not started go on probation: Apprentice IV, first reviews spread hourly over
+  3 days. Correct moves them to Guru; wrong sends them back to the lesson queue. Radicals of
+  skipped levels wait in the lesson queue. The next jump needs 3 days and every probation item
+  answered. Code: `local/FastTravel.java`; state in `mm_probation` and `mm_jump`.
+- Saved progress files carry the mode, probation items and jumps.
 
 The earlier Kotlin app (`app/`, `core/`, `feature/`) and the open-data pipeline (`tools/content`)
 stay in the repo. The pipeline supplies the phonetic-series and JLPT data for B3 and A; the Kotlin

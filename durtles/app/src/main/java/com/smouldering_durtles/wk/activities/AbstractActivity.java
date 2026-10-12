@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.activities;
 
+import com.smouldering_durtles.wk.local.CurriculumUi;
 import com.smouldering_durtles.wk.local.LocalMode;
 import android.app.SearchManager;
 import android.content.ComponentName;
@@ -450,6 +451,10 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
 
         if (itemId == R.id.action_settings) {
             goToPreferencesActivity(null);
+            return true;
+        }
+        if (itemId == R.id.action_fast_travel) {
+            CurriculumUi.fastTravel(this);
             return true;
         }
         if (itemId == R.id.action_mute) {

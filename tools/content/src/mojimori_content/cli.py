@@ -86,5 +86,16 @@ def export_sound(
     export(out or REPO_DIR / "durtles/app/src/main/assets/sound-components.db")
 
 
+@app.command("export-jlpt")
+def export_jlpt(
+    out: Annotated[Path | None, typer.Option(help="Output file.")] = None,
+) -> None:
+    """Export the JLPT kanji list for the offline app's JLPT curriculum."""
+    from .config import REPO_DIR
+    from .export_jlpt import export
+
+    export(out or REPO_DIR / "durtles/app/src/main/assets/jlpt-kanji.tsv")
+
+
 if __name__ == "__main__":
     app()

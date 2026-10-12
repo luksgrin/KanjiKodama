@@ -81,6 +81,8 @@ public final class LocalContent {
                 count = c.moveToFirst() ? c.getInt(0) : 0;
             }
             LOGGER.info("Imported %d subjects from bundled content", count);
+            Curriculum.onContentImported(db);
+            Curriculum.ensureOrdering(context, db);
             return count;
         } catch (final Exception e) {
             LOGGER.error(e, "Importing bundled content failed");

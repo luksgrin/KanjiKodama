@@ -25,9 +25,13 @@ import androidx.lifecycle.LifecycleOwner;
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.livedata.LiveLevelDuration;
+import com.smouldering_durtles.wk.local.Curriculum;
+import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.model.LevelDuration;
 
 import java.util.Locale;
+
+import javax.annotation.Nullable;
 
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 
@@ -80,7 +84,8 @@ public final class LevelDurationView extends AppCompatTextView {
 
         setVisibility(VISIBLE);
 
-        setText(String.format(Locale.ROOT, "You are level %d. Your time on this level is %.1f days.",
-                levelDuration.getLevel(), levelDuration.getDaysAtCurrentLevel()));
+        final @Nullable String block = LocalMode.ENABLED ? Curriculum.describeLevel(levelDuration.getLevel()) : null;
+        setText(String.format(Locale.ROOT, "You are level %d%s. Your time on this level is %.1f days.",
+                levelDuration.getLevel(), block == null ? "" : " (" + block + ")", levelDuration.getDaysAtCurrentLevel()));
     }
 }

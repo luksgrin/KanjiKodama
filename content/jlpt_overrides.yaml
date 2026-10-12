@@ -1,0 +1,5 @@
+# JLPT level overrides for the app's JLPT curriculum (mojimori-content export-jlpt).
+# Value: N5..N1, or OBSCURE to drop a kanji from the JLPT blocks. Example:
+#
+# 分: N5
+々: N5   # the repetition mark; words like 人々 need it early

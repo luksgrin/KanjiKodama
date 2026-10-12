@@ -5,7 +5,6 @@
 
 package com.smouldering_durtles.wk.local;
 
-import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.text.InputType;
@@ -22,7 +21,6 @@ import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.api.model.ApiUser;
 import com.smouldering_durtles.wk.tasks.WaniKaniImporter;
-import com.smouldering_durtles.wk.util.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -40,7 +38,6 @@ import javax.annotation.Nullable;
  * onCreatePreferences.
  */
 public final class ProgressPreferences {
-    private static final Logger LOGGER = Logger.get(ProgressPreferences.class);
     private static final String OVERRIDE_WARNING = "This replaces ALL progress in MojiMori (levels, SRS stages,"
             + " review history and notes) on this device. It cannot be undone. Save your current progress first"
             + " if you might want it back.";
@@ -58,6 +55,16 @@ public final class ProgressPreferences {
     }
 
     public void attach() {
+        final @Nullable Preference curriculum = fragment.findPreference("progress_curriculum");
+        if (curriculum != null) {
+            curriculum.setSummary(Curriculum.getMode().label + ". Tap to switch; progress on every item is kept.");
+            curriculum.setOnPreferenceClickListener(p -> {
+                CurriculumUi.chooseCurriculum(fragment.requireActivity(),
+                        () -> curriculum.setSummary(Curriculum.getMode().label + ". Tap to switch; progress on every item is kept."));
+                return true;
+            });
+        }
+        click("progress_fast_travel", () -> CurriculumUi.fastTravel(fragment.requireActivity()));
         click("progress_import_wanikani", this::askToken);
         click("progress_save", () -> saveLauncher.launch(
                 "mojimori-progress-" + new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date()) + ".json"));
@@ -168,49 +175,11 @@ public final class ProgressPreferences {
 
     // --- Plumbing --------------------------------------------------------------------------------------
 
-    private interface Work<T> {
-        T run() throws Exception;
-    }
-
-    private interface Then<T> {
-        void accept(T value);
-    }
-
     private void done(final String message) {
-        new AlertDialog.Builder(fragment.requireContext())
-                .setMessage(message)
-                .setPositiveButton("OK", null)
-                .show();
+        Busy.message(fragment.requireActivity(), null, message);
     }
 
-    /** Run work off the main thread behind a small blocking dialog, then continue on the main thread. */
-    private <T> void work(final String label, final Work<T> work, final Then<T> then) {
-        final Activity activity = fragment.requireActivity();
-        final AlertDialog busy = new AlertDialog.Builder(activity).setMessage(label).setCancelable(false).show();
-        new Thread(() -> {
-            @Nullable T result = null;
-            @Nullable String error = null;
-            try {
-                result = work.run();
-            } catch (final Exception e) {
-                LOGGER.error(e, "Progress action failed");
-                error = e.getMessage() != null ? e.getMessage() : e.toString();
-            }
-            final @Nullable T r = result;
-            final @Nullable String err = error;
-            activity.runOnUiThread(() -> {
-                busy.dismiss();
-                if (!fragment.isAdded()) {
-                    return;
-                }
-                if (err != null) {
-                    new AlertDialog.Builder(activity).setTitle("Something went wrong").setMessage(err)
-                            .setPositiveButton("OK", null).show();
-                }
-                else if (r != null) {
-                    then.accept(r);
-                }
-            });
-        }, "MojiMoriProgress").start();
+    private <T> void work(final String label, final Busy.Work<T> work, final Busy.Then<T> then) {
+        Busy.run(fragment.requireActivity(), label, work, then);
     }
 }
