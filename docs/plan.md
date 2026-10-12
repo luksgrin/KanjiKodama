@@ -45,6 +45,25 @@ without touching progress.
   answered. Code: `local/FastTravel.java`; state in `mm_probation` and `mm_jump`.
 - Saved progress files carry the mode, probation items and jumps.
 
+### Extra kanji and the level test (done 2026-10-12, verified on an API 36 emulator)
+
+- **Extra kanji.** The 259 JLPT kanji the WaniKani content lacks (258 N1 kanji WaniKani never
+  taught plus 昌, which it retired) ship in `assets/extra-kanji.db`, exported by
+  `mojimori-content export-extra`: KANJIDIC2 meanings and readings, the primary meaning and
+  reading and both mnemonics from `content/mnemonics/extra-*.yaml` (hand-written, validated on
+  export), up to three common JMdict words each (176 words for 118 kanji) with Tatoeba sentences
+  and generated word mnemonics. The app imports them with ids from 100000 (`local/ExtraContent`),
+  resolving components to WaniKani radicals by character. They sit on level 61 in WaniKani order
+  (never unlocked) and at the end of N1 in JLPT order.
+- **Level test** (`local/LevelTest`, `CurriculumUi`). Round 1: six unmastered kanji from each of
+  N5..N1 in a self-study quiz; a kanji is known only if meaning and reading are both right, and
+  one wrong answer settles it (the round ends on its own). The share of each block known is
+  estimated from mastered kanji plus the sample; the boundary is the first block under 60%.
+  Round 2: three kanji from up to six evenly spaced levels of that block; the result is the
+  level after the last sampled level still at 60% or more. Starting there switches to JLPT order
+  if needed, sends the kanji answered right to Guru and travels to the result with probation
+  spread over 7 days.
+
 The earlier Kotlin app (`app/`, `core/`, `feature/`) and the open-data pipeline (`tools/content`)
 stay in the repo. The pipeline supplies the phonetic-series and JLPT data for B3 and A; the Kotlin
 app is superseded and kept for reference until those steps no longer need it.

@@ -145,6 +145,7 @@ public final class Curriculum {
         sql.execSQL("DELETE FROM mm_jump");
         putState(sql, "ordering", Mode.WANIKANI.name());
         putState(sql, "blocks", "");
+        putState(sql, "extra_version", "");
         loadCache(sql);
     }
 
@@ -165,8 +166,9 @@ public final class Curriculum {
                 copyWkOrderFromAsset(context, sql);
             }
         }
+        final boolean extrasChanged = ExtraContent.ensureImported(context, db);
         loadCache(sql);
-        if (ordering != mode) {
+        if (ordering != mode || extrasChanged && ordering == Mode.JLPT) {
             applyOrdering(context, db, mode);
         }
     }
@@ -198,7 +200,7 @@ public final class Curriculum {
     // --- orderings -----------------------------------------------------------------------------
 
     /** Subject id to {level, lessonPosition} for an order, plus the block of every level (JLPT only). */
-    private static final class Layout {
+    static final class Layout {
         final Map<Long, int[]> placement;
         final List<Integer> blocks;
 
@@ -206,6 +208,15 @@ public final class Curriculum {
             this.placement = placement;
             this.blocks = blocks;
         }
+    }
+
+    /** The JLPT order of every subject, whatever order the subject table is in now. */
+    static Layout jlptLayout(final Context context, final AppDatabase db) {
+        return layout(context, db.getOpenHelper().getReadableDatabase(), Mode.JLPT);
+    }
+
+    static @Nullable String describe(final Layout layout, final int level) {
+        return describe(layout.blocks, level);
     }
 
     private static Map<Long, int[]> wkOrder(final SupportSQLiteDatabase sql) {

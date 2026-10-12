@@ -16,6 +16,8 @@
 
 package com.smouldering_durtles.wk.activities;
 
+import com.smouldering_durtles.wk.local.CurriculumUi;
+
 import static com.smouldering_durtles.wk.util.ObjectSupport.runAsync;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 
@@ -236,6 +238,7 @@ public final class MainActivity extends AbstractActivity {
         keyboardHelpView.setVisibility(!GlobalSettings.Tutorials.getKeyboardHelpDismissed());
 
         collapseSearchBox();
+        CurriculumUi.onDashboardResumed(this);
     }
 
     @Override

@@ -41,6 +41,7 @@ import com.smouldering_durtles.wk.fragments.SummarySessionFragment;
 import com.smouldering_durtles.wk.fragments.UnansweredSessionFragment;
 import com.smouldering_durtles.wk.jobs.AbandonSessionItemJob;
 import com.smouldering_durtles.wk.jobs.FinishSessionJob;
+import com.smouldering_durtles.wk.local.LevelTest;
 import com.smouldering_durtles.wk.livedata.LiveSessionProgress;
 import com.smouldering_durtles.wk.livedata.LiveSessionState;
 import com.smouldering_durtles.wk.livedata.SubjectChangeListener;
@@ -616,7 +617,16 @@ s     *
                 currentQuestion.getItem().setChoiceDelay(3);
             }
             history.push(currentQuestion);
-            if (currentQuestion.isFinished()) {
+            if (!correct && type == SELF_STUDY && LevelTest.isRoundActive()) {
+                // Level test: one wrong answer settles the kanji as unknown; don't ask it again.
+                final SessionItem wrongItem = currentQuestion.getItem();
+                questions.removeIf(q -> q.getItem() == wrongItem);
+                if (questions.isEmpty()) {
+                    state = FINISHING;
+                    LiveSessionState.getInstance().post(state);
+                }
+            }
+            else if (currentQuestion.isFinished()) {
                 questions.remove(currentQuestion);
                 if (questions.isEmpty()) {
                     state = FINISHING;
@@ -1295,6 +1305,7 @@ s     *
      */
     public void finish() {
         LOGGER.info("Finishing session");
+        LevelTest.onSessionFinishing(type, new ArrayList<>(items));
         items.clear();
         questions.clear();
         history.clear();

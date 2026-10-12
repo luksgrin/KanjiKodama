@@ -48,9 +48,11 @@ public final class LocalMode {
                 item.setVisible(false);
             }
         }
-        final @Nullable MenuItem fastTravel = menu.findItem(R.id.action_fast_travel);
-        if (fastTravel != null) {
-            fastTravel.setVisible(true);
+        for (final int id: new int[] {R.id.action_fast_travel, R.id.action_level_test}) {
+            final @Nullable MenuItem item = menu.findItem(id);
+            if (item != null) {
+                item.setVisible(true);
+            }
         }
     }
 

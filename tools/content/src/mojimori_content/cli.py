@@ -97,5 +97,21 @@ def export_jlpt(
     export(out or REPO_DIR / "durtles/app/src/main/assets/jlpt-kanji.tsv")
 
 
+@app.command("export-extra")
+def export_extra(
+    brief: Annotated[Path | None, typer.Option(help="Write a JSON brief for mnemonic writers here instead.")] = None,
+    out: Annotated[Path | None, typer.Option(help="Output file.")] = None,
+) -> None:
+    """Export the JLPT kanji WaniKani lacks (with words and mnemonics) for the offline app."""
+    from .config import REPO_DIR
+    from .export_extra import brief as write_brief
+    from .export_extra import export
+
+    if brief:
+        write_brief(brief)
+    else:
+        export(out or REPO_DIR / "durtles/app/src/main/assets/extra-kanji.db")
+
+
 if __name__ == "__main__":
     app()

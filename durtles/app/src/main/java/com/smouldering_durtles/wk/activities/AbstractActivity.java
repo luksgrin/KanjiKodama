@@ -457,6 +457,10 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
             CurriculumUi.fastTravel(this);
             return true;
         }
+        if (itemId == R.id.action_level_test) {
+            CurriculumUi.levelTest(this);
+            return true;
+        }
         if (itemId == R.id.action_mute) {
             final boolean muted = !WkApplication.getDatabase().propertiesDao().getIsMuted();
             WkApplication.getDatabase().propertiesDao().setIsMuted(muted);

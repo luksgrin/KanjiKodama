@@ -65,6 +65,7 @@ public final class ProgressPreferences {
             });
         }
         click("progress_fast_travel", () -> CurriculumUi.fastTravel(fragment.requireActivity()));
+        click("progress_level_test", () -> CurriculumUi.levelTest(fragment.requireActivity()));
         click("progress_import_wanikani", this::askToken);
         click("progress_save", () -> saveLauncher.launch(
                 "mojimori-progress-" + new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date()) + ".json"));

@@ -1269,6 +1269,12 @@
             app:summary="WaniKani order"/>
 
         <Preference
+            app:title="Kanji level test"
+            app:key="progress_level_test"
+            app:singleLineTitle="false"
+            app:summary="Two short quizzes estimate your JLPT kanji level; then you can start there"/>
+
+        <Preference
             app:title="Fast travel"
             app:key="progress_fast_travel"
             app:singleLineTitle="false"

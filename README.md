@@ -29,6 +29,14 @@ readings. It is a fork of [Smouldering Durtles](https://github.com/jerryhcooke/s
   vocabulary you skip go on probation: they come up as reviews over the next 3 days, a correct
   answer moves them to Guru and a wrong one sends them back to your lessons. The next jump
   unlocks after 3 days, once every probation item has been answered.
+- **Kanji WaniKani never taught.** The 259 JLPT kanji missing from WaniKani's content (all N1,
+  mostly name kanji such as 彦, 浩 and 鷹) are part of JLPT order, at the end of the N1 block. Each
+  has hand-written meaning and reading mnemonics in WaniKani's style, and up to three common words
+  with example sentences.
+- **Kanji level test.** From the main menu: two short quizzes (about 30 kanji, then about 18 from
+  the block where your knowledge thins out) estimate how far your kanji knowledge reaches in JLPT
+  order. You can then start there: the kanji you answered right go to Guru, and what you skip goes
+  on probation over 7 days, like a fast-travel jump.
 - **Pixel Forest theme.** Pastel greens, pixel fonts for Latin text, rounded panels, in light and
   dark variants. Japanese text always uses Zen Maru Gothic and never a pixel font.
 
@@ -78,20 +86,24 @@ progress field cleared.
   `durtles/tools/wk-content.lock.json` and checks its sha256.
 - Without either, the app still builds, but has no lessons.
 
-Two committed assets come from open data through the content pipeline:
-`durtles/app/src/main/assets/sound-components.db` (components and sound series) and
+Three committed assets come from the content pipeline:
+`durtles/app/src/main/assets/sound-components.db` (components and sound series),
 `durtles/app/src/main/assets/jlpt-kanji.tsv` (the JLPT level of each kanji, with corrections in
-`content/jlpt_overrides.yaml`):
+`content/jlpt_overrides.yaml`) and `durtles/app/src/main/assets/extra-kanji.db` (the JLPT kanji
+WaniKani lacks: KANJIDIC2 meanings and readings, JMdict words, Tatoeba sentences, and the
+mnemonics in `content/mnemonics/extra-*.yaml`). `export-extra` also reads the lesson content to
+know which kanji are missing, and `export-extra --brief FILE` writes what a mnemonic writer needs:
 
 ```sh
 cd tools/content
 uv sync
 uv run mojimori-content export-sound
 uv run mojimori-content export-jlpt
+uv run mojimori-content export-extra
 uv run pytest
 ```
 
-App unit tests (JLPT order and placement): `cd durtles && ./gradlew testDebugUnitTest`.
+App unit tests (JLPT order, placement, level test): `cd durtles && ./gradlew testDebugUnitTest`.
 
 ### Signing
 
@@ -119,7 +131,8 @@ uv run durtles/tools/make_logo.py
 durtles/                 The app (Smouldering Durtles fork, Java, Gradle)
   app/src/main/java/com/smouldering_durtles/wk/local/
                          MojiMori additions: offline mode, local progression, sound
-                         components, curriculum orders, fast travel, progress save / restore
+                         components, curriculum orders, fast travel, level test, extra
+                         kanji, progress save / restore
   tools/                 Content asset builder, logo generator, content lock file
 tools/content/           Python pipeline for open kanji data (KANJIDIC2, KRADFILE, JMdict,
                          KanjiVG, JLPT lists) that produces sound-components.db and

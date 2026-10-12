@@ -39,6 +39,10 @@
         android:title="Fast travel..."
         android:visible="false"
         app:showAsAction="never"/>
+    <item android:id="@+id/action_level_test"
+        android:title="Kanji level test..."
+        android:visible="false"
+        app:showAsAction="never"/>
     <item android:id="@+id/action_session_log"
         android:title="Session log..."
         app:showAsAction="never"/>

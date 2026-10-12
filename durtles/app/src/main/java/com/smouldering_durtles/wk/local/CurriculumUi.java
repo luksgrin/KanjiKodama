@@ -9,9 +9,13 @@ import android.app.Activity;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.smouldering_durtles.wk.Actment;
 import com.smouldering_durtles.wk.WkApplication;
+import com.smouldering_durtles.wk.activities.SessionActivity;
+import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.model.Session;
 
+import java.util.List;
 import java.util.Locale;
 
 /** Dialog flows shared by the settings screen and the main menu. */
@@ -142,5 +146,168 @@ public final class CurriculumUi {
                             });
                 })
                 .show();
+    }
+
+    // --- kanji level test ------------------------------------------------------------------------
+
+    private static final String TEST_INTRO = "This test estimates how far your kanji knowledge reaches in JLPT order.\n\n"
+            + "Round 1: about 30 kanji, six from each of N5, N4, N3, N2 and N1. Round 2: about 18 kanji from"
+            + " the block where your knowledge thins out.\n\n"
+            + "Type the meaning and the reading of each kanji. A kanji counts as known only when both are right"
+            + " the first time, so use Don't know freely. Kanji you have already mastered are not asked.\n\n"
+            + "Nothing changes until you decide at the end.";
+
+    /** Entry point from the menu and the settings screen. */
+    public static void levelTest(final Activity activity) {
+        if (sessionRunning(activity)) {
+            return;
+        }
+        Busy.run(activity, "Checking…", () -> LevelTest.status(WkApplication.getDatabase()), status -> {
+            switch (status) {
+                case ROUND1_DONE:
+                    offerRound2(activity);
+                    break;
+                case ROUND2_DONE:
+                    showResult(activity);
+                    break;
+                case ROUND1:
+                case ROUND2:
+                    new AlertDialog.Builder(activity)
+                            .setTitle("Kanji level test")
+                            .setMessage("A round of the test was not finished. Start the test again?")
+                            .setNegativeButton("Cancel", null)
+                            .setNeutralButton("Discard test", (d, w) -> Busy.run(activity, "Discarding…", () -> {
+                                LevelTest.discard(WkApplication.getDatabase());
+                                return true;
+                            }, x -> { }))
+                            .setPositiveButton("Start again", (d, w) -> startRound(activity, 1))
+                            .show();
+                    break;
+                default:
+                    new AlertDialog.Builder(activity)
+                            .setTitle("Kanji level test")
+                            .setMessage(TEST_INTRO)
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Start round 1", (d, w) -> startRound(activity, 1))
+                            .show();
+                    break;
+            }
+        });
+    }
+
+    /** Called when the dashboard resumes: offer the next step of a level test once. */
+    public static void onDashboardResumed(final Activity activity) {
+        if (!LocalMode.ENABLED || !Session.getInstance().isInactive()) {
+            return;
+        }
+        Busy.Work<LevelTest.Status> check = () -> {
+            final LevelTest.Status status = LevelTest.status(WkApplication.getDatabase());
+            if ((status == LevelTest.Status.ROUND1_DONE || status == LevelTest.Status.ROUND2_DONE)
+                    && !LevelTest.prompted(WkApplication.getDatabase())) {
+                LevelTest.setPrompted(WkApplication.getDatabase());
+                return status;
+            }
+            return LevelTest.Status.NONE;
+        };
+        new Thread(() -> {
+            try {
+                final LevelTest.Status status = check.run();
+                activity.runOnUiThread(() -> {
+                    if (activity.isFinishing() || activity.isDestroyed()) {
+                        return;
+                    }
+                    if (status == LevelTest.Status.ROUND1_DONE) {
+                        offerRound2(activity);
+                    }
+                    else if (status == LevelTest.Status.ROUND2_DONE) {
+                        showResult(activity);
+                    }
+                });
+            } catch (final Exception e) {
+                //
+            }
+        }, "MojiMoriLevelTestCheck").start();
+    }
+
+    private static void startRound(final Activity activity, final int round) {
+        if (sessionRunning(activity)) {
+            return;
+        }
+        Busy.run(activity, round == 1 ? "Picking kanji…" : "Picking kanji for round 2…", () -> {
+            final List<Subject> subjects = round == 1
+                    ? LevelTest.startRound1(activity, WkApplication.getDatabase())
+                    : LevelTest.startRound2(activity, WkApplication.getDatabase());
+            if (!subjects.isEmpty()) {
+                Session.getInstance().startNewSelfStudySession(subjects);
+            }
+            return subjects.size();
+        }, count -> {
+            if (count == 0) {
+                showResult(activity);
+            }
+            else if (activity instanceof Actment) {
+                ((Actment) activity).goToActivity(SessionActivity.class);
+            }
+        });
+    }
+
+    private static void offerRound2(final Activity activity) {
+        Busy.run(activity, "Scoring round 1…", () -> {
+            final List<LevelTest.BlockScore> scores = LevelTest.blockScores(activity, WkApplication.getDatabase());
+            final StringBuilder msg = new StringBuilder("Round 1 results (known of asked, estimated share of the block):\n\n");
+            for (final LevelTest.BlockScore s: scores) {
+                msg.append(String.format(Locale.ROOT, "%s: %d of %d, about %d%%\n",
+                        JlptPlan.blockName(s.block), s.known, s.asked, Math.round(s.share * 100)));
+            }
+            final int boundary = LevelTest.boundaryBlock(scores);
+            msg.append('\n').append(boundary == 0
+                    ? "You know most of every JLPT block. Round 2 is not needed."
+                    : "Your knowledge thins out in " + JlptPlan.blockName(boundary)
+                            + ". Round 2 asks a few kanji from its levels to find where exactly.");
+            return msg.toString();
+        }, msg -> new AlertDialog.Builder(activity)
+                .setTitle("Kanji level test")
+                .setMessage(msg)
+                .setNegativeButton("Later", null)
+                .setNeutralButton("Start over", (d, w) -> startRound(activity, 1))
+                .setPositiveButton("Continue", (d, w) -> startRound(activity, 2))
+                .show());
+    }
+
+    private static void showResult(final Activity activity) {
+        Busy.run(activity, "Working out your level…", () -> LevelTest.result(activity, WkApplication.getDatabase()), result -> {
+            final String where = "level " + result.level + (result.description == null ? "" : " (" + result.description + ")");
+            final String msg = "Your kanji knowledge reaches about JLPT-order " + where + ".\n\n"
+                    + "Starting there:\n"
+                    + "• The " + result.proven + " kanji you answered right go straight to Guru.\n"
+                    + "• About " + result.probation + " kanji and vocabulary below that level that you have not"
+                    + " started go on probation: they come up as reviews over the next 7 days (about "
+                    + result.minutesPerDay + " minutes a day); right moves them to Guru, wrong sends them"
+                    + " back to your lessons.\n"
+                    + (Curriculum.getMode() == Curriculum.Mode.JLPT ? "" : "• Your curriculum switches to JLPT order.\n")
+                    + "• Nothing moves backwards if you are already past that level.";
+            new AlertDialog.Builder(activity)
+                    .setTitle("Kanji level test result")
+                    .setMessage(msg)
+                    .setNegativeButton("Later", null)
+                    .setNeutralButton("Discard", (d, w) -> Busy.run(activity, "Discarding…", () -> {
+                        LevelTest.discard(WkApplication.getDatabase());
+                        return true;
+                    }, x -> { }))
+                    .setPositiveButton("Start there", (d, w) -> {
+                        if (sessionRunning(activity)) {
+                            return;
+                        }
+                        Busy.run(activity, "Setting things up…", () -> LevelTest.startAtResult(activity, WkApplication.getDatabase()),
+                                outcome -> {
+                                    final String here = Curriculum.describeLevel(outcome.level);
+                                    Busy.message(activity, null, (outcome.moved ? "Welcome to level " : "You stay on level ")
+                                            + outcome.level + (here == null ? "" : " (" + here + ")") + ". "
+                                            + outcome.proven + " kanji moved to Guru"
+                                            + (outcome.moved ? ", and " + outcome.probation + " items are on probation in your reviews." : "."));
+                                });
+                    })
+                    .show();
+        });
     }
 }

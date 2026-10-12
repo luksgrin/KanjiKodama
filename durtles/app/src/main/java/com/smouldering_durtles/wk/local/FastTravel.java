@@ -128,13 +128,22 @@ public final class FastTravel {
      *
      * @return the number of probation items
      */
-    public static synchronized int travel(final AppDatabase db, final int target) {
+    public static int travel(final AppDatabase db, final int target) {
+        return travel(db, target, COOLDOWN);
+    }
+
+    /**
+     * Jump to the target level, spreading the probation reviews over the given window.
+     *
+     * @return the number of probation items
+     */
+    public static synchronized int travel(final AppDatabase db, final int target, final long window) {
         final SupportSQLiteDatabase sql = db.getOpenHelper().getWritableDatabase();
         Curriculum.ensureTables(sql);
         final int from = Math.max(1, db.propertiesDao().getUserLevel());
         final long now = System.currentTimeMillis();
         final long firstSlot = now - now % HOUR;
-        final int slots = (int) (COOLDOWN / HOUR);
+        final int slots = (int) Math.max(1, window / HOUR);
 
         final List<long[]> items = new ArrayList<>();
         try (final Cursor c = sql.query("SELECT id, unlockedAt FROM subject WHERE hiddenAt = 0 AND startedAt = 0"
