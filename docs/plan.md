@@ -51,6 +51,105 @@ app is superseded and kept for reference until those steps no longer need it.
 
 ---
 
+## Next: one codebase for Android and iOS (planned 2026-10-12)
+
+### Stack
+
+Kotlin Multiplatform with Compose Multiplatform: logic, data and UI are shared, and each
+platform only implements a short list of system services behind small interfaces.
+
+| Option | What carries over | Verdict |
+|---|---|---|
+| Kotlin Multiplatform + Compose Multiplatform | All logic (Java converts almost line by line), the existing Kotlin/Compose app and its plain-Kotlin core modules; Room already runs on both | Chosen |
+| Flutter | Nothing (Dart rewrite) | Viable, no head start |
+| React Native | Nothing (TypeScript rewrite) | Weaker for a heavily custom UI |
+
+The fork is about 67,000 lines of Java, much of it for things MojiMori does not use (around 150
+settings, a dozen themes, Anki mode, upstream's view-system screens). We rebuild the behaviour
+we use, reading the Java as the reference, rather than converting files one by one. Expected
+size: roughly 15,000-20,000 lines of Kotlin, plus the sync engine.
+
+### Layout
+
+```
+shared/core   Plain Kotlin: SRS stages and intervals, answer checking (typo tolerance, synonyms,
+              on'yomi/kun'yomi rules), romaji-to-kana, local progression, both curriculum
+              orders, placement, fast travel, the progress file format
+shared/data   content.db (read-only, built at build time), one progress DB per profile,
+              the WaniKani sync engine (Ktor)
+shared/ui     Compose screens and the Pixel Forest theme, fonts bundled as resources
+androidApp/   Thin Android shell
+iosApp/       Thin Xcode project hosting the shared Compose UI
+```
+
+Platform-specific code (Android / iOS):
+
+| Feature | Android | iOS |
+|---|---|---|
+| Audio playback | Android media player | AVPlayer |
+| Review notifications | Local notifications scheduled at known review times | Same |
+| Save / restore files | System file picker (Google Drive works) | Files picker (Google Drive if its app is installed; iCloud Drive) |
+| WaniKani token | Encrypted preferences | Keychain |
+| Background sync | WorkManager | Background app refresh (best effort) |
+| HTTP | Ktor, shared | Ktor, shared |
+
+Design changes from the fork:
+
+- The content DB stores both orders (WaniKani level/position and JLPT level/position) at build
+  time; progress lives in a separate DB keyed by subject id. Switching curriculum becomes a
+  setting instead of rewriting the subject table.
+- The `mojimori-progress` JSON file stays the exchange format, so progress saved from the Android
+  fork restores into the new app on either platform.
+
+### Profiles
+
+Each profile has its own progress DB; several can live on one phone, with a switcher on the
+dashboard.
+
+| | Local profile | WaniKani profile |
+|---|---|---|
+| Source of truth | The device | WaniKani's servers |
+| Unlocks and level-ups | Computed locally | From WaniKani |
+| Lessons and reviews | Saved locally | Sent to WaniKani, queued while offline |
+| Content | Bundled | Bundled, kept current from the API |
+| Curriculum | WaniKani or JLPT order, fast travel | WaniKani order only |
+| Notes and synonyms | Local | Synced both ways |
+
+The one-time WaniKani import stays as a way to start a local profile from an account. The sync
+engine follows upstream's behaviour: incremental downloads (assignments, review statistics,
+study materials, level progressions, subject updates), an offline queue for reviews, lessons and
+notes with rate-limit-aware retries, a rejected-token state, and subscription level limits
+(WaniKani only accepts lessons and reviews up to the account's subscribed level). Upstream's
+web-login extras and support screens are not carried over.
+
+### Phases
+
+| # | Phase | Done when | Size |
+|---|---|---|---|
+| 0 | Setup and iOS spike: Xcode, convert the repo to Kotlin Multiplatform, one screen with a Zen Maru kanji and a romaji-to-kana answer field | Runs on the Android emulator, the iOS simulator and a real iPhone; Japanese answer input works on iOS | S |
+| 1 | Shared logic ported with tests | The same test cases give identical results in the Java fork and the Kotlin code | M |
+| 2 | Data: content DB builder (WaniKani content + sound components + JLPT list), progress DBs per profile, profile switcher, progress file import/export | A save file from the Android fork restores into the new app | M |
+| 3 | Study loop: dashboard, lessons, reviews, summary | Usable daily on both platforms | L |
+| 4 | Subject pages: mnemonics with WaniKani's markup, context sentences, parts and sound, stroke order, pitch accent, audio | Matches the fork's item pages | M-L |
+| 5 | The rest: browse/search, self-study, notes/synonyms, curriculum and fast travel, WaniKani import, backups, notifications, the settings in use | Feature checklist complete | M |
+| 5b | WaniKani profile: sync engine, offline queue, background sync | Reviews and lessons done in MojiMori appear on wanikani.com and the reverse; tested carefully on the real account, a few items at a time | M-L |
+| 6 | Cutover: a week on both phones, move progress over, remove `durtles/` and the old prototype, iOS build job in CI | One codebase, two apps | S |
+
+The Android fork stays the daily app until phase 6 and only gets bug fixes. The biggest
+technical risk, Japanese text input in Compose on iOS, is tested in phase 0 before anything else
+is built.
+
+### Open decisions
+
+1. iPhone installs: free Apple ID (Xcode install, expires after 7 days, up to 3 apps) or the Apple
+   Developer Program ($99/year: one-year installs, TestFlight from the release workflow).
+2. Which iPhone the app is for (with a free Apple ID it must be connected to the Mac weekly).
+3. Xcode is not installed on the development Mac yet (free, about 15 GB); phase 0 needs it.
+4. Settings to drop: Anki mode, upstream's other themes and most of upstream's settings, unless
+   some are in use.
+
+---
+
 ## Original plan (pre-pivot)
 
 Companion to [spec.md](spec.md) (v0.4). Sizes are rough: S = a session or two, M = about a
