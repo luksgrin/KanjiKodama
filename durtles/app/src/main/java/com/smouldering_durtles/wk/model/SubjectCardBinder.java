@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 
@@ -130,6 +131,37 @@ public final class SubjectCardBinder {
         if (bgDrawable != null) {
             bgDrawable.setColorFilter(new SimpleColorFilter(subject.getButtonBackgroundColor()));
             view.setBackground(bgDrawable);
+        }
+
+        styleCardText(view, subject);
+    }
+
+    /**
+     * MojiMori: the grey-green meaning, reading and progress text was hard to read on the pastel
+     * cards. Use a deep shade of the card's own colour instead, so it reads clearly without
+     * competing with the dark ink of the glyph.
+     */
+    private static void styleCardText(final View view, final Subject subject) {
+        final ActiveTheme theme = ActiveTheme.getCurrentTheme();
+        if (theme != ActiveTheme.MOJIMORI_LIGHT && theme != ActiveTheme.MOJIMORI_DARK) {
+            return;
+        }
+        final int colour;
+        if (subject.getType().isRadical()) {
+            colour = 0xFF1D4A7A; // navy on blue
+        }
+        else if (subject.getType().isKanji()) {
+            colour = 0xFF7E1E40; // raspberry on pink-red
+        }
+        else {
+            colour = 0xFF45297F; // plum on purple
+        }
+        for (final int id: new int[] {R.id.meaning, R.id.reading, R.id.progress}) {
+            final @Nullable View v = view.findViewById(id);
+            if (v instanceof TextView) {
+                ((TextView) v).setTextColor(colour);
+                ((TextView) v).setShadowLayer(0, 0, 0, 0);
+            }
         }
     }
 
