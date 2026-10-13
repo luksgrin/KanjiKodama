@@ -67,13 +67,11 @@ CLI logged in to an account that can read
 ```sh
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"   # macOS example
 cd durtles
-./gradlew assembleDebug      # "KanjiKodama - Debug", id app.mojimori.wk.debug
-./gradlew assembleRelease    # id app.mojimori.wk
+./gradlew assembleDebug      # "KanjiKodama - Debug", id app.kanjikodama.wk.debug
+./gradlew assembleRelease    # id app.kanjikodama.wk
 ```
 
-The debug and release builds have different application ids, so both can be installed side by side. The ids
-still carry the app's former name, MojiMori: changing them would make Android treat an update as a
-different app.
+The debug and release builds have different application ids, so both can be installed side by side.
 
 ### Lesson content
 

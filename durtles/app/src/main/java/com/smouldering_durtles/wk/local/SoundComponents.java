@@ -42,24 +42,12 @@ public final class SoundComponents {
         //
     }
 
-    private static void deleteTree(final File file) {
-        final @Nullable File[] children = file.listFiles();
-        if (children != null) {
-            for (final File child: children) {
-                deleteTree(child);
-            }
-        }
-        //noinspection ResultOfMethodCallIgnored
-        file.delete();
-    }
-
     private static synchronized @Nullable SQLiteDatabase open() {
         if (db != null && db.isOpen()) {
             return db;
         }
         try {
             final Context context = WkApplication.getInstance();
-            deleteTree(new File(context.getFilesDir(), "mojimori")); // copy made under the app's former name
             final File dir = new File(context.getFilesDir(), "kanjikodama");
             if (!dir.exists() && !dir.mkdirs()) {
                 return null;

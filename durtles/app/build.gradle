@@ -9,8 +9,7 @@ if (keystoreFile.exists()) {
 
 android {
     defaultConfig {
-        // The id predates the KanjiKodama name; changing it would make Android treat updates as a different app.
-        applicationId "app.mojimori.wk"
+        applicationId "app.kanjikodama.wk"
         minSdkVersion 21
         targetSdkVersion 36
         compileSdk = 36
@@ -45,18 +44,18 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            resValue 'string', 'fileprovider_authority', 'app.mojimori.wk.fileprovider'
-            resValue 'string', 'searchprovider_authority', 'app.mojimori.wk.db.SubjectContentProvider'
+            resValue 'string', 'fileprovider_authority', 'app.kanjikodama.wk.fileprovider'
+            resValue 'string', 'searchprovider_authority', 'app.kanjikodama.wk.db.SubjectContentProvider'
             resValue 'string', 'applabel', '@string/label'
-            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"app.mojimori.wk.fileprovider"'
+            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"app.kanjikodama.wk.fileprovider"'
             signingConfig keystoreProps.isEmpty() ? signingConfigs.debug : signingConfigs.release
         }
         debug {
             applicationIdSuffix '.debug'
-            resValue 'string', 'fileprovider_authority', 'app.mojimori.wk.debug.fileprovider'
-            resValue 'string', 'searchprovider_authority', 'app.mojimori.wk.debug.db.SubjectContentProvider'
+            resValue 'string', 'fileprovider_authority', 'app.kanjikodama.wk.debug.fileprovider'
+            resValue 'string', 'searchprovider_authority', 'app.kanjikodama.wk.debug.db.SubjectContentProvider'
             resValue 'string', 'applabel', '@string/labelDebug'
-            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"app.mojimori.wk.debug.fileprovider"'
+            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"app.kanjikodama.wk.debug.fileprovider"'
         }
     }
     sourceSets {

@@ -113,31 +113,9 @@ public final class WkApplication extends MultiDexApplication {
         return requireNonNull(encryptedPreferenceDataStore);
     }
 
-    /**
-     * The app was called MojiMori before. Carry over the settings saved under that name: the theme
-     * values and the one-time migration flags (so those migrations do not run a second time).
-     */
-    private static void migrateFromMojiMori(final android.content.SharedPreferences prefs) {
-        final android.content.SharedPreferences.Editor ed = prefs.edit();
-        for (final String key: new String[] {"theme", "nightTheme"}) {
-            final @Nullable String value = prefs.getString(key, null);
-            if (value != null && value.startsWith("MOJIMORI_")) {
-                ed.putString(key, "KANJIKODAMA_" + value.substring("MOJIMORI_".length()));
-            }
-        }
-        for (final String flag: new String[] {"theme_applied", "font_bump_applied", "quiz_font_bump_applied",
-                "quiz_glyph_bump_applied", "answer_22_applied"}) {
-            if (prefs.getBoolean("mojimori_" + flag, false)) {
-                ed.putBoolean("kanjikodama_" + flag, true).remove("mojimori_" + flag);
-            }
-        }
-        ed.apply();
-    }
-
     private static void initialize(final WkApplication application) {
         // KanjiKodama: switch existing installs to the KanjiKodama themes once; later choices are respected.
         final android.content.SharedPreferences themePrefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(application);
-        migrateFromMojiMori(themePrefs);
         if (LocalMode.ENABLED && !themePrefs.getBoolean("kanjikodama_theme_applied", false)) {
             themePrefs.edit()
                     .putString("theme", "KANJIKODAMA_LIGHT")
