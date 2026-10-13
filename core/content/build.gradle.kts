@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "app.mojimori.content"
+    namespace = "app.kanjikodama.content"
     compileSdk = 37
 
     defaultConfig {

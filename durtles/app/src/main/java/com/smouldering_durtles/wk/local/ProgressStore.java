@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: saving, restoring and resetting learning progress.
+ * KanjiKodama local mode: saving, restoring and resetting learning progress.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 
@@ -36,7 +36,9 @@ import java.util.List;
  * level progression rows and one object per subject that has any progress or notes.</p>
  */
 public final class ProgressStore {
-    public static final String FORMAT = "mojimori-progress";
+    public static final String FORMAT = "kanjikodama-progress";
+    /** Files saved before the app was renamed; same content. */
+    private static final String LEGACY_FORMAT = "mojimori-progress";
     public static final int VERSION = 1;
 
     /** Numeric progress columns of the subject table, reset to 0. */
@@ -150,11 +152,12 @@ public final class ProgressStore {
     /** Quick validity check of a saved file, returning a short human summary. */
     public static String describe(final String json) throws Exception {
         final JSONObject root = new JSONObject(json);
-        if (!FORMAT.equals(root.optString("format"))) {
-            throw new IllegalArgumentException("This is not a MojiMori progress file.");
+        final String format = root.optString("format");
+        if (!FORMAT.equals(format) && !LEGACY_FORMAT.equals(format)) {
+            throw new IllegalArgumentException("This is not a KanjiKodama progress file.");
         }
         if (root.optInt("version") > VERSION) {
-            throw new IllegalArgumentException("This progress file was made by a newer MojiMori.");
+            throw new IllegalArgumentException("This progress file was made by a newer KanjiKodama.");
         }
         final java.text.DateFormat fmt = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT);
         return "Saved " + fmt.format(new java.util.Date(root.optLong("exportedAt")))

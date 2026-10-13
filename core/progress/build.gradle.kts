@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "app.mojimori.progress"
+    namespace = "app.kanjikodama.progress"
     compileSdk = 37
 
     defaultConfig {

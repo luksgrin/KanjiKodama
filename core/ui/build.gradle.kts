@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "app.mojimori.ui"
+    namespace = "app.kanjikodama.ui"
     compileSdk = 37
 
     defaultConfig {

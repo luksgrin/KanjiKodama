@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: dialogs for switching curriculum order and for fast travel.
+ * KanjiKodama local mode: dialogs for switching curriculum order and for fast travel.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 
@@ -226,7 +226,7 @@ public final class CurriculumUi {
             } catch (final Exception e) {
                 //
             }
-        }, "MojiMoriLevelTestCheck").start();
+        }, "KanjiKodamaLevelTestCheck").start();
     }
 
     private static void startRound(final Activity activity, final int round) {

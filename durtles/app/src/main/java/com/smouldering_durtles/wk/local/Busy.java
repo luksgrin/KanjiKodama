@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: run slow database work behind a small blocking dialog.
+ * KanjiKodama local mode: run slow database work behind a small blocking dialog.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 
@@ -56,7 +56,7 @@ public final class Busy {
                     then.accept(r);
                 }
             });
-        }, "MojiMoriBusy").start();
+        }, "KanjiKodamaBusy").start();
     }
 
     public static void message(final Activity activity, final @Nullable String title, final String message) {

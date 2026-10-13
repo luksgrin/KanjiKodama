@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from mojimori_content.export_extra import clean_gloss, kanji_readings, kun_stem, pos_labels, standalone
+from kanjikodama_content.export_extra import clean_gloss, kanji_readings, kun_stem, pos_labels, standalone
 
 
 def test_kun_stem_drops_okurigana_and_affix_marks() -> None:

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "app.mojimori.feature.dashboard"
+    namespace = "app.kanjikodama.feature.dashboard"
     compileSdk = 37
 
     defaultConfig {

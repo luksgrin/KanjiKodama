@@ -199,8 +199,8 @@
     </string-array>
 
     <string-array name="themes">
-        <item>MojiMori</item>
-        <item>MojiMori Dark</item>
+        <item>KanjiKodama</item>
+        <item>KanjiKodama Dark</item>
         <item>Wanikani</item>
         <item>Wanikani Dark</item>
         <item>Wanikani Black</item>
@@ -210,8 +210,8 @@
     </string-array>
 
     <string-array name="themeValues">
-        <item>MOJIMORI_LIGHT</item>
-        <item>MOJIMORI_DARK</item>
+        <item>KANJIKODAMA_LIGHT</item>
+        <item>KANJIKODAMA_DARK</item>
         <item>LIGHT</item>
         <item>DARK_WANIKANI</item>
         <item>BLACK_WANIKANI</item>

@@ -42,7 +42,7 @@
             app:layout_constraintTop_toBottomOf="@id/quizTopRowBarrier"
             tools:ignore="KeyboardInaccessibleWidget" />
 
-        <!-- MojiMori: the glyph gets its own row between the counter row and the button row, so they never overlap. -->
+        <!-- KanjiKodama: the glyph gets its own row between the counter row and the button row, so they never overlap. -->
         <androidx.constraintlayout.widget.Barrier
             android:id="@+id/quizTopRowBarrier"
             android:layout_width="wrap_content"

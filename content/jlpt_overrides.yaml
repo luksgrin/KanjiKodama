@@ -1,4 +1,4 @@
-# JLPT level overrides for the app's JLPT curriculum (mojimori-content export-jlpt).
+# JLPT level overrides for the app's JLPT curriculum (kanjikodama-content export-jlpt).
 # Value: N5..N1, or OBSCURE to drop a kanji from the JLPT blocks. Example:
 #
 # 分: N5

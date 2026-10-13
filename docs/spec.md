@@ -1,4 +1,4 @@
-# MojiMori (文字森) — Product & Technical Specification
+# KanjiKodama (漢字木霊) — Product & Technical Specification
 
 Version 0.4 (draft) — 2026-09-29
 
@@ -6,7 +6,7 @@ Changes from 0.3: no dependency on WaniKani at all. Vocabulary is built from ope
 WaniKani word list, if one is available offline, is only an optional *seed* that steers which
 words are picked first. No API, no account, no WaniKani content in the app.
 
-Changes from 0.2: MojiMori is a personal, unreleased build that costs nothing to run; the
+Changes from 0.2: KanjiKodama is a personal, unreleased build that costs nothing to run; the
 coverage workaround, progress import, Play Store release and on-demand asset delivery are gone.
 
 Changes from 0.1: WaniKani-style numbered levels inside JLPT blocks; "Obscure" block after N1;
@@ -14,7 +14,7 @@ cross-block Practice mode; much larger vocabulary target.
 
 ## 1. Summary
 
-MojiMori is an Android app for learning Japanese kanji. It keeps the WaniKani loop that works
+KanjiKodama is an Android app for learning Japanese kanji. It keeps the WaniKani loop that works
 (small lesson batches → spaced-repetition reviews → unlock chains from components to kanji to
 vocabulary, numbered levels with level-ups) and adds what WaniKani does not do:
 
@@ -32,7 +32,7 @@ vocabulary, numbered levels with level-ups) and adds what WaniKani does not do:
    lists and JMdict frequency data, optionally seeded by any word list the author drops into the
    pipeline (a WaniKani-style list is the obvious first seed).
 
-MojiMori is a personal tool for its author. It is not published, sold or distributed, uses no
+KanjiKodama is a personal tool for its author. It is not published, sold or distributed, uses no
 paid service, and depends on no third-party learning product. It is offline-first and
 single-user. Learning content is built by a reproducible pipeline from open dictionaries and
 shipped inside the app.
@@ -200,7 +200,7 @@ whose phonetic component the learner already knows, so lessons there lead with t
 
 ### 4.4 Spaced repetition
 
-MojiMori uses WaniKani-style fixed SRS stages because the gating rules (4.5) are expressed in
+KanjiKodama uses WaniKani-style fixed SRS stages because the gating rules (4.5) are expressed in
 stage names the learner understands. Intervals are configurable; defaults:
 
 | SRS stage # | Name          | Interval to next review |
@@ -439,7 +439,7 @@ keys (kanji literal, component slug, JMdict sequence id), so a content update ne
 progress.
 
 **Content pipeline** (`tools/content/`): download sources from the private snapshot repository
-(`luksgrin/MojiMoriData`, one GitHub release per dated snapshot, checksums pinned in
+(`luksgrin/KanjiKodamaData`, one GitHub release per dated snapshot, checksums pinned in
 `sources.lock.json`; upstream is only contacted when a snapshot is deliberately refreshed) → parse → classify every KANJIDIC2 kanji into a block (N5…N1 from the JLPT lists, else Obscure
 sub-tier from grade / JIS level) → decompose kanji → derive phonetic series and reliability →
 compute level ordering → apply YAML overrides → select vocabulary (JLPT lists, seed lists,

@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: the "Progress" settings (WaniKani import, save to and restore from a file).
+ * KanjiKodama local mode: the "Progress" settings (WaniKani import, save to and restore from a file).
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 
@@ -38,7 +38,7 @@ import javax.annotation.Nullable;
  * onCreatePreferences.
  */
 public final class ProgressPreferences {
-    private static final String OVERRIDE_WARNING = "This replaces ALL progress in MojiMori (levels, SRS stages,"
+    private static final String OVERRIDE_WARNING = "This replaces ALL progress in KanjiKodama (levels, SRS stages,"
             + " review history and notes) on this device. It cannot be undone. Save your current progress first"
             + " if you might want it back.";
 
@@ -68,7 +68,7 @@ public final class ProgressPreferences {
         click("progress_level_test", () -> CurriculumUi.levelTest(fragment.requireActivity()));
         click("progress_import_wanikani", this::askToken);
         click("progress_save", () -> saveLauncher.launch(
-                "mojimori-progress-" + new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date()) + ".json"));
+                "kanjikodama-progress-" + new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date()) + ".json"));
         click("progress_restore", () -> openLauncher.launch(new String[] {"application/json", "text/plain", "application/octet-stream"}));
     }
 

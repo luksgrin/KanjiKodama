@@ -1,11 +1,11 @@
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["fonttools>=4.50", "pillow>=10"]
+# dependencies = ["pillow>=10"]
 # ///
-"""Generate the MojiMori logo: a pixel torii with a 森 plaque, pines, grass and sakura petals.
+"""Generate the KanjiKodama logo: a pixel torii with a sprouting kodama under it, pines, grass and
+sakura petals.
 
-The 森 on the plaque is the real outline from Zen Maru Gothic (never pixelated), so it stays
-crisp at any size. Outputs: Android adaptive-icon layers (vector drawables), legacy PNG icons,
+Outputs: Android adaptive-icon layers (vector drawables), the notification icon, legacy PNG icons,
 and an SVG of the mark for design work.
 
 Run from the repo: uv run durtles/tools/make_logo.py
@@ -13,25 +13,19 @@ Run from the repo: uv run durtles/tools/make_logo.py
 import os
 import sys
 
-from fontTools.pens.svgPathPen import SVGPathPen
-from fontTools.pens.transformPen import TransformPen
-from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(HERE, "..", "app", "src", "main", "res")
-FONT = os.path.join(RES, "font", "zen_maru_gothic_medium.ttf")
-OUT_SVG = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "mojimori-logo.svg")
+OUT_SVG = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "kanjikodama-logo.svg")
 
 # ---------------------------------------------------------------- palette
 C = {
     "R": "#C46A5E",  # torii vermilion (muted)
     "r": "#E3907F",  # torii highlight
     "D": "#7A3E37",  # torii shadow / outline
-    "P": "#2F6B57",  # plaque green
-    "p": "#A8E6CF",  # plaque frame (mint)
-    "T": "#4E9A78",  # pine
-    "t": "#2E6B54",  # pine shadow
+    "T": "#4E9A78",  # pine, sprout
+    "t": "#2E6B54",  # pine shadow, sprout stem
     "B": "#8A5A3C",  # trunk
     "G": "#7CC8AC",  # grass
     "g": "#5FA88A",  # grass shadow
@@ -39,10 +33,14 @@ C = {
     "W": "#FFFFFF",  # flower
     "Y": "#F6D37A",  # flower centre
     "S": "#F5A9B8",  # sakura petal
+    "K": "#F7FAF6",  # kodama
+    "k": "#9FB8AA",  # kodama outline
+    "E": "#33433C",  # kodama eyes and mouth
+    "s": "#F2A3B3",  # kodama cheeks
 }
 BG = "#FBEDEF"  # pale sakura ground
 
-# 32 x 32 sprite. "." = transparent. The plaque interior (P) gets the vector 森 on top.
+# 32 x 32 sprite. "." = transparent.
 SPRITE = """
 ........S..........S............
 ..S.............................
@@ -50,27 +48,27 @@ SPRITE = """
 ...RRRRRRRRRRRRRRRRRRRRRRRRRRRR.
 ...rrrrrrrrrrrrrrrrrrrrrrrrrrrr.
 ....DDDDDDDDDDDDDDDDDDDDDDDDDD..
-.......RD...pppppppp...RD.......
-.S.....RD...pPPPPPPp...RD.....S.
-.......RD...pPPPPPPp...RD.......
-....RRRRRRRRpPPPPPPpRRRRRRRR....
-....DDDDRDDDpPPPPPPpDDDRDDDD....
-.......RD...pPPPPPPp...RD.......
-.......RD...pPPPPPPp...RD.......
-.......RD...pPPPPPPp...RD.......
-...T...RD...pppppppp...RD...T...
-..TTT..RD..............RD..TTT..
-..TTt..RD....S.........RD..TTt..
-.TTTTt.RD..............RD.TTTTt.
-..TTt..RD..............RD..TTt..
-.TTTTt.RD..............RD.TTTTt.
-TTTTTTtRD..........S...RDTTTTTTt
-.TTTTt.RD..............RD.TTTTt.
-TTTTTTtRD..............RDTTTTTTt
-TTTTTTtRD..............RDTTTTTTt
-...B...RD..............RD...B...
-...B...RD..............RD...B...
-...B...RD..............RD...B...
+.......RD..............RD.......
+.S.....RD..............RD.....S.
+.......RD..............RD.......
+....RRRRRRRRRRRRRRRRRRRRRRRR....
+....DDDDRDDDDDDDDDDDDDDRDDDD....
+.......RD..............RD.......
+.......RD..............RD.......
+.......RD..............RD.......
+...T...RD..............RD...T...
+..TTT..RD.....TT.TT....RD..TTT..
+..TTt..RD......TtT.....RD..TTt..
+.TTTTt.RD.....kkkkkk...RD.TTTTt.
+..TTt..RD....kKKKKKKk..RD..TTt..
+.TTTTt.RD...kKKKKKKKKk.RD.TTTTt.
+TTTTTTtRD...kKEEKKEEKk.RDTTTTTTt
+.TTTTt.RD...kKEEKKEEKk.RD.TTTTt.
+TTTTTTtRD...ksKKEEKKsk.RDTTTTTTt
+TTTTTTtRD....kKKKKKKk..RDTTTTTTt
+...B...RD......kKKk....RD...B...
+...B...RD.....kKKKKk...RD...B...
+...B...RD.....kKk.kKk..RD...B...
 .HHHHHDDDDHHHHHHHHHHHHDDDDHHHHH.
 GGWGGGGGGGGGGGSGGGGGGGGGGGGWGGGG
 GGYGGGGGGWGGGGGGGGGGGGWGGGGYGGGG
@@ -79,7 +77,9 @@ gGGGGGGGGYGGGGGGGGGGGGYGGGGGGGGg
 """
 ROWS = [r for r in SPRITE.strip("\n").split("\n")]
 assert len(ROWS) == 32 and all(len(r) == 32 for r in ROWS), [len(r) for r in ROWS]
-PLAQUE = (13, 7, 6, 7)  # interior x, y, w, h in sprite pixels
+# Left out of the single-colour layers: petals and cheeks are noise, the kodama's eyes and mouth
+# become holes so the face still reads.
+MONO_SKIP = "SsE"
 
 
 def runs():
@@ -98,95 +98,63 @@ def runs():
             x += w
 
 
-def kanji_path(box, scale_to):
-    """SVG path data for 森 from Zen Maru Gothic, fitted into box (x, y, w, h) in target units."""
-    font = TTFont(FONT)
-    gs = font.getGlyphSet()
-    name = font.getBestCmap()[ord("森")]
-    upm = font["head"].unitsPerEm
-    bx, by, bw, bh = box
-    s = min(bw, bh) / upm * scale_to
-    # font y goes up; place the em box centred in the target box
-    tx = bx + (bw - upm * s) / 2
-    ty = by + (bh - upm * s) / 2 + upm * s * 0.88  # baseline near the bottom of the em box
-    pen = SVGPathPen(gs)
-    gs[name].draw(TransformPen(pen, (s, 0, 0, -s, tx, ty)))
-    return pen.getCommands()
-
-
 def write_svg(path):
     px = 10
     parts = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {32 * px} {32 * px}" shape-rendering="crispEdges">']
     for x, y, w, ch in runs():
         parts.append(f'<rect x="{x * px}" y="{y * px}" width="{w * px}" height="{px}" fill="{C[ch]}"/>')
-    x, y, w, h = PLAQUE
-    parts.append(f'<path shape-rendering="geometricPrecision" fill="#FFFFFF" d="{kanji_path((x * px, y * px, w * px, h * px), 0.92)}"/>')
     parts.append("</svg>")
     with open(path, "w") as f:
         f.write("\n".join(parts))
 
 
-def write_vector(path, mono=False):
-    # 32-px sprite mapped into the adaptive canvas safe zone: 58 of 108 units, centred.
-    u, off = 1.8125, 25.0
+# 32-px sprite mapped into the adaptive canvas safe zone: 58 of 108 units, centred.
+U, OFF = 1.8125, 25.0
+
+
+def write_vector(path):
     out = ['<?xml version="1.0" encoding="utf-8"?>',
-           '<!-- Generated by durtles/tools/make_logo.py: pixel torii with a Zen Maru Gothic 森 plaque. -->',
+           '<!-- Generated by durtles/tools/make_logo.py: pixel torii with a sprouting kodama. -->',
            '<vector xmlns:android="http://schemas.android.com/apk/res/android"',
            '    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">']
     by_colour = {}
     for x, y, w, ch in runs():
-        if mono and ch in "S":  # petals add noise to a monochrome silhouette
-            continue
-        d = f"M{off + x * u:.2f},{off + y * u:.2f}h{w * u:.2f}v{u:.2f}h{-w * u:.2f}z"
-        by_colour.setdefault("#FFFFFF" if mono else C[ch], []).append(d)
+        d = f"M{OFF + x * U:.2f},{OFF + y * U:.2f}h{w * U:.2f}v{U:.2f}h{-w * U:.2f}z"
+        by_colour.setdefault(C[ch], []).append(d)
     for colour, ds in by_colour.items():
         out.append(f'    <path android:fillColor="{colour}" android:pathData="{"".join(ds)}"/>')
-    x, y, w, h = PLAQUE
-    kd = kanji_path((off + x * u, off + y * u, w * u, h * u), 0.92)
-    if mono:
-        # cut the kanji out of the plaque so it still reads in a single colour
-        out.append(f'    <path android:fillColor="#00000000" android:pathData="{kd}"/>')
-        out[-1] = out[-1]  # transparent overlay cannot cut; draw plaque interior as hole instead
-    else:
-        out.append(f'    <path android:fillColor="#FFFFFF" android:pathData="{kd}"/>')
     out.append("</vector>")
     with open(path, "w") as f:
         f.write("\n".join(out) + "\n")
 
 
 def write_mono(path):
-    """Monochrome layer: torii, trees and ground as one silhouette, the plaque as a frame with 森."""
-    u, off = 1.8125, 25.0
+    """Monochrome layer for themed icons: everything as one silhouette, the kodama's face cut out."""
     ds = []
-    px, py, pw, ph = PLAQUE
     for x, y, w, ch in runs():
-        if ch == "S":
+        if ch in MONO_SKIP:
             continue
-        if ch == "P":  # leave the plaque interior empty
-            continue
-        ds.append(f"M{off + x * u:.2f},{off + y * u:.2f}h{w * u:.2f}v{u:.2f}h{-w * u:.2f}z")
-    kd = kanji_path((off + px * u, off + py * u, pw * u, ph * u), 0.92)
+        ds.append(f"M{OFF + x * U:.2f},{OFF + y * U:.2f}h{w * U:.2f}v{U:.2f}h{-w * U:.2f}z")
     with open(path, "w") as f:
         f.write('<?xml version="1.0" encoding="utf-8"?>\n'
                 '<!-- Generated by durtles/tools/make_logo.py: single-colour layer for themed icons. -->\n'
                 '<vector xmlns:android="http://schemas.android.com/apk/res/android"\n'
                 '    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">\n'
                 f'    <path android:fillColor="#FFFFFF" android:pathData="{"".join(ds)}"/>\n'
-                f'    <path android:fillColor="#FFFFFF" android:pathData="{kd}"/>\n'
                 "</vector>\n")
 
 
 # 24 x 24 status bar sprite: the torii alone, as one white silhouette (trees, ground and the
-# plaque kanji would only blur at this size).
+# kodama would only blur at this size).
 STATUS = """
 ........................
 ........................
 XX....................XX
 XXXXXXXXXXXXXXXXXXXXXXXX
 .XXXXXXXXXXXXXXXXXXXXXX.
-....XXX...XXXX...XXX....
-....XXX...XXXX...XXX....
-....XXX...XXXX...XXX....
+....XXX..........XXX....
+....XXX..........XXX....
+....XXX..........XXX....
 ..XXXXXXXXXXXXXXXXXXXX..
 ..XXXXXXXXXXXXXXXXXXXX..
 ....XXX..........XXX....
@@ -243,24 +211,16 @@ def png(size, round_):
     cell = (S - 2 * margin) / 32
     for x, y, w, ch in runs():
         d.rectangle((margin + x * cell, margin + y * cell, margin + (x + w) * cell - 1, margin + (y + 1) * cell - 1), fill=C[ch])
-    # vector 森 rendered with the real font
-    from PIL import ImageFont
-    px, py, pw, ph = PLAQUE
-    fs = int(min(pw, ph) * cell * 0.92)
-    font = ImageFont.truetype(FONT, fs)
-    cx = margin + (px + pw / 2) * cell
-    cy = margin + (py + ph / 2) * cell
-    d.text((cx, cy), "森", font=font, fill="#FFFFFF", anchor="mm")
     return img.resize((size, size), Image.LANCZOS)
 
 
 if __name__ == "__main__":
     write_svg(OUT_SVG)
-    write_vector(os.path.join(RES, "drawable", "mojimori_icon_foreground.xml"))
-    write_mono(os.path.join(RES, "drawable", "mojimori_icon_monochrome.xml"))
+    write_vector(os.path.join(RES, "drawable", "kanjikodama_icon_foreground.xml"))
+    write_mono(os.path.join(RES, "drawable", "kanjikodama_icon_monochrome.xml"))
     write_status(os.path.join(RES, "drawable", "ic_stat_name.xml"))
     for dens, px in {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}.items():
         png(px, False).save(os.path.join(RES, f"mipmap-{dens}", "ic_launcher.png"))
         png(px, True).save(os.path.join(RES, f"mipmap-{dens}", "ic_launcher_round.png"))
-    png(512, False).save(os.path.join(HERE, "mojimori-logo-512.png"))
+    png(512, False).save(os.path.join(HERE, "kanjikodama-logo-512.png"))
     print("logo written")

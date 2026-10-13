@@ -1,7 +1,7 @@
 import gzip
 
-from mojimori_content import decompose
-from mojimori_content.sources import kanjivg
+from kanjikodama_content import decompose
+from kanjikodama_content.sources import kanjivg
 
 SAMPLE = b"""<?xml version="1.0" encoding="UTF-8"?>
 <kanjivg xmlns:kvg='http://kanjivg.tagaini.net'>

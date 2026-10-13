@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-// MojiMori: optional release signing. Copy keystore.properties.example to keystore.properties.
+// KanjiKodama: optional release signing. Copy keystore.properties.example to keystore.properties.
 def keystoreProps = new Properties()
 def keystoreFile = rootProject.file('keystore.properties')
 if (keystoreFile.exists()) {
@@ -9,6 +9,7 @@ if (keystoreFile.exists()) {
 
 android {
     defaultConfig {
+        // The id predates the KanjiKodama name; changing it would make Android treat updates as a different app.
         applicationId "app.mojimori.wk"
         minSdkVersion 21
         targetSdkVersion 36
@@ -138,7 +139,7 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-Xlint:unchecked'
     options.deprecation = true
 }
-// MojiMori: regenerate assets/wk-content.db from the private dump in ../wani-data when present.
+// KanjiKodama: regenerate assets/wk-content.db from the private dump in ../wani-data when present.
 def buildWkAsset = tasks.register('buildWkAsset', Exec) {
     workingDir = rootProject.projectDir
     commandLine 'python3', 'tools/build_wk_asset.py'

@@ -279,8 +279,8 @@
     </style>
 
 
-    <!-- MojiMori Pixel Forest: pastel pixel UI; Japanese text always falls back to a clean font. -->
-    <style name="MojiMoriLightTheme" parent="WKLightTheme">
+    <!-- KanjiKodama Pixel Forest: pastel pixel UI; Japanese text always falls back to a clean font. -->
+    <style name="KanjiKodamaLightTheme" parent="WKLightTheme">
         <item name="colorPrimary">@color/mmInkLight</item>
         <item name="colorPrimaryDark">@color/mmInkLight</item>
         <item name="colorPrimaryLight">@color/mmMutedLight</item>
@@ -307,7 +307,7 @@
         <item name="mmOnHeader">@color/mmOnPastelLight</item>
     </style>
 
-    <style name="MojiMoriDarkTheme" parent="WKDarkTheme">
+    <style name="KanjiKodamaDarkTheme" parent="WKDarkTheme">
         <item name="colorPrimary">@color/mmInkDark</item>
         <item name="colorPrimaryDark">@color/mmWindowDark</item>
         <item name="colorPrimaryLight">@color/mmMutedDark</item>
@@ -357,7 +357,7 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <!-- Text on the coloured quiz header. MojiMori: dark ink on pastel, bold. -->
+    <!-- Text on the coloured quiz header. KanjiKodama: dark ink on pastel, bold. -->
     <style name="WK.TextView.Normal.Light" parent="WK.TextView.Normal">
         <item name="android:textColor">?attr/mmOnHeader</item>
         <item name="android:fontFamily">@font/silkscreen</item>
@@ -419,7 +419,7 @@
     <style name="WK.Button.Borderless" parent="Widget.AppCompat.Button.Borderless">
     </style>
 
-    <!-- Buttons on the coloured quiz header (Submit, Don't know, Next). MojiMori: compact pixel pills. -->
+    <!-- Buttons on the coloured quiz header (Submit, Don't know, Next). KanjiKodama: compact pixel pills. -->
     <style name="WK.Button.Borderless.Light" parent="Widget.AppCompat.Button.Borderless">
         <item name="android:background">@drawable/mm_btn</item>
         <item name="android:fontFamily">@font/silkscreen</item>

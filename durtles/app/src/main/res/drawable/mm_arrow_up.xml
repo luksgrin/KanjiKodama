@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MojiMori: opaque level-up arrow; tinted at runtime (mint). -->
+<!-- KanjiKodama: opaque level-up arrow; tinted at runtime (mint). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="12dp"
     android:height="9dp"

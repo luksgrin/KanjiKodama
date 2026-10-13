@@ -1,4 +1,4 @@
-# MojiMori — Implementation Plan
+# KanjiKodama — Implementation Plan
 
 ## Pivot 2026-10-10: fork Smouldering Durtles
 
@@ -16,9 +16,9 @@ without touching progress.
 | Step | Scope | Status |
 |------|-------|--------|
 | B1 | Offline fork in WaniKani order: bundled content import, local unlocks and level-ups (`durtles/.../local/`), no API calls, no login, no level cap | done 2026-10-10, verified on an API 36 emulator |
-| B2 | Clean-up: account/API/sync settings and menu items hidden; resurrect and burn work locally; notes and synonyms stay local; local tasks (reference data, audio, pitch) run; provider ids renamed so it installs next to Smouldering Durtles; release signing via keystore.properties; manual release workflow builds the fork with content from MojiMoriData | done 2026-10-10 |
+| B2 | Clean-up: account/API/sync settings and menu items hidden; resurrect and burn work locally; notes and synonyms stay local; local tasks (reference data, audio, pitch) run; provider ids renamed so it installs next to Smouldering Durtles; release signing via keystore.properties; manual release workflow builds the fork with content from KanjiKodamaData | done 2026-10-10 |
 | B2b | Audio: the dump only has links to WaniKani's public file server. Decided: not vendored. Audio stays an on-demand download cached on the device ("Download audio" screen; levels 1-10 are about 2,300 files, 56 MB) and can be deleted from the same screen | decided 2026-10-10 |
-| B3 | Component and on'yomi teaching: a "Parts / Sound" section on every kanji page (lessons and item pages) showing each part's role, the phonetic component and its on'yomi, whether this kanji follows it, the series reliability over common kanji, and the other series members WaniKani teaches with their levels. Data: `durtles/app/src/main/assets/sound-components.db`, built from open data by `mojimori-content export-sound` (2,033 of 2,101 WaniKani kanji get parts, 1,307 a sound component). Follow-ups: a prediction prompt before the reading is revealed in lessons; fix questionable phonetic picks via `content/series_overrides.yaml` | done 2026-10-10 |
+| B3 | Component and on'yomi teaching: a "Parts / Sound" section on every kanji page (lessons and item pages) showing each part's role, the phonetic component and its on'yomi, whether this kanji follows it, the series reliability over common kanji, and the other series members WaniKani teaches with their levels. Data: `durtles/app/src/main/assets/sound-components.db`, built from open data by `kanjikodama-content export-sound` (2,033 of 2,101 WaniKani kanji get parts, 1,307 a sound component). Follow-ups: a prediction prompt before the reading is revealed in lessons; fix questionable phonetic picks via `content/series_overrides.yaml` | done 2026-10-10 |
 | A | JLPT curriculum mode with placement on switching and fast travel (design below). Follow-up: the N1 kanji WaniKani lacks would need content from open data | done 2026-10-12, verified on an API 36 emulator |
 
 ### Step A: JLPT order, placement and fast travel
@@ -29,7 +29,7 @@ without touching progress.
   Obscure 4). A radical goes to the level of the first kanji using it, a vocabulary item to the
   level of its last kanji, everything else by its WaniKani level. Code: `local/JlptPlan.java`.
   The kanji list is `durtles/app/src/main/assets/jlpt-kanji.tsv`, exported by
-  `mojimori-content export-jlpt` from Waller's lists, KANJIDIC2's old JLPT field for gaps, and
+  `kanjikodama-content export-jlpt` from Waller's lists, KANJIDIC2's old JLPT field for gaps, and
   `content/jlpt_overrides.yaml`.
 - **Shared progress.** Progress is per subject and shared by both orders. Switching rewrites the
   subject table's `level` and `lessonPosition`; WaniKani's own order is kept in the raw table
@@ -49,7 +49,7 @@ without touching progress.
 
 - **Extra kanji.** The 259 JLPT kanji the WaniKani content lacks (258 N1 kanji WaniKani never
   taught plus 昌, which it retired) ship in `assets/extra-kanji.db`, exported by
-  `mojimori-content export-extra`: KANJIDIC2 meanings and readings, the primary meaning and
+  `kanjikodama-content export-extra`: KANJIDIC2 meanings and readings, the primary meaning and
   reading and both mnemonics from `content/mnemonics/extra-*.yaml` (hand-written, validated on
   export), up to three common JMdict words each (176 words for 118 kanji) with Tatoeba sentences
   and generated word mnemonics. The app imports them with ids from 100000 (`local/ExtraContent`),
@@ -83,7 +83,7 @@ platform only implements a short list of system services behind small interfaces
 | Flutter | Nothing (Dart rewrite) | Viable, no head start |
 | React Native | Nothing (TypeScript rewrite) | Weaker for a heavily custom UI |
 
-The fork is about 67,000 lines of Java, much of it for things MojiMori does not use (around 150
+The fork is about 67,000 lines of Java, much of it for things KanjiKodama does not use (around 150
 settings, a dozen themes, Anki mode, upstream's view-system screens). We rebuild the behaviour
 we use, reading the Java as the reference, rather than converting files one by one. Expected
 size: roughly 15,000-20,000 lines of Kotlin, plus the sync engine.
@@ -117,7 +117,7 @@ Design changes from the fork:
 - The content DB stores both orders (WaniKani level/position and JLPT level/position) at build
   time; progress lives in a separate DB keyed by subject id. Switching curriculum becomes a
   setting instead of rewriting the subject table.
-- The `mojimori-progress` JSON file stays the exchange format, so progress saved from the Android
+- The `kanjikodama-progress` JSON file stays the exchange format, so progress saved from the Android
   fork restores into the new app on either platform.
 
 ### Profiles
@@ -151,7 +151,7 @@ web-login extras and support screens are not carried over.
 | 3 | Study loop: dashboard, lessons, reviews, summary | Usable daily on both platforms | L |
 | 4 | Subject pages: mnemonics with WaniKani's markup, context sentences, parts and sound, stroke order, pitch accent, audio | Matches the fork's item pages | M-L |
 | 5 | The rest: browse/search, self-study, notes/synonyms, curriculum and fast travel, WaniKani import, backups, notifications, the settings in use | Feature checklist complete | M |
-| 5b | WaniKani profile: sync engine, offline queue, background sync | Reviews and lessons done in MojiMori appear on wanikani.com and the reverse; tested carefully on the real account, a few items at a time | M-L |
+| 5b | WaniKani profile: sync engine, offline queue, background sync | Reviews and lessons done in KanjiKodama appear on wanikani.com and the reverse; tested carefully on the real account, a few items at a time | M-L |
 | 6 | Cutover: a week on both phones, move progress over, remove `durtles/` and the old prototype, iOS build job in CI | One codebase, two apps | S |
 
 The Android fork stays the daily app until phase 6 and only gets bug fixes. The biggest
@@ -217,11 +217,11 @@ Tasks
 10. `emit`: write `content.db` (schema in spec §9) and `report.html` (validation rules in
     spec §8, plus series tables, level listings, per-level word counts, block sizes).
 
-Exit criteria: `uv run mojimori-content build -b N5` is deterministic, passes validation with
+Exit criteria: `uv run kanjikodama-content build -b N5` is deterministic, passes validation with
 and without seed lists, every level has 80–180 words, and the report shows correct series for
 工, 交, 寺 as smoke tests. With a seed list present, the report shows its placement.
 
-Data freeze: raw upstream files are frozen in the private repo `luksgrin/MojiMoriData` as dated
+Data freeze: raw upstream files are frozen in the private repo `luksgrin/KanjiKodamaData` as dated
 GitHub releases (first snapshot `2026-10-03`, 14 files, 52 MB). `sources.lock.json` names the
 snapshot and pins every checksum; `fetch` reads the snapshot first and only `fetch
 --refresh-upstream` followed by `snapshot` moves to new upstream data.

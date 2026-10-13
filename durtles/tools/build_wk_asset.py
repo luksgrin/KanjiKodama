@@ -6,7 +6,7 @@ The dump is in Smouldering Durtles' own table format. This script keeps only con
 progress so the app starts fresh. The output is git-ignored: WaniKani content is licensed to
 the owner for internal use only and must never be committed.
 
-Without a local dump, the cleaned file is downloaded from the private MojiMoriData release
+Without a local dump, the cleaned file is downloaded from the private KanjiKodamaData release
 pinned in tools/wk-content.lock.json (needs the gh CLI logged in) and checked against its sha256.
 If neither is available the script exits 0, so builds without the content still succeed.
 

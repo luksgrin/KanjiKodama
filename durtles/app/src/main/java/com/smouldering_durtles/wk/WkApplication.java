@@ -113,18 +113,40 @@ public final class WkApplication extends MultiDexApplication {
         return requireNonNull(encryptedPreferenceDataStore);
     }
 
+    /**
+     * The app was called MojiMori before. Carry over the settings saved under that name: the theme
+     * values and the one-time migration flags (so those migrations do not run a second time).
+     */
+    private static void migrateFromMojiMori(final android.content.SharedPreferences prefs) {
+        final android.content.SharedPreferences.Editor ed = prefs.edit();
+        for (final String key: new String[] {"theme", "nightTheme"}) {
+            final @Nullable String value = prefs.getString(key, null);
+            if (value != null && value.startsWith("MOJIMORI_")) {
+                ed.putString(key, "KANJIKODAMA_" + value.substring("MOJIMORI_".length()));
+            }
+        }
+        for (final String flag: new String[] {"theme_applied", "font_bump_applied", "quiz_font_bump_applied",
+                "quiz_glyph_bump_applied", "answer_22_applied"}) {
+            if (prefs.getBoolean("mojimori_" + flag, false)) {
+                ed.putBoolean("kanjikodama_" + flag, true).remove("mojimori_" + flag);
+            }
+        }
+        ed.apply();
+    }
+
     private static void initialize(final WkApplication application) {
-        // MojiMori: switch existing installs to the MojiMori themes once; later choices are respected.
+        // KanjiKodama: switch existing installs to the KanjiKodama themes once; later choices are respected.
         final android.content.SharedPreferences themePrefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(application);
-        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_theme_applied", false)) {
+        migrateFromMojiMori(themePrefs);
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("kanjikodama_theme_applied", false)) {
             themePrefs.edit()
-                    .putString("theme", "MOJIMORI_LIGHT")
-                    .putString("nightTheme", "MOJIMORI_DARK")
-                    .putBoolean("mojimori_theme_applied", true)
+                    .putString("theme", "KANJIKODAMA_LIGHT")
+                    .putString("nightTheme", "KANJIKODAMA_DARK")
+                    .putBoolean("kanjikodama_theme_applied", true)
                     .apply();
         }
-        // MojiMori: text is 2sp larger; move font settings still at the old defaults up by 2 (once).
-        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_font_bump_applied", false)) {
+        // KanjiKodama: text is 2sp larger; move font settings still at the old defaults up by 2 (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("kanjikodama_font_bump_applied", false)) {
             final android.content.SharedPreferences.Editor ed = themePrefs.edit();
             final String[][] fonts = {{"font_size_question_edit", "14"}, {"font_size_subject_info", "14"},
                     {"font_size_live_subject_table", "14"}, {"font_size_anki_answer", "18"}};
@@ -137,10 +159,10 @@ public final class WkApplication extends MultiDexApplication {
                     ed.putString(f[0], Integer.toString(oldDefault + 2));
                 }
             }
-            ed.putBoolean("mojimori_font_bump_applied", true).apply();
+            ed.putBoolean("kanjikodama_font_bump_applied", true).apply();
         }
-        // MojiMori: the quiz answer field is 4sp larger again (20); raise it if still at 14 or 16 (once).
-        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_quiz_font_bump_applied", false)) {
+        // KanjiKodama: the quiz answer field is 4sp larger again (20); raise it if still at 14 or 16 (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("kanjikodama_quiz_font_bump_applied", false)) {
             final Object v = themePrefs.getAll().get("font_size_question_edit");
             final android.content.SharedPreferences.Editor ed = themePrefs.edit();
             if (v instanceof Integer && ((Integer) v == 14 || (Integer) v == 16)) {
@@ -148,10 +170,10 @@ public final class WkApplication extends MultiDexApplication {
             } else if (v instanceof String && (v.equals("14") || v.equals("16"))) {
                 ed.putString("font_size_question_edit", "20");
             }
-            ed.putBoolean("mojimori_quiz_font_bump_applied", true).apply();
+            ed.putBoolean("kanjikodama_quiz_font_bump_applied", true).apply();
         }
-        // MojiMori: the quiz glyph may grow 4 more (104); raise the cap if it is still at 100 (once).
-        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_quiz_glyph_bump_applied", false)) {
+        // KanjiKodama: the quiz glyph may grow 4 more (104); raise the cap if it is still at 100 (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("kanjikodama_quiz_glyph_bump_applied", false)) {
             final Object v = themePrefs.getAll().get("max_font_size_quiz_text");
             final android.content.SharedPreferences.Editor ed = themePrefs.edit();
             if (v instanceof Integer && (Integer) v == 100) {
@@ -159,10 +181,10 @@ public final class WkApplication extends MultiDexApplication {
             } else if ("100".equals(v)) {
                 ed.putString("max_font_size_quiz_text", "104");
             }
-            ed.putBoolean("mojimori_quiz_glyph_bump_applied", true).apply();
+            ed.putBoolean("kanjikodama_quiz_glyph_bump_applied", true).apply();
         }
-        // MojiMori: the quiz answer field is 22 now; raise it if still at an earlier default (once).
-        if (LocalMode.ENABLED && !themePrefs.getBoolean("mojimori_answer_22_applied", false)) {
+        // KanjiKodama: the quiz answer field is 22 now; raise it if still at an earlier default (once).
+        if (LocalMode.ENABLED && !themePrefs.getBoolean("kanjikodama_answer_22_applied", false)) {
             final Object v = themePrefs.getAll().get("font_size_question_edit");
             final android.content.SharedPreferences.Editor ed = themePrefs.edit();
             if (v instanceof Integer && ((Integer) v == 14 || (Integer) v == 16 || (Integer) v == 20)) {
@@ -170,7 +192,7 @@ public final class WkApplication extends MultiDexApplication {
             } else if ("14".equals(v) || "16".equals(v) || "20".equals(v)) {
                 ed.putString("font_size_question_edit", "22");
             }
-            ed.putBoolean("mojimori_answer_22_applied", true).apply();
+            ed.putBoolean("kanjikodama_answer_22_applied", true).apply();
         }
         instance = application;
         database = AppDatabase.getInstance();

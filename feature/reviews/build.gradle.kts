@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "app.mojimori.feature.reviews"
+    namespace = "app.kanjikodama.feature.reviews"
     compileSdk = 37
 
     defaultConfig {

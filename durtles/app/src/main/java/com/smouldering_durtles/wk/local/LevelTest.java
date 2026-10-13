@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: a kanji level test in two short self-study rounds.
+ * KanjiKodama local mode: a kanji level test in two short self-study rounds.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 
@@ -437,7 +437,7 @@ public final class LevelTest {
             } catch (final Exception e) {
                 LOGGER.error(e, "Recording level test answers failed");
             }
-        }, "MojiMoriLevelTest").start();
+        }, "KanjiKodamaLevelTest").start();
     }
 
     private static synchronized void record(final AppDatabase db, final Set<Long> sessionIds, final Map<Long, Integer> results) {

@@ -1,4 +1,4 @@
-# MojiMori 文字森
+# KanjiKodama 漢字木霊
 
 A personal, offline Android app for learning kanji with spaced repetition: radicals, kanji and
 vocabulary in WaniKani's level order, with extra notes on how phonetic components predict on'yomi
@@ -43,7 +43,7 @@ readings. It is a fork of [Smouldering Durtles](https://github.com/jerryhcooke/s
 ## Installing
 
 Releases are built by the **Release APK (manual)** workflow (Actions → Release APK (manual) → Run
-workflow). It produces a signed `mojimori-<version>.apk`, attached to a GitHub release of this
+workflow). It produces a signed `kanjikodama-<version>.apk`, attached to a GitHub release of this
 repository and to the workflow run.
 
 On the phone, download the APK (signed in to GitHub, since the repository is private), open it, and
@@ -51,7 +51,7 @@ allow installs from that source when Android asks. Or, from a computer:
 
 ```sh
 gh release download v0.1.0 --pattern '*.apk'
-adb install -r mojimori-0.1.0.apk
+adb install -r kanjikodama-0.1.0.apk
 ```
 
 Every release is signed with the same key, so a newer APK installs over the old one and keeps your
@@ -62,16 +62,18 @@ new one.
 
 Requirements: JDK 17+ (Android Studio's bundled JBR works), the Android SDK, Python 3, and the `gh`
 CLI logged in to an account that can read
-[luksgrin/MojiMoriData](https://github.com/luksgrin/MojiMoriData).
+[luksgrin/KanjiKodamaData](https://github.com/luksgrin/KanjiKodamaData).
 
 ```sh
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"   # macOS example
 cd durtles
-./gradlew assembleDebug      # "MojiMori - Debug", id app.mojimori.wk.debug
+./gradlew assembleDebug      # "KanjiKodama - Debug", id app.mojimori.wk.debug
 ./gradlew assembleRelease    # id app.mojimori.wk
 ```
 
-The debug and release builds have different application ids, so both can be installed side by side.
+The debug and release builds have different application ids, so both can be installed side by side. The ids
+still carry the app's former name, MojiMori: changing them would make Android treat an update as a
+different app.
 
 ### Lesson content
 
@@ -97,9 +99,9 @@ know which kanji are missing, and `export-extra --brief FILE` writes what a mnem
 ```sh
 cd tools/content
 uv sync
-uv run mojimori-content export-sound
-uv run mojimori-content export-jlpt
-uv run mojimori-content export-extra
+uv run kanjikodama-content export-sound
+uv run kanjikodama-content export-jlpt
+uv run kanjikodama-content export-extra
 uv run pytest
 ```
 
@@ -111,15 +113,15 @@ Release builds use `durtles/keystore.properties` and `durtles/release.jks`. Both
 see `durtles/keystore.properties.example`. Without them, release builds are signed with the debug
 key. The release workflow restores the same key from the `RELEASE_KEYSTORE_BASE64`,
 `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` secrets, and reads the
-lesson content with the `MOJIMORI_DATA_TOKEN` secret, a fine-grained token with read access to
-MojiMoriData's contents. Keep a backup of the keystore and its password: if the key is lost, later
+lesson content with the `KANJIKODAMA_DATA_TOKEN` secret, a fine-grained token with read access to
+KanjiKodamaData's contents. Keep a backup of the keystore and its password: if the key is lost, later
 releases cannot update an installed app.
 
 ### Logo
 
-`durtles/tools/make_logo.py` draws the pixel torii logo (with a Zen Maru Gothic 森 on its plaque)
+`durtles/tools/make_logo.py` draws the pixel logo (a torii with a sprouting kodama under it)
 and writes the launcher icons, the monochrome themed-icon layer, the notification icon, and
-`mojimori-logo.svg` / `mojimori-logo-512.png`:
+`kanjikodama-logo.svg` / `kanjikodama-logo-512.png`:
 
 ```sh
 uv run durtles/tools/make_logo.py
@@ -130,7 +132,7 @@ uv run durtles/tools/make_logo.py
 ```
 durtles/                 The app (Smouldering Durtles fork, Java, Gradle)
   app/src/main/java/com/smouldering_durtles/wk/local/
-                         MojiMori additions: offline mode, local progression, sound
+                         KanjiKodama additions: offline mode, local progression, sound
                          components, curriculum orders, fast travel, level test, extra
                          kanji, progress save / restore
   tools/                 Content asset builder, logo generator, content lock file
@@ -146,13 +148,13 @@ app/, core/, feature/    Standalone Kotlin/Compose app built only from open data
 
 ## Credits
 
-MojiMori is made by luksgrin. Infinite thanks to
+KanjiKodama is made by luksgrin. Infinite thanks to
 [Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles) by Jerry Cooke, and to
 Flaming Durtles by Ernst Jan Plugge, on which it is based. The app's About screen lists everything
 else: content from WaniKani (Tofugu), open data from EDRDG and KanjiVG, and the fonts Silkscreen,
 Pixelify Sans and Zen Maru Gothic (SIL Open Font License).
 
-MojiMori is not affiliated with or endorsed by Tofugu or WaniKani.
+KanjiKodama is not affiliated with or endorsed by Tofugu or WaniKani.
 
 ## License
 

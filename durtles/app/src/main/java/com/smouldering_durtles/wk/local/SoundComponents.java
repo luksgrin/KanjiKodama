@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: component and on'yomi teaching.
+ * KanjiKodama local mode: component and on'yomi teaching.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  * Data: assets/sound-components.db, built from KANJIDIC2 and KanjiVG (CC BY-SA) by tools/content.
  */
@@ -42,13 +42,25 @@ public final class SoundComponents {
         //
     }
 
+    private static void deleteTree(final File file) {
+        final @Nullable File[] children = file.listFiles();
+        if (children != null) {
+            for (final File child: children) {
+                deleteTree(child);
+            }
+        }
+        //noinspection ResultOfMethodCallIgnored
+        file.delete();
+    }
+
     private static synchronized @Nullable SQLiteDatabase open() {
         if (db != null && db.isOpen()) {
             return db;
         }
         try {
             final Context context = WkApplication.getInstance();
-            final File dir = new File(context.getFilesDir(), "mojimori");
+            deleteTree(new File(context.getFilesDir(), "mojimori")); // copy made under the app's former name
+            final File dir = new File(context.getFilesDir(), "kanjikodama");
             if (!dir.exists() && !dir.mkdirs()) {
                 return null;
             }

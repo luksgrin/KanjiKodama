@@ -77,7 +77,7 @@ public final class LiveSubjectTableRowView extends TableRow {
      */
     public void setSubject(final Subject subject, final Function<? super Subject, String> extraTextFunction) {
         safe(() -> {
-            // MojiMori: rounded row in the item colour; the cells stay transparent on top of it.
+            // KanjiKodama: rounded row in the item colour; the cells stay transparent on top of it.
             final android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
             bg.setColor(subject.getBackgroundColor());
             bg.setCornerRadius(10 * getResources().getDisplayMetrics().density);

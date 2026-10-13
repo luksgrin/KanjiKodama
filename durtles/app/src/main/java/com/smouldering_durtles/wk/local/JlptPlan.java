@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: the JLPT curriculum order.
+ * KanjiKodama local mode: the JLPT curriculum order.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 

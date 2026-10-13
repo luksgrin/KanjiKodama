@@ -1,5 +1,5 @@
-from mojimori_content import order
-from mojimori_content.model import KanjiEntry
+from kanjikodama_content import order
+from kanjikodama_content.model import KanjiEntry
 
 
 def _kd(freqs: dict[str, int]) -> dict[str, KanjiEntry]:

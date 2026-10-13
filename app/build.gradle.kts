@@ -15,11 +15,11 @@ val keystoreProps = Properties().apply {
 }
 
 android {
-    namespace = "app.mojimori"
+    namespace = "app.kanjikodama"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "app.mojimori"
+        applicationId = "app.kanjikodama"
         minSdk = 26
         targetSdk = 37
         // Overridable from CI: -PversionName=0.2.0 -PversionCode=42

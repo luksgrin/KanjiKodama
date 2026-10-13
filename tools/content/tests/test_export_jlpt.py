@@ -1,4 +1,4 @@
-from mojimori_content.export_jlpt import merge
+from kanjikodama_content.export_jlpt import merge
 
 
 def test_new_lists_win_over_old_field() -> None:

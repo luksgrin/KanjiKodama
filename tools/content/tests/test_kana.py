@@ -1,4 +1,4 @@
-from mojimori_content import kana
+from kanjikodama_content import kana
 
 
 def test_romanize_basic():
@@ -20,7 +20,7 @@ def test_classify():
 
 
 def test_export_hiragana_conversion():
-    from mojimori_content.export_sound import hira
+    from kanjikodama_content.export_sound import hira
 
     assert hira("コウ") == "こう"
     assert hira("ジョウ") == "じょう"

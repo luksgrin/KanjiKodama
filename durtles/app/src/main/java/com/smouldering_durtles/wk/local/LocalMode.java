@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: the app runs fully offline on bundled WaniKani content.
+ * KanjiKodama local mode: the app runs fully offline on bundled WaniKani content.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 
@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
  * content comes from the bundled asset and unlocks and level-ups are computed locally.
  */
 public final class LocalMode {
-    /** MojiMori always runs offline. Kept as a constant so upstream code paths stay readable. */
+    /** KanjiKodama always runs offline. Kept as a constant so upstream code paths stay readable. */
     public static final boolean ENABLED = true;
 
     /** Highest level available locally (no subscription cap). */

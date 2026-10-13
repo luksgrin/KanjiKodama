@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: fast travel in JLPT order.
+ * KanjiKodama local mode: fast travel in JLPT order.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 

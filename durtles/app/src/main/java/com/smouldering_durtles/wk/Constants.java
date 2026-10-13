@@ -168,9 +168,9 @@ public final class Constants {
     /**
      * Document to show on the about screen.
      */
-    public static final String ABOUT_DOCUMENT = "<h3>" + Identification.APP_NAME + " (文字森) " + BuildConfig.VERSION_NAME + "</h3><br/>"
+    public static final String ABOUT_DOCUMENT = "<h3>" + Identification.APP_NAME + " (漢字木霊) " + BuildConfig.VERSION_NAME + "</h3><br/>"
             + Identification.APP_NAME + " is a personal, offline kanji learning app, made by <b>" + Identification.AUTHOR_NAME + "</b>"
-            + " (<a href=\"" + Identification.SUPPORT_URL + "\">github.com/luksgrin/MojiMori</a>).<br/><br/>"
+            + " (<a href=\"" + Identification.SUPPORT_URL + "\">github.com/luksgrin/KanjiKodama</a>).<br/><br/>"
             + "<b>Infinite thanks to <a href=\"https://github.com/jerryhcooke/smouldering_durtles\">Smouldering Durtles</a></b>,"
             + " the app " + Identification.APP_NAME + " was forked off. Almost everything you see here, from the SRS engine to the"
             + " lesson and review screens, is their work. Smouldering Durtles was re-coded by Jerry Cooke (known as Joeni),"

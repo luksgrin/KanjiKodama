@@ -26,9 +26,9 @@ import java.util.List;
  */
 @SuppressWarnings({"JavaDoc", "WeakerAccess", "RedundantSuppression"})
 public enum ActiveTheme {
-    MOJIMORI_LIGHT(
+    KANJIKODAMA_LIGHT(
             true,
-            R.style.MojiMoriLightTheme,
+            R.style.KanjiKodamaLightTheme,
             R.drawable.ic_arrow_up_small,
             new int[] {0xFF2E4756, 0xFF2E4756, 0xFF2E4756, 0xFF2E4756},
             new int[] {0xFF9EC9F0, 0xFFF5A9B8, 0xFFC9B6F2, 0xFFC9B6F2},
@@ -99,9 +99,9 @@ public enum ActiveTheme {
             dirty = false;
         }
     },
-    MOJIMORI_DARK(
+    KANJIKODAMA_DARK(
             true,
-            R.style.MojiMoriDarkTheme,
+            R.style.KanjiKodamaDarkTheme,
             R.drawable.ic_arrow_up_small_dark,
             new int[] {0xFF0F1C22, 0xFF0F1C22, 0xFF0F1C22, 0xFF0F1C22},
             new int[] {0xFF7FB2E6, 0xFFE98BA4, 0xFFA994E6, 0xFFA994E6},

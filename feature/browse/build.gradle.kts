@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "app.mojimori.feature.browse"
+    namespace = "app.kanjikodama.feature.browse"
     compileSdk = 37
 
     defaultConfig {

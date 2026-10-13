@@ -137,13 +137,13 @@ public final class SubjectCardBinder {
     }
 
     /**
-     * MojiMori: the grey-green meaning, reading and progress text was hard to read on the pastel
+     * KanjiKodama: the grey-green meaning, reading and progress text was hard to read on the pastel
      * cards. Use a deep shade of the card's own colour instead, so it reads clearly without
      * competing with the dark ink of the glyph.
      */
     private static void styleCardText(final View view, final Subject subject) {
         final ActiveTheme theme = ActiveTheme.getCurrentTheme();
-        if (theme != ActiveTheme.MOJIMORI_LIGHT && theme != ActiveTheme.MOJIMORI_DARK) {
+        if (theme != ActiveTheme.KANJIKODAMA_LIGHT && theme != ActiveTheme.KANJIKODAMA_DARK) {
             return;
         }
         final int colour;

@@ -1,4 +1,4 @@
-from mojimori_content.select_vocab import normalise_expression
+from kanjikodama_content.select_vocab import normalise_expression
 
 
 def test_normalise_expression():

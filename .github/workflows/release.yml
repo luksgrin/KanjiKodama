@@ -14,7 +14,7 @@ on:
 
 jobs:
   release:
-    name: Signed MojiMori APK (offline fork with bundled content)
+    name: Signed KanjiKodama APK (offline fork with bundled content)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,14 +29,15 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
 
-      # The WaniKani content lives in a private release of luksgrin/MojiMoriData.
-      # MOJIMORI_DATA_TOKEN: fine-grained token with read access to that repository's contents.
+      # The WaniKani content lives in a private release of luksgrin/KanjiKodamaData.
+      # KANJIKODAMA_DATA_TOKEN: fine-grained token with read access to that repository's contents.
+      # (MOJIMORI_DATA_TOKEN is the same secret under the app's former name, used until it is re-added.)
       - name: Fetch bundled content
         env:
-          GH_TOKEN: ${{ secrets.MOJIMORI_DATA_TOKEN }}
+          GH_TOKEN: ${{ secrets.KANJIKODAMA_DATA_TOKEN || secrets.MOJIMORI_DATA_TOKEN }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "::error::Secret MOJIMORI_DATA_TOKEN is missing; a release without content would be useless."
+            echo "::error::Secret KANJIKODAMA_DATA_TOKEN is missing; a release without content would be useless."
             exit 1
           fi
           python3 tools/build_wk_asset.py
@@ -67,12 +68,12 @@ jobs:
 
       - name: Name the APK
         run: |
-          mv app/build/outputs/apk/release/*.apk app/build/outputs/apk/release/mojimori-${{ inputs.version_name }}.apk
+          mv app/build/outputs/apk/release/*.apk app/build/outputs/apk/release/kanjikodama-${{ inputs.version_name }}.apk
           ls -la app/build/outputs/apk/release/
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mojimori-${{ inputs.version_name }}
+          name: kanjikodama-${{ inputs.version_name }}
           path: durtles/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
@@ -81,6 +82,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ inputs.version_name }}
-          name: MojiMori ${{ inputs.version_name }}
+          name: KanjiKodama ${{ inputs.version_name }}
           files: durtles/app/build/outputs/apk/release/*.apk
           generate_release_notes: true

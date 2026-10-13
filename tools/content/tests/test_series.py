@@ -1,6 +1,6 @@
-from mojimori_content import series
-from mojimori_content.decompose import RawUse
-from mojimori_content.model import KanjiEntry
+from kanjikodama_content import series
+from kanjikodama_content.decompose import RawUse
+from kanjikodama_content.model import KanjiEntry
 
 
 def _k(lit, on):

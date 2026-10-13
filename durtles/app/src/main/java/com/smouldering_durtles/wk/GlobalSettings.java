@@ -787,8 +787,8 @@ public final class GlobalSettings {
          * @return the value
          */
         public static ActiveTheme getTheme() {
-            final @Nullable String value = prefs().getString("theme", "MOJIMORI_LIGHT");
-            ActiveTheme theme = ActiveTheme.MOJIMORI_LIGHT;
+            final @Nullable String value = prefs().getString("theme", "KANJIKODAMA_LIGHT");
+            ActiveTheme theme = ActiveTheme.KANJIKODAMA_LIGHT;
             try {
                 theme = ActiveTheme.valueOf(value);
             } catch (final Exception e) {
@@ -800,7 +800,7 @@ public final class GlobalSettings {
             uiMode &= Configuration.UI_MODE_NIGHT_MASK;
             if  (uiMode == Configuration.UI_MODE_NIGHT_YES) {
                 try {
-                    theme = ActiveTheme.valueOf(prefs().getString("nightTheme", "MOJIMORI_DARK"));
+                    theme = ActiveTheme.valueOf(prefs().getString("nightTheme", "KANJIKODAMA_DARK"));
                 } catch (Exception e) {
                     //
                 }

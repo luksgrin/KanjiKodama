@@ -216,7 +216,7 @@ public final class SubjectInfoButtonView extends View {
     }
 
     /**
-     * MojiMori: set the space reserved above and below the glyph in quiz mode. The quiz screens lay the counter
+     * KanjiKodama: set the space reserved above and below the glyph in quiz mode. The quiz screens lay the counter
      * and buttons out in their own rows, so they reserve almost nothing; other screens keep the defaults.
      *
      * @param topDp space above the glyph

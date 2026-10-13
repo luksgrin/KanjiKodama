@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>KanjiKodama content report</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:2rem;max-width:1100px;line-height:1.45}
+h1,h2{margin-top:2rem} table{border-collapse:collapse;margin:.5rem 0} td,th{border:1px solid #ccc;padding:.25rem .6rem;text-align:left}
+.k{font-size:1.25rem;font-family:"Noto Sans JP","Hiragino Sans",sans-serif} .chip{display:inline-block;margin:.1rem;padding:.1rem .4rem;border:1px solid #ccc;border-radius:.4rem}
+.exact{background:#d8f3dc}.variant{background:#fff3bf}.irregular{background:#ffd8d8} .err{color:#b00020} .warn{color:#8a6d00}
+details{margin:.3rem 0} .muted{color:#666}
+</style></head><body>
+<h1>KanjiKodama content report</h1>
+<p class="muted">Built {{ built_at }} · blocks {{ blocks_built|join(", ") }} · content version {{ content_version }}</p>
+
+<h2>Block sizes (whole classification)</h2>
+<table><tr><th>Block</th><th>Kanji</th><th>Levels</th><th>Level numbers</th></tr>
+{% for row in block_rows %}<tr><td>{{ row.block }}</td><td>{{ row.kanji }}</td><td>{{ row.levels }}</td><td>{{ row.range }}</td></tr>{% endfor %}
+</table>
+
+<h2>Validation</h2>
+{% if validation.errors %}<p class="err"><b>{{ validation.errors|length }} errors</b></p><ul>{% for e in validation.errors %}<li class="err">{{ e }}</li>{% endfor %}</ul>{% else %}<p>No errors.</p>{% endif %}
+{% if validation.warnings %}<details><summary class="warn">{{ validation.warnings|length }} warnings</summary><ul>{% for w in validation.warnings %}<li class="warn">{{ w }}</li>{% endfor %}</ul></details>{% endif %}
+
+<h2>Vocabulary</h2>
+<table><tr><th>Level</th><th>Words</th><th>jlpt</th><th>seed</th><th>priority</th><th>fill</th><th>kana-only</th></tr>
+{% for row in vocab_rows %}<tr><td>{{ row.level }}</td><td>{{ row.total }}</td><td>{{ row.jlpt }}</td><td>{{ row.seed }}</td><td>{{ row.priority }}</td><td>{{ row.fill }}</td><td>{{ row.kana }}</td></tr>{% endfor %}
+</table>
+<p>JLPT list words placed: {{ vocab_stats.jlpt_words_placed }} of {{ vocab_stats.jlpt_words_eligible }} eligible (lists total {{ vocab_stats.jlpt_words_total }}).
+Seed words placed: {{ vocab_stats.seed_words_placed }} of {{ vocab_stats.seed_words_total }}. Sentences attached: {{ sentences_attached }}.</p>
+{% if vocab_stats.jlpt_missing_eligible %}<details><summary>Eligible JLPT words not placed ({{ vocab_stats.jlpt_missing_eligible|length }} shown)</summary><p class="k">{{ vocab_stats.jlpt_missing_eligible|join(" ") }}</p></details>{% endif %}
+{% if vocab_stats.kanji_without_words %}<p class="warn">Kanji without words: <span class="k">{{ vocab_stats.kanji_without_words|join(" ") }}</span></p>{% endif %}
+
+<h2>Levels</h2>
+{% for lv in level_rows %}
+<details {% if loop.index <= 4 %}open{% endif %}><summary><b>Level {{ lv.number }}</b> · {{ lv.block }} · {{ lv.kanji|length }} kanji · {{ lv.components|length }} new components · {{ lv.words }} words</summary>
+<p class="k">{% for k in lv.kanji %}<span class="chip" title="{{ k.title }}">{{ k.literal }}</span>{% endfor %}</p>
+<p class="k muted">new components: {% for c in lv.components %}<span class="chip" title="{{ c.name }}">{{ c.glyph }}</span>{% endfor %}</p>
+<table><tr><th>Kanji</th><th>Components (role)</th><th>Phonetic</th><th>Predicted</th><th>Actual on</th><th>Match</th><th>Meaning</th></tr>
+{% for k in lv.kanji %}<tr><td class="k">{{ k.literal }}</td><td class="k">{{ k.components }}</td><td class="k">{{ k.phonetic or "" }}</td><td>{{ k.predicted or "" }}</td><td>{{ k.actual }}</td><td class="{{ k.match }}">{{ k.match or "" }}</td><td>{{ k.meaning }}</td></tr>{% endfor %}
+</table></details>
+{% endfor %}
+
+<h2>Phonetic series ({{ series_rows|length }})</h2>
+<table><tr><th>Component</th><th>Reading</th><th>Reliability</th><th>Members</th></tr>
+{% for s in series_rows %}<tr><td class="k">{{ s.component }}</td><td>{{ s.reading }}</td><td>{{ "%.0f"|format(s.reliability*100) }}%</td><td class="k">{% for m in s.members %}<span class="chip {{ m.match }}" title="{{ m.actual }}">{{ m.literal }}</span>{% endfor %}</td></tr>{% endfor %}
+</table>
+
+<h2>Unnamed components</h2>
+<p class="k">{% for c in unnamed %}<span class="chip">{{ c }}</span>{% else %}none{% endfor %}</p>
+</body></html>

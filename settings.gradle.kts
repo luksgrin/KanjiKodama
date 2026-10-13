@@ -20,7 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MojiMori"
+rootProject.name = "KanjiKodama"
 
 include(":app")
 include(":core:model")

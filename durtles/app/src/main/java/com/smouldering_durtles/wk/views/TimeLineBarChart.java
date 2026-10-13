@@ -126,7 +126,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
             colorWaterfall = ThemeUtil.getColor(R.attr.colorWaterfallLine);
             density = context.getResources().getDisplayMetrics().density;
             arrowIcon = ContextCompat.getDrawable(getContext(), ActiveTheme.getCurrentTheme().getLevelUpArrowDrawableId());
-            // MojiMori: level-up arrow and count in mint (a deeper mint on light grounds, for contrast).
+            // KanjiKodama: level-up arrow and count in mint (a deeper mint on light grounds, for contrast).
             final int ground = ThemeUtil.getColor(R.attr.tileColorBackground);
             final boolean lightGround = androidx.core.graphics.ColorUtils.calculateLuminance(ground) > 0.5;
             levelUpColor = lightGround ? 0xFF3FA383 : ThemeUtil.getColor(androidx.appcompat.R.attr.colorAccent);
@@ -329,7 +329,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
             labels.add(rectf);
         }
 
-        // MojiMori: the count of level-up items sits just above the bar's own count, with the arrow above it,
+        // KanjiKodama: the count of level-up items sits just above the bar's own count, with the arrow above it,
         // instead of pinned to the top edge of the chart.
         paint.setTextSize(density * 12);
         final float countAscent = paint.ascent();
@@ -414,7 +414,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         paint.setTextSize(density * 12);
         paint.setTextAlign(Paint.Align.LEFT);
 
-        // MojiMori: start inside the panel padding and wrap onto a second row instead of running off the edge.
+        // KanjiKodama: start inside the panel padding and wrap onto a second row instead of running off the edge.
         float x = left;
         float boxY = originY + density * 27;
         float textY = originY + density * 36;
@@ -444,7 +444,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         final float baseWidth = getWidth() - getPaddingLeft() - getPaddingRight();
         final float baseHeight = getHeight() - getPaddingTop() - getPaddingBottom();
 
-        // MojiMori: the interface's pixel font (Latin only), falling back to the default if it cannot load.
+        // KanjiKodama: the interface's pixel font (Latin only), falling back to the default if it cannot load.
         if (chartTypeface == null) {
             try {
                 chartTypeface = androidx.core.content.res.ResourcesCompat.getFont(getContext(), com.smouldering_durtles.wk.R.font.pixelify_sans);
@@ -467,7 +467,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
 
         paint.setTextSize(density * 12);
 
-        // MojiMori: room for a two-row legend below and the value labels above the tallest bar.
+        // KanjiKodama: room for a two-row legend below and the value labels above the tallest bar.
         originY = getPaddingTop() + baseHeight - density * 60;
         axisSizeY = baseHeight - density * 108;
         if (axisSizeY <= 0) {

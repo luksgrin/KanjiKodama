@@ -597,7 +597,7 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
         readingNote.setLinkMovementMethod();
         readingNote.setVisibility(showReadingRelated && subject.hasReadingNote());
 
-        // MojiMori: parts and sound component
+        // KanjiKodama: parts and sound component
         final @Nullable String soundHtml = subject.getType() == SubjectType.WANIKANI_KANJI ? SoundComponents.renderHtml(subject) : null;
         soundDivider.setVisibility(showReadingRelated && soundHtml != null);
         soundInfo.setText(soundHtml == null ? "" : renderHtml(soundHtml));

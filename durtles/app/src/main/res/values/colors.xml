@@ -112,8 +112,8 @@
     <color name="wkNordStrokeDiagramGhostColor">#2E3440</color>
 
     <color name="wkBlackColorBackground">#000000</color>
-    <color name="mojimori_icon_background">#FBEDEF</color>
-    <!-- MojiMori Pixel Forest palette (design: https://claude.ai/artifact/PQGVKyytmy3EKu4MEk22ta) -->
+    <color name="kanjikodama_icon_background">#FBEDEF</color>
+    <!-- KanjiKodama Pixel Forest palette (design: https://claude.ai/artifact/PQGVKyytmy3EKu4MEk22ta) -->
     <color name="mmInkLight">#2E4756</color>
     <color name="mmMutedLight">#3E7F6B</color>
     <color name="mmTonedLight">#5C8A7A</color>

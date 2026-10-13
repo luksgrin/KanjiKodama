@@ -1,6 +1,6 @@
 import gzip
 
-from mojimori_content.sources import jmdict
+from kanjikodama_content.sources import jmdict
 
 SAMPLE = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE JMdict [<!ENTITY n "noun (common) (futsuumeishi)"><!ENTITY uk "word usually written using kana alone">]>
@@ -26,7 +26,7 @@ def test_parse_keeps_entity_names(tmp_path):
 
 
 def test_kanjidic_drops_radical_table_glosses(tmp_path):
-    from mojimori_content.sources import kanjidic2
+    from kanjikodama_content.sources import kanjidic2
 
     xml = b"""<?xml version="1.0" encoding="UTF-8"?><kanjidic2><character><literal>\xe4\xb8\x80</literal>
 <codepoint><cp_value cp_type="ucs">4e00</cp_value></codepoint><misc><grade>1</grade></misc>

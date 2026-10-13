@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "app.mojimori.feature.lessons"
+    namespace = "app.kanjikodama.feature.lessons"
     compileSdk = 37
 
     defaultConfig {

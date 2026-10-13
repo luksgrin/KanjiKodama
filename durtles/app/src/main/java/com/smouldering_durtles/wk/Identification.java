@@ -21,12 +21,12 @@ public final class Identification {
     /**
      * The name of the app.
      */
-    public static final String APP_NAME = "MojiMori";
+    public static final String APP_NAME = "KanjiKodama";
 
     /**
      * The name of the app as used in a User-Agent HTTP header.
      */
-    public static final String APP_NAME_UA = "MojiMori";
+    public static final String APP_NAME_UA = "KanjiKodama";
 
     /**
      * The name of the app as used in URI schemes.
@@ -51,12 +51,12 @@ public final class Identification {
     /**
      * Support URL for the app.
      */
-    public static final String SUPPORT_URL = "https://github.com/luksgrin/MojiMori";
+    public static final String SUPPORT_URL = "https://github.com/luksgrin/KanjiKodama";
 
     /**
      * Store URL for the app.
      */
-    public static final String STORE_URL = "https://github.com/luksgrin/MojiMori";
+    public static final String STORE_URL = "https://github.com/luksgrin/KanjiKodama";
 
     private Identification() {
         //

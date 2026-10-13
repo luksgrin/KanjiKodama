@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: where a learner lands after switching curriculum order.
+ * KanjiKodama local mode: where a learner lands after switching curriculum order.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 

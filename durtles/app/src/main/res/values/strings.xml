@@ -1,7 +1,7 @@
 <resources>
-    <string name="about_label">About MojiMori</string>
-    <string name="label">MojiMori</string>
-    <string name="labelDebug">MojiMori - Debug</string>
+    <string name="about_label">About KanjiKodama</string>
+    <string name="label">KanjiKodama</string>
+    <string name="labelDebug">KanjiKodama - Debug</string>
     <string name="uri_scheme">smouldering-durtles</string>
     <string name="subject_info_uri">smouldering-durtles://subject-info</string>
 </resources>

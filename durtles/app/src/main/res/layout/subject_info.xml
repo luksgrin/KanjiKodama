@@ -197,7 +197,7 @@
         android:visibility="gone"
         style="@style/WK.TextView.Normal"/>
 
-    <!-- MojiMori: parts with their roles and the phonetic series (on'yomi teaching) -->
+    <!-- KanjiKodama: parts with their roles and the phonetic series (on'yomi teaching) -->
     <com.smouldering_durtles.wk.views.DividerView
         android:id="@+id/soundDivider"
         android:layout_width="match_parent"

@@ -1,5 +1,5 @@
 /*
- * MojiMori local mode: one-shot import of WaniKani progress through the API.
+ * KanjiKodama local mode: one-shot import of WaniKani progress through the API.
  * Licensed under the Apache License 2.0 like the rest of Smouldering Durtles.
  */
 

@@ -2,7 +2,7 @@ import pytest
 import typer
 from typer.testing import CliRunner
 
-from mojimori_content.cli import _blocks, app
+from kanjikodama_content.cli import _blocks, app
 
 runner = CliRunner()
 
