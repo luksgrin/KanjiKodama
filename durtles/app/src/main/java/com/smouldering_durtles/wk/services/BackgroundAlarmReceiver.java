@@ -77,7 +77,14 @@ public final class BackgroundAlarmReceiver extends BroadcastReceiver {
             final int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(WkApplication.getInstance(),
                     StableIds.BACKGROUND_ALARM_REQUEST_CODE_1, intent, flags);
-            alarmManager.set(AlarmManager.RTC_WAKEUP, nextTrigger, pendingIntent);
+            // Plain set() can be deferred for hours while the phone dozes; this variant still fires,
+            // within Doze's own limits, without needing the exact-alarm permission.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextTrigger, pendingIntent);
+            }
+            else {
+                alarmManager.set(AlarmManager.RTC_WAKEUP, nextTrigger, pendingIntent);
+            }
         }
     }
 
