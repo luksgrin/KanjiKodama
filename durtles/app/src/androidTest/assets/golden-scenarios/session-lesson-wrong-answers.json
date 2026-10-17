@@ -1,0 +1,81 @@
+{
+ "description": "Lesson quiz of 3 level 1 kanji and the vocabulary 人 (radicals at Guru): two wrong meanings on 一, Don't know on 二's reading, the not-accepted kanji reading ひと on 人 (a retry: shake, nothing counted), the kanji reading にん on the vocabulary 人 (wrong: advanced settings are off, so no matching kanji), the rest right. Wrong answers only re-queue the question (choice delay 3); each item is reported as a lesson once all its questions are done, with its incorrect counts; the snapshot after Finish shows every one at Apprentice I with no review statistics, but lastIncorrectAnswer is set for the items with a wrong answer (not for the retry).",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 440,
+     "stage": 0
+    },
+    {
+     "id": 441,
+     "stage": 0
+    },
+    {
+     "id": 444,
+     "stage": 0
+    },
+    {
+     "id": 2475,
+     "stage": 0
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "ids": [
+    440,
+    441,
+    444,
+    2475
+   ]
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 120
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 6,
+   "rules": {
+    "440:meaning": [
+     "wrong",
+     "wrong"
+    ],
+    "441:reading": [
+     "dontKnow"
+    ],
+    "444:reading": [
+     {
+      "text": "ひと"
+     }
+    ],
+    "2475:reading": [
+     {
+      "text": "にん"
+     }
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish",
+   "advanceSeconds": 30
+  },
+  {
+   "action": "snapshot"
+  }
+ ]
+}

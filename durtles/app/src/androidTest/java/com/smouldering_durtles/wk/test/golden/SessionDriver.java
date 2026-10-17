@@ -16,6 +16,7 @@ import android.preference.PreferenceManager;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.api.model.Meaning;
 import com.smouldering_durtles.wk.api.model.Reading;
@@ -29,6 +30,7 @@ import com.smouldering_durtles.wk.enums.ReviewOrder;
 import com.smouldering_durtles.wk.enums.SessionState;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.enums.SpecialButtonBehavior;
+import com.smouldering_durtles.wk.fragments.AnkiSessionFragment;
 import com.smouldering_durtles.wk.fragments.SummarySessionFragment;
 import com.smouldering_durtles.wk.jobs.AbandonSessionItemJob;
 import com.smouldering_durtles.wk.jobs.FinishSessionJob;
@@ -39,6 +41,7 @@ import com.smouldering_durtles.wk.local.Clock;
 import com.smouldering_durtles.wk.local.LevelTest;
 import com.smouldering_durtles.wk.model.AnswerVerdict;
 import com.smouldering_durtles.wk.model.FloatingUiState;
+import com.smouldering_durtles.wk.model.MatchingKanji;
 import com.smouldering_durtles.wk.model.Question;
 import com.smouldering_durtles.wk.model.Session;
 import com.smouldering_durtles.wk.model.SubmitPrecheck;
@@ -90,17 +93,36 @@ import java.util.function.Consumer;
  *     advance (default true), spacingSeconds}: answers the current question, then (with advance) Session.advance
  *     (Next, or lightning mode), {@code count} times or until the session is FINISHING. {@code answer} is
  *     "correct" (the first of the subject's meanings or readings that the question type accepts without a typo),
- *     "wrong" (a fixed wrong text that passes the pre-checks), "dontKnow" (Session.submitDontKnow) or
+ *     "wrong" (a fixed wrong text that passes the pre-checks), "dontKnow" (Session.submitDontKnow), "ankiCorrect" / "ankiIncorrect" (Anki mode's
+ *     Correct button, AnkiSessionFragment.submitCorrectButton, and Incorrect button, Session.submitAnkiIncorrect; these
+ *     answers also list {@code ankiMode}, GlobalSettings.getAnkiMode for the question, which SessionActivity uses to
+ *     pick AnkiSessionFragment, and {@code ankiAnswer}, the revealed text Question.getAnkiAnswerRichText) or
  *     {@code {"text": "..."}}; {@code rules} overrides it per question: keys "id:meaning", "id:reading", "id",
  *     "meaning", "reading" (first match wins), each a list of answers used up in order. {@code spacingSeconds}
  *     moves the clock before every answer but the first. {@code only} ("meaning" | "reading" | "id:meaning" | "id:reading") answers
  *     only those questions and presses Skip (Session.skip) on the others, listed with answer "skip". {@code resolved.answers} lists {id, questionType, answer,
- *     text, verdict {ok, retry, nearMatch}, atMs}; text is what was submitted (null for dontKnow).</li>
+ *     text, verdict {ok, retry, nearMatch}, atMs}; text is what was submitted (null for dontKnow). With a matching
+ *     kanji (MatchingKanji + SubjectDao.getKanjiByCharacters, like UnansweredSessionFragment; only while the setting is
+ *     on, which needs enable_advanced) the entry also has {@code matchingKanji} (its id) and Session.submit gets it.</li>
  *     <li>{@code sessionAdvance}: Session.advance.</li>
  *     <li>{@code sessionButton} {button: SpecialButtonBehavior name, count (default 1)}: the special button, e.g.
  *     UNDO_AND_MARK_CORRECT ("Ignore"), UNDO_AND_RETRY_NOW, UNDO_AND_PUT_BACK, SKIP. {@code resolved.pressed} lists
- *     canShow before each press (perform does nothing when it is false).</li>
+ *     canShow before each press (perform does nothing when it is false); for TOGGLE_LIGHTNING_MODE
+ *     {@code resolved.labels} lists the button's label after each press ("Lightning", struck through when off).</li>
+ *     <li>{@code sessionAnswer} with {@code advance: "app"}: before advancing, SessionActivity's lightning-mode
+ *     decision runs (Session.lightningAdvancesNow) and each answer lists {@code lightning} {active
+ *     (isLightningModeActive), linger (FloatingUiState.lingerOnAnswer), autoAdvanced}; when it does not advance at
+ *     once, the driver presses Next (Session.advance) anyway.</li>
+ *     <li>{@code sessionAnkiButton} {button: "correct" | "incorrect"}: the Anki button pressed once on the current
+ *     question even if it is already answered (the session ignores it then); {@code resolved.before} is
+ *     {answered, correct} before the press.</li>
  *     <li>{@code sessionWrapUp}: Session.wrapup (menu "Wrap up").</li>
+ *     <li>{@code sessionBackToPresentation}: Session.goBackToPresentation (menu "Back to lesson presentation");
+ *     {@code resolved.menuVisible} is the menu item's visibility (a LESSON session in state ACTIVE), the call is made
+ *     either way. {@code sessionPresentationNext} / {@code sessionPresentationPrevious} {count (default 1)}: the
+ *     presentation's next/previous buttons (Session.moveToNextLessonItem / moveToPreviousLessonItem).
+ *     {@code sessionInspect}: nothing. These four add {@code result.presentation} {item (the item shown, or null),
+ *     index (in the item list), storedItemId (properties' current item id, what a restart restores)}.</li>
  *     <li>{@code sessionFinish}: the summary's Finish button: with delayed reporting (the setting, or any
  *     self-study session) every PENDING item in the session_item table is reported like
  *     SummarySessionFragment.doInBackground does (it is called), then Session.finish. {@code resolved.pending} lists
@@ -288,16 +310,55 @@ final class SessionDriver {
             case "sessionButton": {
                 final SpecialButtonBehavior b = SpecialButtonBehavior.valueOf(step.get("button").asText());
                 final List<Object> pressed = new ArrayList<>();
+                final List<Object> labels = new ArrayList<>();
                 for (int i = 0; i < step.path("count").asInt(1); i++) {
                     pressed.add(b.canShow());
                     b.perform();
                     session.chooseQuestion();
+                    if (b == SpecialButtonBehavior.TOGGLE_LIGHTNING_MODE) {
+                        labels.add(b.getLabel());
+                    }
                 }
                 resolved.put("pressed", pressed);
+                if (b == SpecialButtonBehavior.TOGGLE_LIGHTNING_MODE) {
+                    resolved.put("labels", labels);
+                }
+                break;
+            }
+            case "sessionAnkiButton": {
+                resolved.put("before", obj("answered", session.isAnswered(), "correct", session.isCorrect()));
+                final Question q = session.getCurrentQuestion();
+                if ("correct".equals(step.get("button").asText())) {
+                    AnkiSessionFragment.submitCorrectButton(session, q);
+                }
+                else {
+                    session.submitAnkiIncorrect();
+                }
                 break;
             }
             case "sessionWrapUp":
                 session.wrapup();
+                break;
+            case "sessionBackToPresentation":
+                // The menu item's visibility (AbstractActivity/SessionActivity): a lesson session in the quiz.
+                resolved.put("menuVisible", session.getType() == SessionType.LESSON && session.isActive());
+                session.goBackToPresentation();
+                result.put("presentation", presentation());
+                break;
+            case "sessionPresentationNext":
+            case "sessionPresentationPrevious":
+                for (int i = 0; i < step.path("count").asInt(1); i++) {
+                    if ("sessionPresentationNext".equals(action)) {
+                        session.moveToNextLessonItem();
+                    }
+                    else {
+                        session.moveToPreviousLessonItem();
+                    }
+                }
+                result.put("presentation", presentation());
+                break;
+            case "sessionInspect":
+                result.put("presentation", presentation());
                 break;
             case "sessionFinish":
                 finish(resolved);
@@ -459,7 +520,9 @@ final class SessionDriver {
         final int count = untilFinishing ? Integer.MAX_VALUE : step.path("count").asInt(1);
         final int max = step.path("max").asInt(500);
         final String only = step.path("only").asText(null);
-        final boolean advance = step.path("advance").asBoolean(true);
+        // "app": SessionActivity's lightning-mode decision picks between advancing at once and the Next button.
+        final boolean app = "app".equals(step.path("advance").asText());
+        final boolean advance = app || step.path("advance").asBoolean(true);
         final long spacing = Math.round(step.path("spacingSeconds").asDouble(0) * 1000);
         final Map<String, Integer> used = new HashMap<>();
         final List<Object> answers = new ArrayList<>();
@@ -492,10 +555,24 @@ final class SessionDriver {
             final String kind = spec.isObject() ? "text" : spec.asText();
             final String text;
             final AnswerVerdict verdict;
+            Map<String, Object> anki = null;
+            Subject matchingKanji = null;
             if ("dontKnow".equals(kind)) {
                 text = null;
                 session.submitDontKnow();
                 verdict = null;
+            }
+            else if ("ankiCorrect".equals(kind) || "ankiIncorrect".equals(kind)) {
+                text = null;
+                verdict = null;
+                anki = obj("ankiMode", GlobalSettings.getAnkiMode(session.getType(), q.getType()),
+                        "ankiAnswer", q.getAnkiAnswerRichText(s, session.getType()).toString());
+                if ("ankiCorrect".equals(kind)) {
+                    AnkiSessionFragment.submitCorrectButton(session, q);
+                }
+                else {
+                    session.submitAnkiIncorrect();
+                }
             }
             else {
                 text = "text".equals(kind) ? spec.get("text").asText()
@@ -505,12 +582,27 @@ final class SessionDriver {
                     throw new IllegalArgumentException("bad answer " + spec);
                 }
                 FloatingUiState.setCurrentAnswer(text);
-                verdict = session.submit(null);
+                // UnansweredSessionFragment: the matching kanji of a single-character vocabulary, when the setting is on.
+                final String lookup = MatchingKanji.lookupCharacters(s, GlobalSettings.AdvancedOther.getShakeOnMatchingKanji());
+                matchingKanji = lookup == null ? null : db.subjectDao().getKanjiByCharacters(lookup);
+                verdict = session.submit(matchingKanji);
             }
-            answers.add(obj("id", q.getItem().getId(), "questionType", q.getType().name(), "answer", kind, "text", text,
-                    "verdict", verdict == null ? null : obj("ok", verdict.isOk(), "retry", verdict.isRetry(),
+            final Map<String, Object> entry = obj("id", q.getItem().getId(), "questionType", q.getType().name(), "answer", kind,
+                    "text", text, "verdict", verdict == null ? null : obj("ok", verdict.isOk(), "retry", verdict.isRetry(),
                             "nearMatch", verdict.isNearMatch()),
-                    "atMs", Clock.now()));
+                    "atMs", Clock.now());
+            if (anki != null) {
+                entry.putAll(anki);
+            }
+            if (matchingKanji != null) {
+                entry.put("matchingKanji", matchingKanji.getId());
+            }
+            if (app) {
+                final boolean active = session.isLightningModeActive();
+                final boolean auto = session.lightningAdvancesNow(active);
+                entry.put("lightning", obj("active", active, "linger", FloatingUiState.lingerOnAnswer, "autoAdvanced", auto));
+            }
+            answers.add(entry);
             if (advance) {
                 session.advance();
                 session.chooseQuestion();
@@ -568,6 +660,13 @@ final class SessionDriver {
             out.add(Arrays.asList(q.getItem().getId(), q.getType().name()));
         }
         return out;
+    }
+
+    /** The lesson presentation's item: {@code {item: id | null, index}} (index in the session's item list, -1 if none). */
+    private Map<String, Object> presentation() throws Exception {
+        final SessionItem item = (SessionItem) getField(session, "currentItem");
+        return obj("item", item == null ? null : item.getId(), "index", item == null ? -1 : session.getItems().indexOf(item),
+                "storedItemId", db.propertiesDao().getCurrentItemId());
     }
 
     @SuppressWarnings("unchecked")

@@ -1,0 +1,68 @@
+{
+ "description": "App restarts around the lesson presentation (5 radicals). Session.load reloads only items that are not yet reported and opens the presentation while none of them is started, on the stored item: a restart during the presentation comes back on the item the next button stored; after one radical is finished (reported) and Back to presentation, a restart opens the presentation again on the item stored by the quiz (not the last item Back showed); after a wrong answer (an item started) and Back, a restart resumes the quiz.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "where": {}
+  },
+  {
+   "action": "sessionPresentationNext",
+   "count": 2
+  },
+  {
+   "action": "sessionRestart",
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionInspect"
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 1
+  },
+  {
+   "action": "sessionBackToPresentation"
+  },
+  {
+   "action": "sessionRestart",
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionInspect"
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 1,
+   "answer": "wrong"
+  },
+  {
+   "action": "sessionBackToPresentation"
+  },
+  {
+   "action": "sessionRestart",
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionInspect"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

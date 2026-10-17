@@ -43,6 +43,7 @@ import com.smouldering_durtles.wk.enums.FragmentTransitionAnimation;
 import com.smouldering_durtles.wk.enums.QuestionType;
 import com.smouldering_durtles.wk.model.AnswerVerdict;
 import com.smouldering_durtles.wk.model.FloatingUiState;
+import com.smouldering_durtles.wk.model.MatchingKanji;
 import com.smouldering_durtles.wk.model.Question;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
 import com.smouldering_durtles.wk.util.HapticUtil;
@@ -57,7 +58,6 @@ import javax.annotation.Nullable;
 import static com.smouldering_durtles.wk.GlobalSettings.Review.enable_haptic_feedback_failure;
 import static com.smouldering_durtles.wk.GlobalSettings.Review.enable_haptic_feedback_success;
 import static com.smouldering_durtles.wk.util.ObjectSupport.isTrue;
-import static com.smouldering_durtles.wk.util.ObjectSupport.orElse;
 import static com.smouldering_durtles.wk.util.ObjectSupport.runAsync;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 
@@ -185,9 +185,10 @@ public final class UnansweredSessionFragment extends AbstractSessionFragment {
         }
 
         matchingKanji = null;
-        final String characters = orElse(subject.getCharacters(), "");
-        if (subject.getType().isVocabulary() && characters.length() == 1
-                && GlobalSettings.AdvancedOther.getShakeOnMatchingKanji()) {
+        // KanjiKodama: the subject check moved unchanged to MatchingKanji so golden tests can run it.
+        final @Nullable String characters = MatchingKanji.lookupCharacters(subject,
+                GlobalSettings.AdvancedOther.getShakeOnMatchingKanji());
+        if (characters != null) {
             runAsync(
                     this,
                     () -> WkApplication.getDatabase().subjectDao().getKanjiByCharacters(characters),

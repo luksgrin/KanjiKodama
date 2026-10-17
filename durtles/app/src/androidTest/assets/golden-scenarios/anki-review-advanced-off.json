@@ -1,0 +1,33 @@
+{
+ "description": "The Anki review settings are on but Advanced settings are off (enable_advanced false, the pinned default): GlobalSettings.getAnkiMode is false, so the session shows the typing screen (ankiMode false on the one self-graded answer, which the session still accepts).",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {},
+   "settings": {
+    "anki_mode_review_meaning": true,
+    "anki_mode_review_reading": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "ankiCorrect"
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

@@ -1,0 +1,55 @@
+{
+ "description": "Anki mode for review meanings only (anki_mode_review_meaning): 2 kanji at Apprentice IV; meanings are self-graded (one Incorrect), readings are typed (one wrong); ankiMode is true on every meaning answer; both wrong items drop a stage.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 440,
+     "stage": 4
+    },
+    {
+     "id": 441,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    440,
+    441
+   ],
+   "settings": {
+    "enable_advanced": true,
+    "anki_mode_review_meaning": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "rules": {
+    "440:meaning": [
+     "ankiIncorrect",
+     "ankiCorrect"
+    ],
+    "meaning": [
+     "ankiCorrect",
+     "ankiCorrect"
+    ],
+    "441:reading": [
+     "wrong",
+     "correct"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

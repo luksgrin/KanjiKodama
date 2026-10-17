@@ -1,0 +1,187 @@
+{
+ "description": "Single-kanji vocabulary in reviews (level 1 at Guru, 7 vocabulary due at Apprentice IV). With advanced settings on (shake_on_matching_kanji defaults to true): a reading of the vocabulary's kanji, accepted or not (人: にん, と; 口: こう; 山: さん), is a retry (shake, no incorrect count, the question stays on screen) any number of times; 一's いち is the vocabulary's own reading (correct); an unrelated reading is wrong. The same kind of answer is wrong with the setting off (力: りょく), with advanced settings off (上: じょう, the setting is ignored), and when the kanji is hidden (下: か, getKanjiByCharacters only finds visible kanji).",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 2475,
+     "stage": 4
+    },
+    {
+     "id": 2497,
+     "stage": 4
+    },
+    {
+     "id": 2467,
+     "stage": 4
+    },
+    {
+     "id": 2504,
+     "stage": 4
+    },
+    {
+     "id": 2484,
+     "stage": 4
+    },
+    {
+     "id": 2489,
+     "stage": 4
+    },
+    {
+     "id": 2493,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    2475,
+    2497,
+    2467,
+    2504
+   ],
+   "settings": {
+    "enable_advanced": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "rules": {
+    "2475:reading": [
+     {
+      "text": "にん"
+     },
+     {
+      "text": "と"
+     },
+     {
+      "text": "にん"
+     },
+     "correct"
+    ],
+    "2497:reading": [
+     {
+      "text": "こう"
+     },
+     "correct"
+    ],
+    "2467:reading": [
+     {
+      "text": "いち"
+     }
+    ],
+    "2504:reading": [
+     "wrong",
+     {
+      "text": "さん"
+     },
+     "correct"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  },
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    2484
+   ],
+   "settings": {
+    "enable_advanced": true,
+    "shake_on_matching_kanji": false
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "rules": {
+    "reading": [
+     {
+      "text": "りょく"
+     },
+     "correct"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  },
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    2489
+   ],
+   "settings": {
+    "shake_on_matching_kanji": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "rules": {
+    "reading": [
+     {
+      "text": "じょう"
+     },
+     "correct"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  },
+  {
+   "action": "hideSubject",
+   "ids": [
+    451
+   ]
+  },
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    2493
+   ],
+   "settings": {
+    "enable_advanced": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "rules": {
+    "reading": [
+     {
+      "text": "か"
+     },
+     "correct"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  },
+  {
+   "action": "unhideSubject",
+   "ids": "changed"
+  }
+ ]
+}

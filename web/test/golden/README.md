@@ -82,10 +82,16 @@ version, the generation time and the sha256 of the content DB.
 | `answers/submit-alternatives.json`, `answers/submit-alternatives-content-N.jsonl` | `Session.submitHelper` after the verdict → `SubmitFeedback` (alternatives list, "lower-case, drop leading the, drop matched and duplicates"), the `FloatingUiState` fields submit sets, and the alternatives-toast, close-enough and digraph texts | A, content part needs content DB |
 | `answers/synonyms.json` | user meaning synonyms: column parsing, checks per action, save-job and API parsing | A, needs content DB |
 | `answers/synonyms-storage.json` | synonyms and notes through Room: save, import, restore, export, check | B |
+| `answers/matching-kanji.json` | `MatchingKanji.lookupCharacters` (extracted from `UnansweredSessionFragment`): which subjects get a matching kanji, per object type, characters and setting | A |
+| `answers/matching-kanji-device.json` | `GlobalSettings.AdvancedOther.getShakeOnMatchingKanji` for every `enable_advanced` × `shake_on_matching_kanji` value; for every subject that qualifies, the kanji `SubjectDao.getKanjiByCharacters` returns | B |
 | `answers/synonyms-ui.json` | `StudyMaterialsSupport` (extracted from `SubjectInfoView.addSynonym` and `StudyMaterialsActivity`): add-synonym input, list and job data; the 10-row form and its save | A |
 | `answers/synonyms-ui-device.json` | `getMeaningSynonymsRichText` and the note rich texts (`HtmlCompat`); the real `StudyMaterialsActivity`: form shown, edits, arrows, save | B |
+| `answers/synonyms-dialog-device.json` | the real "Add synonym" dialog (`SubjectInfoView`, on the subject info screen): typed, pasted and IME input, Save, Cancel, Back, Enter keys and editor actions; stored list, save job, what the screen shows | B |
 | `search/ranking.json` | `SearchUtil` term splitting, `getRanking`, `getSearchRanking` on inline subjects | A |
 | `search/content.jsonl` | `SearchUtil.searchSubjects(1, q)` (results screen, with its type order) and `searchSubjectSuggestions` over the real content, with and without notes/synonyms | B |
+| `search/level.json` | Browse's level buttons: `SearchUtil.searchSubjects(0, level)` for levels 1-60 and odd inputs, with and without hidden subjects; the results screen's list (`SearchResultAdapter.setResult`, type order) | B |
+| `search/advanced.jsonl` | `SearchUtil.searchSubjects(2, json)` (advanced search and presets) from a progress file, with star ratings and hidden subjects: every filter, sort order, odd preset JSON; the results screen's headers and order | B |
+| `search/advanced-form.json` | the real advanced search form (`AdvancedSearchFormView`): visible switches, typed text, switches and sort order to parameters, and parameters injected back (Refine) | B |
 | `answers/unicode-android.json`, `answers/unicode-android-table.json` | `FuzzyMatching.cleanString`/`matches` and `Character.getType`/lower-casing on the device (Android 16, ICU 76.1, Unicode 16.0) | B |
 | `answers/unicode-android-overrides.json` | device outputs of `fuzzy*`/`check-*` cases that differ from the JVM fixtures (currently none) | B |
 | `kana/table.json`, `kana/edge.json`, `kana/convert.json` | `PseudoIme.simulateInput`, `toKatakana`, `KanaUtil` | A |
@@ -93,8 +99,14 @@ version, the generation time and the sha256 of the content DB.
 | `kana/fixup-sequences.json` | `PseudoIme.fixup`, keystroke by keystroke, on `DummyEditable` | A |
 | `kana/fixup-edittext.json` | `PseudoIme.fixup` from the answer field's TextWatcher on a real EditText | B |
 | `kana/fixup-keys.json` | the answer field fed by hardware key events and the real clipboard (paste, cut, undo), and which Enter keys submit | B |
+| `kana/keys-session.json` | hardware keys and IME editor actions on the real answer field of a running session (`SessionActivity`): submit, retry, the answered state, focus moving to the buttons | B |
 | `server/normalize.json` | `ServerMode.normalize`, `label` | A |
-| `scenarios/*.json` | progression, curriculum switch, fast travel (also near the last level), level test rounds, import, restore, unknown and hidden subjects, hidden components, per-answer time, sync reminder, sessions (`session-*`: undo, ignore, wrap-up, abandon, restart, self-study, the level test's session) | B |
+| `anki/mode-settings.json` | `GlobalSettings.getAnkiMode(sessionType, questionType)` (which screen a question gets) for every combination of `enable_advanced` and the six `anki_mode_*_{meaning,reading}` preferences | B |
+| `anki/answer-text.jsonl` | the answer Anki mode reveals (`Question.getAnkiAnswerRichText`) for every visible subject and question type, with its intended bold ranges, with and without on'yomi in katakana; the "My synonyms" line | B |
+| `anki/answer-inflection.json` | the revealed answer and question characters with randomized inflections, for every form `InflectionUtil` can pick | B |
+| `scenarios/session-lesson-back-*.json`, `scenarios/session-lesson-wrong-answers.json`, `scenarios/session-matching-kanji.json` | the lesson quiz: presentation next/previous, Back to lesson presentation (also with an answer on screen and around restarts), wrong, Don't know and retry answers in a lesson, the single-kanji matching kanji retry in a session | B |
+| `scenarios/anki-*.json` | Anki mode sessions: self-graded answers in reviews, lesson quiz and self-study, meaning-only Anki, Advanced off, the Test mode quirk | B |
+| `scenarios/*.json` | progression, curriculum switch, fast travel (also near the last level), level test rounds, import, restore, unknown and hidden subjects, hidden components, per-answer time, sync reminder, sessions (`session-*`: undo, ignore, wrap-up, abandon, restart, self-study, the level test's session; session configuration: `session-order-*`, `session-size-review`, `session-sequence-*`, `session-lightning-mode`) | B |
 
 Sharded files are always numbered (`-1`, `-2`, …) and hold at most 25,000 cases; a TS test reads
 all shards of a group.
@@ -184,6 +196,27 @@ Notes per area:
   pair), also for notes that came from the API. Synonym rows keep newlines. In the rich texts,
   `escapeHtml` escapes only `&`, `<`, `>`; HTML then collapses runs of spaces and newlines in synonyms
   to one space (tabs stay); notes turn `\n` into a line break. Spans are `[type, start, end]`.
+- `answers/synonyms-dialog-device.json` (`SynonymDialogGoldenTest`): the real dialog, opened from
+  the subject info screen (`BrowseActivity` with `id`). The answered-question screen uses the same
+  `SubjectInfoView` code. Ops DSL in the class javadoc; each step records `dialogShowing`, `field`
+  and `shown` (the "My synonyms:" line); then `saved` (the save job ran), `stored`,
+  `storedSynonyms`, `shownReopened`. The field is a plain `EditText`: input type
+  `TEXT | MULTI_LINE` (131073), multi-line. Findings:
+  - Save takes `String.trim()` of the text. An empty or blank value (`isBlank`: NBSP and U+3000
+    count) does nothing and runs no job. NBSP and U+3000 around a word are not trimmed and are
+    stored (`save-nbsp-padded`, `save-ideographic-padded`). Inner spaces are stored as typed,
+    and the line shows them collapsed. There is no length limit.
+  - A value already in the list (exact, case-sensitive, after trim) leaves the list as it is,
+    but the save job still runs (`studyMaterialPatched` = 1). `Papa` next to `papa` is added.
+    Blank entries already in the column are dropped on the next save.
+  - Enter (no modifiers) closes the dialog and saves, like Save. A second Enter does nothing.
+    Shift+Enter and `NUMPAD_ENTER` insert `\n` (multi-line field), which Save trims away at the
+    end. Every IME editor action (DONE, GO, UNSPECIFIED) closes and saves: the listener accepts
+    only DONE, but TextView's Enter fallback (see `keys-session.json`) reaches it as an Enter
+    key. An IME newline (`commitText("\n")`) stays in the text: `line\nbreak` is stored with
+    the newline and shown as `line break`.
+  - Cancel and Back close without saving. The screen shows the new line at once; reopening shows
+    the stored list.
 - `search/*`: matching is SQL `LIKE '%term%'` per term (AND) on the subject's `searchTarget`
   column (from the content DB: characters, slug, meanings, readings; extras: characters twice,
   meanings, readings), never on notes or synonyms, with `hiddenAt = 0`. LIKE is case-insensitive
@@ -196,6 +229,34 @@ Notes per area:
   gives fewer than 250, query `searchTarget` with `LIMIT 250` instead; the limit cuts in scan order
   before ranking. `content.jsonl` holds the WaniKani content plus the extra kanji and words
   (ids >= 100000) as the device has them.
+- `search/level.json`, `search/advanced*`: the level search is `Integer.parseInt(level)` (so `+1`,
+  `01` and full-width `１` work; `""`, ` 1`, `1.0` throw and the screen shows nothing), then
+  `level = n AND hiddenAt = 0` ordered by level, lessonPosition, id (no `object IS NOT NULL`, no row
+  has a NULL object). Browse offers levels 1 to the highest subject level (61 holds the extra kanji
+  and words). The advanced search parses the JSON with Jackson (`FAIL_ON_UNKNOWN_PROPERTIES` off:
+  numbers as strings and floats are coerced, floats truncated; enum names must match exactly;
+  `itemTypes: null` makes the search throw and return nothing; a single string for an array, a bad
+  enum or a level above 2^31 fails the parse, and the search returns nothing). Filters are ANDed:
+  levels and frequency inclusive, `leechesOnly` = `srsStage` strictly between initial and burned and
+  `leechScore > 1000`; upcoming review needs `availableAt != 0` and compares `availableAt <= now +
+  h` / `>= now + h`; burned needs `burnedAt != 0` and `burnedAt >= now - d` (less than) / `<= now - d`
+  (more than); incorrect is `lastIncorrectAnswer != 0 AND >= now - h`. Star ratings (stored in
+  `typeCode`, 0 = unrated) filter only when the setting is on. Stage tags turn into `(srsSystemId,
+  srsStage)` pairs ORed; a tag no SRS system has adds nothing, so a selection of only unknown tags
+  is no filter at all. Type, JLPT and Jōyō are `IN` lists. Results are ordered by level,
+  lessonPosition, id; the screen re-sorts stably by the sort order (next review clamps overdue
+  times to the search time, so overdue items share one header) and groups consecutive equal items
+  under headers (`view`: `Class:tag` strings and ids, in screen order). `"sortOrder": null` parses
+  but the screen's `setResult` throws. Sets in the serialized JSON (`srsStages` especially) are Java
+  `HashSet`s, so compare them as sets. The form reads its number fields with `Integer.parseInt`
+  (digits only on the keyboard; text that does not parse, like an overflowing number, is silently
+  dropped) and injecting parameters drops values the form has no switch for (`prepass:5`, JLPT 6,
+  Jōyō 8). Test seams: `SearchUtil`'s time filters and `SearchResultAdapter`'s search time read
+  `Clock`.
+- **Known, not fixed:** in local mode locked subjects keep `srsStage = 0` (`ProgressStore` resets
+  every subject to 0; only the upstream sync wrote `-999`), so the "Locked" stage filter never
+  matches anything, "Initiate" matches locked subjects as well as lessons, and the "SRS Stage" sort
+  puts locked subjects under Initiate. Locked is `unlockedAt = 0`.
 - `answers/unicode-android*`: made on the device. The port takes general categories for
   `cleanString` from `unicode-android-table.json` (Unicode 16), uses the device's lower-casing for
   the 27 newer case pairs, and copies Android's final sigma: Σ is final from the UTF-16 units right
@@ -229,9 +290,44 @@ Notes per area:
   consumed without submit; shift/ctrl/alt+Enter, `NUMPAD_ENTER` and `DPAD_CENTER` never submit
   (shift+Enter inserts a `\n` that `fixup` removes); an IME's `performEditorAction` submits for
   any action id but 0 (`IME_ACTION_UNSPECIFIED`); the field's EditorInfo action is
-  `IME_ACTION_DONE`. Not covered: the IME stage of `ViewRootImpl` (a soft keyboard that intercepts
-  hardware keys), non-QWERTY or kana hardware layouts, what happens after a submit that is not a
-  retry.
+  `IME_ACTION_DONE`. Not covered here: the real fragment (see `kana/keys-session.json`), non-QWERTY
+  or kana hardware layouts.
+- `kana/keys-session.json` (`KeysSessionGoldenTest`): the real `SessionActivity` running a
+  self-study session of kanji 一 (440; seed 1, so the reading question comes first), keys injected
+  with `Instrumentation.sendKeySync` (InputManager → ViewRootImpl → the focused view), IME calls
+  through the field's InputConnection, buttons clicked. Ops DSL in the class javadoc; each step
+  records `fragment`, `current`, `answered`, `correct`, `field`, `fieldActive`, `focus`,
+  `progress`. The field: input type `TEXT | NO_SUGGESTIONS` (524289), ime options
+  `DONE | NO_FULLSCREEN | NO_PERSONALIZED_LEARNING`, single line. Findings:
+  - Enter down (no modifiers) submits, for meaning and reading; auto-repeat downs after it do
+    nothing (the field is inactive once submitted). Enter up alone does not submit.
+    Shift/ctrl/alt+Enter and `DPAD_CENTER` do nothing.
+  - **Focus leaves the field** on `NUMPAD_ENTER`, Tab and a lone Enter up (TextView's "advance
+    focus on Enter" for a single-line field, because `handleEditorAction` only sees Enter
+    keys TextView passes to it). The next view is the Don't know button. Typed keys are then lost,
+    and the next Enter or numpad Enter **clicks Don't know** (`numpad-enter-twice`,
+    `numpad-enter-then-type-enter`, `tab-then-enter`): a wrong answer. Escape clears focus; after
+    it, keys and Enter do nothing.
+  - After a submit, the answered screen focuses Next: Enter goes to the next question, and
+    keys typed before that are lost. After a retry verdict (kanji reading answered with the
+    kun'yomi), the field stays active and keeps its text; Enter again gives the retry again.
+    An empty field ignores Enter.
+  - An IME's `performEditorAction` submits for every action id, 0 (`IME_ACTION_UNSPECIFIED`)
+    included. `handleEditorAction` rejects 0, but TextView then sends an Enter key itself, and
+    that submits. (`fixup-keys.json`, on its copy of the field and listener, records no submit for
+    0. The real field submits, and the port follows the real field.) `sendKeyEvent(ENTER)`
+    submits. `commitText("\n")` inserts nothing (`fixup` drops it).
+  - Hardware letters on a reading question go through `PseudoIme` like soft-keyboard text
+    (capitals become katakana: `ONE` → `オネ`).
+  - **The IME stage is left out on purpose.** The session window gets `FLAG_ALT_FOCUSABLE_IM`, so
+    no soft keyboard binds to the field. With the emulator's Gboard (15.1, English layout) bound,
+    every hardware key goes to Gboard first. Gboard passed ASCII keys through and the results
+    matched these, except two that were not deterministic: in 1 of 5 runs, an Enter right
+    after a retry reached the field as an editor action plus a lone Enter up. Focus then moved
+    to Don't know, and the next Enter answered Don't know. Also, after Escape, keys still reached
+    the field through Gboard's InputConnection. This depends on the IME, its version and timing.
+    The port can only match what it does itself (no Android IME on the web or in the Capacitor
+    WebView).
 - `kana/readings.jsonl`: the romaji come from a test-side romanizer
   (`AnswerGoldenSupport.romanize`), katakana as upper-case romaji. 25 readings do not round-trip
   (upper-case N and doubled upper-case consonants are not handled by `fixup`); that is frozen Java
@@ -341,6 +437,80 @@ Notes per area:
   reports each finished item as a lesson at once (a wrong answer only re-queues it); wrap-up during the lesson presentation ends the session. Test seams:
   `Question.markCorrect` and `Subject.isEligibleForSessionType(REVIEW)` read `Clock`, and
   `JobRunnerService.testInterceptor` lets the harness run the session's jobs itself.
+- **Session configuration** (`session-order-review`, `session-order-lesson`, `session-order-self-study`,
+  `session-size-review`, `session-sequence-*`, `session-lightning-mode`; definitions in
+  `durtles/golden/session_order_scenarios.py`): these turn `enable_advanced` on and pin every advanced
+  session preference (unset = app default) plus what the step tests, so `resolved.settings` lists them all.
+  The `session-order-*` / `session-size-review` steps start a session and abandon it; the start's
+  `result.session.items` (`order`, `bucket`) is what the settings produce. How a session is built
+  (`Session.populateItems`): the subjects are shuffled with the seeded RNG (reviews and self-study
+  always, lessons only for `SHUFFLE`, `LEVEL_THEN_SHUFFLE`, `TYPE_THEN_SHUFFLE`), stably sorted by the
+  comparator, cut to the size limit (below), and given buckets (a new bucket whenever the comparator
+  sees the next subject as different). The comparator is the order, then reversed, then "overdue
+  first" (reviews and self-study) in front, then the priority in front of everything. With
+  `enable_advanced` off, or an invalid value, the order is `LEVEL_THEN_TYPE` (lessons) / `SHUFFLE`
+  (reviews, self-study) and the priority `NONE`. "Shuffle after selection" only makes every bucket 0
+  (the items keep the sorted order; the question choice is then random over all of them). Overdue:
+  `availableAt` set and the stage not locked; an initial stage is always overdue, a completed one never;
+  otherwise elapsed time / stage interval ≥ `overdue_threshold` % (an integer ≥ 1, else 20 %).
+  Size limits are string preferences `max_lesson_session_size` / `max_review_session_size` /
+  `max_self_study_session_size` (default 5 / 100 / 100, also for empty, unparsable or < 1 values) and
+  apply with `enable_advanced` off too. Over the limit, the selection rules
+  (`<type>_subjects_<current|earlier|radical|kanji|vocabulary|kana_vocabulary>_<min|max>`, ints, -1
+  unset; current = the user's level, earlier = below it, a subject above it counts as neither) pick in
+  five passes over the sorted list (a subject that helps both an age and a type minimum; one that helps a
+  minimum without exceeding a maximum; any minimum; nothing exceeded; anything), then the chosen ones are
+  sorted again. `SubjectSelectionRules.isEmpty()` is never true (it compares the normalized values with
+  -1), so the passes always run; with no rules they give the same result as cutting the list. Frozen
+  bugs: the lesson kana-only minimum is read from `lesson_subjects_Kana_vocabulary_min` (capital K),
+  while the settings screen writes `lesson_subjects_kana_vocabulary_min`, so it never applies
+  (`session-order-lesson` has both); and kana-only vocabulary is compared with the ordinary vocabulary
+  count and never counted itself, so its minimum and maximum act on the wrong number
+  (`session-size-review`: a kana-only maximum of 1 still takes all four).
+  Question order (`Session.chooseQuestion`, `session-sequence-*`, `resolved.answers` in order): the
+  candidates are filtered in turn, each filter skipped when it would leave nothing: back-to-back (only
+  questions of started items), reading first (an item with both questions pending offers only its
+  reading), meaning first (the same for the meaning; with both settings on, single-question items such as
+  radicals come first, then reading first applies), at most 10 started items, and within the first
+  candidate's bucket the items without a choice delay (a wrong answer sets 3, every choice counts it
+  down). The question is then picked at random among the leading candidates that share the first one's
+  bucket. Lightning mode (`session-lightning-mode`, answers with `advance: "app"` list `lightning`):
+  `enable_lightning_mode` (default on) and not turned off for this session with the Lightning special
+  button (`TOGGLE_LIGHTNING_MODE`, label struck through while off; a new session turns it back on; it
+  cannot turn lightning on when the setting is off). After a correct answer it advances at once, except
+  a close-enough answer under `ACCEPT_WITH_TOAST_NO_LM`, which lingers until Next; wrong answers always
+  wait for Next. Test seams: `Subject.isOverdue` reads `Clock`, and SessionActivity's lightning
+  decision moved unchanged to `Session.lightningAdvancesNow`.
+- **Anki mode** (`anki-*`, `anki/*`): Anki mode is on for a question when Advanced settings are on and the
+  `anki_mode_<lesson|review|self_study>_<meaning|reading>` preference for its session type and kind is on
+  (`NONE` uses the self-study ones; the old single `anki_mode_*` keys are only read by a one-time
+  upgrade migration in `WkApplication`, which the port does not need). The Anki screen: "Show answer"
+  reveals the answer text (`ankiAnswer`; "My synonyms" below it for a meaning question when the subject has
+  user synonyms) and plays the reading audio if `autoplay_anki_reveal`; then Correct / Incorrect
+  (`swap_anki_buttons` swaps them), then Next (`Session.advance`); after grading the subject info is shown.
+  Grading goes through `Session.submitAnkiCorrect` / `submitAnkiIncorrect`, which mark the question
+  exactly like a typed right or wrong answer (same session_item updates, reports, SRS outcome, re-queue;
+  no `lastTypedIncorrectAnswer`, no verdict, no close-match toast) and ignore a second press on an
+  answered question. Test mode (`test_mode`, the hidden TestActivity switch) turns an item's first
+  Correct into Incorrect (`anki-test-mode`): leftover developer code, the port should drop it.
+  Frozen bug: the revealed text loses its bold (the primary meaning/reading when there are several),
+  because `Question.getAnkiAnswerRichText` concatenates it with a String; `bold` lists the intended
+  ranges, `shownStyled` is always false. Meanings are put into HTML unescaped (synonyms are escaped).
+- **Lesson quiz** (`session-lesson-*`, `session-matching-kanji`; `sessionBackToPresentation`,
+  `sessionPresentationNext`/`Previous` and `sessionInspect` add `result.presentation` {item, index, storedItemId}).
+  Back to lesson presentation (menu visible while a LESSON session is `ACTIVE`) shows the last item, not the
+  stored one, and does not store it; everything about the quiz stays (finished items stay `REPORTED` and are shown
+  in the presentation, wrong ones keep their counts and stay queued) and Start quiz continues. With an answer still on
+  screen, `Session.advance` never runs for it: a finished question stays queued, so the item is asked and reported a
+  second time (the second report moves `startedAt` and `availableAt` to its own time), and a wrong one gets no
+  choice delay or undo entry. A restart reloads only unreported items and opens the presentation while none of them is
+  started, on the stored item. A lesson report carries the item's incorrect counts, but the lesson still lands on
+  Apprentice I with no review statistics; a wrong answer sets `lastIncorrectAnswer`, a retry does not. **Matching
+  kanji:** only `SubjectType.isVocabulary` subjects (not kana-only vocabulary) with exactly one UTF-16 char qualify,
+  and only with `enable_advanced` on (`shake_on_matching_kanji` defaults to true); the lookup finds visible kanji
+  only. A reading of that kanji, accepted or not, that is not the vocabulary's own is a retry (no incorrect count,
+  the question stays), as often as it is typed. The session driver resolves the matching kanji for every typed
+  answer like the fragment does; with advanced settings off (all other scenarios) it is null.
 - **Other behavior the port keeps:** a review increments `readingCorrect` and the reading streak
   even for radicals; switching order keeps already unlocked items; `ProgressStore.describe`
   throws a `NullPointerException` when `subjects` is missing.
@@ -391,14 +561,14 @@ write nothing. `GOLDEN_CONTENT_DB` overrides the content DB path.
 
 Tier B, instrumented tests on an emulator or device (harness in
 `durtles/app/src/androidTest/java/com/smouldering_durtles/wk/test/golden/`: `ScenarioGoldenTest`,
-`ScenarioRunner`, `FixupEditTextGoldenTest`, `FixupKeysGoldenTest`, `SynonymStorageGoldenTest`, `SynonymUiGoldenTest`,
-`SearchGoldenTest`, `UnicodeGoldenTest`,
+`ScenarioRunner`, `FixupEditTextGoldenTest`, `FixupKeysGoldenTest`, `KeysSessionGoldenTest`, `SynonymStorageGoldenTest`, `SynonymUiGoldenTest`, `SynonymDialogGoldenTest`,
+`SearchGoldenTest`, `AdvancedSearchGoldenTest`, `AnkiGoldenTest`, `MatchingKanjiGoldenTest`, `UnicodeGoldenTest`,
 `GoldenWriter`). The debug APK needs `wk-content.db` in the assets. The easiest way is the two
 scripts in `durtles/golden/` (back up first, see below):
 
 ```sh
 G=com.smouldering_durtles.wk.test.golden
-durtles/golden/run.sh /tmp/golden "$G.ScenarioGoldenTest,$G.FixupEditTextGoldenTest,$G.FixupKeysGoldenTest,$G.SynonymStorageGoldenTest,$G.SynonymUiGoldenTest,$G.SearchGoldenTest"
+durtles/golden/run.sh /tmp/golden "$G.ScenarioGoldenTest,$G.FixupEditTextGoldenTest,$G.FixupKeysGoldenTest,$G.SynonymStorageGoldenTest,$G.SynonymUiGoldenTest,$G.SynonymDialogGoldenTest,$G.KeysSessionGoldenTest,$G.SearchGoldenTest,$G.AdvancedSearchGoldenTest,$G.AnkiGoldenTest,$G.MatchingKanjiGoldenTest"
 durtles/golden/unicode.sh /tmp/golden-unicode     # pushes the JVM answer fixtures, re-runs them on the device
 rsync -a /tmp/golden/golden/ /tmp/golden-unicode/golden/ web/test/golden/
 ```

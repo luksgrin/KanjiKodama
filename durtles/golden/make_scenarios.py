@@ -758,6 +758,12 @@ S["jlpt-hide-kanji-switch-same-mode"] = {
 sys.path.insert(0, HERE)
 import session_scenarios
 session_scenarios.add(S, lvl)
+import session_order_scenarios
+session_order_scenarios.add(S, lvl)
+import anki_scenarios
+anki_scenarios.add(S, lvl)
+import lesson_scenarios
+lesson_scenarios.add(S, lvl)
 os.makedirs(OUT, exist_ok=True)
 for name, sc in S.items():
     with open(os.path.join(OUT, name + ".json"), "w") as f:

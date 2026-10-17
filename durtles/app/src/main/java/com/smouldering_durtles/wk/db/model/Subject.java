@@ -1217,7 +1217,8 @@ public final class Subject implements PronunciationAudioOwner {
         if (stage.isCompleted()) {
             return false;
         }
-        final double since = System.currentTimeMillis() - entity.availableAt;
+        // KanjiKodama: Clock.now() is System.currentTimeMillis() unless a golden test pinned it.
+        final double since = Clock.now() - entity.availableAt;
         if (since <= 0) {
             return false;
         }

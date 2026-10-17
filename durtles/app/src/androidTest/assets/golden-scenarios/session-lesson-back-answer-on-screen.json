@@ -1,0 +1,58 @@
+{
+ "description": "Lesson quiz of 5 radicals: \"Back to lesson presentation\" while an answer is still on screen (answered, Next not pressed). Session.advance never runs for it: a correct answer that finished its radical (reported as a lesson at once) leaves the finished question in the queue, so the radical is asked again later and REPORTED A SECOND TIME (two ReportSessionItemJob for subject 1; the snapshot shows the result); a wrong answer on screen is taken back the same way (no choice delay, not in the undo history). The presentation keeps answered = true until the quiz starts again.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "where": {}
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionAnswer",
+   "advance": false
+  },
+  {
+   "action": "sessionBackToPresentation",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 1,
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "wrong",
+   "advance": false,
+   "advanceSeconds": 5
+  },
+  {
+   "action": "sessionBackToPresentation",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionFinish"
+  },
+  {
+   "action": "snapshot"
+  }
+ ]
+}

@@ -37,7 +37,6 @@ import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.db.model.SessionItem;
 import com.smouldering_durtles.wk.db.model.Subject;
-import com.smouldering_durtles.wk.enums.CloseEnoughAction;
 import com.smouldering_durtles.wk.enums.FragmentTransitionAnimation;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.fragments.AbstractFragment;
@@ -177,15 +176,12 @@ public final class SessionActivity extends AbstractActivity {
         final boolean lightningMode = session.isLightningModeActive();
         final boolean ankiMode = question != null && GlobalSettings.getAnkiMode(session.getType(), question.getType());
 
-        if (lightningMode && session.isAnswered() && session.isCorrect()
-                && FloatingUiState.lastVerdict != null && FloatingUiState.lastVerdict.isNearMatch()
-                && GlobalSettings.Review.getCloseEnoughAction() == CloseEnoughAction.ACCEPT_WITH_TOAST_NO_LM) {
-            FloatingUiState.lingerOnAnswer = true;
-        }
+        // KanjiKodama: the lightning-mode decision moved unchanged to Session.lightningAdvancesNow.
+        final boolean lightningAdvance = session.lightningAdvancesNow(lightningMode);
 
         if (session.isAnswered() && session.isCorrect()) {
             playAudio(question, subject, ankiMode ? null : FloatingUiState.getLastMatchedAnswer());
-            if (lightningMode && !FloatingUiState.lingerOnAnswer) {
+            if (lightningAdvance) {
                 session.advance();
                 updateFragment();
                 return;

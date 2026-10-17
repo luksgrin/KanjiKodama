@@ -29,6 +29,7 @@ import com.smouldering_durtles.wk.api.model.Reading;
 import com.smouldering_durtles.wk.db.Converters;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.enums.SubjectType;
+import com.smouldering_durtles.wk.local.Clock;
 import com.smouldering_durtles.wk.model.AdvancedSearchParameters;
 import com.smouldering_durtles.wk.model.SrsSystemRepository;
 
@@ -272,6 +273,7 @@ public final class SearchUtil {
      * @param parameters the query parameters
      * @return the list of found subjects
      */
+    // KanjiKodama: the times come from Clock.now() (the real clock in the app) so golden tests can pin them.
     private static List<Subject> searchSubjects(final AdvancedSearchParameters parameters) {
         final StringBuilder sb = new StringBuilder();
 
@@ -309,12 +311,12 @@ public final class SearchUtil {
 
         if (parameters.upcomingReviewLessThan != null) {
             sb.append(" AND availableAt <= ");
-            sb.append(System.currentTimeMillis() + parameters.upcomingReviewLessThan * HOUR);
+            sb.append(Clock.now() + parameters.upcomingReviewLessThan * HOUR);
         }
 
         if (parameters.upcomingReviewMoreThan != null) {
             sb.append(" AND availableAt >= ");
-            sb.append(System.currentTimeMillis() + parameters.upcomingReviewMoreThan * HOUR);
+            sb.append(Clock.now() + parameters.upcomingReviewMoreThan * HOUR);
         }
 
         if (parameters.burnedLessThan != null || parameters.burnedMoreThan != null) {
@@ -323,17 +325,17 @@ public final class SearchUtil {
 
         if (parameters.burnedLessThan != null) {
             sb.append(" AND burnedAt >= ");
-            sb.append(System.currentTimeMillis() - parameters.burnedLessThan * DAY);
+            sb.append(Clock.now() - parameters.burnedLessThan * DAY);
         }
 
         if (parameters.burnedMoreThan != null) {
             sb.append(" AND burnedAt <= ");
-            sb.append(System.currentTimeMillis() - parameters.burnedMoreThan * DAY);
+            sb.append(Clock.now() - parameters.burnedMoreThan * DAY);
         }
 
         if (parameters.incorrectAnswerWithin != null) {
             sb.append(" AND lastIncorrectAnswer != 0 AND lastIncorrectAnswer >= ");
-            sb.append(System.currentTimeMillis() - parameters.incorrectAnswerWithin * HOUR);
+            sb.append(Clock.now() - parameters.incorrectAnswerWithin * HOUR);
         }
 
         if (GlobalSettings.Other.getEnableStarRatings()) {

@@ -1,0 +1,48 @@
+{
+ "description": "Self-study of 3 level 1 kanji at Guru in Anki mode (self-study meaning and reading): one meaning graded Incorrect; self-study is delayed, so Finish reports all three as SELF_STUDY with their answer times and SRS stages do not change.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 2,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "kanji"
+   ],
+   "stage": 5
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "SELF_STUDY",
+   "ids": [
+    440,
+    441,
+    442
+   ],
+   "atHours": 1,
+   "settings": {
+    "enable_advanced": true,
+    "anki_mode_self_study_meaning": true,
+    "anki_mode_self_study_reading": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 7,
+   "answer": "ankiCorrect",
+   "rules": {
+    "441:meaning": [
+     "ankiIncorrect"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish",
+   "advanceSeconds": 120
+  }
+ ]
+}

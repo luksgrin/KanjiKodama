@@ -1,0 +1,40 @@
+{
+ "description": "Leftover developer code: with the hidden Test mode switch on (test_mode, TestActivity), Anki mode's Correct button counts as Incorrect while the item has no wrong answer yet. 2 radicals in review: each first Correct is recorded as wrong (the item drops a stage), the second Correct counts.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {},
+   "settings": {
+    "enable_advanced": true,
+    "anki_mode_review_meaning": true,
+    "test_mode": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "answer": "ankiCorrect"
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

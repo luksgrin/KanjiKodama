@@ -25,6 +25,7 @@ import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.model.SessionItem;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.enums.LessonOrder;
+import com.smouldering_durtles.wk.enums.CloseEnoughAction;
 import com.smouldering_durtles.wk.enums.QuestionChoiceReason;
 import com.smouldering_durtles.wk.enums.QuestionType;
 import com.smouldering_durtles.wk.enums.ReviewOrder;
@@ -1026,6 +1027,23 @@ s     *
      */
     public boolean isLightningModeActive() {
         return GlobalSettings.Review.getEnableLightningMode() && !lightningModeTemporarilyDisabled;
+    }
+
+    /**
+     * KanjiKodama: SessionActivity.updateFragment's lightning-mode decision after an answer, moved here unchanged so
+     * golden tests can run it. A correct close-enough answer with "accept with toast, no lightning mode" makes the
+     * question linger (FloatingUiState.lingerOnAnswer); the activity advances at once when this returns true.
+     *
+     * @param lightningMode the value of isLightningModeActive() the activity read
+     * @return true if the session advances to the next question without the Next button
+     */
+    public boolean lightningAdvancesNow(final boolean lightningMode) {
+        if (lightningMode && isAnswered() && isCorrect()
+                && FloatingUiState.lastVerdict != null && FloatingUiState.lastVerdict.isNearMatch()
+                && GlobalSettings.Review.getCloseEnoughAction() == CloseEnoughAction.ACCEPT_WITH_TOAST_NO_LM) {
+            FloatingUiState.lingerOnAnswer = true;
+        }
+        return isAnswered() && isCorrect() && lightningMode && !FloatingUiState.lingerOnAnswer;
     }
 
     /**

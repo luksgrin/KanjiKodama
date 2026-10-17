@@ -29,6 +29,7 @@ import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.enums.SearchSortOrder;
 import com.smouldering_durtles.wk.enums.SubjectType;
+import com.smouldering_durtles.wk.local.Clock;
 import com.smouldering_durtles.wk.fragments.SearchResultFragment;
 import com.smouldering_durtles.wk.model.AdvancedSearchParameters;
 import com.smouldering_durtles.wk.model.SubjectCardBinder;
@@ -261,7 +262,8 @@ public final class SearchResultAdapter extends RecyclerView.Adapter<ResultItemVi
      */
     public void setResult(final List<Subject> result) {
         rootItem.clear();
-        searchTime = System.currentTimeMillis();
+        // KanjiKodama: Clock.now() is the real clock in the app; golden tests pin it.
+        searchTime = Clock.now();
         final Comparator<Subject> comparator = sortOrder.getComparator(searchTime);
         Collections.sort(result, comparator);
         final int size = result.size();
