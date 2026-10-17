@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dev-dist/
+*.tsbuildinfo
+# Private WaniKani content (internal use only): never commit
+/public/content/
+# Capacitor Android generated/build output (the public/ copy would contain the content DB)
+/android/app/src/main/assets/public
+/android/app/src/main/assets/capacitor.config.json
+/android/app/src/main/assets/capacitor.plugins.json
+/android/build
+/android/app/build
+/android/.gradle
+/android/local.properties
