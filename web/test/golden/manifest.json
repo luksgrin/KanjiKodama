@@ -1,11 +1,35 @@
 {
   "generatorVersion": 1,
-  "generatedAt": "2026-10-17T15:38:04.479Z",
-  "durtlesCommit": "9b1a7a0c41184fd67438f87acefa9819866bec35",
+  "generatedAt": "2026-10-17T18:06:26.734Z",
+  "durtlesCommit": "87559f981565462ec64789c942af4fe5b2997f29",
   "durtlesDirty": false,
   "contentDbSha256": "a81e44da1bba8e09f2384a458ec97fff06da4024e94499443dd687c5d603a512",
-  "totalCases": 376008,
+  "totalCases": 387832,
   "files": [
+    {
+      "path": "anki/answer-inflection.json",
+      "area": "anki.answerInflection",
+      "javaSource": "model/Question.getAnkiAnswerRichText and getCharacters with review_randomize_inflections",
+      "cases": 292,
+      "bytes": 118575,
+      "sha256": "6155335b3304ec2935d428f58188a7a909fd2af4037a88d6ffda5a23323f040d"
+    },
+    {
+      "path": "anki/answer-text.jsonl",
+      "area": "anki.answerText",
+      "javaSource": "model/Question.getAnkiAnswerRichText, enums/QuestionType.getAnkiAnswerRichText, db/model/Subject.getMeaningRichText / getRegularReadingRichText / getAcceptedOnYomiRichText / getAcceptedKunYomiRichText / getMeaningSynonymsRichText",
+      "cases": 9846,
+      "bytes": 3407501,
+      "sha256": "1658812c7d9a95bea95edb53ef7ab4f1c93b22aa4a2d1e5e1e449e99e32474ba"
+    },
+    {
+      "path": "anki/mode-settings.json",
+      "area": "anki.modeSettings",
+      "javaSource": "GlobalSettings.getAnkiMode(sessionType, questionType)",
+      "cases": 128,
+      "bytes": 66556,
+      "sha256": "516515b2bf7648d2def198ae7c47f490484ba337f9359cfb828bc242b6190f10"
+    },
     {
       "path": "answers/check-kana-vocab-meaning-1.jsonl",
       "area": "answers.check",
@@ -159,6 +183,22 @@
       "sha256": "85951c660c5adb8a653a6645d4614a3c85faf513c653d31562c06f597283b4a9"
     },
     {
+      "path": "answers/matching-kanji-device.json",
+      "area": "answers.matchingKanjiDevice",
+      "javaSource": "GlobalSettings.AdvancedOther.getShakeOnMatchingKanji, model/MatchingKanji.lookupCharacters, db/dao/SubjectDao.getKanjiByCharacters",
+      "cases": 699,
+      "bytes": 93888,
+      "sha256": "84f3571f60579b58bffc28be2be049a49dcfd112fac479f255bc42c1816f510c"
+    },
+    {
+      "path": "answers/matching-kanji.json",
+      "area": "answers.matchingKanji",
+      "javaSource": "model/MatchingKanji.lookupCharacters (from fragments/UnansweredSessionFragment)",
+      "cases": 72,
+      "bytes": 10064,
+      "sha256": "a6fb786fe87b0bccb10af647631812c0058940d4255903e9001a9b2518f02fb8"
+    },
+    {
       "path": "answers/osa.json",
       "area": "answers.osa",
       "javaSource": "util/OptimalStringAlignmentDistance.getDistance",
@@ -221,6 +261,14 @@
       "cases": 1936,
       "bytes": 1928030,
       "sha256": "7f1cd4f2c91524aadb5770d5f231ec9bc9ce9053e56c2a55ff2112200525934b"
+    },
+    {
+      "path": "answers/synonyms-dialog-device.json",
+      "area": "answers.synonymsDialogDevice",
+      "javaSource": "views/SubjectInfoView.prepareAddSynonymButton/onSynonymEditorAction/addSynonym (real dialog in BrowseActivity's SubjectInfoFragment, SaveStudyMaterialJob)",
+      "cases": 35,
+      "bytes": 37775,
+      "sha256": "caed07d39fe041ca1e8cd91a7ba095ba4bdab634e7965bead3d7d2a498613d5d"
     },
     {
       "path": "answers/synonyms-storage.json",
@@ -343,6 +391,14 @@
       "sha256": "95785195a2b8328a62aaece5494eaa2ed536c95bd7a0fb5fcba1466b4ed15613"
     },
     {
+      "path": "kana/keys-session.json",
+      "area": "kana.keysSession",
+      "javaSource": "activities/SessionActivity, fragments/UnansweredSessionFragment.handleEditorAction and AnsweredSessionFragment (real activity; keys via Instrumentation.sendKeySync)",
+      "cases": 41,
+      "bytes": 38644,
+      "sha256": "b1032e6d2c1501a7fe3a673972b4b03f0f0ec19ff168df496ba987fb18133661"
+    },
+    {
       "path": "kana/readings.jsonl",
       "area": "kana.readings",
       "javaSource": "util/PseudoIme.simulateInput, toKatakana; util/KanaUtil.convertKatakanaToHiragana",
@@ -373,6 +429,54 @@
       "cases": 58,
       "bytes": 134575,
       "sha256": "093f4443c9f4cd2269130ed032952faf18716a1a3b65c9a79498ae6d3fe5924b"
+    },
+    {
+      "path": "scenarios/anki-lesson-quiz.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 5,
+      "bytes": 79146,
+      "sha256": "4533aba52bf6945677e591ba64b82c0b956b642973ed78d3be1a8a07b30a7c89"
+    },
+    {
+      "path": "scenarios/anki-review-advanced-off.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 60842,
+      "sha256": "29d06ff0cfdc5daf8654978c3734b9d076be1093882e79e03423e21a7063c6cc"
+    },
+    {
+      "path": "scenarios/anki-review-meaning-only.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 66607,
+      "sha256": "e98e4d04d3b69c80e783419d4a31674c894f51d54b77b48c9081a06b4a3e25ed"
+    },
+    {
+      "path": "scenarios/anki-review.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 7,
+      "bytes": 122112,
+      "sha256": "0b1030a4de95edfb9d563b9d0d2cbdd7a6c1817280013d213aaf934660c4b669"
+    },
+    {
+      "path": "scenarios/anki-self-study.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 268605,
+      "sha256": "9cdf614b5d61e4c3827063b4f40dcd6e2d0b07bbe110e5feb2922c9c98516d48"
+    },
+    {
+      "path": "scenarios/anki-test-mode.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 61563,
+      "sha256": "e0acd1618e96744aae12a966d2ee695b1771099969e8f239471b666ef6915814"
     },
     {
       "path": "scenarios/cur-fresh-jlpt-to-wk.json",
@@ -783,6 +887,30 @@
       "sha256": "183a0b05d1f3a95d9f28dc04733a164abc8d24319874bee67f54d1a2b1428b9e"
     },
     {
+      "path": "scenarios/session-lesson-back-answer-on-screen.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 13,
+      "bytes": 205754,
+      "sha256": "adc86c5d5a4b2d2bc4d024256f66e3e68545c243734a3e5ddf0f7834893b9899"
+    },
+    {
+      "path": "scenarios/session-lesson-back-restart.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 17,
+      "bytes": 269354,
+      "sha256": "d6a6521d265080b77c707d9390361a99c96be1a2cdc0087924a2078e02723d33"
+    },
+    {
+      "path": "scenarios/session-lesson-back-to-presentation.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 14,
+      "bytes": 223288,
+      "sha256": "d10ae39a10b8d6eacef3e40c3f38d093a832e289a456852b2ef559a924f479df"
+    },
+    {
       "path": "scenarios/session-lesson-quiz-abandon.json",
       "area": "scenario",
       "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
@@ -791,12 +919,60 @@
       "sha256": "7920131ff8a9afdf80f89ed21c33d34176103c8d35df1ddc0e4f09a935cc2e87"
     },
     {
+      "path": "scenarios/session-lesson-wrong-answers.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 6,
+      "bytes": 169219,
+      "sha256": "76ee6026c89b9101715abf0c359b038f7205f3522bf88eabfab0ff5c5a3e879e"
+    },
+    {
       "path": "scenarios/session-level-test-restart.json",
       "area": "scenario",
       "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
       "cases": 7,
       "bytes": 249919,
       "sha256": "870077925518957c6217f37aea34f7e75d221d79cb1ab13e4a7de482b0597a3f"
+    },
+    {
+      "path": "scenarios/session-lightning-mode.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 17,
+      "bytes": 361687,
+      "sha256": "c957dd2f8ab21671d0bc3b8c5f2baf8bc1cb301f477abd0c9a17b3330e9a9241"
+    },
+    {
+      "path": "scenarios/session-matching-kanji.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 15,
+      "bytes": 1096265,
+      "sha256": "2adf923c20bad16c42e31c1356800e9530c0d867d8147494d22343dbc1c731c1"
+    },
+    {
+      "path": "scenarios/session-order-lesson.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 63,
+      "bytes": 8074580,
+      "sha256": "bc67d22c177245ab13e94190df0ddf7656c863a4bdefcf314b25214d2b5781d8"
+    },
+    {
+      "path": "scenarios/session-order-review.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 71,
+      "bytes": 4723908,
+      "sha256": "cffb0828a6a95de26109745a4e81077ddad2ca03c78074c2136b5d3142bc43ff"
+    },
+    {
+      "path": "scenarios/session-order-self-study.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 29,
+      "bytes": 4846793,
+      "sha256": "0ada51dae2040d9a1631f947eefa9bf5bf9a9208ce307d1a17435705afd80b57"
     },
     {
       "path": "scenarios/session-self-study-guru.json",
@@ -813,6 +989,110 @@
       "cases": 9,
       "bytes": 287814,
       "sha256": "93e7bd6d8500c6cfe2ca6a76eb7892b3061d9d27e6f4aa49b8ce857fa59e1ce7"
+    },
+    {
+      "path": "scenarios/session-sequence-lesson-back-to-back.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 122991,
+      "sha256": "a1bb4b3c2df1463682a8583119f3913862df30bba3595b915eba87676faf29ee"
+    },
+    {
+      "path": "scenarios/session-sequence-lesson-default.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 123002,
+      "sha256": "4b9ba40e11ea66272a5265b0232f0bc373b918a0f55bda6497a485225666e05e"
+    },
+    {
+      "path": "scenarios/session-sequence-lesson-meaning-first-back-to-back.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 123002,
+      "sha256": "856c3f9cf14d714fcd2eb544c946b9938cf858e09a4c7b8bc1d1b5c919d8ac55"
+    },
+    {
+      "path": "scenarios/session-sequence-lesson-reading-first.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 122991,
+      "sha256": "762f86a74cbec26be94d1f06872749ef70d8ab934a2ddbf7c9e446432c2b53c2"
+    },
+    {
+      "path": "scenarios/session-sequence-review-back-to-back-reading-first.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 197273,
+      "sha256": "bed6be394229feb20bc5d60eb27ae99aecdfd93c2e5349e6744e64dcef37aacd"
+    },
+    {
+      "path": "scenarios/session-sequence-review-back-to-back.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 197259,
+      "sha256": "5a904fad4a72591bd2024e1568dfffb6c4d158d6e61d3b53d65f323519501149"
+    },
+    {
+      "path": "scenarios/session-sequence-review-default.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 197270,
+      "sha256": "2f9ee02e6f71a13ca714dfcc49bd3e5c4cfe8c72884db58949bdda7806c38ddb"
+    },
+    {
+      "path": "scenarios/session-sequence-review-meaning-first.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 197273,
+      "sha256": "fb8d3f0c9f46b6ab2bb9cc1999c621ead73f41980850b70c38894929519c2c13"
+    },
+    {
+      "path": "scenarios/session-sequence-review-reading-and-meaning-first.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 197270,
+      "sha256": "1e27ac816bf129551729c890fa620ae81297e072e86e4563dae847600a5f6151"
+    },
+    {
+      "path": "scenarios/session-sequence-review-reading-first.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 197273,
+      "sha256": "7ad83a16f0319b7db3bef4a3a96f7d5e50809960fed95d27ad374f7dc2e66f0e"
+    },
+    {
+      "path": "scenarios/session-sequence-review-type-order-buckets.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 197263,
+      "sha256": "ce46dd2418fa2d61bb52dad1df8f03af3e223434591f31d449b52b5dc14c3ed4"
+    },
+    {
+      "path": "scenarios/session-sequence-self-study-meaning-first.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 325335,
+      "sha256": "c24188dc19762fb5b505c97237d090451a7f9e219c65a2de2835deaa4d8e75f2"
+    },
+    {
+      "path": "scenarios/session-size-review.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 53,
+      "bytes": 3443667,
+      "sha256": "5da91c9e34f679178cb4cd9e7b8fe86171b6faccb850776fb163cdd5161eaf44"
     },
     {
       "path": "scenarios/session-undo-delayed.json",
@@ -1015,12 +1295,36 @@
       "sha256": "a6d585f95401b6d69284727beff0e91ec3ed9dbcf003aa731e0c21566f4a24ee"
     },
     {
+      "path": "search/advanced-form.json",
+      "area": "search.advancedForm",
+      "javaSource": "views/AdvancedSearchFormView (layout advanced_search.xml): extractParameters, injectParameters",
+      "cases": 35,
+      "bytes": 36853,
+      "sha256": "20939bf666f1a0c94e71eb5165800d6df865e98ba8a05d18a8b78b260f5999fd"
+    },
+    {
+      "path": "search/advanced.jsonl",
+      "area": "search.advanced",
+      "javaSource": "util/SearchUtil.searchSubjects(2, json), model/AdvancedSearchParameters (Jackson, db/Converters), adapter/search/SearchResultAdapter.setResult, enums/SearchSortOrder",
+      "cases": 165,
+      "bytes": 3326349,
+      "sha256": "f39141d6e02ad773a1214c9160f60ae72510d943cd930adb60a5441db5c88e44"
+    },
+    {
       "path": "search/content.jsonl",
       "area": "search.content",
       "javaSource": "util/SearchUtil.searchSubjects(1, query), SearchUtil.searchSubjectSuggestions, enums/SearchSortOrder.TYPE",
       "cases": 108,
       "bytes": 549606,
       "sha256": "699ac55c9afe2a759ea72c373f277401768746c6effca4129813c9d58263b3df"
+    },
+    {
+      "path": "search/level.json",
+      "area": "search.level",
+      "javaSource": "util/SearchUtil.searchSubjects(0, level), adapter/search/SearchResultAdapter.setResult (SearchSortOrder.TYPE)",
+      "cases": 137,
+      "bytes": 222261,
+      "sha256": "9a993b79f22180b20152d83d6e663b2ba18116ef87cfedb5932a4fa1bc63493f"
     },
     {
       "path": "search/ranking.json",
