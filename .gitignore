@@ -1,0 +1,48 @@
+# Gradle / Android
+.gradle/
+build/
+.kotlin/
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Signing (never commit)
+keystore.properties
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Content pipeline
+tools/content/.cache/
+tools/content/out/
+tools/content/.venv/
+tools/content/__pycache__/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.db
+*.db-journal
+!app/src/main/assets/content.db
+!durtles/app/src/main/assets/sound-components.db
+!durtles/app/src/main/assets/extra-kanji.db
+
+# Private inputs: seed word lists are personal and never committed
+content/seed_words/*
+!content/seed_words/.gitkeep
+!content/seed_words/README.md
+
+# Secrets
+.env
+
+# Private WaniKani data dump (internal use only, never committed)
+wani-data/

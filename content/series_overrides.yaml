@@ -1,0 +1,5 @@
+# Force or forbid the phonetic component of a kanji. Example:
+#
+# 左: none        # 工 is present but carries no sound
+# 江: 工          # force 工 as the phonetic component
+{}
