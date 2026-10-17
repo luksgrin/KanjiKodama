@@ -1,5 +1,5 @@
 {
- "description": "WaniKani import mixing known subjects (level 1 at Guru, level 2 radicals), hidden ones (7668, 58, 2285 with assignments, statistics, notes), extras (100001, 200001) and unknown ids (9540, 150000; a note for 9541): hidden and extra subjects take the progress but are not lessons or reviews in WaniKani order, the unknown ids make the whole import roll back silently (see import-unknown-ids-only), so nothing but the user level 2 arrives; then reviews, a switch to JLPT order with reviews there, back, and a round trip.",
+ "description": "WaniKani import mixing known subjects (level 1 at Guru, level 2 radicals), hidden ones (7668, 58, 2285 with assignments, statistics, notes), extras (100001, 200001) and unknown ids (9540, 150000; a note for 9541): the unknown ids are skipped and everything else applies; hidden and extra subjects take the progress but are not lessons or reviews in WaniKani order. Then reviews, a switch to JLPT order with reviews there, back, and a round trip.",
  "mode": "WANIKANI",
  "start": null,
  "steps": [

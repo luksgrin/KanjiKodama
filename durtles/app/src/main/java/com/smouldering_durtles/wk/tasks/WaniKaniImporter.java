@@ -5,6 +5,8 @@
 
 package com.smouldering_durtles.wk.tasks;
 
+import android.database.Cursor;
+
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.api.model.ApiAssignment;
@@ -18,7 +20,9 @@ import com.smouldering_durtles.wk.local.ProgressStore;
 import com.smouldering_durtles.wk.local.ServerMode;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -122,20 +126,32 @@ public final class WaniKaniImporter {
         final List<ApiStudyMaterial> materials = d.materials;
         final List<ApiLevelProgression> levels = d.levels;
 
+        // KanjiKodama: skip progress for subjects the bundled content doesn't have (e.g. ones WaniKani added later).
+        // The DAO would try to insert an id-only row for them, which fails and silently rolls back the whole import.
+        final Set<Long> known = new HashSet<>();
+        try (final Cursor c = db.getOpenHelper().getReadableDatabase().query("SELECT id FROM subject")) {
+            while (c.moveToNext()) {
+                known.add(c.getLong(0));
+            }
+        }
+        final int[] skipped = {0};
         db.runInTransaction(() -> {
             ProgressStore.resetProgress(db);
             for (final @Nullable ApiAssignment a: assignments) {
-                if (a != null) {
+                if (a != null && known.contains(a.getSubjectId())) {
                     db.subjectSyncDao().insertOrUpdateAssignment(a);
+                }
+                else if (a != null) {
+                    skipped[0]++;
                 }
             }
             for (final @Nullable ApiReviewStatistic s: statistics) {
-                if (s != null) {
+                if (s != null && known.contains(s.getSubjectId())) {
                     db.subjectSyncDao().insertOrUpdateReviewStatistic(s);
                 }
             }
             for (final @Nullable ApiStudyMaterial m: materials) {
-                if (m != null) {
+                if (m != null && known.contains(m.getSubjectId())) {
                     db.subjectSyncDao().insertOrUpdateStudyMaterial(m, false);
                 }
             }
@@ -155,7 +171,8 @@ public final class WaniKaniImporter {
         }
         ProgressStore.afterChange(db);
 
-        return "Imported level " + db.propertiesDao().getUserLevel() + ": " + assignments.size() + " items, "
-                + statistics.size() + " review statistics, " + materials.size() + " notes.";
+        return "Imported level " + db.propertiesDao().getUserLevel() + ": " + (assignments.size() - skipped[0]) + " items, "
+                + statistics.size() + " review statistics, " + materials.size() + " notes."
+                + (skipped[0] > 0 ? " Skipped " + skipped[0] + " items this app's content doesn't have." : "");
     }
 }

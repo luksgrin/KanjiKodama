@@ -749,7 +749,7 @@ final class ScenarioRunner {
 
     private boolean satisfied(final JsonNode until) {
         if (until.path("noProbation").asBoolean(false)) {
-            return count("SELECT COUNT(*) FROM mm_probation") == 0;
+            return count("SELECT COUNT(*) FROM mm_probation p JOIN subject s ON s.id = p.id WHERE s.hiddenAt = 0") == 0;
         }
         if (until.has("level") && db.propertiesDao().getUserLevel() < until.get("level").asInt()) {
             return false;

@@ -321,7 +321,7 @@ S["import-notes-stats-replace"] = {
                    {"subject_id": 2467, "subject_type": "vocabulary", "meaning_note": None, "reading_note": "rn", "meaning_synonyms": []}])},
         {"action": "exportRestore"}]}
 S["reminder-set-on-first-pass"] = {
-  "description": "Sync reminder (property sync_reminder): off at the start; a vocabulary passing (no amalgamations), a radical passing again (already passed), a wrong answer and lessons leave it off; radical 7 passing for the first time turns it on; kanji 440 passing keeps it on.",
+  "description": "Sync reminder (property sync_reminder) in local mode: it stays off throughout, since local mode unlocks on the spot and never sets or shows it; a vocabulary passing, a radical passing again, a wrong answer, lessons, radical 7 and kanji 440 passing for the first time (which set it in server mode).",
   "mode": "WANIKANI",
   "start": {"generate": {"userLevel": 1, "levels": [1], "objects": ["radical"], "stage": 5, "rows": [
       {"id": 1, "stage": 4}, {"id": 6, "stage": 4, "passed": True}, {"id": 7, "stage": 4},
@@ -335,7 +335,7 @@ S["reminder-set-on-first-pass"] = {
     {"action": "review", "ids": [7]},
     {"action": "review", "ids": [440]}]}
 S["reminder-survives-levelup-and-restore"] = {
-  "description": "The kanji review that levels up to 2 also turns the sync reminder on (a failed one before does not); a round trip, a restore of the start file (level 1 again), a WaniKani import and a curriculum switch all leave it on: nothing in local mode clears it.",
+  "description": "Sync reminder in local mode around a level-up: the kanji review that levels up to 2, a round trip, a restore of the start file (level 1 again), a WaniKani import and a curriculum switch; it stays off throughout.",
   "mode": "WANIKANI",
   "start": {"generate": {"userLevel": 1, "levels": [1], "objects": ["radical"], "stage": 5,
             "rows": [{"id": k, "stage": 5} for k in k1[:16]] + [{"id": k1[16], "stage": 4}, {"id": k1[17], "stage": 4}]}},
@@ -347,7 +347,7 @@ S["reminder-survives-levelup-and-restore"] = {
     {"action": "importWaniKani", "api": api(1, [(s, "radical", 4, False, False) for s in r1[:3]])},
     {"action": "switchCurriculum", "mode": "JLPT"}]}
 S["reminder-fast-travel"] = {
-  "description": "Sync reminder around a 1-level fast travel in JLPT order: the jump itself, then the probation reviews answered right as they come due.",
+  "description": "Sync reminder in local mode around a 1-level fast travel in JLPT order: the jump itself, then the probation reviews answered right as they come due; it stays off throughout.",
   "mode": "JLPT", "start": None,
   "steps": [
     {"action": "fastTravel", "levels": 1},
@@ -377,7 +377,7 @@ mixed_api = api(2, level_entries(1, 5, True) + [(s, "radical", 2, False, False) 
                mat(200001, "vocabulary", None, "extra reading note", ["rising sun"]), mat(9541, "kanji", "unknown note", "unknown rn", ["x"])],
     levels=[lprog(1, True), lprog(2, False)])
 S["import-unknown-ids-only"] = {
-  "description": "WaniKani import whose assignments, review statistics and study materials all name subject ids the content lacks (9540, 9999, 50000, 150000; a statistic for 60000 and a note for 70000 without assignment), plus a level progression for level 61. SubjectSyncDao.tryInsertIdOnly's id-only INSERT violates NOT NULL (typeCode, level, ...); the exception is caught, but Room's nested transaction failed, so WaniKaniImporter.apply's whole transaction (reset included) rolls back silently while the summary reports success; the user level 3 stays (properties are written outside the transaction). Then lessons, reviews, a round trip, both curriculum switches and a restore naming unknown ids 9540 and 9600 (dropped).",
+  "description": "WaniKani import whose assignments, review statistics and study materials all name subject ids the content lacks (9540, 9999, 50000, 150000; a statistic for 60000 and a note for 70000 without assignment), plus a level progression for level 61. The unknown ids are skipped (the summary counts them), the reset of the old progress applies and the user level 3 is set. Then lessons, reviews, a round trip, both curriculum switches and a restore naming unknown ids 9540 and 9600 (dropped).",
   "mode": "WANIKANI", "start": None,
   "steps": [
     {"action": "importWaniKani", "api": api(3, [(9540, "kanji", 5, True, False), (9999, "vocabulary", 1, False, False),
@@ -396,7 +396,7 @@ S["import-unknown-ids-only"] = {
                      {"id": 1, "srsStage": 1, "unlockedAt": T0 - 50*H, "startedAt": T0 - 49*H, "availableAt": T0 - T0 % H}],
         "curriculum": "WANIKANI", "probation": [], "jumps": []}}]}
 S["import-unknown-mixed"] = {
-  "description": "WaniKani import mixing known subjects (level 1 at Guru, level 2 radicals), hidden ones (7668, 58, 2285 with assignments, statistics, notes), extras (100001, 200001) and unknown ids (9540, 150000; a note for 9541): hidden and extra subjects take the progress but are not lessons or reviews in WaniKani order, the unknown ids make the whole import roll back silently (see import-unknown-ids-only), so nothing but the user level 2 arrives; then reviews, a switch to JLPT order with reviews there, back, and a round trip.",
+  "description": "WaniKani import mixing known subjects (level 1 at Guru, level 2 radicals), hidden ones (7668, 58, 2285 with assignments, statistics, notes), extras (100001, 200001) and unknown ids (9540, 150000; a note for 9541): the unknown ids are skipped and everything else applies; hidden and extra subjects take the progress but are not lessons or reviews in WaniKani order. Then reviews, a switch to JLPT order with reviews there, back, and a round trip.",
   "mode": "WANIKANI", "start": None,
   "steps": [
     {"action": "importWaniKani", "api": mixed_api},
@@ -406,7 +406,7 @@ S["import-unknown-mixed"] = {
     {"action": "switchCurriculum", "mode": "WANIKANI"},
     {"action": "exportRestore"}]}
 S["import-unknown-in-jlpt-order"] = {
-  "description": "The mixed import of import-unknown-mixed (known, hidden, extra and unknown ids) while in JLPT order: the import rolls back silently, Curriculum.place then sees no progress; lessons, reviews and a round trip.",
+  "description": "The mixed import of import-unknown-mixed (known, hidden, extra and unknown ids) while in JLPT order: the unknown ids are skipped, the rest applies and Curriculum.place places the learner by it; lessons, reviews and a round trip.",
   "mode": "JLPT", "start": None,
   "steps": [
     {"action": "importWaniKani", "api": mixed_api},
@@ -430,7 +430,7 @@ S["import-hidden-and-extra-ids"] = {
     {"action": "switchCurriculum", "mode": "WANIKANI"},
     {"action": "exportRestore"}]}
 S["import-unknown-only-in-notes"] = {
-  "description": "Over existing progress (levels 1-2 at Guru, user level 3): a WaniKani import of level 1 at Apprentice whose only unknown id is one study material (9541): the whole import, including the reset of the old progress, rolls back silently (the summary reports success); the old progress stays and the level ends at 3 again.",
+  "description": "Over existing progress (levels 1-2 at Guru, user level 3): a WaniKani import of level 1 at Apprentice whose only unknown id is one study material (9541): the note is skipped and the import replaces the old progress (level 1 at Apprentice).",
   "mode": "WANIKANI", "start": {"generate": {"userLevel": 3, "levels": [1, 2], "stage": 5}},
   "steps": [
     {"action": "importWaniKani", "api": api(1, level_entries(1, 2, False), materials=[mat(r1[0], "radical", "kept?", None, []), mat(9541, "kanji", "unknown", None, [])])},
@@ -461,7 +461,7 @@ S["restore-unknown-ids-wk-order"] = {
     {"action": "switchCurriculum", "mode": "JLPT"},
     {"action": "lesson", "where": {"limit": 3}}]}
 S["restore-unknown-ids-jlpt-order"] = {
-  "description": "The same file as restore-unknown-ids-wk-order but saved in JLPT order, with probation on an unknown id (9540) and an extra (100001) and a jump: the extras are reviews in JLPT order, the unknown probation row is kept; fast travel status before and after the cooldown, a probation grind, then back to WaniKani order.",
+  "description": "The same file as restore-unknown-ids-wk-order but saved in JLPT order, with probation on an unknown id (9540) and an extra (100001) and a jump: the extras are reviews in JLPT order, the probation row of the unknown id is dropped; fast travel status before and after the cooldown, a probation grind, then back to WaniKani order.",
   "mode": "WANIKANI", "start": None,
   "steps": [
     {"action": "restore", "inline": mixed_file("JLPT", probation=[[9540, T0 - 10*H], [100001, T0 - 10*H]], jumps=[[T0 - 10*H, 1, 2]])},
@@ -471,7 +471,7 @@ S["restore-unknown-ids-jlpt-order"] = {
     {"action": "switchCurriculum", "mode": "WANIKANI"}]}
 all_unknown = [prow(9540, 5, 10), prow(9541, 1, -1), prow(50000, 3, -1, meaningNote="n"), prow(150000, 9, 0, burnedAt=T0 - 10*H), prow(300000, 0, 0)]
 S["restore-all-unknown"] = {
-  "description": "Restore of files whose subjects are all unknown ids: WaniKani order at user level 4 (level progression for 4), then JLPT order with probation on unknown ids only; the app stays usable (level, counts, lessons) and fast travel stays blocked by the unknown probation rows.",
+  "description": "Restore of files whose subjects are all unknown ids: WaniKani order at user level 4 (level progression for 4), then JLPT order with probation on unknown ids only; the app stays usable (level, counts, lessons) and fast travel is not blocked, since probation rows for unknown ids are dropped.",
   "mode": "WANIKANI", "start": None,
   "steps": [
     {"action": "restore", "inline": {"format": "kanjikodama-progress", "version": 1, "exportedAt": T0, "userLevel": 4,

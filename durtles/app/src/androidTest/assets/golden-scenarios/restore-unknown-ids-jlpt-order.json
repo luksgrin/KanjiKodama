@@ -1,5 +1,5 @@
 {
- "description": "The same file as restore-unknown-ids-wk-order but saved in JLPT order, with probation on an unknown id (9540) and an extra (100001) and a jump: the extras are reviews in JLPT order, the unknown probation row is kept; fast travel status before and after the cooldown, a probation grind, then back to WaniKani order.",
+ "description": "The same file as restore-unknown-ids-wk-order but saved in JLPT order, with probation on an unknown id (9540) and an extra (100001) and a jump: the extras are reviews in JLPT order, the probation row of the unknown id is dropped; fast travel status before and after the cooldown, a probation grind, then back to WaniKani order.",
  "mode": "WANIKANI",
  "start": null,
  "steps": [

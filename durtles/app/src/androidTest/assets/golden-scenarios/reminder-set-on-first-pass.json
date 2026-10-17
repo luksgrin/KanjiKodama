@@ -1,5 +1,5 @@
 {
- "description": "Sync reminder (property sync_reminder): off at the start; a vocabulary passing (no amalgamations), a radical passing again (already passed), a wrong answer and lessons leave it off; radical 7 passing for the first time turns it on; kanji 440 passing keeps it on.",
+ "description": "Sync reminder (property sync_reminder) in local mode: it stays off throughout, since local mode unlocks on the spot and never sets or shows it; a vocabulary passing, a radical passing again, a wrong answer, lessons, radical 7 and kanji 440 passing for the first time (which set it in server mode).",
  "mode": "WANIKANI",
  "start": {
   "generate": {

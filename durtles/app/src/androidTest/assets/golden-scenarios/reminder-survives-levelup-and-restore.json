@@ -1,5 +1,5 @@
 {
- "description": "The kanji review that levels up to 2 also turns the sync reminder on (a failed one before does not); a round trip, a restore of the start file (level 1 again), a WaniKani import and a curriculum switch all leave it on: nothing in local mode clears it.",
+ "description": "Sync reminder in local mode around a level-up: the kanji review that levels up to 2, a round trip, a restore of the start file (level 1 again), a WaniKani import and a curriculum switch; it stays off throughout.",
  "mode": "WANIKANI",
  "start": {
   "generate": {

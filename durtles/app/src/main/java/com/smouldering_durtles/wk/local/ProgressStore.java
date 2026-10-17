@@ -191,7 +191,9 @@ public final class ProgressStore {
             if (probation != null) {
                 for (int i = 0; i < probation.length(); i++) {
                     final JSONArray p = probation.getJSONArray(i);
-                    sql.execSQL("INSERT OR REPLACE INTO mm_probation (id, since) VALUES (?, ?)", new Object[] {p.getLong(0), p.getLong(1)});
+                    // KanjiKodama: only for subjects this content has; others could never be answered and would block fast travel.
+                    sql.execSQL("INSERT OR REPLACE INTO mm_probation (id, since) SELECT id, ? FROM subject WHERE id = ?",
+                            new Object[] {p.getLong(1), p.getLong(0)});
                 }
             }
             final JSONArray jumps = root.optJSONArray("jumps");

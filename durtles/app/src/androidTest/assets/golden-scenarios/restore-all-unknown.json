@@ -1,5 +1,5 @@
 {
- "description": "Restore of files whose subjects are all unknown ids: WaniKani order at user level 4 (level progression for 4), then JLPT order with probation on unknown ids only; the app stays usable (level, counts, lessons) and fast travel stays blocked by the unknown probation rows.",
+ "description": "Restore of files whose subjects are all unknown ids: WaniKani order at user level 4 (level progression for 4), then JLPT order with probation on unknown ids only; the app stays usable (level, counts, lessons) and fast travel is not blocked, since probation rows for unknown ids are dropped.",
  "mode": "WANIKANI",
  "start": null,
  "steps": [

@@ -198,7 +198,11 @@ public final class KanaGolden {
         int i = 0;
         int length = 0;
         while (i < typed.length()) {
-            final int chunk = n % 5 == 4 ? Math.min(typed.length() - i, 1 + random.nextInt(4)) : 1;
+            int chunk = n % 5 == 4 ? Math.min(typed.length() - i, 1 + random.nextInt(4)) : 1;
+            // A key types a whole character: never split a surrogate pair (emoji), or the fixture stores "?".
+            if (i + chunk < typed.length() && Character.isLowSurrogate(typed.charAt(i + chunk))) {
+                chunk++;
+            }
             edits.add(obj("insert", typed.substring(i, i + chunk), "at", -1));
             i += chunk;
             length += chunk;
@@ -218,7 +222,8 @@ public final class KanaGolden {
         return attempt(() -> {
             if (edit.containsKey("backspace")) {
                 if (s.length() > 0) {
-                    s.delete(s.length() - 1, s.length());
+                    final int end = s.length();
+                    s.delete(end >= 2 && Character.isLowSurrogate(s.charAt(end - 1)) ? end - 2 : end - 1, end);
                     PseudoIme.fixup(s, s.length(), s.length());
                 }
                 return s.toString();

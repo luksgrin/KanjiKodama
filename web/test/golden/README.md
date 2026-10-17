@@ -45,13 +45,16 @@ Scenario files (`scenarios/<name>.json`, Tier B) use the same document format wi
 `{mode, seed, clockStartMs, startFile}` (`startFile` is the literal progress file that was
 restored), then one case per step `NN-<action>` with `input: {action, args, atMs, resolved}` and
 `output: {clockMs, result, level, curriculum: {mode, maxLevel, levelDescription},
-counts: {lessons, reviews, reviewsNext24h}, fastTravel: {level, blocked, options}, levelTest, export}`.
+counts: {lessons, reviews, reviewsNext24h}, fastTravel: {level, blocked, options}, levelTest,
+reminders: {syncReminder}, export}`. When an action throws from app code, `result` is
+`{"error": <class>, "message"}` and the snapshot is still taken.
 `resolved` holds the concrete ids each step used (lessons, reviews `[id, meaningIncorrect,
 readingIncorrect]`, grind rounds, level-test picks and answers, imported or restored files), so a
 consumer can replay a scenario without the generator or Java's RNG. The subjects in `export` are in
 SQLite rowid order: compare them ignoring order. The scenario DSL is documented in the
 `ScenarioRunner` javadoc; the scenario definitions are in
-`durtles/app/src/androidTest/assets/golden-scenarios/`.
+`durtles/app/src/androidTest/assets/golden-scenarios/`, written by `durtles/golden/make_scenarios.py`
+(edit the script, not the JSON; it rewrites every definition).
 
 `manifest.json` lists every fixture with its area, case count, size and sha256, plus the durtles
 commit (`durtlesCommit`, and `durtlesDirty` if `durtles/` had uncommitted changes), the generator
@@ -74,11 +77,18 @@ version, the generation time and the sha256 of the content DB.
 | `answers/check-subjects.jsonl` | every subject row as `checkAnswer` sees it, plus `getPossibleQuestionTypes(false/true)` | A, needs content DB |
 | `answers/check-synthetic.json` | `QuestionType.checkAnswer` on inline synthetic subjects × all 8 question types | A |
 | `answers/check-<type>[-N].jsonl` | `QuestionType.checkAnswer` per question type on every subject | A, needs content DB |
+| `answers/check-ties.jsonl`, `answers/check-ties-cases.json` | the tied candidates behind `matchedAnswer` for meaning cases (`AnswerTies`) | A |
+| `answers/submit-precheck.json`, `answers/submit-precheck-content-N.jsonl` | `Session.submitHelper` → `SubmitPrecheck.check` (empty, trailing n → ん, kana-only, expected-kana regex), then trim and `checkAnswer` | A, content part needs content DB |
+| `answers/synonyms.json` | user meaning synonyms: column parsing, checks per action, save-job and API parsing | A, needs content DB |
+| `answers/synonyms-storage.json` | synonyms and notes through Room: save, import, restore, export, check | B |
+| `answers/unicode-android.json`, `answers/unicode-android-table.json` | `FuzzyMatching.cleanString`/`matches` and `Character.getType`/lower-casing on the device (Android 16, ICU 76.1, Unicode 16.0) | B |
+| `answers/unicode-android-overrides.json` | device outputs of `fuzzy*`/`check-*` cases that differ from the JVM fixtures (currently none) | B |
 | `kana/table.json`, `kana/edge.json`, `kana/convert.json` | `PseudoIme.simulateInput`, `toKatakana`, `KanaUtil` | A |
 | `kana/readings.jsonl` | every distinct reading, romanized, through `PseudoIme` | A, needs content DB |
-| `kana/fixup-sequences.json` | `PseudoIme.fixup`, keystroke by keystroke | A |
+| `kana/fixup-sequences.json` | `PseudoIme.fixup`, keystroke by keystroke, on `DummyEditable` | A |
+| `kana/fixup-edittext.json` | `PseudoIme.fixup` from the answer field's TextWatcher on a real EditText | B |
 | `server/normalize.json` | `ServerMode.normalize`, `label` | A |
-| `scenarios/*.json` | progression, curriculum switch, fast travel, level test rounds, import, restore | B |
+| `scenarios/*.json` | progression, curriculum switch, fast travel (also near the last level), level test rounds, import, restore, unknown and hidden subjects, hidden components, per-answer time, sync reminder | B |
 
 Sharded files are always numbered (`-1`, `-2`, …) and hold at most 25,000 cases; a TS test reads
 all shards of a group.
@@ -94,21 +104,57 @@ Notes per area:
   `Session.submit` rejects empty answers).
 - `answers/fuzzy*`: one case per answer, output keyed by every `CloseEnoughAction` name;
   `accepted`/`rejected` are ordered lists (the order decides `matchedAnswer` on ties).
-  `FuzzyMatching.cleanString` uses `Character.getType`, so results follow the Unicode tables of the
-  generating JDK (21), not Android's.
+  `FuzzyMatching.cleanString` uses `Character.getType`. These fixtures come from JDK 21 (Unicode
+  15.0), but every case was re-run on the device with identical results
+  (`answers/unicode-android-overrides.json` is empty). JDK and Android differ only on characters
+  that occur in no case here; for those the port follows `answers/unicode-android*.json` (see below).
 - `answers/check-*`: input `{subject, questionType, answer, matchingKanji, meaningSynonyms}`, where
   `subject` is an id (look it up in `check-subjects.jsonl`) or an inline object (synthetic), and
   `matchingKanji` is `null`, an id or an object. Meaning types are keyed by `CloseEnoughAction`
   (with `requireOnInKatakana=false`; meaning types ignore it); reading types are keyed
   `"requireOnInKatakana=false"` / `"requireOnInKatakana=true"` (with `SILENTLY_ACCEPT`; reading
-  types ignore the action). The answer is exactly what `checkAnswer` receives: what
-  `Session.submit` does before (trailing n → ん, kana-only check, expected-kana regex, trim) is not
-  covered, because `Session` is Android-bound. Case names carry a kind label (`correct`, `typo1`,
-  `rejected`, `reading-romaji`, `accepted-onyomi-katakana`, `…-digraph`, `kanji-<type>`,
-  `synonym`, …). Synonyms are synthetic (the content DB has none).
+  types ignore the action). The answer is exactly what `checkAnswer` receives; what
+  `Session.submit` does before is in `answers/submit-precheck*`. Case names carry a kind label
+  (`correct`, `typo1`, `rejected`, `reading-romaji`, `accepted-onyomi-katakana`, `…-digraph`,
+  `kanji-<type>`, `synonym`, …). Synonyms here are synthetic (the content DB has none); see
+  `answers/synonyms*` for user synonyms.
+- `answers/check-ties*`: meaning types collect accepted answers in a Java `HashSet`, so when several
+  reach the same fuzzy score, `matchedAnswer` follows hash order. `check-ties.jsonl` lists every
+  `check-<meaning type>` case with a tie under the same case name: output `{score, ties,
+  subjectOrderFirst, javaPick}`, `ties` in subject order (meanings, whitelisted auxiliary meanings,
+  synonyms, exact duplicates removed). For those cases assert `matchedAnswer ∈ ties` (the port may
+  use `subjectOrderFirst`) and every other verdict field exactly; elsewhere assert `matchedAnswer`
+  exactly. Ties only change the close-enough toast text and which meanings the alternatives toast
+  lists, never ok/retry/nearMatch or SRS.
+- `answers/submit-precheck*`: input `{subject, questionType, answer, matchingKanji}` with `answer`
+  the raw field text; output `{answer, trailingNFixed, rejectedBy, checkedAnswer, verdicts}`.
+  `rejectedBy` is `empty`, `non-kana`, `missing-kana`, `blank` or `null`. Only a lower-case final
+  `n` is fixed, and only for kana types; whitespace makes a kana answer non-kana; the subject's
+  characters go into the regex unescaped (`.` matches anything); ・, ー and ゠ count as kana. The
+  content files record only the app defaults (`SILENTLY_ACCEPT`, `requireOnInKatakana=false`) and
+  leave out kanji on'yomi/kun'yomi. Not covered: the alternatives-toast list built after the
+  verdict.
+- `answers/synonyms*`: the `meaningSynonyms` column is Jackson JSON array text (no separator; an
+  empty list is stored as `[]`). `Subject.getMeaningSynonyms` drops null and blank entries and
+  `SaveStudyMaterialJob` drops whitespace-only ones (fixed 2026-10-17, see below). Jackson is
+  lenient where `JSON.parse` is not: trailing text after the array is ignored and scalars become
+  strings; a BOM or trailing comma gives an empty list. Restoring a non-text value stores it as
+  text. Clearing via the UI stores `[]` and `""`, and the subject is still exported.
+- `answers/unicode-android*`: made on the device. The port takes general categories for
+  `cleanString` from `unicode-android-table.json` (Unicode 16), uses the device's lower-casing for
+  the 27 newer case pairs, and copies Android's final sigma: Σ is final from the UTF-16 units right
+  next to it, unless the string has a supplementary character or U+0130 (`context-*` cases; the
+  rule is inferred from results).
 - `kana/fixup-sequences.json`: edits are `{insert, at}` (`at` −1 = end) or `{backspace}`; after
-  each edit `fixup(s, at, at + len)` runs once on PseudoIme's own `DummyEditable`. The EditText
-  re-entrancy (the TextWatcher firing again for fixup's own replacements) is not modelled.
+  each edit `fixup(s, at, at + len)` runs once on PseudoIme's own `DummyEditable`. A key inserts a
+  whole character (emoji are not split).
+- `kana/fixup-edittext.json`: the same 200 sequences plus targeted and random edits on a real
+  EditText with a copy of `UnansweredSessionFragment`'s TextWatcher (keep it in sync). The watcher
+  fires again for every replacement `fixup` makes, so each `replace(st, en, text)` inside `fixup`
+  runs a nested `fixup(s, st, st + text.length)` before the outer loop continues with its old
+  indices. The visible effect: an unconverted `n` right before replaced text becomes `ん`
+  (`n`, `n` at 0, `k` → `んんk`), which only happens after edits in the middle. The port must model
+  the nested call. Each step records `value`, `selStart`, `selEnd`, `fixupCalls`, `maxDepth`.
 - `kana/readings.jsonl`: the romaji come from a test-side romanizer
   (`AnswerGoldenSupport.romanize`), katakana as upper-case romaji. 25 readings do not round-trip
   (upper-case N and doubled upper-case consonants are not handled by `fixup`); that is frozen Java
@@ -142,6 +188,52 @@ Notes per area:
   `durtles/app/src/androidTest/assets/golden-inputs/progress-describe.json` (generated by
   `node scripts/golden-describe-inputs.mjs <that path>`).
 
+## Scenario notes
+
+- **Sync reminder** (`reminders.syncReminder`, the `sync_reminder` property): since 2026-10-17 it
+  is never set or shown in local mode, which unlocks on the spot; in server mode a review that makes
+  a radical or kanji pass for the first time sets it and the assignment sync clears it. The base
+  reset turns it off before each scenario.
+- **Unknown subject ids** (`import-unknown-*`, `import-hidden-and-extra-ids`,
+  `restore-unknown-ids-*`, `restore-all-unknown`; unknown ids 9540, 9541, 9999, 50000, 60000,
+  70000, 150000, 300000; hidden 58, 7668, 2285; extras 100001, 200001): the WaniKani import skips
+  progress for unknown subjects and reports how many items it skipped; restores drop unknown ids,
+  including their probation rows. Hidden and extra subjects take progress normally but are lessons
+  and reviews only where their curriculum level allows (extras in JLPT order). Restored level
+  progression rows are kept next to generated ones, so duplicate levels are possible.
+- **Fast travel near the end** (`ft-near-end-*`, `ft-n1-obscure-boundary`): options run from
+  level + 1 to `min(maxLevel, level + 5)`; with the current content maxLevel is 58, N1 ends at 54
+  and the last N1 level holds only extra content. `FastTravel.travel` does not check its target;
+  the app only passes targets `status()` offered, and the fixtures never call it otherwise.
+- **Hidden components** (`wk-hidden-*`, `jlpt-hidden-*`): `hideSubject`/`unhideSubject`
+  `{ids | where, update}` change `subject.hiddenAt` inside the test (the base reset restores the
+  content's values); the port replays them on its own subject table. A hidden radical or kanji
+  counts as passed for its users' unlocks; hidden kanji leave both the total and the passed count of
+  the 90 % level-up; hidden subjects drop out of lessons and reviews but keep their progress;
+  unhiding revokes neither unlocks nor levels.
+- **Per-answer time** (`time-*`): `lesson`/`review` with `spacingSeconds`, `offsetsSeconds` or
+  `delayedReport` stamp each answer separately (`resolved.answers`: `{id, answeredAtMs,
+  reportedAtMs}`). `availableAt` is `topOfHour(answeredAt + interval + 30 s)`. With
+  `delayedReport` (the "delay result upload" setting) each job uses its answer time for the
+  subject's own columns, while unlocks and `level_progression` use the report time. Two probation
+  scenarios hard-code `maxRounds` for today's content (178 items on probation in a one-level jump).
+- **Other behavior the port keeps:** a review increments `readingCorrect` and the reading streak
+  even for radicals; switching order keeps already unlocked items; `ProgressStore.describe`
+  throws a `NullPointerException` when `subjects` is missing.
+
+## Java bugs fixed before freezing (2026-10-17)
+
+Found while generating these fixtures, fixed in `durtles/` first, then regenerated:
+
+1. **WaniKani import thrown away by one unknown subject id.** The DAO tried to insert an id-only row,
+   which broke a NOT NULL constraint inside a nested Room transaction and silently rolled back the
+   whole import. `WaniKaniImporter.apply` now skips unknown ids and reports them.
+2. **Probation that can never be answered blocked fast travel forever.** Restores now drop probation
+   rows for unknown subjects, and `FastTravel` counts only visible subjects.
+3. **The sync reminder never cleared in local mode.** Local mode now neither sets nor shows it.
+4. **A blank synonym accepted every short answer, and a null one crashed the check.** Null and blank
+   synonyms are ignored when read, and blank ones are no longer saved.
+
 ## Regenerating
 
 Only regenerate when the Java behavior changes on purpose (a bug fix in `durtles/` first, then
@@ -165,7 +257,21 @@ write nothing. `GOLDEN_CONTENT_DB` overrides the content DB path.
 
 Tier B, instrumented tests on an emulator or device (harness in
 `durtles/app/src/androidTest/java/com/smouldering_durtles/wk/test/golden/`: `ScenarioGoldenTest`,
-`ScenarioRunner`, `GoldenWriter`). The debug APK needs `wk-content.db` in the assets.
+`ScenarioRunner`, `FixupEditTextGoldenTest`, `SynonymStorageGoldenTest`, `UnicodeGoldenTest`,
+`GoldenWriter`). The debug APK needs `wk-content.db` in the assets. The easiest way is the two
+scripts in `durtles/golden/` (back up first, see below):
+
+```sh
+G=com.smouldering_durtles.wk.test.golden
+durtles/golden/run.sh /tmp/golden "$G.ScenarioGoldenTest,$G.FixupEditTextGoldenTest,$G.SynonymStorageGoldenTest"
+durtles/golden/unicode.sh /tmp/golden-unicode     # pushes the JVM answer fixtures, re-runs them on the device
+rsync -a /tmp/golden/golden/ /tmp/golden-unicode/golden/ web/test/golden/
+```
+
+`run.sh <out> [classes] [scenario,names]` builds, installs with `adb install -r` (never uninstalls)
+and runs; the third argument limits `ScenarioGoldenTest#scenarios` to some scenarios.
+`FixupEditTextGoldenTest` reads a copy of `kana/fixup-sequences.json` from
+`durtles/app/src/androidTest/assets/golden-inputs/`; refresh it after regenerating Tier A.
 
 **The run resets the debug app's progress.** Back it up first, and keep
 `leaveApksInstalledAfterRun=true`: without it Gradle uninstalls the debug app afterwards, which

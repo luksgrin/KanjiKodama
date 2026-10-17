@@ -55,6 +55,12 @@ public final class SaveStudyMaterialJob extends Job {
         meaningNote = values.remove(0);
         readingNote = values.remove(0);
         removeEmpty(values);
+        // KanjiKodama: whitespace-only synonyms are empty too.
+        for (int i = values.size() - 1; i >= 0; i--) {
+            if (values.get(i).trim().isEmpty()) {
+                values.remove(i);
+            }
+        }
     }
 
     @Override

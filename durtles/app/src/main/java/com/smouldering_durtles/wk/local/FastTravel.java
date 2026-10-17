@@ -112,7 +112,8 @@ public final class FastTravel {
     }
 
     static int pendingProbation(final SupportSQLiteDatabase sql) {
-        try (final Cursor c = sql.query("SELECT COUNT(*) FROM mm_probation")) {
+        // KanjiKodama: count only items that can still come up as reviews; a hidden or missing subject never does.
+        try (final Cursor c = sql.query("SELECT COUNT(*) FROM mm_probation p JOIN subject s ON s.id = p.id WHERE s.hiddenAt = 0")) {
             return c.moveToFirst() ? c.getInt(0) : 0;
         }
     }

@@ -1,5 +1,5 @@
 {
- "description": "Over existing progress (levels 1-2 at Guru, user level 3): a WaniKani import of level 1 at Apprentice whose only unknown id is one study material (9541): the whole import, including the reset of the old progress, rolls back silently (the summary reports success); the old progress stays and the level ends at 3 again.",
+ "description": "Over existing progress (levels 1-2 at Guru, user level 3): a WaniKani import of level 1 at Apprentice whose only unknown id is one study material (9541): the note is skipped and the import replaces the old progress (level 1 at Apprentice).",
  "mode": "WANIKANI",
  "start": {
   "generate": {

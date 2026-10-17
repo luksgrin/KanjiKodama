@@ -1,5 +1,5 @@
 {
- "description": "The mixed import of import-unknown-mixed (known, hidden, extra and unknown ids) while in JLPT order: the import rolls back silently, Curriculum.place then sees no progress; lessons, reviews and a round trip.",
+ "description": "The mixed import of import-unknown-mixed (known, hidden, extra and unknown ids) while in JLPT order: the unknown ids are skipped, the rest applies and Curriculum.place places the learner by it; lessons, reviews and a round trip.",
  "mode": "JLPT",
  "start": null,
  "steps": [

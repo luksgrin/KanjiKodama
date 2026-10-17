@@ -148,7 +148,10 @@ public final class ReportSessionItemJob extends Job {
             passedAt = ts;
             if (subject.hasAmalgamations()) {
                 justPassed = true;
-                db.propertiesDao().setSyncReminder(true);
+                // KanjiKodama: local mode unlocks on the spot, so there is nothing to sync.
+                if (!LocalMode.isEnabled()) {
+                    db.propertiesDao().setSyncReminder(true);
+                }
             }
         }
 

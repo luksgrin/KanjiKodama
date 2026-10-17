@@ -1400,8 +1400,16 @@ public final class Subject implements PronunciationAudioOwner {
             }
             else {
                 try {
-                    entity.parsedMeaningSynonyms = Converters.getObjectMapper().readValue(
-                            entity.meaningSynonyms, new TypeReference<List<String>>() {});
+                    // KanjiKodama: drop null and blank synonyms; a blank one made every short answer a near match,
+                    // and a null one crashed the answer check.
+                    final List<String> parsed = new ArrayList<>();
+                    for (final @Nullable String s: Converters.getObjectMapper().<List<String>>readValue(
+                            entity.meaningSynonyms, new TypeReference<List<String>>() {})) {
+                        if (s != null && !s.trim().isEmpty()) {
+                            parsed.add(s);
+                        }
+                    }
+                    entity.parsedMeaningSynonyms = parsed;
                 } catch (final IOException e) {
                     entity.parsedMeaningSynonyms = Collections.emptyList();
                 }

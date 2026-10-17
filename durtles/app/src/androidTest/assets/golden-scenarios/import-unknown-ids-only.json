@@ -1,5 +1,5 @@
 {
- "description": "WaniKani import whose assignments, review statistics and study materials all name subject ids the content lacks (9540, 9999, 50000, 150000; a statistic for 60000 and a note for 70000 without assignment), plus a level progression for level 61. SubjectSyncDao.tryInsertIdOnly's id-only INSERT violates NOT NULL (typeCode, level, ...); the exception is caught, but Room's nested transaction failed, so WaniKaniImporter.apply's whole transaction (reset included) rolls back silently while the summary reports success; the user level 3 stays (properties are written outside the transaction). Then lessons, reviews, a round trip, both curriculum switches and a restore naming unknown ids 9540 and 9600 (dropped).",
+ "description": "WaniKani import whose assignments, review statistics and study materials all name subject ids the content lacks (9540, 9999, 50000, 150000; a statistic for 60000 and a note for 70000 without assignment), plus a level progression for level 61. The unknown ids are skipped (the summary counts them), the reset of the old progress applies and the user level 3 is set. Then lessons, reviews, a round trip, both curriculum switches and a restore naming unknown ids 9540 and 9600 (dropped).",
  "mode": "WANIKANI",
  "start": null,
  "steps": [

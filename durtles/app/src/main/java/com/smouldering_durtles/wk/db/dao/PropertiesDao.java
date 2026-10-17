@@ -647,7 +647,8 @@ public abstract class PropertiesDao {
      * @return true if it has
      */
     public final boolean getSyncReminder() {
-        return getBooleanProperty("sync_reminder");
+        // KanjiKodama: never in local mode, which also hides a reminder older builds left behind.
+        return !LocalMode.isEnabled() && getBooleanProperty("sync_reminder");
     }
 
     /**
