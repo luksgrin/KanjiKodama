@@ -1,0 +1,915 @@
+{
+ "description": "WaniKani import (WaniKani order, user level 1) where some assignments carry WaniKani's hidden: true: a passed kanji (440), the two unpassed level 1 kanji at Apprentice IV (455, 456), a due vocabulary (2467), a level 2 radical lesson (45) and the content-hidden vocabulary 7668; statistics of 440 and 2467 also hidden: true. The flag is not read: flagged subjects take their progress, stay lessons and reviews, and count for the level-up like any other (16 of 18 kanji passed: no level-up; passing the flagged 455 makes it 17: level 2). Content-hidden 7668 and 58 stay out of the queues either way.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "importWaniKani",
+   "api": {
+    "user": {
+     "level": 1,
+     "username": "golden-user",
+     "max_level_granted_by_subscription": 60
+    },
+    "assignments": [
+     {
+      "id": 5000000,
+      "object": "assignment",
+      "data": {
+       "subject_id": 1,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000001,
+      "object": "assignment",
+      "data": {
+       "subject_id": 6,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000002,
+      "object": "assignment",
+      "data": {
+       "subject_id": 2,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000003,
+      "object": "assignment",
+      "data": {
+       "subject_id": 3,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000004,
+      "object": "assignment",
+      "data": {
+       "subject_id": 5,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000005,
+      "object": "assignment",
+      "data": {
+       "subject_id": 7,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000006,
+      "object": "assignment",
+      "data": {
+       "subject_id": 8,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000007,
+      "object": "assignment",
+      "data": {
+       "subject_id": 18,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000008,
+      "object": "assignment",
+      "data": {
+       "subject_id": 9,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000009,
+      "object": "assignment",
+      "data": {
+       "subject_id": 12,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000010,
+      "object": "assignment",
+      "data": {
+       "subject_id": 13,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000011,
+      "object": "assignment",
+      "data": {
+       "subject_id": 14,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000012,
+      "object": "assignment",
+      "data": {
+       "subject_id": 16,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000013,
+      "object": "assignment",
+      "data": {
+       "subject_id": 19,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000014,
+      "object": "assignment",
+      "data": {
+       "subject_id": 4,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000015,
+      "object": "assignment",
+      "data": {
+       "subject_id": 15,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000016,
+      "object": "assignment",
+      "data": {
+       "subject_id": 20,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000017,
+      "object": "assignment",
+      "data": {
+       "subject_id": 21,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000018,
+      "object": "assignment",
+      "data": {
+       "subject_id": 23,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000019,
+      "object": "assignment",
+      "data": {
+       "subject_id": 25,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000020,
+      "object": "assignment",
+      "data": {
+       "subject_id": 11,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000021,
+      "object": "assignment",
+      "data": {
+       "subject_id": 8762,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000022,
+      "object": "assignment",
+      "data": {
+       "subject_id": 22,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000023,
+      "object": "assignment",
+      "data": {
+       "subject_id": 10,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000024,
+      "object": "assignment",
+      "data": {
+       "subject_id": 8761,
+       "subject_type": "radical",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000025,
+      "object": "assignment",
+      "data": {
+       "subject_id": 440,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": true
+      }
+     },
+     {
+      "id": 5000026,
+      "object": "assignment",
+      "data": {
+       "subject_id": 441,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000027,
+      "object": "assignment",
+      "data": {
+       "subject_id": 442,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000028,
+      "object": "assignment",
+      "data": {
+       "subject_id": 443,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000029,
+      "object": "assignment",
+      "data": {
+       "subject_id": 444,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000030,
+      "object": "assignment",
+      "data": {
+       "subject_id": 445,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000031,
+      "object": "assignment",
+      "data": {
+       "subject_id": 446,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000032,
+      "object": "assignment",
+      "data": {
+       "subject_id": 447,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000033,
+      "object": "assignment",
+      "data": {
+       "subject_id": 448,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000034,
+      "object": "assignment",
+      "data": {
+       "subject_id": 449,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000035,
+      "object": "assignment",
+      "data": {
+       "subject_id": 450,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000036,
+      "object": "assignment",
+      "data": {
+       "subject_id": 451,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000037,
+      "object": "assignment",
+      "data": {
+       "subject_id": 457,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000038,
+      "object": "assignment",
+      "data": {
+       "subject_id": 452,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000039,
+      "object": "assignment",
+      "data": {
+       "subject_id": 453,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000040,
+      "object": "assignment",
+      "data": {
+       "subject_id": 454,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000041,
+      "object": "assignment",
+      "data": {
+       "subject_id": 455,
+       "subject_type": "kanji",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": true
+      }
+     },
+     {
+      "id": 5000042,
+      "object": "assignment",
+      "data": {
+       "subject_id": 456,
+       "subject_type": "kanji",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": true
+      }
+     },
+     {
+      "id": 5000043,
+      "object": "assignment",
+      "data": {
+       "subject_id": 2467,
+       "subject_type": "vocabulary",
+       "srs_stage": 1,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-04T20:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": true
+      }
+     },
+     {
+      "id": 5000044,
+      "object": "assignment",
+      "data": {
+       "subject_id": 2468,
+       "subject_type": "vocabulary",
+       "srs_stage": 1,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-04T20:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000045,
+      "object": "assignment",
+      "data": {
+       "subject_id": 2469,
+       "subject_type": "vocabulary",
+       "srs_stage": 1,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-04T20:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000046,
+      "object": "assignment",
+      "data": {
+       "subject_id": 45,
+       "subject_type": "radical",
+       "srs_stage": 0,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": null,
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": null,
+       "resurrected_at": null,
+       "hidden": true
+      }
+     },
+     {
+      "id": 5000047,
+      "object": "assignment",
+      "data": {
+       "subject_id": 17,
+       "subject_type": "radical",
+       "srs_stage": 0,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": null,
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": null,
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000048,
+      "object": "assignment",
+      "data": {
+       "subject_id": 24,
+       "subject_type": "radical",
+       "srs_stage": 0,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": null,
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": null,
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000049,
+      "object": "assignment",
+      "data": {
+       "subject_id": 7668,
+       "subject_type": "vocabulary",
+       "srs_stage": 1,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-04T20:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": true
+      }
+     },
+     {
+      "id": 5000050,
+      "object": "assignment",
+      "data": {
+       "subject_id": 58,
+       "subject_type": "radical",
+       "srs_stage": 3,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T10:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     }
+    ],
+    "review_statistics": [
+     {
+      "id": 6000000,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 440,
+       "subject_type": "kanji",
+       "meaning_correct": 8,
+       "meaning_incorrect": 1,
+       "meaning_max_streak": 8,
+       "meaning_current_streak": 1,
+       "reading_correct": 8,
+       "reading_incorrect": 0,
+       "reading_max_streak": 8,
+       "reading_current_streak": 1,
+       "percentage_correct": 94,
+       "hidden": true
+      }
+     },
+     {
+      "id": 6000001,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 2467,
+       "subject_type": "vocabulary",
+       "meaning_correct": 1,
+       "meaning_incorrect": 0,
+       "meaning_max_streak": 1,
+       "meaning_current_streak": 1,
+       "reading_correct": 1,
+       "reading_incorrect": 0,
+       "reading_max_streak": 1,
+       "reading_current_streak": 1,
+       "percentage_correct": 100,
+       "hidden": true
+      }
+     },
+     {
+      "id": 6000002,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 7668,
+       "subject_type": "vocabulary",
+       "meaning_correct": 2,
+       "meaning_incorrect": 1,
+       "meaning_max_streak": 2,
+       "meaning_current_streak": 1,
+       "reading_correct": 2,
+       "reading_incorrect": 0,
+       "reading_max_streak": 2,
+       "reading_current_streak": 1,
+       "percentage_correct": 80,
+       "hidden": false
+      }
+     }
+    ],
+    "study_materials": [],
+    "level_progressions": []
+   }
+  },
+  {
+   "action": "review",
+   "where": {}
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 5
+   }
+  },
+  {
+   "action": "review",
+   "advanceHours": 9,
+   "where": {
+    "ids": [
+     455
+    ]
+   }
+  },
+  {
+   "action": "exportRestore"
+  }
+ ]
+}

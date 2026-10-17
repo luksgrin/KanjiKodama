@@ -1,0 +1,38 @@
+{
+ "description": "Fresh start: a lesson session (5 level 1 radicals, the default size) goes from presentation to the quiz; 3 answers (the first wrong, which only re-queues it; each finished radical is reported as a lesson at once), then Abandon: the other radicals, the wrongly answered one included, stay lessons. A second lesson session wrapped up during the presentation just ends (nothing reported).",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "where": {}
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 120
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 3,
+   "spacingSeconds": 6,
+   "rules": {
+    "meaning": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionAbandon"
+  },
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "where": {},
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionWrapUp"
+  }
+ ]
+}

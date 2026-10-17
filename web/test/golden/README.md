@@ -79,16 +79,22 @@ version, the generation time and the sha256 of the content DB.
 | `answers/check-<type>[-N].jsonl` | `QuestionType.checkAnswer` per question type on every subject | A, needs content DB |
 | `answers/check-ties.jsonl`, `answers/check-ties-cases.json` | the tied candidates behind `matchedAnswer` for meaning cases (`AnswerTies`) | A |
 | `answers/submit-precheck.json`, `answers/submit-precheck-content-N.jsonl` | `Session.submitHelper` → `SubmitPrecheck.check` (empty, trailing n → ん, kana-only, expected-kana regex), then trim and `checkAnswer` | A, content part needs content DB |
+| `answers/submit-alternatives.json`, `answers/submit-alternatives-content-N.jsonl` | `Session.submitHelper` after the verdict → `SubmitFeedback` (alternatives list, "lower-case, drop leading the, drop matched and duplicates"), the `FloatingUiState` fields submit sets, and the alternatives-toast, close-enough and digraph texts | A, content part needs content DB |
 | `answers/synonyms.json` | user meaning synonyms: column parsing, checks per action, save-job and API parsing | A, needs content DB |
 | `answers/synonyms-storage.json` | synonyms and notes through Room: save, import, restore, export, check | B |
+| `answers/synonyms-ui.json` | `StudyMaterialsSupport` (extracted from `SubjectInfoView.addSynonym` and `StudyMaterialsActivity`): add-synonym input, list and job data; the 10-row form and its save | A |
+| `answers/synonyms-ui-device.json` | `getMeaningSynonymsRichText` and the note rich texts (`HtmlCompat`); the real `StudyMaterialsActivity`: form shown, edits, arrows, save | B |
+| `search/ranking.json` | `SearchUtil` term splitting, `getRanking`, `getSearchRanking` on inline subjects | A |
+| `search/content.jsonl` | `SearchUtil.searchSubjects(1, q)` (results screen, with its type order) and `searchSubjectSuggestions` over the real content, with and without notes/synonyms | B |
 | `answers/unicode-android.json`, `answers/unicode-android-table.json` | `FuzzyMatching.cleanString`/`matches` and `Character.getType`/lower-casing on the device (Android 16, ICU 76.1, Unicode 16.0) | B |
 | `answers/unicode-android-overrides.json` | device outputs of `fuzzy*`/`check-*` cases that differ from the JVM fixtures (currently none) | B |
 | `kana/table.json`, `kana/edge.json`, `kana/convert.json` | `PseudoIme.simulateInput`, `toKatakana`, `KanaUtil` | A |
 | `kana/readings.jsonl` | every distinct reading, romanized, through `PseudoIme` | A, needs content DB |
 | `kana/fixup-sequences.json` | `PseudoIme.fixup`, keystroke by keystroke, on `DummyEditable` | A |
 | `kana/fixup-edittext.json` | `PseudoIme.fixup` from the answer field's TextWatcher on a real EditText | B |
+| `kana/fixup-keys.json` | the answer field fed by hardware key events and the real clipboard (paste, cut, undo), and which Enter keys submit | B |
 | `server/normalize.json` | `ServerMode.normalize`, `label` | A |
-| `scenarios/*.json` | progression, curriculum switch, fast travel (also near the last level), level test rounds, import, restore, unknown and hidden subjects, hidden components, per-answer time, sync reminder | B |
+| `scenarios/*.json` | progression, curriculum switch, fast travel (also near the last level), level test rounds, import, restore, unknown and hidden subjects, hidden components, per-answer time, sync reminder, sessions (`session-*`: undo, ignore, wrap-up, abandon, restart, self-study, the level test's session) | B |
 
 Sharded files are always numbered (`-1`, `-2`, …) and hold at most 25,000 cases; a TS test reads
 all shards of a group.
@@ -132,14 +138,64 @@ Notes per area:
   `n` is fixed, and only for kana types; whitespace makes a kana answer non-kana; the subject's
   characters go into the regex unescaped (`.` matches anything); ・, ー and ゠ count as kana. The
   content files record only the app defaults (`SILENTLY_ACCEPT`, `requireOnInKatakana=false`) and
-  leave out kanji on'yomi/kun'yomi. Not covered: the alternatives-toast list built after the
-  verdict.
+  leave out kanji on'yomi/kun'yomi. What submit does after the verdict is in
+  `answers/submit-alternatives*`.
+- `answers/submit-alternatives*`: input `{subject, questionType, answer, matchingKanji,
+  meaningSynonyms, closeEnoughAction, requireOnInKatakana}`, `answer` the raw field text (run
+  through the pre-checks and `checkAnswer` as in `submit-precheck*`). Output `{verdict,
+  sessionAnswer, candidates, alternatives, sets, ui, ties}` (only `{verdict: {error}}` when
+  `checkAnswer` throws). `sessionAnswer` is the answer after the n fix, untrimmed: that is what the
+  filter compares. `candidates` (only for ok verdicts; `null` otherwise or when not applicable) are
+  all meanings, accepted or not, when there are more than one (synonyms and auxiliary meanings never
+  appear), for any reading type all accepted readings when there are more than one (so an on'yomi
+  question lists kun'yomi too). `alternatives` keeps a candidate unless, lower-cased (Java
+  `toLowerCase()`, non-Turkish default locale) and with one leading `"the "` removed, it equals the
+  same transform of `sessionAnswer` or of `matchedAnswer`, or of an earlier kept candidate; kept
+  entries keep their case and "The". `sets` lists only the `FloatingUiState` fields submit assigns
+  (`lastVerdict`, `alternativesForLastCorrectAnswer` = the list joined with `", "` or `null`,
+  `showAlternativesToast`, `showCloseToast`); a retry assigns nothing, an incorrect answer leaves
+  the alternatives fields as they were, and with no candidates `showAlternativesToast` is not
+  assigned. `ui` is what the screen shows next, starting from cleared flags with the alternatives
+  toast setting on (`alternativesToast` = `"Alt: " + joined` when non-empty), `closeEnough` when the
+  verdict is a near match and the action shows a toast (toast in lightning mode, message otherwise;
+  same text), `digraph` for an incorrect verdict with a digraph match. A null meaning or reading
+  throws `NullPointerException` (in `checkAnswer`, or in the filter: `alternatives` is then
+  `{error}`). `ties` is the `check-ties` record plus `byPick: {candidate: {alternatives,
+  alternativesToast, closeEnough}}` for every tied pick: for those cases accept the port's pick if
+  its result matches that pick's entry. The content files hold every subject with more than one
+  meaning (each meaning, without a leading "The", each whitelisted auxiliary meaning, one 1-edit
+  typo of the primary meaning under `ACCEPT_WITH_TOAST`) or more than one accepted reading (each
+  reading and its katakana), plus a digraph slip (first small ゃゅょ written large) of every
+  accepted reading for the reading and vocabulary reading types.
 - `answers/synonyms*`: the `meaningSynonyms` column is Jackson JSON array text (no separator; an
   empty list is stored as `[]`). `Subject.getMeaningSynonyms` drops null and blank entries and
   `SaveStudyMaterialJob` drops whitespace-only ones (fixed 2026-10-17, see below). Jackson is
   lenient where `JSON.parse` is not: trailing text after the array is ignored and scalars become
   strings; a BOM or trailing comma gives an empty list. Restoring a non-text value stores it as
   text. Clearing via the UI stores `[]` and `""`, and the subject is still exported.
+- `answers/synonyms-ui*`: the "Add synonym" dialog trims with `String.trim` (only chars <= U+0020),
+  skips a blank value (`StudyMaterialsSupport.isBlank`: whitespace and space characters, NBSP and
+  U+3000 included), and appends unless the list already contains the value exactly
+  (case-sensitive); it does not truncate. The notes form shows only the first 10 synonyms; saving it
+  keeps the rest unchanged after the 10 rows (fixed 2026-10-17; some case names such as
+  `unchanged-twelve-drops-two` predate the fix). Rows and notes are saved untrimmed (blank rows are
+  dropped by the job). The note
+  fields turn NULL into `""` and cut text to 500 UTF-16 units (499 if that would split a surrogate
+  pair), also for notes that came from the API. Synonym rows keep newlines. In the rich texts,
+  `escapeHtml` escapes only `&`, `<`, `>`; HTML then collapses runs of spaces and newlines in synonyms
+  to one space (tabs stay); notes turn `\n` into a line break. Spans are `[type, start, end]`.
+- `search/*`: matching is SQL `LIKE '%term%'` per term (AND) on the subject's `searchTarget`
+  column (from the content DB: characters, slug, meanings, readings; extras: characters twice,
+  meanings, readings), never on notes or synonyms, with `hiddenAt = 0`. LIKE is case-insensitive
+  for ASCII only; `%`, `_` and `\` in the query match literally (`splitTermsForSql` escapes them and
+  the queries declare `ESCAPE '\'`; fixed 2026-10-17, before that `%` matched every subject). No
+  romaji-to-kana conversion. The ranking (all fields, notes
+  and synonyms included) only orders the results: descending, ties in ascending id (SQL scan order).
+  The results screen then re-sorts stably by type (`display`). Suggestions need `query.trim()` of
+  at least 3 chars; they first query `smallSearchTarget` (characters) with `LIMIT 250` and, if that
+  gives fewer than 250, query `searchTarget` with `LIMIT 250` instead; the limit cuts in scan order
+  before ranking. `content.jsonl` holds the WaniKani content plus the extra kanji and words
+  (ids >= 100000) as the device has them.
 - `answers/unicode-android*`: made on the device. The port takes general categories for
   `cleanString` from `unicode-android-table.json` (Unicode 16), uses the device's lower-casing for
   the 27 newer case pairs, and copies Android's final sigma: Σ is final from the UTF-16 units right
@@ -155,6 +211,27 @@ Notes per area:
   indices. The visible effect: an unconverted `n` right before replaced text becomes `ん`
   (`n`, `n` at 0, `k` → `んんk`), which only happens after edits in the middle. The port must model
   the nested call. Each step records `value`, `selStart`, `selEnd`, `fixupCalls`, `maxDepth`.
+- `kana/fixup-keys.json` (`FixupKeysGoldenTest`): the same watcher plus a copy of
+  `handleEditorAction` on a real, focused EditText, driven by `KeyEvent`s from the virtual full
+  keyboard (`QwertyKeyListener`; capitals are shift down, letter, shift up) and by
+  `ClipboardManager` + `onTextContextMenuItem` (paste, paste as plain text, cut, copy, select all,
+  undo, redo) and ctrl+V/X/C/A/Z. Input `ops` (DSL in the class javadoc); each step records
+  `value`, `selStart`, `selEnd`, `fixupCalls`, `maxDepth`, plus `actions` (editor-action listener
+  calls), `submits` (field text handed to submit), `handled`, `clip`. `inputConnection` replays the
+  same ops as soft-keyboard calls; `firstDiffFromInputConnection` marks where they part. Findings:
+  typing, DEL, FORWARD_DEL, cursor keys and plain-text paste give exactly the InputConnection
+  results (and the `keys-*`/`paste-*` cases equal those of `fixup-edittext.json`). Two differences:
+  DEL removes a whole surrogate pair where `deleteSurroundingText(1, 0)` leaves a lone surrogate
+  (`del-emoji`), and a styled paste (`clip-html-*`, `paste`, not `pasteAsPlainText`) inserts the
+  clip's HTML text, not its plain text. A paste of several clip items joins them with `\n`;
+  whitespace (newline, tab, space) is removed by `fixup` as usual. Submit: only `KEYCODE_ENTER`
+  down without modifiers submits (once per down, so auto-repeat submits again); Enter up is
+  consumed without submit; shift/ctrl/alt+Enter, `NUMPAD_ENTER` and `DPAD_CENTER` never submit
+  (shift+Enter inserts a `\n` that `fixup` removes); an IME's `performEditorAction` submits for
+  any action id but 0 (`IME_ACTION_UNSPECIFIED`); the field's EditorInfo action is
+  `IME_ACTION_DONE`. Not covered: the IME stage of `ViewRootImpl` (a soft keyboard that intercepts
+  hardware keys), non-QWERTY or kana hardware layouts, what happens after a submit that is not a
+  retry.
 - `kana/readings.jsonl`: the romaji come from a test-side romanizer
   (`AnswerGoldenSupport.romanize`), katakana as upper-case romaji. 25 readings do not round-trip
   (upper-case N and doubled upper-case consonants are not handled by `fixup`); that is frozen Java
@@ -215,8 +292,55 @@ Notes per area:
   `delayedReport` stamp each answer separately (`resolved.answers`: `{id, answeredAtMs,
   reportedAtMs}`). `availableAt` is `topOfHour(answeredAt + interval + 30 s)`. With
   `delayedReport` (the "delay result upload" setting) each job uses its answer time for the
-  subject's own columns, while unlocks and `level_progression` use the report time. Two probation
-  scenarios hard-code `maxRounds` for today's content (178 items on probation in a one-level jump).
+  subject's own columns, while unlocks and `level_progression` use the report time. The probation
+  edge scenarios (`time-probation-3day-edge`, `-7day-edge`) are content-independent: `grind` with
+  `until: {onlyLastProbationSlot}` stops before the last hour slot FastTravel used, and the step key
+  `atLastProbationSlot` (ms offset) pins the clock to that slot (`resolved.lastProbationSlotMs`).
+  With today's content (178 items) the last slot is HT0 + 71 h / + 167 h.
+- **WaniKani's `hidden` flag and `subject_type`** (`import-assignment-*-flag*`,
+  `import-subject-type-mismatch`): the import reads neither. `hidden: true` on an assignment or
+  review statistic changes nothing (the subject counts, is a lesson or review and passes levels
+  like any other; only the content's `hiddenAt` hides). An unknown, wrong, empty, null or missing
+  `subject_type` is ignored: progress goes to `subject_id`. Two assignments for one subject: the
+  later one wins (all its columns, `passedAt` 0 included). Unknown ids are skipped whatever their type.
+- **Hiding in JLPT order** (`jlpt-hide-kanji-*`, `jlpt-hide-unhide-kanji-switch`): `hideSubject`
+  and `unhideSubject` never re-run the layout, and neither does a restore in the current order;
+  `previewCurriculum` lays out afresh, and `switchCurriculum` re-runs the layout and placement on
+  every call, also to the order already in use. A layout made while kanji are hidden leaves them out
+  of the JLPT blocks (they go to the first JLPT level holding kanji of their WaniKani level), so
+  later N5 kanji move down a level and the placement unlocks them as backfill; that unlock stays
+  after unhiding and switching back. `unhideSubject {ids: "changed"}` names every subject the
+  scenario's earlier hide/unhide steps changed (the ids are in `result.subjects`).
+- **Sessions** (`session-*`, `SessionDriver` in the Tier B harness): the `session*` actions drive the
+  real `Session` like SessionActivity does (`chooseQuestion` after every action, `advance` after an
+  answer unless `advance: false`). The question order comes from Java's seeded RNG, so the port
+  replays it: `result.session.current` is the question on screen after each step, `queue` the
+  pending questions in list order, `history` the undo stack (top first), and `resolved.answers`
+  every question answered `{id, questionType, answer, text, verdict, atMs}` (`skip` entries are
+  Skip presses). `result.session.items` / `db.items` are the in-memory and `session_item` rows
+  (`done`/`incorrect` per question slot 1–4; slots a subject has no question for start done).
+  `result.jobs` lists every job the session scheduled, in order, as `[class, data]`; the jobs run
+  at once. A report's timestamp is the item's `lastAnswer`, the clock at its last correct answer.
+  The first session step pins the preferences listed in the `SessionDriver` javadoc (app defaults,
+  but no audio download; `resolved.settings`). Behavior frozen here: Ignore marks the wrong answer
+  correct and, if that finishes the item, reports it at once with no incorrect count; it is only
+  offered while the wrong answer is on screen. Without delayed reporting a finished item is
+  reported at once and can no longer be undone; with it (and always in self-study) items wait as
+  `PENDING`, Undo can go back any number of answers, Finish reports every `PENDING` item in
+  `session_item` order with its own `lastAnswer` (subject columns), while unlocks use the finish
+  time. Wrap-up abandons every item without an answer (`AbandonSessionItemJob`); Abandon
+  (`Session.finish`) reports nothing more: `PENDING` and half-answered items stay as they were.
+  The progress text gets `Wrapup: ` whenever every active item is started, also without a wrap-up.
+  A restart (`sessionRestart`) reloads `session_item` (half-answered items keep their done
+  questions and wrong counts) but loses the undo history. Self-study never changes SRS, `availableAt`
+  or review statistics, but a wrong item's report sets `lastIncorrectAnswer` to its last answer
+  time. In a level-test round one wrong answer removes the kanji's other questions, the item stays
+  `ACTIVE` and is not reported. The round flag is persisted (`mm_state` `level_test_round_active`,
+  fixed 2026-10-17), so a round resumed after a restart still runs and records as the round
+  (`session-level-test-restart`: status `ROUND1_DONE` after Finish). A lesson quiz
+  reports each finished item as a lesson at once (a wrong answer only re-queues it); wrap-up during the lesson presentation ends the session. Test seams:
+  `Question.markCorrect` and `Subject.isEligibleForSessionType(REVIEW)` read `Clock`, and
+  `JobRunnerService.testInterceptor` lets the harness run the session's jobs itself.
 - **Other behavior the port keeps:** a review increments `readingCorrect` and the reading streak
   even for radicals; switching order keeps already unlocked items; `ProgressStore.describe`
   throws a `NullPointerException` when `subjects` is missing.
@@ -232,7 +356,17 @@ Found while generating these fixtures, fixed in `durtles/` first, then regenerat
    rows for unknown subjects, and `FastTravel` counts only visible subjects.
 3. **The sync reminder never cleared in local mode.** Local mode now neither sets nor shows it.
 4. **A blank synonym accepted every short answer, and a null one crashed the check.** Null and blank
-   synonyms are ignored when read, and blank ones are no longer saved.
+   synonyms are ignored when read, and blank ones are no longer saved. "Blank" includes no-break and
+   ideographic spaces (`StudyMaterialsSupport.isBlank`).
+5. **Saving the notes form dropped every synonym past the 10th**, even without edits. The extra ones
+   are now kept after the form's rows.
+6. **`%` and `_` in a search matched anything**, because the escaping wrote a bare `%`. They now
+   match literally.
+7. **A level-test round was forgotten when the app was killed mid-round**, so it finished as plain
+   self-study and was never recorded. The round flag is now persisted.
+
+Not changed on purpose: search matches characters, meanings and readings only (not notes or
+synonyms) and has no romaji-to-kana conversion. These are upstream design choices, not bugs.
 
 ## Regenerating
 
@@ -257,13 +391,14 @@ write nothing. `GOLDEN_CONTENT_DB` overrides the content DB path.
 
 Tier B, instrumented tests on an emulator or device (harness in
 `durtles/app/src/androidTest/java/com/smouldering_durtles/wk/test/golden/`: `ScenarioGoldenTest`,
-`ScenarioRunner`, `FixupEditTextGoldenTest`, `SynonymStorageGoldenTest`, `UnicodeGoldenTest`,
+`ScenarioRunner`, `FixupEditTextGoldenTest`, `FixupKeysGoldenTest`, `SynonymStorageGoldenTest`, `SynonymUiGoldenTest`,
+`SearchGoldenTest`, `UnicodeGoldenTest`,
 `GoldenWriter`). The debug APK needs `wk-content.db` in the assets. The easiest way is the two
 scripts in `durtles/golden/` (back up first, see below):
 
 ```sh
 G=com.smouldering_durtles.wk.test.golden
-durtles/golden/run.sh /tmp/golden "$G.ScenarioGoldenTest,$G.FixupEditTextGoldenTest,$G.SynonymStorageGoldenTest"
+durtles/golden/run.sh /tmp/golden "$G.ScenarioGoldenTest,$G.FixupEditTextGoldenTest,$G.FixupKeysGoldenTest,$G.SynonymStorageGoldenTest,$G.SynonymUiGoldenTest,$G.SearchGoldenTest"
 durtles/golden/unicode.sh /tmp/golden-unicode     # pushes the JVM answer fixtures, re-runs them on the device
 rsync -a /tmp/golden/golden/ /tmp/golden-unicode/golden/ web/test/golden/
 ```

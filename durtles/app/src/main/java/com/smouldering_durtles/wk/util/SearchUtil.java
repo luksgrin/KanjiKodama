@@ -54,8 +54,6 @@ import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 public final class SearchUtil {
     private static final Logger LOGGER = Logger.get(SearchUtil.class);
     private static final Pattern TERM_PATTERN = Pattern.compile("[\\p{Z}\\s]");
-    private static final Pattern PERC_PATTERN = Pattern.compile("%");
-    private static final Pattern US_PATTERN = Pattern.compile("_");
 
     private SearchUtil() {
         //
@@ -89,8 +87,9 @@ public final class SearchUtil {
         final List<String> result = new ArrayList<>();
         for (final String term: terms) {
             if (!isEmpty(term)) {
-                result.add(
-                        US_PATTERN.matcher(PERC_PATTERN.matcher(term).replaceAll("\\%")).replaceAll("\\_"));
+                // KanjiKodama: escape LIKE wildcards for real (the old replacement "\\%" wrote a bare %, so a % or _
+                // in the query matched anything); the queries declare ESCAPE '\\'.
+                result.add(term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_"));
             }
         }
         return result;
@@ -209,7 +208,7 @@ public final class SearchUtil {
         sb.append("SELECT * FROM subject WHERE hiddenAt=0 AND object IS NOT NULL");
         int i = 0;
         for (final String term: terms) {
-            sb.append(" AND smallSearchTarget LIKE ?");
+            sb.append(" AND smallSearchTarget LIKE ? ESCAPE '\\'");
             args[i++] = "%" + term + "%";
         }
         sb.append(" LIMIT ").append(MAX_SEARCH_HITS);
@@ -219,7 +218,7 @@ public final class SearchUtil {
             final StringBuilder sb2 = new StringBuilder();
             sb2.append("SELECT * FROM subject WHERE hiddenAt=0 AND object IS NOT NULL");
             for (int j=0; j<terms.size(); j++) {
-                sb2.append(" AND searchTarget LIKE ?");
+                sb2.append(" AND searchTarget LIKE ? ESCAPE '\\'");
             }
             sb2.append(" LIMIT ").append(MAX_SEARCH_HITS);
             subjects = runQuery(sb2.toString(), args);
@@ -252,7 +251,7 @@ public final class SearchUtil {
         sb.append("SELECT * FROM subject WHERE hiddenAt=0 AND object IS NOT NULL");
         int i = 0;
         for (final String term: terms) {
-            sb.append(" AND searchTarget LIKE ?");
+            sb.append(" AND searchTarget LIKE ? ESCAPE '\\'");
             args[i++] = "%" + term + "%";
         }
         final List<Subject> subjects = runQuery(sb.toString(), args);

@@ -22,7 +22,10 @@ import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.jobs.Job;
 import com.smouldering_durtles.wk.services.JobIntentService;
 
+import java.util.function.BiPredicate;
+
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static com.smouldering_durtles.wk.StableIds.JOB_RUNNER_SERVICE_JOB_ID;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
@@ -41,6 +44,12 @@ import static java.util.Objects.requireNonNull;
  */
 public final class JobRunnerService extends JobIntentService {
     /**
+     * KanjiKodama: a test hook. When set and it returns true for a job, {@link #schedule} does not queue that job
+     * (the test runs it itself). Never set in the app, so scheduling is unchanged there.
+     */
+    public static volatile @Nullable BiPredicate<Class<? extends Job>, String> testInterceptor = null;
+
+    /**
      * Schedule a job for this service. It goes into a queue of pending jobs,
      * and will be executed as soon as the service has time for it.
      *
@@ -48,6 +57,11 @@ public final class JobRunnerService extends JobIntentService {
      * @param jobData parameters for this job, encoded in a class-specific format
      */
     public static void schedule(final Class<? extends Job> jobClass, final String jobData) {
+        // KanjiKodama: golden tests can take over jobs (run them in order on their own thread); always null in the app.
+        final @Nullable BiPredicate<Class<? extends Job>, String> interceptor = testInterceptor;
+        if (interceptor != null && interceptor.test(jobClass, jobData)) {
+            return;
+        }
         safe(() -> {
             final Intent intent = new Intent(WkApplication.getInstance(), JobRunnerService.class);
             intent.putExtra("com.smouldering_durtles.wk.JOB_CLASS", jobClass.getCanonicalName());

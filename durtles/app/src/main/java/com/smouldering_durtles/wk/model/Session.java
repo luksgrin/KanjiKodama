@@ -21,8 +21,6 @@ import android.annotation.SuppressLint;
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.adapter.sessionlog.SessionLogAdapter;
-import com.smouldering_durtles.wk.api.model.Meaning;
-import com.smouldering_durtles.wk.api.model.Reading;
 import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.model.SessionItem;
 import com.smouldering_durtles.wk.db.model.Subject;
@@ -57,11 +55,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -737,34 +733,13 @@ s     *
             correct = true;
 
             FloatingUiState.lastVerdict = verdict;
-            List<String> alternatives = null;
-            if (currentQuestion.getType().isMeaning() && subject.getMeanings().size() > 1) {
-                alternatives = subject.getMeanings().stream().map(Meaning::getMeaning).collect(Collectors.toList());
-            } else if (currentQuestion.getType().isReading() && subject.getAcceptedReadings().size() > 1) {
-                alternatives = subject.getAcceptedReadings().stream().map(Reading::getReading).collect(Collectors.toList());
-            }
+            // KanjiKodama: building and filtering the alternatives list moved unchanged to SubmitFeedback
+            // so golden tests can run it on the JVM.
+            final @Nullable List<String> alternatives = SubmitFeedback.alternativeCandidates(currentQuestion.getType(), subject);
 
             if (alternatives != null) {
-                List<String> filteredAlternatives = new ArrayList<>();
-                Set<String> uniqueAlternativesWithoutThe = new HashSet<>();
-                String lowerCaseCurrentAnswer = currentAnswer.toLowerCase().replaceFirst("^the ", "");
-                String closeEnoughAnswer = FloatingUiState.lastVerdict != null ? FloatingUiState.lastVerdict.getMatchedAnswer().toLowerCase().replaceFirst("^the ", "") : null;
-
-                for (String alternative : alternatives) {
-                    String lowerCaseAlternative = alternative.toLowerCase();
-                    String alternativeWithoutThe = lowerCaseAlternative.replaceFirst("^the ", "");
-
-                    if (alternativeWithoutThe.equals(lowerCaseCurrentAnswer) || alternativeWithoutThe.equals(closeEnoughAnswer)) {
-                        continue;
-                    }
-
-                    if (uniqueAlternativesWithoutThe.contains(alternativeWithoutThe)) {
-                        continue;
-                    }
-
-                    uniqueAlternativesWithoutThe.add(alternativeWithoutThe);
-                    filteredAlternatives.add(alternative);
-                }
+                final List<String> filteredAlternatives = SubmitFeedback.filterAlternatives(alternatives, currentAnswer,
+                        FloatingUiState.lastVerdict);
 
                 FloatingUiState.alternativesForLastCorrectAnswer = String.join(", ", filteredAlternatives);
                 FloatingUiState.showAlternativesToast = !filteredAlternatives.isEmpty();

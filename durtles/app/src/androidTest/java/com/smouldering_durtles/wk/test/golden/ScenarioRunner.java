@@ -64,7 +64,10 @@ import java.util.Set;
  * {@code {"generate": {...}}}. Every step may carry {@code advanceHours} (the clock moves before the action).
  * {@code atHours} pins it to T0 + hours instead. For second- and millisecond-precise timing, {@code advanceSeconds}
  * (applied after {@code advanceHours}) and {@code atMs} (an absolute Unix time in ms, applied after {@code atHours})
- * work the same way.</p>
+ * work the same way. {@code atLastProbationSlot} (a millisecond offset, applied after {@code atMs}) pins the clock to
+ * the latest availableAt of the visible probation items plus that offset, the last hour slot FastTravel used, so a
+ * scenario reaches the window edge whatever the number of items on probation; {@code resolved.lastProbationSlotMs}
+ * records the slot. It fails the scenario when nothing is on probation.</p>
  *
  * <p>Per-answer time ({@code lesson}, {@code review}): without any of the keys below every answer of a step is
  * reported at the step's clock, as before. {@code spacingSeconds} moves the clock forward that much before every
@@ -100,8 +103,10 @@ import java.util.Set;
  *     <li>{@code lesson} {ids | where}: ReportSessionItemJob(LESSON) at the clock for each.</li>
  *     <li>{@code review} {ids | where, meaningWrong, readingWrong, wrong: {id: [m, r]}, wrongEveryNth: {n, meaning, reading}}:
  *     ReportSessionItemJob(REVIEW).</li>
- *     <li>{@code grind} {until: {level} | {passed: ids} | {noProbation}, lessonsWhere, reviewsWhere, noLessons,
- *     wrongOnce, wrongEveryNth, maxRounds}: rounds of all lessons, clock to the next due review, all due reviews.
+ *     <li>{@code grind} {until: {level} | {passed: ids} | {noProbation} | {onlyLastProbationSlot}, lessonsWhere,
+ *     reviewsWhere, noLessons, wrongOnce, wrongEveryNth, maxRounds}: rounds of all lessons, clock to the next due
+ *     review, all due reviews. {@code onlyLastProbationSlot} holds when every visible probation item left is due at
+ *     the same time (the last slot), or none is left: the grind stops just before answering the last slot.
  *     The rounds actually played are in {@code resolved.rounds}.</li>
  *     <li>{@code switchCurriculum} / {@code previewCurriculum} {mode}, {@code place}.</li>
  *     <li>{@code fastTravel} {target | levels, windowHours}.</li>
@@ -116,9 +121,13 @@ import java.util.Set;
  *     true)}: a test-only content change, as when
  *     WaniKani hides a subject: hiddenAt of each subject set to the clock (hide) or 0 (unhide); with update,
  *     LocalProgression.update runs afterwards (as the app's startup task does), {@code result.unlocked} is its count.
+ *     {@code ids: "changed"} names every subject an earlier hideSubject/unhideSubject of the scenario changed.
  *     {@code result.subjects} lists {id, object, level, hiddenAtBefore, hiddenAt}. The base reset puts back the
  *     content's original hiddenAt of every subject a scenario changed.</li>
  *     <li>{@code progressionUpdate}: LocalProgression.update alone ({@code result.unlocked}).</li>
+ *     <li>{@code sessionStart}, {@code sessionAnswer}, {@code sessionButton}, {@code sessionWrapUp},
+ *     {@code sessionFinish}, {@code sessionAbandon}, {@code sessionRestart}, …: drive the real Session; see
+ *     {@link SessionDriver}.</li>
  * </ul>
  *
  * <p>{@code generate} {userLevel (number, "max" or "max-N"), curriculum, levels, objects, stage, availableInHours, exclude,
@@ -138,6 +147,7 @@ final class ScenarioRunner {
     private final AppDatabase db;
     private final SupportSQLiteDatabase sql;
     private final List<String> exports = new ArrayList<>();
+    private final SessionDriver sessions;
     /** Content hiddenAt of the subjects hideSubject/unhideSubject changed; static so every runner instance resets it. */
     private static final Map<Long, Long> ORIGINAL_HIDDEN = new LinkedHashMap<>();
 
@@ -146,6 +156,7 @@ final class ScenarioRunner {
         this.testContext = testContext;
         db = WkApplication.getDatabase();
         sql = db.getOpenHelper().getWritableDatabase();
+        sessions = new SessionDriver(context, this::select);
     }
 
     // --- top level -------------------------------------------------------------------------------
@@ -166,6 +177,7 @@ final class ScenarioRunner {
     void baseReset(final long seed) throws Exception {
         ObjectSupport.seedRandom(seed);
         Clock.pin(T0);
+        SessionDriver.baseReset(context);
         LevelTest.discard(db);
         db.propertiesDao().setSyncReminder(false);
         // Content changes of hideSubject/unhideSubject go back first, before the restore recomputes unlocks.
@@ -211,8 +223,23 @@ final class ScenarioRunner {
                 }
                 Clock.pin(target);
             }
+            long lastSlot = 0;
+            if (step.has("atLastProbationSlot")) {
+                lastSlot = lastProbationSlot();
+                if (lastSlot == 0) {
+                    throw new IllegalArgumentException("atLastProbationSlot without probation items");
+                }
+                final long target = lastSlot + step.get("atLastProbationSlot").asLong();
+                if (target < Clock.now()) {
+                    throw new IllegalArgumentException("atLastProbationSlot " + target + " is in the past");
+                }
+                Clock.pin(target);
+            }
             final long at = Clock.now();
             final Map<String, Object> resolved = new LinkedHashMap<>();
+            if (lastSlot != 0) {
+                resolved.put("lastProbationSlotMs", lastSlot);
+            }
             reviewCounter = 0;
             Object result;
             try {
@@ -464,7 +491,7 @@ final class ScenarioRunner {
         return ids(q.toString());
     }
 
-    private static void appendFilter(final StringBuilder q, final JsonNode filter) {
+    static void appendFilter(final StringBuilder q, final JsonNode filter) {
         if (filter == null || filter.isNull() || filter.isMissingNode()) {
             return;
         }
@@ -596,6 +623,9 @@ final class ScenarioRunner {
             case "progressionUpdate":
                 return obj("unlocked", LocalProgression.update(db));
             default:
+                if (action.startsWith("session")) {
+                    return sessions.perform(action, step, resolved);
+                }
                 throw new IllegalArgumentException("unknown action " + action);
         }
     }
@@ -604,7 +634,11 @@ final class ScenarioRunner {
     private Object setHidden(final JsonNode step, final boolean hide) {
         final long value = hide ? Clock.now() : 0;
         final List<Object> subjects = new ArrayList<>();
-        for (final long id: step.has("ids") ? explicitIds(step.get("ids")) : hideSelect(step.get("where"))) {
+        // ids "changed": every subject an earlier hideSubject/unhideSubject of this scenario changed, in that order.
+        final List<Long> targets = step.has("ids") && "changed".equals(step.get("ids").asText(null))
+                ? new ArrayList<>(ORIGINAL_HIDDEN.keySet())
+                : step.has("ids") ? explicitIds(step.get("ids")) : hideSelect(step.get("where"));
+        for (final long id: targets) {
             final String object;
             final int level;
             final long before;
@@ -747,7 +781,19 @@ final class ScenarioRunner {
         return new int[] {step.path("meaningWrong").asInt(0), step.path("readingWrong").asInt(0)};
     }
 
+    /** Latest availableAt of the visible probation items (FastTravel's last used slot), 0 without any. */
+    private long lastProbationSlot() {
+        try (final Cursor c = sql.query("SELECT MAX(s.availableAt) FROM mm_probation p JOIN subject s ON s.id = p.id"
+                + " WHERE s.hiddenAt = 0")) {
+            return c.moveToFirst() && !c.isNull(0) ? c.getLong(0) : 0;
+        }
+    }
+
     private boolean satisfied(final JsonNode until) {
+        if (until.path("onlyLastProbationSlot").asBoolean(false)) {
+            return count("SELECT COUNT(DISTINCT s.availableAt) FROM mm_probation p JOIN subject s ON s.id = p.id"
+                    + " WHERE s.hiddenAt = 0") <= 1;
+        }
         if (until.path("noProbation").asBoolean(false)) {
             return count("SELECT COUNT(*) FROM mm_probation p JOIN subject s ON s.id = p.id WHERE s.hiddenAt = 0") == 0;
         }

@@ -30,6 +30,7 @@ import com.smouldering_durtles.wk.api.model.Meaning;
 import com.smouldering_durtles.wk.api.model.PronunciationAudio;
 import com.smouldering_durtles.wk.api.model.Reading;
 import com.smouldering_durtles.wk.db.Converters;
+import com.smouldering_durtles.wk.local.Clock;
 import com.smouldering_durtles.wk.enums.KanjiAcceptedReadingType;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.enums.SubjectSource;
@@ -38,6 +39,7 @@ import com.smouldering_durtles.wk.model.PitchInfo;
 import com.smouldering_durtles.wk.model.SrsSystem;
 import com.smouldering_durtles.wk.model.SrsSystemRepository;
 import com.smouldering_durtles.wk.util.PseudoIme;
+import com.smouldering_durtles.wk.util.StudyMaterialsSupport;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -1273,7 +1275,8 @@ public final class Subject implements PronunciationAudioOwner {
             case LESSON:
                 return entity.unlockedAt != 0 && entity.startedAt == 0 && (entity.resurrectedAt != 0 || entity.burnedAt == 0);
             case REVIEW:
-                return entity.availableAt != 0 && entity.availableAt <= System.currentTimeMillis();
+                // KanjiKodama: through local.Clock so golden tests can pin the time; System.currentTimeMillis() otherwise.
+                return entity.availableAt != 0 && entity.availableAt <= Clock.now();
             case NONE:
             case SELF_STUDY:
             default:
@@ -1405,7 +1408,7 @@ public final class Subject implements PronunciationAudioOwner {
                     final List<String> parsed = new ArrayList<>();
                     for (final @Nullable String s: Converters.getObjectMapper().<List<String>>readValue(
                             entity.meaningSynonyms, new TypeReference<List<String>>() {})) {
-                        if (s != null && !s.trim().isEmpty()) {
+                        if (!StudyMaterialsSupport.isBlank(s)) {
                             parsed.add(s);
                         }
                     }

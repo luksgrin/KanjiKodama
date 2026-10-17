@@ -43,7 +43,6 @@ import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.activities.BurnActivity;
 import com.smouldering_durtles.wk.activities.ResurrectActivity;
 import com.smouldering_durtles.wk.api.model.ContextSentence;
-import com.smouldering_durtles.wk.db.Converters;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.enums.SubjectInfoDump;
 import com.smouldering_durtles.wk.jobs.SaveStudyMaterialJob;
@@ -54,6 +53,7 @@ import com.smouldering_durtles.wk.model.Question;
 import com.smouldering_durtles.wk.model.Session;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
 import com.smouldering_durtles.wk.services.JobRunnerService;
+import com.smouldering_durtles.wk.util.StudyMaterialsSupport;
 import com.smouldering_durtles.wk.util.ThemeUtil;
 import com.smouldering_durtles.wk.util.WeakLcoRef;
 
@@ -64,7 +64,6 @@ import javax.annotation.Nullable;
 
 import static com.smouldering_durtles.wk.util.ObjectSupport.isEmpty;
 import static com.smouldering_durtles.wk.util.ObjectSupport.isTrue;
-import static com.smouldering_durtles.wk.util.ObjectSupport.orElse;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 
 /**
@@ -431,20 +430,19 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
             return;
         }
 
-        final List<String> list = new ArrayList<>(subject.getMeaningSynonyms());
-        if (!list.contains(value)) {
-            list.add(value);
+        // KanjiKodama: list and job data built by StudyMaterialsSupport (same logic, testable on the JVM).
+        final @Nullable List<String> list = StudyMaterialsSupport.addSynonym(subject.getMeaningSynonyms(), value);
+        if (list == null) {
+            return;
         }
 
         subject.setMeaningSynonyms(list);
         synonyms.setText(subject.getMeaningSynonymsRichText());
 
-        list.add(0, Long.toString(subject.getId()));
-        list.add(1, orElse(subject.getMeaningNote(), ""));
-        list.add(2, orElse(subject.getReadingNote(), ""));
         final String dataString;
         try {
-            dataString = Converters.getObjectMapper().writeValueAsString(list);
+            dataString = StudyMaterialsSupport.addSynonymJobData(subject.getId(), subject.getMeaningNote(), subject.getReadingNote(),
+                    list);
         } catch (final JsonProcessingException e) {
             // This can't realistically happen.
             return;
@@ -473,7 +471,7 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
             }
             final @Nullable CharSequence text = synonym.getText();
             if (text != null) {
-                addSynonym(text.toString().trim());
+                addSynonym(StudyMaterialsSupport.synonymInput(text)); // KanjiKodama: was text.toString().trim()
             }
             return true;
         }
@@ -498,7 +496,7 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
                     .setPositiveButton("Save", (dialog, which) -> safe(() -> {
                         final @Nullable CharSequence text = synonym.getText();
                         if (text != null) {
-                            addSynonym(text.toString().trim());
+                            addSynonym(StudyMaterialsSupport.synonymInput(text)); // KanjiKodama: was text.toString().trim()
                         }
                     })).create();
 

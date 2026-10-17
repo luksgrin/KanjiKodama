@@ -47,6 +47,7 @@ import com.smouldering_durtles.wk.livedata.LiveSessionState;
 import com.smouldering_durtles.wk.model.FloatingUiState;
 import com.smouldering_durtles.wk.model.Question;
 import com.smouldering_durtles.wk.model.Session;
+import com.smouldering_durtles.wk.model.SubmitFeedback;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
 import com.smouldering_durtles.wk.util.AudioUtil;
 import com.smouldering_durtles.wk.util.Logger;
@@ -249,10 +250,8 @@ public final class SessionActivity extends AbstractActivity {
             return;
         }
 
-        final String message = String.format("Your answer ('%s') was a bit off, the closest correct answer was '%s'. "
-                + "Check the meaning to make sure you are correct.",
-                FloatingUiState.lastVerdict.getGivenAnswer(),
-                FloatingUiState.lastVerdict.getMatchedAnswer());
+        // KanjiKodama: text moved unchanged to SubmitFeedback.
+        final String message = SubmitFeedback.closeEnoughMessage(FloatingUiState.lastVerdict);
         view.setText(message);
 
         final Animation fadeIn = new AlphaAnimation(0, 1);
@@ -301,10 +300,8 @@ public final class SessionActivity extends AbstractActivity {
             return;
         }
 
-        final String message = String.format("Your answer ('%s') was a bit off, the closest correct answer was '%s'. "
-                + "Check the meaning to make sure you are correct.",
-                FloatingUiState.lastVerdict.getGivenAnswer(),
-                FloatingUiState.lastVerdict.getMatchedAnswer());
+        // KanjiKodama: text moved unchanged to SubmitFeedback.
+        final String message = SubmitFeedback.closeEnoughMessage(FloatingUiState.lastVerdict);
         view.setText(message);
         view.setVisibility(View.VISIBLE);
         FloatingUiState.showCloseToast = false;
@@ -377,7 +374,8 @@ public final class SessionActivity extends AbstractActivity {
             return;
         }
 
-        final String message = "Alt: " + FloatingUiState.alternativesForLastCorrectAnswer;
+        // KanjiKodama: text moved unchanged to SubmitFeedback.
+        final String message = SubmitFeedback.alternativesToastMessage(FloatingUiState.alternativesForLastCorrectAnswer);
         view.setText(message);
 
         final Animation fadeIn = new AlphaAnimation(0, 1);

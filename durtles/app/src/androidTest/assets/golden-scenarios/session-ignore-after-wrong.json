@@ -1,0 +1,67 @@
+{
+ "description": "Review session (2 radicals, 2 kanji at Apprentice IV, due): the first answer is wrong and Ignore (special button UNDO_AND_MARK_CORRECT) turns it into a correct one, so that item is reported without a penalty; a later wrong answer is advanced past first, after which Ignore is not offered (canShow false) and the item drops a stage; the rest is answered right.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4
+    },
+    {
+     "id": 440,
+     "stage": 4
+    },
+    {
+     "id": 441,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {}
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "wrong",
+   "advance": false
+  },
+  {
+   "action": "sessionButton",
+   "button": "UNDO_AND_MARK_CORRECT"
+  },
+  {
+   "action": "sessionAdvance"
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "wrong",
+   "advance": false,
+   "advanceSeconds": 5
+  },
+  {
+   "action": "sessionAdvance"
+  },
+  {
+   "action": "sessionButton",
+   "button": "UNDO_AND_MARK_CORRECT"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

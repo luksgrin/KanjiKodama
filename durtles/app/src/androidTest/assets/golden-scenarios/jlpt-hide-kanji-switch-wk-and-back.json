@@ -1,0 +1,67 @@
+{
+ "description": "JLPT level 1 at Guru, user level 2. Hide the first two level 1 kanji (440, 441, passed) and the first level 2 kanji (503, locked): hideSubject does not re-run the layout, and a round trip (restore in the same order) keeps it, but a JLPT preview lays out afresh and already reports backfill 1. Switching to WaniKani order and back lays out without the hidden kanji: N5 shrinks by 3, so the next N5 kanji (504) moves down to JLPT level 1 and the placement unlocks it as backfill (a lesson). Unhiding the three in that layout puts them back at JLPT level 1 (result.subjects; 503 stays locked); switching to WaniKani order and back gives the original layout with backfill 0, while 504 keeps its unlock and progress.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": 2,
+    "curriculum": "JLPT",
+    "levels": [
+     1
+    ],
+    "stage": 5
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 1,
+    "limit": 2
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 2,
+    "limit": 1
+   }
+  },
+  {
+   "action": "previewCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "exportRestore"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 5
+   }
+  },
+  {
+   "action": "unhideSubject",
+   "ids": "changed"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  }
+ ]
+}

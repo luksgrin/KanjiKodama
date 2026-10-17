@@ -26,14 +26,13 @@ import androidx.appcompat.widget.Toolbar;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.WkApplication;
-import com.smouldering_durtles.wk.db.Converters;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.jobs.SaveStudyMaterialJob;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
 import com.smouldering_durtles.wk.services.JobRunnerService;
+import com.smouldering_durtles.wk.util.StudyMaterialsSupport;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -156,10 +155,8 @@ public final class StudyMaterialsActivity extends AbstractActivity {
         meaningNote.setJapaneseLocale();
         readingNote.setText(subject.getReadingNote());
         readingNote.setJapaneseLocale();
-        final List<String> synonyms = new ArrayList<>(subject.getMeaningSynonyms());
-        while (synonyms.size() < 10) {
-            synonyms.add("");
-        }
+        // KanjiKodama: row texts from StudyMaterialsSupport (same logic, testable on the JVM).
+        final List<String> synonyms = StudyMaterialsSupport.formSynonymFields(subject.getMeaningSynonyms());
         for (int i=0; i<synonymViews.size(); i++) {
             synonymViews.get(i).setText(synonyms.get(i));
             synonymViews.get(i).setJapaneseLocale();
@@ -175,16 +172,16 @@ public final class StudyMaterialsActivity extends AbstractActivity {
                 return;
             }
             disableInteraction();
-            final Collection<String> data = new ArrayList<>();
-            data.add(Long.toString(currentSubject.getId()));
-            data.add(meaningNote.getText());
-            data.add(readingNote.getText());
+            // KanjiKodama: job data built by StudyMaterialsSupport (same logic, testable on the JVM).
+            final List<String> fields = new ArrayList<>();
             for (int i=0; i<synonymViews.size(); i++) {
-                data.add(synonymViews.get(i).getText());
+                fields.add(synonymViews.get(i).getText());
             }
+            fields.addAll(StudyMaterialsSupport.formExtraSynonyms(currentSubject.getMeaningSynonyms()));
             final String dataString;
             try {
-                dataString = Converters.getObjectMapper().writeValueAsString(data);
+                dataString = StudyMaterialsSupport.formJobData(currentSubject.getId(), meaningNote.getText(), readingNote.getText(),
+                        fields);
             } catch (final JsonProcessingException e) {
                 // This can't realistically happen.
                 return;

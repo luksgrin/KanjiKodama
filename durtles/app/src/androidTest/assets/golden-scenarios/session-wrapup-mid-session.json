@@ -1,0 +1,71 @@
+{
+ "description": "Review session of 8 items (4 radicals, 4 kanji): three answers, then Wrap up: every item without an answer is ABANDONED (AbandonSessionItemJob) and stays due, started items stay; the progress text gets \"Wrapup: \"; answering the rest finishes the session.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4
+    },
+    {
+     "id": 2,
+     "stage": 4
+    },
+    {
+     "id": 3,
+     "stage": 4
+    },
+    {
+     "id": 440,
+     "stage": 4
+    },
+    {
+     "id": 441,
+     "stage": 4
+    },
+    {
+     "id": 442,
+     "stage": 4
+    },
+    {
+     "id": 443,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {}
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 3,
+   "spacingSeconds": 5,
+   "rules": {
+    "reading": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionWrapUp"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

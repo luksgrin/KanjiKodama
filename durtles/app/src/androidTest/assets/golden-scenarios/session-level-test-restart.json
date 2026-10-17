@@ -1,0 +1,37 @@
+{
+ "description": "Level test round 1 interrupted by an app restart after 10 answers: the session comes back from session_item, but LevelTest's in-memory round flag is gone, so the finished session behaves like ordinary self-study (wrong kanji are asked again) and the round is not recorded: the status stays ROUND1.",
+ "mode": "JLPT",
+ "seed": 29,
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "SELF_STUDY",
+   "levelTestRound": 1
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 10,
+   "rules": {
+    "meaning": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionRestart"
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 2,
+   "answer": "wrong"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing"
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

@@ -1,5 +1,5 @@
 {
- "description": "1-level jump with the level test's 7-day window (168 h): all slots but the last answered; 1 ms before the last slot (HT0 + 167 h) nothing is due and the one open item blocks fast travel (the 72 h cooldown is long over); at HT0 + 167 h the last probation item and the Guru reviews of the first slot are due together; answering them opens fast travel.",
+ "description": "1-level jump with the level test's 7-day window (168 h): all slots but the last answered; 1 ms before the last slot (HT0 + 167 h with today's content) nothing is due and the open item(s) of that slot (1 today) block fast travel (the 72 h cooldown is long over); at the last slot the last probation item and (with every slot used, as today) the Guru reviews of the first slot are due together; answering them opens fast travel.",
  "mode": "JLPT",
  "start": null,
  "steps": [
@@ -12,17 +12,17 @@
    "action": "grind",
    "noLessons": true,
    "until": {
-    "noProbation": true
+    "onlyLastProbationSlot": true
    },
-   "maxRounds": 167
+   "maxRounds": 168
   },
   {
    "action": "snapshot",
-   "atMs": 1768204799999
+   "atLastProbationSlot": -1
   },
   {
    "action": "review",
-   "atMs": 1768204800000,
+   "atLastProbationSlot": 0,
    "where": {}
   }
  ]

@@ -32,13 +32,13 @@ import com.smouldering_durtles.wk.enums.QuestionType;
 import com.smouldering_durtles.wk.model.DigraphMatch;
 import com.smouldering_durtles.wk.model.FloatingUiState;
 import com.smouldering_durtles.wk.model.Question;
+import com.smouldering_durtles.wk.model.SubmitFeedback;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
 import com.smouldering_durtles.wk.util.HapticUtil;
 import com.smouldering_durtles.wk.util.ThemeUtil;
 import com.smouldering_durtles.wk.views.SubjectInfoView;
 import com.smouldering_durtles.wk.views.SwipingScrollView;
 
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 
@@ -175,9 +175,8 @@ public final class AnsweredSessionFragment extends AbstractSessionFragment imple
         else {
             final @Nullable DigraphMatch match = FloatingUiState.lastVerdict.getDigraphMatch();
             if (match != null) {
-                digraphMatchText.setText(String.format(Locale.ROOT, "Your answer was incorrect because you mixed up the regular kana %c"
-                                + " and the small kana %c. Tap this message for more information about the difference between small and regular kana.",
-                        match.getRegularKana(), match.getSmallKana()));
+                // KanjiKodama: text moved unchanged to SubmitFeedback.
+                digraphMatchText.setText(SubmitFeedback.digraphMessage(match));
                 digraphMatchText.setClickableAndNotFocusable(true);
                 digraphMatchText.setOnClickListener(v -> goToActivity(DigraphHelpActivity.class));
                 digraphMatchText.setVisibility(true);

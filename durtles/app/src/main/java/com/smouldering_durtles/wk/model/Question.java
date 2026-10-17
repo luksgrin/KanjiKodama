@@ -23,6 +23,7 @@ import com.smouldering_durtles.wk.enums.CloseEnoughAction;
 import com.smouldering_durtles.wk.enums.QuestionType;
 import com.smouldering_durtles.wk.util.InflectionUtil;
 import com.smouldering_durtles.wk.enums.SessionType;
+import com.smouldering_durtles.wk.local.Clock;
 
 import java.util.Locale;
 
@@ -147,7 +148,8 @@ public final class Question {
     public void markCorrect() {
         item.setQuestionDone(type.getSlot(), true);
         item.setNumAnswers(item.getNumAnswers() + 1);
-        item.setLastAnswer(System.currentTimeMillis());
+        // KanjiKodama: through local.Clock so golden tests can pin answer times; System.currentTimeMillis() otherwise.
+        item.setLastAnswer(Clock.now());
 
         if (item.isFinished()) {
             if (Session.getInstance().isDelayed()) {

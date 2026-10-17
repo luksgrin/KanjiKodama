@@ -60,15 +60,30 @@ public final class LevelTest {
     /** Where the test stands. */
     public enum Status { NONE, ROUND1, ROUND1_DONE, ROUND2, ROUND2_DONE }
 
-    private static volatile boolean roundActive = false;
+    /** Cache of the persisted "level_test_round_active" state; null until first read. */
+    private static volatile @Nullable Boolean roundActive = null;
 
     private LevelTest() {
         //
     }
 
-    /** True while a level test round is the running self-study session. */
+    /**
+     * True while a level test round is the running self-study session. KanjiKodama: persisted, so a round
+     * resumed after the app was killed still counts as the round (it used to run as plain self-study).
+     */
     public static boolean isRoundActive() {
-        return roundActive;
+        @Nullable Boolean active = roundActive;
+        if (active == null) {
+            active = "1".equals(Curriculum.getState(WkApplication.getDatabase().getOpenHelper().getWritableDatabase(),
+                    "level_test_round_active"));
+            roundActive = active;
+        }
+        return active;
+    }
+
+    private static void setRoundActive(final SupportSQLiteDatabase sql, final boolean active) {
+        Curriculum.putState(sql, "level_test_round_active", active ? "1" : "");
+        roundActive = active;
     }
 
     private static void ensureTable(final SupportSQLiteDatabase sql) {
@@ -96,7 +111,7 @@ public final class LevelTest {
         ensureTable(sql);
         sql.execSQL("DELETE FROM mm_level_test");
         setStatus(sql, Status.NONE);
-        roundActive = false;
+        setRoundActive(sql, false);
         Curriculum.putState(sql, "level_test_prompted", "");
     }
 
@@ -211,7 +226,7 @@ public final class LevelTest {
         }
         setStatus(sql, status);
         Curriculum.putState(sql, "level_test_prompted", "");
-        roundActive = true;
+        setRoundActive(sql, true);
         final List<Subject> subjects = new ArrayList<>();
         for (final long id: ids) {
             final @Nullable Subject s = db.subjectDao().getById(id);
@@ -414,10 +429,10 @@ public final class LevelTest {
         if (!LocalMode.isEnabled() || type != SessionType.SELF_STUDY || items.isEmpty()) {
             return;
         }
-        if (!roundActive) {
+        if (!isRoundActive()) {
             return;
         }
-        roundActive = false;
+        setRoundActive(WkApplication.getDatabase().getOpenHelper().getWritableDatabase(), false);
         final Map<Long, Integer> results = new HashMap<>();
         for (final SessionItem item: items) {
             if (item.hasIncorrectAnswers()) {

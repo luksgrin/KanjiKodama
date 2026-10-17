@@ -1,5 +1,5 @@
 {
- "description": "1-level jump with the default 72 h window: all probation slots but the last answered; 1 ms before the last slot (HT0 + 71 h) nothing is due and fast travel is blocked by the 2 open items; both answered at the slot (30 s apart); the cooldown runs from the jump (T0): 1 ms before T0 + 72 h blocked, at T0 + 72 h open.",
+ "description": "1-level jump with the default 72 h window: all probation slots but the last answered; 1 ms before the last slot (HT0 + 71 h with today's content) nothing is due and fast travel is blocked by the open items of that slot (2 today); they are answered at the slot (30 s apart); the cooldown runs from the jump (T0): 1 ms before T0 + 72 h blocked, at T0 + 72 h open.",
  "mode": "JLPT",
  "start": null,
  "steps": [
@@ -11,17 +11,17 @@
    "action": "grind",
    "noLessons": true,
    "until": {
-    "noProbation": true
+    "onlyLastProbationSlot": true
    },
-   "maxRounds": 71
+   "maxRounds": 72
   },
   {
    "action": "snapshot",
-   "atMs": 1767859199999
+   "atLastProbationSlot": -1
   },
   {
    "action": "review",
-   "atMs": 1767859200000,
+   "atLastProbationSlot": 0,
    "where": {},
    "spacingSeconds": 30
   },

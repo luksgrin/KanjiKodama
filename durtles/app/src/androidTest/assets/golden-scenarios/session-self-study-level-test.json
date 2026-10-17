@@ -1,0 +1,46 @@
+{
+ "description": "Level test round 1 as the app runs it: LevelTest.startRound1 picks the kanji and a self-study session starts; the first two kanji are answered wrong once: during a level-test round one wrong answer removes the kanji's remaining questions (no retry); Finish records the round (ROUND1_DONE). Then an ordinary self-study session with the same kind of wrong answer: the question comes back later and the item still finishes.",
+ "mode": "JLPT",
+ "seed": 23,
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "SELF_STUDY",
+   "levelTestRound": 1
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 2,
+   "answer": "wrong"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing"
+  },
+  {
+   "action": "sessionFinish"
+  },
+  {
+   "action": "sessionStart",
+   "type": "SELF_STUDY",
+   "ids": [
+    440,
+    441,
+    442
+   ]
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 2,
+   "answer": "wrong"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing"
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

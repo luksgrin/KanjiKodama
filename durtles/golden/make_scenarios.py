@@ -487,6 +487,10 @@ S["restore-all-unknown"] = {
 # Hidden subjects that are components of visible ones (hideSubject/unhideSubject change the content's hiddenAt;
 # LocalProgression counts a hidden component as passed, and leaves hidden kanji out of the 90 % level-up share).
 assert k1[16:] == [455, 456] and k1[0] == 440
+# The WaniKani ids of the hidden-subject and unlock scenarios (descriptions name them) assume these components;
+# a content change fails here instead of silently testing other subjects.
+for sid, comps in {440: [1], 441: [7], 444: [9], 449: [1, 7], 450: [1, 10], 451: [1, 10], 2475: [444], 2476: [441, 444]}.items():
+    assert sorted(json.loads(con.execute("select componentSubjectIds from subject where id=?", (sid,)).fetchone()[0])) == comps, sid
 S["wk-hidden-radical-only-missing"] = {
   "description": "Level 1 radicals at Guru except 二 (7), an untaken lesson: kanji 二 (441, [7]) and 三 (449, [1, 7]) stay locked. Hiding radical 7 without the progression update only drops it from the lessons; the update then unlocks both kanji, because a hidden component counts as passed.",
   "mode": "WANIKANI",
@@ -612,27 +616,148 @@ S["time-grind-spaced"] = {
   "description": "Fresh start to level 2 like wk-grind-level1-to-level2, but every lesson and review is answered 7 s after the previous one, so later answers of a round cross hour boundaries and unlocks get distinct times.",
   "mode": "WANIKANI", "start": None,
   "steps": [{"action": "grind", "until": {"level": 2}, "spacingSeconds": 7}]}
-# A 1-level jump from a fresh JLPT start puts 178 items on probation (see ft-jlpt-1-level-all-correct); with the
-# 72 h window every hour slot 0..71 from 09:00 is used (the last, HT0 + 71 h, has 2 items), with 168 h every slot
-# 0..167 (the last has 1 item). maxRounds stops grind before the last slot.
+# A 1-level jump spreads its probation items over the window's hour slots from HT0 (FastTravel.travel). Both
+# scenarios are relative to the content: grind until {onlyLastProbationSlot} stops before the last used slot, and
+# atLastProbationSlot (ms offset) pins the clock to that slot, read on the device. With today's content (178 items,
+# see ft-jlpt-1-level-all-correct) the last slot is HT0 + 71 h (2 items) or HT0 + 167 h (1 item); with fewer items
+# than hours it would be earlier. The 7-day scenario's Guru reviews of the first slot fall due at that same last slot
+# only while every slot is used (178 >= 168 items today); resolved records the actual times.
+# maxRounds is the window in hours, an upper bound (at most one round per slot), not a count: grind's default
+# cap of 100 rounds is below the 7-day window's 168 slots.
 S["time-probation-3day-edge"] = {
-  "description": "1-level jump with the default 72 h window: all probation slots but the last answered; 1 ms before the last slot (HT0 + 71 h) nothing is due and fast travel is blocked by the 2 open items; both answered at the slot (30 s apart); the cooldown runs from the jump (T0): 1 ms before T0 + 72 h blocked, at T0 + 72 h open.",
+  "description": "1-level jump with the default 72 h window: all probation slots but the last answered; 1 ms before the last slot (HT0 + 71 h with today's content) nothing is due and fast travel is blocked by the open items of that slot (2 today); they are answered at the slot (30 s apart); the cooldown runs from the jump (T0): 1 ms before T0 + 72 h blocked, at T0 + 72 h open.",
   "mode": "JLPT", "start": None,
   "steps": [
     {"action": "fastTravel", "levels": 1},
-    {"action": "grind", "noLessons": True, "until": {"noProbation": True}, "maxRounds": 71},
-    {"action": "snapshot", "atMs": HT0 + 71*H - 1},
-    {"action": "review", "atMs": HT0 + 71*H, "where": {}, "spacingSeconds": 30},
+    {"action": "grind", "noLessons": True, "until": {"onlyLastProbationSlot": True}, "maxRounds": 72},
+    {"action": "snapshot", "atLastProbationSlot": -1},
+    {"action": "review", "atLastProbationSlot": 0, "where": {}, "spacingSeconds": 30},
     {"action": "snapshot", "atMs": T0 + 72*H - 1},
     {"action": "snapshot", "atMs": T0 + 72*H}]}
 S["time-probation-7day-edge"] = {
-  "description": "1-level jump with the level test's 7-day window (168 h): all slots but the last answered; 1 ms before the last slot (HT0 + 167 h) nothing is due and the one open item blocks fast travel (the 72 h cooldown is long over); at HT0 + 167 h the last probation item and the Guru reviews of the first slot are due together; answering them opens fast travel.",
+  "description": "1-level jump with the level test's 7-day window (168 h): all slots but the last answered; 1 ms before the last slot (HT0 + 167 h with today's content) nothing is due and the open item(s) of that slot (1 today) block fast travel (the 72 h cooldown is long over); at the last slot the last probation item and (with every slot used, as today) the Guru reviews of the first slot are due together; answering them opens fast travel.",
   "mode": "JLPT", "start": None,
   "steps": [
     {"action": "fastTravel", "levels": 1, "windowHours": 168},
-    {"action": "grind", "noLessons": True, "until": {"noProbation": True}, "maxRounds": 167},
-    {"action": "snapshot", "atMs": HT0 + 167*H - 1},
-    {"action": "review", "atMs": HT0 + 167*H, "where": {}}]}
+    {"action": "grind", "noLessons": True, "until": {"onlyLastProbationSlot": True}, "maxRounds": 168},
+    {"action": "snapshot", "atLastProbationSlot": -1},
+    {"action": "review", "atLastProbationSlot": 0, "where": {}}]}
+# --- leftovers: WaniKani's hidden flag, odd subject_type values, hiding in JLPT order then switching ---
+# ApiAssignment and ApiReviewStatistic map neither "hidden" nor "subject_type" (Jackson ignores unknown properties),
+# so the import goes by subject_id alone: these scenarios freeze that.
+def with_flags(a, hidden_assignments=(), hidden_stats=(), drop_type=()):
+    import copy
+    a = copy.deepcopy(a)
+    for e in a["assignments"]:
+        if e["data"]["subject_id"] in hidden_assignments:
+            e["data"]["hidden"] = True
+        if e["data"]["subject_id"] in drop_type:
+            del e["data"]["subject_type"]
+    for e in a["review_statistics"]:
+        if e["data"]["subject_id"] in hidden_stats:
+            e["data"]["hidden"] = True
+    return a
+r2 = lvl(2, "radical")
+assert k1[16:] == [455, 456] and v1[0] == 2467
+hidden_flag_api = with_flags(api(1, [(s, "radical", 5, True, False) for s in r1] + [(k, "kanji", 5, True, False) for k in k1[:16]]
+        + [(k, "kanji", 4, False, False) for k in k1[16:]] + [(v, "vocabulary", 1, False, False) for v in v1[:3]]
+        + [(s, "radical", 0, False, False) for s in r2[:3]] + [(7668, "vocabulary", 1, False, False), (58, "radical", 3, False, False)],
+    stats=[stat(k1[0], "kanji", 8, 1, 8, 0, 94), stat(v1[0], "vocabulary", 1, 0, 1, 0, 100), stat(7668, "vocabulary", 2, 1, 2, 0, 80)]),
+    hidden_assignments={k1[0], k1[16], k1[17], v1[0], r2[0], 7668}, hidden_stats={k1[0], v1[0]})
+S["import-assignment-hidden-flag-wk"] = {
+  "description": "WaniKani import (WaniKani order, user level 1) where some assignments carry WaniKani's hidden: true: a passed kanji (440), the two unpassed level 1 kanji at Apprentice IV (455, 456), a due vocabulary (2467), a level 2 radical lesson (45) and the content-hidden vocabulary 7668; statistics of 440 and 2467 also hidden: true. The flag is not read: flagged subjects take their progress, stay lessons and reviews, and count for the level-up like any other (16 of 18 kanji passed: no level-up; passing the flagged 455 makes it 17: level 2). Content-hidden 7668 and 58 stay out of the queues either way.",
+  "mode": "WANIKANI", "start": None,
+  "steps": [
+    {"action": "importWaniKani", "api": hidden_flag_api},
+    {"action": "review", "where": {}},
+    {"action": "lesson", "where": {"limit": 5}},
+    {"action": "review", "advanceHours": 9, "where": {"ids": [455]}},
+    {"action": "exportRestore"}]}
+S["import-assignment-hidden-flag-jlpt"] = {
+  "description": "The import of import-assignment-hidden-flag-wk while in JLPT order: Curriculum.place counts the passed kanji whatever their hidden flag says; then lessons, reviews and a round trip.",
+  "mode": "JLPT", "start": None,
+  "steps": [
+    {"action": "importWaniKani", "api": hidden_flag_api},
+    {"action": "lesson", "where": {"limit": 3}},
+    {"action": "review", "where": {}},
+    {"action": "exportRestore"}]}
+all_hidden_entries = level_entries(1, 5, True) + level_entries(2, 5, True)
+S["import-assignment-all-hidden-flag"] = {
+  "description": "WaniKani import (user level 3) of levels 1 and 2 at Guru where every assignment and statistic says hidden: true: the result is the same as without the flag (level 3, level 3 lessons).",
+  "mode": "WANIKANI", "start": None,
+  "steps": [
+    {"action": "importWaniKani", "api": with_flags(api(3, all_hidden_entries, stats=[stat(r1[0], "radical", 6, 1, 0, 0, 86)]),
+        hidden_assignments={e[0] for e in all_hidden_entries}, hidden_stats={r1[0]})},
+    {"action": "lesson", "where": {"limit": 5}},
+    {"action": "exportRestore"}]}
+assert r1[:4] == [1, 6, 2, 3] and r2[0] == 45 and k1[:3] == [440, 441, 442]
+type_entries = ([(s, "radical", 5, True, False) for s in r1[4:]] + [(k, "kanji", 5, True, False) for k in k1[3:]]
+    + [(440, "kanji_v2", 5, True, False), (441, "vocabulary", 5, True, False), (r1[0], "kanji", 5, True, False),
+       (r1[1], "", 5, True, False), (r1[2], None, 5, True, False), (r1[3], "radical", 5, True, False),
+       (2467, "radical", 2, False, False), (2468, "kana_vocabulary", 1, False, False),
+       (442, "kanji", 5, True, False), (442, "kanji_v2", 1, False, False),
+       (9540, "kanji_v2", 1, False, False), (9541, "radical", 3, False, False)])
+S["import-subject-type-mismatch"] = {
+  "description": "WaniKani import (user level 1, level 1 radicals and kanji at Guru) whose subject_type values are unknown (kanji_v2 for kanji 440), wrong for the id (vocabulary for kanji 441, kanji for radical 1, radical for vocabulary 2467, kana_vocabulary for vocabulary 2468), empty (radical 6), null (radical 2) or missing (radical 3); kanji 442 comes twice (Guru as kanji, then Apprentice I as kanji_v2: the later one wins, passedAt 0); unknown ids 9540 (kanji_v2) and 9541 are skipped (2 in the summary). Statistics and notes with odd types too. The type is not read: every known id takes its progress by subject_id; 17 of 18 kanji passed, so the import levels up to 2. Then reviews, lessons, a round trip and a switch to JLPT order.",
+  "mode": "WANIKANI", "start": None,
+  "steps": [
+    {"action": "importWaniKani", "api": with_flags(api(1, type_entries,
+        stats=[stat(440, "kanji_v2", 7, 0, 7, 0, 100), stat(r1[0], "vocabulary", 5, 2, 0, 0, 71), stat(2467, "kanji", 1, 1, 1, 1, 50),
+               stat(9540, "kanji_v2", 3, 0, 3, 0, 100)],
+        materials=[mat(441, "radical", "kanji typed as radical", None, ["two"]), mat(2467, "kanji_v2", None, "typed kanji_v2", []),
+                   mat(9541, "vocabulary", "unknown", None, [])]), drop_type={r1[3]})},
+    {"action": "review", "where": {}},
+    {"action": "lesson", "where": {"limit": 5}},
+    {"action": "exportRestore"},
+    {"action": "switchCurriculum", "mode": "JLPT"}]}
+# Hiding in JLPT order: hideSubject does not re-run the layout (only LocalProgression.update). Curriculum.switchTo
+# always re-runs it (also to the same mode); ProgressStore.restore only when the order changes. The kanji are picked on
+# the device from the app's JLPT layout (where); unhideSubject ids "changed" names every subject the scenario changed.
+jlpt_start = {"action": "restore", "generate": {"userLevel": 2, "curriculum": "JLPT", "levels": [1], "stage": 5}}
+S["jlpt-hide-kanji-switch-wk-and-back"] = {
+  "description": "JLPT level 1 at Guru, user level 2. Hide the first two level 1 kanji (440, 441, passed) and the first level 2 kanji (503, locked): hideSubject does not re-run the layout, and a round trip (restore in the same order) keeps it, but a JLPT preview lays out afresh and already reports backfill 1. Switching to WaniKani order and back lays out without the hidden kanji: N5 shrinks by 3, so the next N5 kanji (504) moves down to JLPT level 1 and the placement unlocks it as backfill (a lesson). Unhiding the three in that layout puts them back at JLPT level 1 (result.subjects; 503 stays locked); switching to WaniKani order and back gives the original layout with backfill 0, while 504 keeps its unlock and progress.",
+  "mode": "JLPT", "start": None,
+  "steps": [
+    jlpt_start,
+    {"action": "hideSubject", "where": {"object": "kanji", "level": 1, "limit": 2}},
+    {"action": "hideSubject", "where": {"object": "kanji", "level": 2, "limit": 1}},
+    {"action": "previewCurriculum", "mode": "JLPT"},
+    {"action": "exportRestore"},
+    {"action": "switchCurriculum", "mode": "WANIKANI"},
+    {"action": "switchCurriculum", "mode": "JLPT"},
+    {"action": "lesson", "where": {"limit": 5}},
+    {"action": "unhideSubject", "ids": "changed"},
+    {"action": "switchCurriculum", "mode": "WANIKANI"},
+    {"action": "switchCurriculum", "mode": "JLPT"}]}
+S["jlpt-hide-unhide-kanji-switch"] = {
+  "description": "As jlpt-hide-kanji-switch-wk-and-back, but the three kanji are unhidden again before switching to WaniKani order and back: original layout, placement level 2, backfill 0. Then hide them again (ids \"changed\"), switch to WaniKani order, unhide them there (503 at its WaniKani level 3) and switch back: the original layout again, backfill 0.",
+  "mode": "JLPT", "start": None,
+  "steps": [
+    jlpt_start,
+    {"action": "hideSubject", "where": {"object": "kanji", "level": 1, "limit": 2}},
+    {"action": "hideSubject", "where": {"object": "kanji", "level": 2, "limit": 1}},
+    {"action": "unhideSubject", "ids": "changed"},
+    {"action": "switchCurriculum", "mode": "WANIKANI"},
+    {"action": "switchCurriculum", "mode": "JLPT"},
+    {"action": "hideSubject", "ids": "changed"},
+    {"action": "switchCurriculum", "mode": "WANIKANI"},
+    {"action": "unhideSubject", "ids": "changed"},
+    {"action": "switchCurriculum", "mode": "JLPT"}]}
+S["jlpt-hide-kanji-switch-same-mode"] = {
+  "description": "JLPT level 1 at Guru, user level 2: hide 440, 441 (level 1) and 503 (level 2), then switch to JLPT order while already in it: switchTo re-runs the layout anyway (504 moves to level 1, backfill 1, a lesson). Unhiding the three keeps that layout (all three at level 1), a round trip in JLPT order does not re-run it either, and a JLPT preview (a fresh layout) reports backfill 0.",
+  "mode": "JLPT", "start": None,
+  "steps": [
+    jlpt_start,
+    {"action": "hideSubject", "where": {"object": "kanji", "level": 1, "limit": 2}},
+    {"action": "hideSubject", "where": {"object": "kanji", "level": 2, "limit": 1}},
+    {"action": "switchCurriculum", "mode": "JLPT"},
+    {"action": "lesson", "where": {"limit": 5}},
+    {"action": "unhideSubject", "ids": "changed"},
+    {"action": "exportRestore"},
+    {"action": "previewCurriculum", "mode": "JLPT"}]}
+sys.path.insert(0, HERE)
+import session_scenarios
+session_scenarios.add(S, lvl)
 os.makedirs(OUT, exist_ok=True)
 for name, sc in S.items():
     with open(os.path.join(OUT, name + ".json"), "w") as f:

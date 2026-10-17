@@ -22,6 +22,7 @@ import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.api.model.ApiStudyMaterial;
 import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.Converters;
+import com.smouldering_durtles.wk.util.StudyMaterialsSupport;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,9 +56,9 @@ public final class SaveStudyMaterialJob extends Job {
         meaningNote = values.remove(0);
         readingNote = values.remove(0);
         removeEmpty(values);
-        // KanjiKodama: whitespace-only synonyms are empty too.
+        // KanjiKodama: whitespace-only synonyms (including no-break and ideographic spaces) are empty too.
         for (int i = values.size() - 1; i >= 0; i--) {
-            if (values.get(i).trim().isEmpty()) {
+            if (StudyMaterialsSupport.isBlank(values.get(i))) {
                 values.remove(i);
             }
         }
