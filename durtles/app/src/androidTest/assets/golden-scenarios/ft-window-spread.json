@@ -1,0 +1,24 @@
+{
+ "description": "Probation reviews spread over a 24 h window instead of the 72 h cooldown, and a second jump after the cooldown with the default window.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 3,
+   "windowHours": 24
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "until": {
+    "noProbation": true
+   }
+  },
+  {
+   "action": "fastTravel",
+   "atHours": 72,
+   "levels": 1
+  }
+ ]
+}

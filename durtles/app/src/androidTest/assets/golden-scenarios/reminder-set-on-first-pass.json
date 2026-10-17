@@ -1,0 +1,81 @@
+{
+ "description": "Sync reminder (property sync_reminder): off at the start; a vocabulary passing (no amalgamations), a radical passing again (already passed), a wrong answer and lessons leave it off; radical 7 passing for the first time turns it on; kanji 440 passing keeps it on.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4,
+     "passed": true
+    },
+    {
+     "id": 7,
+     "stage": 4
+    },
+    {
+     "id": 440,
+     "stage": 4
+    },
+    {
+     "id": 2467,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "review",
+   "ids": [
+    2467
+   ]
+  },
+  {
+   "action": "review",
+   "ids": [
+    6
+   ]
+  },
+  {
+   "action": "review",
+   "ids": [
+    1
+   ],
+   "meaningWrong": 1
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 2
+   }
+  },
+  {
+   "action": "review",
+   "ids": [
+    7
+   ]
+  },
+  {
+   "action": "review",
+   "ids": [
+    440
+   ]
+  }
+ ]
+}

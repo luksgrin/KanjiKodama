@@ -1,0 +1,39 @@
+{
+ "description": "Level test from a WaniKani learner with levels 1 to 4 at Guru: mastered kanji count towards the shares; N5 known in round 1 (boundary N4), round 2 all known; starting at the result proves the right answers at Guru.",
+ "mode": "WANIKANI",
+ "seed": 19,
+ "start": {
+  "generate": {
+   "userLevel": 5,
+   "levels": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "stage": 5
+  }
+ },
+ "steps": [
+  {
+   "action": "levelTestRound",
+   "round": 1,
+   "known": {
+    "blocks": [
+     5
+    ]
+   }
+  },
+  {
+   "action": "levelTestRound",
+   "round": 2,
+   "known": "all"
+  },
+  {
+   "action": "levelTestResult"
+  },
+  {
+   "action": "levelTestStartAtResult"
+  }
+ ]
+}

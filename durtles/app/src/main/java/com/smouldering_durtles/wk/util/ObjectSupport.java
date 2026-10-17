@@ -47,7 +47,10 @@ import static java.util.Objects.requireNonNull;
  */
 public final class ObjectSupport {
     private static final Logger LOGGER = Logger.get(ObjectSupport.class);
-    private static final Random random = new Random(System.currentTimeMillis());
+    // KanjiKodama: not final, so golden tests can seed it with seedRandom(); see testSeed.
+    private static volatile Random random = new Random(System.currentTimeMillis());
+    /** KanjiKodama: the seed set by a test, or null when randomness is not seeded (always in the app). */
+    private static volatile @Nullable Long testSeed = null;
 
     private ObjectSupport() {
         //
@@ -215,6 +218,52 @@ public final class ObjectSupport {
      */
     public static int nextRandomInt(final int bound) {
         return random.nextInt(bound);
+    }
+
+    /**
+     * KanjiKodama: seed all randomness that goes through this class (tests only). {@link #nextRandomInt(int)}
+     * draws from a {@link Random} seeded with this seed, {@link #newRandom()} returns new instances with
+     * this seed and {@link #shuffleInPlace(List)} uses the seeded instance.
+     *
+     * @param seed the seed
+     */
+    public static void seedRandom(final long seed) {
+        random = new Random(seed);
+        testSeed = seed;
+    }
+
+    /**
+     * KanjiKodama: undo {@link #seedRandom(long)} and go back to unseeded randomness.
+     */
+    public static void unseedRandom() {
+        random = new Random(System.currentTimeMillis());
+        testSeed = null;
+    }
+
+    /**
+     * KanjiKodama: a new random generator, the same as {@code new Random()} unless a test seeded
+     * the randomness with {@link #seedRandom(long)}.
+     *
+     * @return the generator
+     */
+    public static Random newRandom() {
+        final @Nullable Long seed = testSeed;
+        return seed == null ? new Random() : new Random(seed);
+    }
+
+    /**
+     * KanjiKodama: {@link Collections#shuffle(List)}, but with the seeded generator if a test
+     * seeded the randomness with {@link #seedRandom(long)}.
+     *
+     * @param list the list to shuffle in place
+     */
+    public static void shuffleInPlace(final List<?> list) {
+        if (testSeed == null) {
+            Collections.shuffle(list);
+        }
+        else {
+            Collections.shuffle(list, random);
+        }
     }
 
     /**

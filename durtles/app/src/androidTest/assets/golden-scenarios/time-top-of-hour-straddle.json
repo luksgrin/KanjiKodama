@@ -1,0 +1,51 @@
+{
+ "description": "Per-answer time around the top of the hour: availableAt = topOfHour(answer + interval + 30 s), so answers at hh:59:29.999 and hh:59:30 land an hour apart. Seven level 1 radical lessons from 09:59:00 to 10:59:30 (accelerated SRS, 2 h), the review queue 1 ms before and at 12:00, then the six due reviews answered from 12:59:00 across 12:59:30 (4 h; one slip back to 2 h).",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "lesson",
+   "atMs": 1767607140000,
+   "where": {
+    "object": "radical",
+    "limit": 7
+   },
+   "offsetsSeconds": [
+    0,
+    29.999,
+    30,
+    45,
+    60,
+    3629.999,
+    3630
+   ]
+  },
+  {
+   "action": "snapshot",
+   "atMs": 1767614399999
+  },
+  {
+   "action": "snapshot",
+   "atMs": 1767614400000
+  },
+  {
+   "action": "review",
+   "atMs": 1767617940000,
+   "where": {},
+   "offsetsSeconds": [
+    0,
+    29.999,
+    30,
+    30.001,
+    59.999,
+    60
+   ],
+   "wrong": {
+    "3": [
+     1,
+     0
+    ]
+   }
+  }
+ ]
+}

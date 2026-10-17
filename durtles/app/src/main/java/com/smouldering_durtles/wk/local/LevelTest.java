@@ -16,6 +16,7 @@ import com.smouldering_durtles.wk.db.model.SessionItem;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.util.Logger;
+import com.smouldering_durtles.wk.util.ObjectSupport;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -226,7 +227,7 @@ public final class LevelTest {
         final SupportSQLiteDatabase sql = db.getOpenHelper().getWritableDatabase();
         discard(db);
         final Levels levels = levels(context, db);
-        final Random random = new Random();
+        final Random random = ObjectSupport.newRandom();
         final List<Long> ids = new ArrayList<>();
         for (final int block: TESTED_BLOCKS) {
             final List<Long> pool = new ArrayList<>();
@@ -316,7 +317,7 @@ public final class LevelTest {
         final Levels levels = levels(context, db);
         final int block = boundaryBlock(blockScores(context, db));
         final Set<Long> used = answers(sql).keySet();
-        final Random random = new Random();
+        final Random random = ObjectSupport.newRandom();
         final List<Long> ids = new ArrayList<>();
         if (block != 0) {
             for (final int l: sampledLevels(levels.levelsOf(block))) {
@@ -491,7 +492,7 @@ public final class LevelTest {
             Curriculum.switchTo(context, db, Curriculum.Mode.JLPT);
         }
         final SupportSQLiteDatabase sql = db.getOpenHelper().getWritableDatabase();
-        final long now = System.currentTimeMillis();
+        final long now = Clock.now();
         int proven = 0;
         for (final Map.Entry<Long, Integer> e: answers(sql).entrySet()) {
             if (e.getValue() <= 0) {

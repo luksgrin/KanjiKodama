@@ -47,7 +47,7 @@ public final class LocalProgression {
 
     /** Recompute level and unlocks. Safe to call often; returns the number of new unlocks. */
     public static synchronized int update(final AppDatabase db) {
-        final long now = System.currentTimeMillis();
+        final long now = Clock.now();
         final SupportSQLiteDatabase sql = db.getOpenHelper().getWritableDatabase();
 
         int level = Math.max(1, db.propertiesDao().getUserLevel());

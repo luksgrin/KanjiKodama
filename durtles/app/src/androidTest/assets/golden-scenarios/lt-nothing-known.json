@@ -1,0 +1,24 @@
+{
+ "description": "Level test where nothing is known: boundary N5, round 2 within N5, result level 1, starting at the result does not move.",
+ "mode": "JLPT",
+ "seed": 11,
+ "start": null,
+ "steps": [
+  {
+   "action": "levelTestRound",
+   "round": 1,
+   "known": "none"
+  },
+  {
+   "action": "levelTestRound",
+   "round": 2,
+   "known": "none"
+  },
+  {
+   "action": "levelTestResult"
+  },
+  {
+   "action": "levelTestStartAtResult"
+  }
+ ]
+}

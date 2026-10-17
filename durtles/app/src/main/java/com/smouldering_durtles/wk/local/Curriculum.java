@@ -370,7 +370,7 @@ public final class Curriculum {
             }
         }
         final Placement placement = Placement.of(total, passed);
-        final long now = System.currentTimeMillis();
+        final long now = Clock.now();
         final List<Long> backfill = new ArrayList<>();
         try (final Cursor c = sql.query("SELECT id FROM subject WHERE object = 'kanji' AND hiddenAt = 0 AND unlockedAt = 0 AND level < ?",
                 new Object[] {placement.level})) {

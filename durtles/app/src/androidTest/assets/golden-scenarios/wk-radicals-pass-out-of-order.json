@@ -1,0 +1,57 @@
+{
+ "description": "Kanji 三 needs radicals 一 (1) and 二 (7); 上 and 下 need ト (10) and 一 (1). Radical 7 passes first, then 10, then 1: each kanji unlocks only when its last radical passes.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "lesson",
+   "ids": [
+    10,
+    1,
+    7
+   ]
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "reviewsWhere": {
+    "ids": [
+     7
+    ]
+   },
+   "until": {
+    "passed": [
+     7
+    ]
+   }
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "reviewsWhere": {
+    "ids": [
+     10
+    ]
+   },
+   "until": {
+    "passed": [
+     10
+    ]
+   }
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "reviewsWhere": {
+    "ids": [
+     1
+    ]
+   },
+   "until": {
+    "passed": [
+     1
+    ]
+   }
+  }
+ ]
+}

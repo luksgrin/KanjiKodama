@@ -1,0 +1,21 @@
+{
+ "description": "Level test where every asked kanji is known: no boundary block, round 2 is empty and the result is the first level after N1 (Obscure). Starting there is left out: it would put about 9,000 items on probation and make the fixture huge.",
+ "mode": "JLPT",
+ "seed": 13,
+ "start": null,
+ "steps": [
+  {
+   "action": "levelTestRound",
+   "round": 1,
+   "known": "all"
+  },
+  {
+   "action": "levelTestRound",
+   "round": 2,
+   "known": "all"
+  },
+  {
+   "action": "levelTestResult"
+  }
+ ]
+}

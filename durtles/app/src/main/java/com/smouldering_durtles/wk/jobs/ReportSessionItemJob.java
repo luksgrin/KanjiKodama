@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.jobs;
 
+import com.smouldering_durtles.wk.local.Clock;
 import com.smouldering_durtles.wk.local.FastTravel;
 import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.local.LocalProgression;
@@ -215,7 +216,8 @@ public final class ReportSessionItemJob extends Job {
             db.sessionItemDao().update(item);
         }
 
-        final long ts = timestamp > 0 ? timestamp : System.currentTimeMillis();
+        // KanjiKodama: through local.Clock so golden tests can pin the time; the same as System.currentTimeMillis() otherwise.
+        final long ts = timestamp > 0 ? timestamp : Clock.now();
         boolean justPassed = false;
 
         if (type == LESSON) {

@@ -1,0 +1,26 @@
+{
+ "description": "Fresh JLPT learner jumps 1 level; every probation review answered right as it comes due (to Guru); then cooldown blocks until 72 h after the jump.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 1
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "until": {
+    "noProbation": true
+   }
+  },
+  {
+   "action": "snapshot",
+   "atHours": 71.5
+  },
+  {
+   "action": "snapshot",
+   "atHours": 72
+  }
+ ]
+}

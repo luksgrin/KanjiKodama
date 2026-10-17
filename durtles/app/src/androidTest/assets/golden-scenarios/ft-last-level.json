@@ -1,0 +1,17 @@
+{
+ "description": "JLPT learner restored at the last JLPT level (userLevel max = Curriculum.maxLevel()): fast travel is blocked.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": "max",
+    "curriculum": "JLPT"
+   }
+  },
+  {
+   "action": "snapshot"
+  }
+ ]
+}

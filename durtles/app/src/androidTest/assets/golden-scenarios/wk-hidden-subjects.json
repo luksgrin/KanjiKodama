@@ -1,0 +1,61 @@
+{
+ "description": "Levels 1 and 2 at Guru: level 3 opens. Hidden subjects (radicals 58, 59, 70; vocabulary 7668 on level 2 and 7564 on level 3) never unlock and are not lessons.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 2,
+   "levels": [
+    1,
+    2
+   ],
+   "stage": 5
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "level": 3
+   }
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "until": {
+    "passed": [
+     123,
+     357,
+     57,
+     411,
+     60,
+     61,
+     62,
+     63,
+     107,
+     65,
+     66,
+     30,
+     67,
+     68,
+     69,
+     78,
+     71,
+     72,
+     73,
+     87,
+     102,
+     210,
+     238,
+     8764,
+     8765,
+     54,
+     327
+    ]
+   },
+   "maxRounds": 10
+  }
+ ]
+}

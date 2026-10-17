@@ -1,0 +1,44 @@
+{
+ "description": "Level 1 radicals at Guru except 二 (7), an untaken lesson: kanji 二 (441, [7]) and 三 (449, [1, 7]) stay locked. Hiding radical 7 without the progression update only drops it from the lessons; the update then unlocks both kanji, because a hidden component counts as passed.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 7,
+     "stage": 0
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "hideSubject",
+   "ids": [
+    7
+   ],
+   "update": false
+  },
+  {
+   "action": "progressionUpdate"
+  },
+  {
+   "action": "lesson",
+   "ids": [
+    441,
+    449
+   ]
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "description": "Fresh start in JLPT order: hiding radical 一 (1) unlocks kanji 一 (440, [1]) as a lesson at once; 三 (449, [1, 7]) still waits for 二 (7) and unlocks when it passes.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "hideSubject",
+   "ids": [
+    1
+   ]
+  },
+  {
+   "action": "lesson",
+   "ids": [
+    7
+   ]
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "reviewsWhere": {
+    "ids": [
+     7
+    ]
+   },
+   "until": {
+    "passed": [
+     7
+    ]
+   }
+  }
+ ]
+}

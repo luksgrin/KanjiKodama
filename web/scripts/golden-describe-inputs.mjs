@@ -1,0 +1,71 @@
+// Generates the progress-file inputs for ProgressStore.describe (Tier B: ScenarioGoldenTest runs them on the device).
+// Usage: node scripts/golden-describe-inputs.mjs ../durtles/app/src/androidTest/assets/golden-inputs/progress-describe.json
+import { writeFileSync } from 'node:fs';
+const out = process.argv[2];
+const T = 1760659200000; // 2025-10-17T00:00:00Z
+const subj = (n) => Array.from({ length: n }, (_, i) => ({ id: 440 + i, srsStage: 1 + (i % 9), unlockedAt: T - 86400000, startedAt: T - 3600000 }));
+const base = (o = {}) => ({ format: 'kanjikodama-progress', version: 1, exportedAt: T, userLevel: 3, levelProgression: [], subjects: subj(2), curriculum: 'WANIKANI', probation: [], jumps: [], ...o });
+const without = (k) => { const b = base(); delete b[k]; return b; };
+const J = (o, indent) => JSON.stringify(o, null, indent);
+const cases = [
+  ['valid-minimal', J(base())],
+  ['valid-indent1-like-export', J(base(), 1)],
+  ['valid-jlpt', J(base({ curriculum: 'JLPT' }))],
+  ['valid-curriculum-lowercase-jlpt', J(base({ curriculum: 'jlpt' }))],
+  ['valid-curriculum-unknown', J(base({ curriculum: 'SOMETHING' }))],
+  ['valid-no-subjects', J(base({ subjects: [] }))],
+  ['valid-many-subjects', J(base({ subjects: subj(1234), userLevel: 27 }))],
+  ['valid-level-60', J(base({ userLevel: 60 }))],
+  ['valid-level-0', J(base({ userLevel: 0 }))],
+  ['valid-level-negative', J(base({ userLevel: -4 }))],
+  ['valid-level-string', J(base({ userLevel: '7' }))],
+  ['valid-level-float', J(base({ userLevel: 7.9 }))],
+  ['valid-level-garbage-string', J(base({ userLevel: 'seven' }))],
+  ['valid-version-0', J(base({ version: 0 }))],
+  ['valid-version-string-1', J(base({ version: '1' }))],
+  ['valid-version-float-1.5', J(base({ version: 1.5 }))],
+  ['valid-version-negative', J(base({ version: -1 }))],
+  ['legacy-mojimori', J(base({ format: 'mojimori-progress' }))],
+  ['legacy-mojimori-jlpt-no-curriculum', J((() => { const b = base({ format: 'mojimori-progress' }); delete b.curriculum; delete b.probation; delete b.jumps; return b; })())],
+  ['newer-version-2', J(base({ version: 2 }))],
+  ['newer-version-string-2', J(base({ version: '2' }))],
+  ['newer-version-99', J(base({ version: 99 }))],
+  ['newer-version-legacy-format', J(base({ format: 'mojimori-progress', version: 2 }))],
+  ['wrong-format', J(base({ format: 'wanikani-progress' }))],
+  ['format-case-differs', J(base({ format: 'KanjiKodama-progress' }))],
+  ['format-with-space', J(base({ format: 'kanjikodama-progress ' }))],
+  ['format-number', J(base({ format: 1 }))],
+  ['missing-format', J(without('format'))],
+  ['missing-version', J(without('version'))],
+  ['missing-exportedAt', J(without('exportedAt'))],
+  ['missing-userLevel', J(without('userLevel'))],
+  ['missing-subjects', J(without('subjects'))],
+  ['missing-curriculum', J(without('curriculum'))],
+  ['missing-levelProgression', J(without('levelProgression'))],
+  ['subjects-null', J(base({ subjects: null }))],
+  ['subjects-object', J(base({ subjects: { a: 1 } }))],
+  ['subjects-string', J(base({ subjects: '[]' }))],
+  ['exportedAt-zero', J(base({ exportedAt: 0 }))],
+  ['exportedAt-string-number', J(base({ exportedAt: String(T) }))],
+  ['exportedAt-iso-string', J(base({ exportedAt: '2025-10-17T00:00:00Z' }))],
+  ['exportedAt-seconds', J(base({ exportedAt: Math.floor(T / 1000) }))],
+  ['exportedAt-float', J(base({ exportedAt: T + 0.75 }))],
+  ['exportedAt-negative', J(base({ exportedAt: -86400000 }))],
+  ['exportedAt-far-future', J(base({ exportedAt: 4102444800000 }))],
+  ['extra-unknown-fields', J(base({ device: 'pixel', notes: { a: [1, 2] } }))],
+  ['unicode-notes', J(base({ subjects: [{ id: 1, meaningNote: '日本語のメモ 🐢', meaningSynonyms: '["walk"]' }] }))],
+  ['malformed-empty-string', ''],
+  ['malformed-whitespace', '   \n '],
+  ['malformed-truncated', J(base()).slice(0, 60)],
+  ['malformed-top-level-array', J([base()])],
+  ['malformed-top-level-string', '"kanjikodama-progress"'],
+  ['malformed-null', 'null'],
+  ['malformed-not-json', 'This is my progress file'],
+  ['malformed-trailing-garbage', J(base()) + ' trailing'],
+  ['malformed-single-quotes', "{'format':'kanjikodama-progress','version':1,'subjects':[]}"],
+  ['malformed-duplicate-key', '{"format":"kanjikodama-progress","version":1,"version":2,"subjects":[]}'],
+  ['bom-prefixed', '﻿' + J(base())],
+  ['empty-object', '{}'],
+];
+writeFileSync(out, JSON.stringify(cases.map(([name, text]) => ({ name, text })), null, 1) + '\n');
+console.log(cases.length, 'cases ->', out);

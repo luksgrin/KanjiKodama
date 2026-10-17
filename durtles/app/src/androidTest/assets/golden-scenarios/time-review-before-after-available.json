@@ -1,0 +1,60 @@
+{
+ "description": "Reviews due at 10:00: the queue is empty 1 ms before (review where {} answers nothing) and holds them at exactly 10:00:00.000. A review reported for a subject before its availableAt (ids, 10:59:59.999 for one due at 11:00) is processed anyway: ReportSessionItemJob does not check availability; the app's queue never offers it.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "availableInHours": 100,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 1,
+     "passed": false,
+     "availableInHours": 1
+    },
+    {
+     "id": 2,
+     "stage": 3,
+     "passed": false,
+     "availableInHours": 1
+    },
+    {
+     "id": 3,
+     "stage": 2,
+     "passed": false,
+     "availableInHours": 2
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "review",
+   "atMs": 1767607199999,
+   "where": {}
+  },
+  {
+   "action": "review",
+   "atMs": 1767607200000,
+   "where": {}
+  },
+  {
+   "action": "review",
+   "atMs": 1767610799999,
+   "ids": [
+    3
+   ]
+  },
+  {
+   "action": "snapshot",
+   "atMs": 1767610800000
+  }
+ ]
+}

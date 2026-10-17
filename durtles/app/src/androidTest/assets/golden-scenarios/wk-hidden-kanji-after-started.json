@@ -1,0 +1,72 @@
+{
+ "description": "Level 1 radicals and kanji at Guru except 三 (449, stage 3), 人 (444) and 口 (452) (stage 2), all due. Hiding the started kanji 449 drops its review (its progress stays in the export) and unlocks 三 and 三つ ([449]); 三人 ([449, 444]) waits for 444. 15 of the 17 visible kanji passed is short of 16; passing 444 levels up. Unhiding 449 brings its due review back (the level and the unlocks stay), then it is answered.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical",
+    "kanji"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 449,
+     "stage": 3
+    },
+    {
+     "id": 444,
+     "stage": 2
+    },
+    {
+     "id": 452,
+     "stage": 2
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "hideSubject",
+   "ids": [
+    449
+   ]
+  },
+  {
+   "action": "review",
+   "where": {}
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "reviewsWhere": {
+    "ids": [
+     444
+    ]
+   },
+   "until": {
+    "passed": [
+     444
+    ]
+   }
+  },
+  {
+   "action": "unhideSubject",
+   "ids": [
+    449
+   ]
+  },
+  {
+   "action": "review",
+   "ids": [
+    449
+   ]
+  }
+ ]
+}

@@ -1,0 +1,252 @@
+{
+ "description": "WaniKani import whose assignments, review statistics and study materials all name subject ids the content lacks (9540, 9999, 50000, 150000; a statistic for 60000 and a note for 70000 without assignment), plus a level progression for level 61. SubjectSyncDao.tryInsertIdOnly's id-only INSERT violates NOT NULL (typeCode, level, ...); the exception is caught, but Room's nested transaction failed, so WaniKaniImporter.apply's whole transaction (reset included) rolls back silently while the summary reports success; the user level 3 stays (properties are written outside the transaction). Then lessons, reviews, a round trip, both curriculum switches and a restore naming unknown ids 9540 and 9600 (dropped).",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "importWaniKani",
+   "api": {
+    "user": {
+     "level": 3,
+     "username": "golden-user",
+     "max_level_granted_by_subscription": 60
+    },
+    "assignments": [
+     {
+      "id": 5000000,
+      "object": "assignment",
+      "data": {
+       "subject_id": 9540,
+       "subject_type": "kanji",
+       "srs_stage": 5,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "burned_at": null,
+       "available_at": "2026-01-06T00:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000001,
+      "object": "assignment",
+      "data": {
+       "subject_id": 9999,
+       "subject_type": "vocabulary",
+       "srs_stage": 1,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-04T20:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000002,
+      "object": "assignment",
+      "data": {
+       "subject_id": 50000,
+       "subject_type": "radical",
+       "srs_stage": 0,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": null,
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": null,
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000003,
+      "object": "assignment",
+      "data": {
+       "subject_id": 150000,
+       "subject_type": "kanji",
+       "srs_stage": 2,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T03:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     }
+    ],
+    "review_statistics": [
+     {
+      "id": 6000000,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 9540,
+       "subject_type": "kanji",
+       "meaning_correct": 5,
+       "meaning_incorrect": 0,
+       "meaning_max_streak": 5,
+       "meaning_current_streak": 1,
+       "reading_correct": 5,
+       "reading_incorrect": 0,
+       "reading_max_streak": 5,
+       "reading_current_streak": 1,
+       "percentage_correct": 100,
+       "hidden": false
+      }
+     },
+     {
+      "id": 6000001,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 9999,
+       "subject_type": "vocabulary",
+       "meaning_correct": 1,
+       "meaning_incorrect": 1,
+       "meaning_max_streak": 1,
+       "meaning_current_streak": 1,
+       "reading_correct": 1,
+       "reading_incorrect": 1,
+       "reading_max_streak": 1,
+       "reading_current_streak": 1,
+       "percentage_correct": 50,
+       "hidden": false
+      }
+     },
+     {
+      "id": 6000002,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 60000,
+       "subject_type": "radical",
+       "meaning_correct": 2,
+       "meaning_incorrect": 0,
+       "meaning_max_streak": 2,
+       "meaning_current_streak": 1,
+       "reading_correct": 0,
+       "reading_incorrect": 0,
+       "reading_max_streak": 0,
+       "reading_current_streak": 1,
+       "percentage_correct": 100,
+       "hidden": false
+      }
+     }
+    ],
+    "study_materials": [
+     {
+      "id": 7000000,
+      "object": "study_material",
+      "data": {
+       "subject_id": 9999,
+       "subject_type": "vocabulary",
+       "meaning_note": "note on unknown",
+       "reading_note": null,
+       "meaning_synonyms": [
+        "syn"
+       ]
+      }
+     },
+     {
+      "id": 7000001,
+      "object": "study_material",
+      "data": {
+       "subject_id": 70000,
+       "subject_type": "kanji",
+       "meaning_note": null,
+       "reading_note": "rn only",
+       "meaning_synonyms": []
+      }
+     }
+    ],
+    "level_progressions": [
+     {
+      "id": 8000000,
+      "object": "level_progression",
+      "data": {
+       "level": 1,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": "2025-12-15T13:17:00.000000Z",
+       "completed_at": null,
+       "abandoned_at": null,
+       "created_at": "2025-11-28T21:17:00.000000Z"
+      }
+     },
+     {
+      "id": 8000001,
+      "object": "level_progression",
+      "data": {
+       "level": 61,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "completed_at": null,
+       "abandoned_at": null,
+       "created_at": "2025-11-28T21:17:00.000000Z"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 3
+   }
+  },
+  {
+   "action": "review",
+   "advanceHours": 2,
+   "where": {}
+  },
+  {
+   "action": "exportRestore"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "restore",
+   "inline": {
+    "format": "kanjikodama-progress",
+    "version": 1,
+    "exportedAt": 1767604620000,
+    "userLevel": 1,
+    "levelProgression": [],
+    "subjects": [
+     {
+      "id": 9540,
+      "srsStage": 3,
+      "unlockedAt": 1767424620000,
+      "startedAt": 1767428220000,
+      "availableAt": 1767603600000,
+      "meaningNote": "restored on placeholder"
+     },
+     {
+      "id": 9600,
+      "srsStage": 3,
+      "unlockedAt": 1767424620000,
+      "startedAt": 1767428220000,
+      "availableAt": 1767603600000
+     },
+     {
+      "id": 1,
+      "srsStage": 1,
+      "unlockedAt": 1767424620000,
+      "startedAt": 1767428220000,
+      "availableAt": 1767603600000
+     }
+    ],
+    "curriculum": "WANIKANI",
+    "probation": [],
+    "jumps": []
+   }
+  }
+ ]
+}

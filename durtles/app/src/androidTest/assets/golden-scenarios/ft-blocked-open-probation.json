@@ -1,0 +1,26 @@
+{
+ "description": "After a 2-level jump only the first due probation reviews are answered: status stays blocked with the remaining count, also after the cooldown.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 2
+  },
+  {
+   "action": "review",
+   "where": {}
+  },
+  {
+   "action": "review",
+   "advanceHours": 5,
+   "where": {
+    "limit": 3
+   }
+  },
+  {
+   "action": "snapshot",
+   "atHours": 80
+  }
+ ]
+}

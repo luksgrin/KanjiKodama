@@ -1,0 +1,30 @@
+{
+ "description": "WaniKani levels 1 to 4 at Guru (user level 5) switches to JLPT order: placement by mastered kanji, backfill kanji become lessons.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 5,
+   "levels": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "stage": 5
+  }
+ },
+ "steps": [
+  {
+   "action": "previewCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "previewCurriculum",
+   "mode": "WANIKANI"
+  }
+ ]
+}

@@ -48,8 +48,8 @@ import com.smouldering_durtles.wk.livedata.SubjectChangeListener;
 import com.smouldering_durtles.wk.livedata.SubjectChangeWatcher;
 import com.smouldering_durtles.wk.services.JobRunnerService;
 import com.smouldering_durtles.wk.util.AudioUtil;
-import com.smouldering_durtles.wk.util.KanaUtil;
 import com.smouldering_durtles.wk.util.Logger;
+import com.smouldering_durtles.wk.util.ObjectSupport;
 import com.smouldering_durtles.wk.util.PitchInfoUtil;
 
 import java.util.ArrayDeque;
@@ -706,38 +706,18 @@ s     *
             return verdict;
         }
 
-        if (currentAnswer.isEmpty()) {
-            LOGGER.info("End submit: %s current answer is empty", AnswerVerdict.NOK_WITH_RETRY);
-            return AnswerVerdict.NOK_WITH_RETRY;
+        // KanjiKodama: the empty, trailing-n, kana-only and expected-kana checks moved unchanged to
+        // SubmitPrecheck.check so golden tests can run them on the JVM.
+        final SubmitPrecheck precheck = SubmitPrecheck.check(currentQuestion.getType(), subject.getCharacters(), currentAnswer);
+        if (precheck.isTrailingNFixed()) {
+            currentAnswer = precheck.getAnswer();
+            FloatingUiState.setCurrentAnswer(currentAnswer);
+            LOGGER.info("Submit: Reading ends in 'n', replacing with 'ん': '%s'", currentAnswer);
         }
-
-        if (currentQuestion.getType().isKana()) {
-            if (currentAnswer.endsWith("n")) {
-                currentAnswer = currentAnswer.substring(0, currentAnswer.length() - 1) + "ん";
-                FloatingUiState.setCurrentAnswer(currentAnswer);
-                LOGGER.info("Submit: Reading ends in 'n', replacing with 'ん': '%s'", currentAnswer);
-            }
-            for (int i=0; i<currentAnswer.length(); i++) {
-                final char c = currentAnswer.charAt(i);
-                if (c < 0x3040 || c > 0x30FF) {
-                    LOGGER.info("End submit: %s non-kana in answer", AnswerVerdict.NOK_WITH_RETRY);
-                    return AnswerVerdict.NOK_WITH_RETRY;
-                }
-            }
-
-            // Because the user input and subject can contain both Hiragana and Katakana in addition to Kanji, we convert Katakana to Hiragana for the next check
-            // 〜 and the small Katakana ヶ have a special meaning, so it's easier to ignore/convert them
-            String subjectCharacters = subject.getCharacters().replace("〜", "").replace("ヶ", "か");
-            String normalizedSubjectCharacters = KanaUtil.convertKatakanaToHiragana(subjectCharacters);
-            String normalizedAnswer = KanaUtil.convertKatakanaToHiragana(currentAnswer);
-
-            // Check if the answer contains the subject's Kana characters in the expected order
-            String expectedKana = normalizedSubjectCharacters.replaceAll("[\\p{Script=Han}０-９]+", ".+");
-            boolean foundNecessaryKana = normalizedAnswer.matches(expectedKana);
-            if (!foundNecessaryKana) {
-                LOGGER.info("End submit: %s didn't find all expected kana", AnswerVerdict.NOK_WITH_RETRY);
-                return AnswerVerdict.NOK_WITH_RETRY;
-            }
+        final @Nullable AnswerVerdict rejection = precheck.getRejection();
+        if (rejection != null) {
+            LOGGER.info("End submit: %s pre-check failed: %s", rejection, precheck.getReason());
+            return rejection;
         }
 
         final AnswerVerdict verdict = currentQuestion.checkAnswer(matchingKanji, currentAnswer.trim(),
@@ -1400,7 +1380,8 @@ s     *
 
         List<Subject> list = new ArrayList<>(subjects);
         if (shuffle) {
-            Collections.shuffle(list);
+            // KanjiKodama: through ObjectSupport so golden tests can seed it; Collections.shuffle(list) otherwise.
+            ObjectSupport.shuffleInPlace(list);
         }
 
         Collections.sort(list, comparator);

@@ -1,0 +1,21 @@
+{
+ "description": "Fresh learner previews and switches to JLPT order: subjects are rewritten into JLPT levels, placement at level 1, JLPT level 1 lessons.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "previewCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 10
+   }
+  }
+ ]
+}

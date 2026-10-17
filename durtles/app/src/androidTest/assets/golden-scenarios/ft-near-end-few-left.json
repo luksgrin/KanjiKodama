@@ -1,0 +1,35 @@
+{
+ "description": "Options near the end of the JLPT order (nothing started): at max-5 all 5 options, the last one being the last level; at max-4, max-3 and max-2 the options stop at the last level (4, 3, 2 options) instead of reaching 5 levels ahead, so no jump past the last level is offered.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": "max-5",
+    "curriculum": "JLPT"
+   }
+  },
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": "max-4",
+    "curriculum": "JLPT"
+   }
+  },
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": "max-3",
+    "curriculum": "JLPT"
+   }
+  },
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": "max-2",
+    "curriculum": "JLPT"
+   }
+  }
+ ]
+}

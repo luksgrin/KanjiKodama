@@ -1,0 +1,21 @@
+{
+ "description": "Fresh start, every lesson taken and every review answered right as soon as it is due, until level 2: radicals unlock kanji, kanji unlock vocabulary, the level-up unlocks level 2 including its kana-only vocabulary.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "grind",
+   "until": {
+    "level": 2
+   }
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "object": [
+     "kana_vocabulary"
+    ]
+   }
+  }
+ ]
+}

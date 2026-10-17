@@ -1,0 +1,28 @@
+{
+ "description": "Previews of both orders from a WaniKani learner with levels 1 to 3 at Guru, without switching: nothing changes.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 4,
+   "levels": [
+    1,
+    2,
+    3
+   ],
+   "stage": 5
+  }
+ },
+ "steps": [
+  {
+   "action": "previewCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "previewCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "place"
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "description": "JLPT level 1 (40 kanji with the current content, 36 needed): all but the last 5 kanji passed, those 5 at stage 4. Hiding one unpassed kanji leaves 35 of 39 (36 needed): no level-up; hiding a second leaves 35 of 38 (35 needed): level 2. The kanji are picked on the device from the app's JLPT layout (generate.tail, hideSubject.where); result.subjects records which.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": 1,
+    "curriculum": "JLPT",
+    "levels": [
+     1
+    ],
+    "stage": 5,
+    "tail": {
+     "objects": [
+      "kanji"
+     ],
+     "count": 5,
+     "stage": 4,
+     "availableInHours": 50
+    }
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 1,
+    "maxStage": 4,
+    "limit": 1
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 1,
+    "maxStage": 4,
+    "limit": 1
+   }
+  }
+ ]
+}

@@ -1,0 +1,38 @@
+{
+ "description": "Export, restore, export after real lessons and reviews in WaniKani order (with a wrong answer and notes-free progress): the two exports must be identical; restoring the start file again resets.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "grind",
+   "until": {
+    "passed": [
+     1,
+     6,
+     2,
+     3,
+     5,
+     7,
+     8,
+     18,
+     9,
+     12
+    ]
+   },
+   "wrongOnce": {
+    "2": [
+     1,
+     0
+    ]
+   },
+   "maxRounds": 12
+  },
+  {
+   "action": "exportRestore"
+  },
+  {
+   "action": "restore",
+   "fromStep": 0
+  }
+ ]
+}

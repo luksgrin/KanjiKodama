@@ -1,0 +1,29 @@
+{
+ "description": "JLPT learner fast-travels 1 level, answers some probation reviews, then switches to WaniKani order (probation and jumps stay in the tables).",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 1
+  },
+  {
+   "action": "review",
+   "advanceHours": 12,
+   "where": {},
+   "wrongEveryNth": {
+    "n": 3,
+    "meaning": 1,
+    "reading": 1
+   }
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  }
+ ]
+}

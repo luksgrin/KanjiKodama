@@ -1,0 +1,132 @@
+{
+ "description": "Review outcome processing on chosen stages: Apprentice to Guru (passedAt), Enlightened to Burned (burnedAt, no next review), Enlightened dropping, Guru dropping (passedAt kept), meaning and reading slips, streaks and percentage across two rounds.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 1,
+     "passed": false
+    },
+    {
+     "id": 440,
+     "stage": 4
+    },
+    {
+     "id": 441,
+     "stage": 8
+    },
+    {
+     "id": 442,
+     "stage": 8
+    },
+    {
+     "id": 443,
+     "stage": 6
+    },
+    {
+     "id": 444,
+     "stage": 5
+    },
+    {
+     "id": 2467,
+     "stage": 2
+    },
+    {
+     "id": 2468,
+     "stage": 3
+    },
+    {
+     "id": 445,
+     "stage": 7,
+     "set": {
+      "meaningCorrect": 10,
+      "meaningIncorrect": 3,
+      "meaningMaxStreak": 7,
+      "meaningCurrentStreak": 2,
+      "readingCorrect": 9,
+      "readingIncorrect": 1,
+      "readingMaxStreak": 9,
+      "readingCurrentStreak": 9,
+      "percentageCorrect": 82
+     }
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "review",
+   "where": {
+    "ids": [
+     1,
+     440,
+     441,
+     442,
+     443,
+     444,
+     2467,
+     2468,
+     445
+    ]
+   },
+   "wrong": {
+    "1": [
+     1,
+     0
+    ],
+    "442": [
+     1,
+     0
+    ],
+    "443": [
+     2,
+     3
+    ],
+    "444": [
+     0,
+     1
+    ],
+    "2467": [
+     0,
+     1
+    ],
+    "445": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "action": "review",
+   "advanceHours": 200,
+   "where": {
+    "ids": [
+     1,
+     440,
+     442,
+     443,
+     444,
+     2467,
+     2468,
+     445
+    ]
+   },
+   "wrong": {
+    "2468": [
+     3,
+     0
+    ]
+   }
+  }
+ ]
+}

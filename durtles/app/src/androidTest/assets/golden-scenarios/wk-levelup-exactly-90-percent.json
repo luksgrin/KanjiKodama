@@ -1,0 +1,64 @@
+{
+ "description": "Level 4 has 40 kanji: 35 passed (87.5 %) is not enough, the 36th (exactly 90 %) levels up to 5. Levels 1 to 4 are otherwise at Guru.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 4,
+   "levels": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 562,
+     "stage": 4
+    },
+    {
+     "id": 563,
+     "stage": 1,
+     "availableInHours": 10
+    },
+    {
+     "id": 564,
+     "stage": 1,
+     "availableInHours": 10
+    },
+    {
+     "id": 1520,
+     "stage": 1,
+     "availableInHours": 10
+    },
+    {
+     "id": 493,
+     "stage": 1,
+     "availableInHours": 10
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "review",
+   "ids": [
+    562
+   ]
+  },
+  {
+   "action": "review",
+   "advanceHours": 10,
+   "where": {},
+   "wrong": {
+    "563": [
+     1,
+     1
+    ]
+   }
+  }
+ ]
+}

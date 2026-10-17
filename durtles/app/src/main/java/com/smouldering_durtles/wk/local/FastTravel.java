@@ -89,7 +89,7 @@ public final class FastTravel {
             return new Status(level, "Answer the " + pending + " remaining probation reviews from your last jump first.", options);
         }
         final long last = lastJump(sql);
-        final long wait = last + COOLDOWN - System.currentTimeMillis();
+        final long wait = last + COOLDOWN - Clock.now();
         if (last > 0 && wait > 0) {
             final long hours = (wait + HOUR - 1) / HOUR;
             return new Status(level, "The next fast travel is available in " + (hours >= 24 ? (hours / 24) + " d " + (hours % 24) + " h" : hours + " h") + ".", options);
@@ -141,7 +141,7 @@ public final class FastTravel {
         final SupportSQLiteDatabase sql = db.getOpenHelper().getWritableDatabase();
         Curriculum.ensureTables(sql);
         final int from = Math.max(1, db.propertiesDao().getUserLevel());
-        final long now = System.currentTimeMillis();
+        final long now = Clock.now();
         final long firstSlot = now - now % HOUR;
         final int slots = (int) Math.max(1, window / HOUR);
 

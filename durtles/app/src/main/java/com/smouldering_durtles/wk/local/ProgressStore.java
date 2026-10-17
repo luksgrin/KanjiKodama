@@ -106,7 +106,7 @@ public final class ProgressStore {
         final JSONObject root = new JSONObject();
         root.put("format", FORMAT);
         root.put("version", VERSION);
-        root.put("exportedAt", System.currentTimeMillis());
+        root.put("exportedAt", Clock.now());
         root.put("userLevel", db.propertiesDao().getUserLevel());
 
         final JSONArray levels = new JSONArray();

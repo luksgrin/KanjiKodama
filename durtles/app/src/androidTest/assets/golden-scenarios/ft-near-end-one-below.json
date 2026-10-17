@@ -1,0 +1,18 @@
+{
+ "description": "JLPT learner restored one level below the last (userLevel max-1, nothing started): fast travel offers exactly one option, the last level; the 1-level jump puts that level's kanji and vocabulary on probation and the status is then blocked by the open probation.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": "max-1",
+    "curriculum": "JLPT"
+   }
+  },
+  {
+   "action": "fastTravel",
+   "levels": 1
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+{
+ "description": "Fresh start, radical ト (10) hidden at once: it is no longer a lesson, but 上 (450) and 下 (451), [10, 1], still wait for 一 (1). Passing 1 unlocks 一, 上 and 下 (not 三, which needs 二 (7) too); passing 7 then unlocks 二 and 三.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "hideSubject",
+   "ids": [
+    10
+   ]
+  },
+  {
+   "action": "lesson",
+   "ids": [
+    1,
+    7
+   ]
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "reviewsWhere": {
+    "ids": [
+     1
+    ]
+   },
+   "until": {
+    "passed": [
+     1
+    ]
+   }
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "reviewsWhere": {
+    "ids": [
+     7
+    ]
+   },
+   "until": {
+    "passed": [
+     7
+    ]
+   }
+  }
+ ]
+}

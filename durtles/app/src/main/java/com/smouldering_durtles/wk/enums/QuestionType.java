@@ -68,7 +68,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             final Collection<String> accepted = new HashSet<>();
             final Collection<String> rejected = new HashSet<>();
             for (final Meaning m: subject.getMeanings()) {
@@ -134,7 +135,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             final Collection<String> accepted = new HashSet<>();
             final Collection<String> rejected = new HashSet<>();
             for (final Meaning m: subject.getMeanings()) {
@@ -200,7 +202,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             final Collection<String> accepted = new HashSet<>();
             final Collection<String> rejected = new HashSet<>();
             for (final Meaning m: subject.getMeanings()) {
@@ -266,7 +269,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             final Collection<String> accepted = new HashSet<>();
             final Collection<String> rejected = new HashSet<>();
             for (final Meaning m: subject.getMeanings()) {
@@ -337,9 +341,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
-            final boolean requireOnInKatakana = GlobalSettings.Other.getRequireOnInKatakana();
-
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             for (final Reading r: subject.getReadings()) {
                 if (r.isAcceptedAnswer() && r.matches(answer, requireOnInKatakana)) {
                     return new AnswerVerdict(true, false, false, answer, r.getReading(), null);
@@ -399,9 +402,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
-            final boolean requireOnInKatakana = GlobalSettings.Other.getRequireOnInKatakana();
-
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             for (final Reading r: subject.getReadings()) {
                 if (r.isAcceptedAnswer() && r.matches(answer, requireOnInKatakana)) {
                     return new AnswerVerdict(true, false, false, answer, r.getReading(), null);
@@ -469,9 +471,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
-            final boolean requireOnInKatakana = GlobalSettings.Other.getRequireOnInKatakana();
-
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             for (final Reading r: subject.getOnYomiReadings()) {
                 if (r.isAcceptedAnswer() && r.matches(answer, requireOnInKatakana)) {
                     return new AnswerVerdict(true, false, false, answer, r.getReading(), null);
@@ -537,9 +538,8 @@ public enum QuestionType {
 
         @Override
         public AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
-                                         final String answer, final CloseEnoughAction closeEnoughAction) {
-            final boolean requireOnInKatakana = GlobalSettings.Other.getRequireOnInKatakana();
-
+                                         final String answer, final CloseEnoughAction closeEnoughAction,
+                                         final boolean requireOnInKatakana) {
             for (final Reading r: subject.getKunYomiReadings()) {
                 if (r.isAcceptedAnswer() && r.matches(answer, requireOnInKatakana)) {
                     return new AnswerVerdict(true, false, false, answer, r.getReading(), null);
@@ -697,8 +697,27 @@ public enum QuestionType {
      * @param closeEnoughAction action for an answer that is close enough for typo lenience.
      * @return the verdict for this answer
      */
+    public final AnswerVerdict checkAnswer(final Subject subject, final @Nullable Subject matchingKanji,
+                                           final String answer, final CloseEnoughAction closeEnoughAction) {
+        return checkAnswer(subject, matchingKanji, answer, closeEnoughAction, GlobalSettings.Other.getRequireOnInKatakana());
+    }
+
+    /**
+     * Check a given answer to this question type with an explicit "require on'yomi in katakana" setting.
+     *
+     * <p>KanjiKodama: split out of {@link #checkAnswer(Subject, Subject, String, CloseEnoughAction)} so golden
+     * tests can check answers for both values of the setting without touching the app's preferences.</p>
+     *
+     * @param subject the subject this question is for
+     * @param matchingKanji if this subject is a vocab item that consists of only one kanji character, this is that kanji.
+     * @param answer the user's answer
+     * @param closeEnoughAction action for an answer that is close enough for typo lenience.
+     * @param requireOnInKatakana true if on'yomi readings must be typed in katakana (the "require on'yomi in katakana" setting)
+     * @return the verdict for this answer
+     */
     public abstract AnswerVerdict checkAnswer(Subject subject, @Nullable Subject matchingKanji,
-                                              String answer, CloseEnoughAction closeEnoughAction);
+                                              String answer, CloseEnoughAction closeEnoughAction,
+                                              boolean requireOnInKatakana);
 
     /**
      * Get this question type's accepted answers as a formatted string for Anki mode.
