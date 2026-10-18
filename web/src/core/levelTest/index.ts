@@ -2,8 +2,8 @@
  * Level test rounds, block scores, boundary, sampled levels, result, startAtResult. Java:
  * local/LevelTest. Fixtures: levelTest/*, scenarios/lt-*.
  *
- * So far the pure estimators (levelTest/estimators.json); the rounds and the result need the
- * curriculum layout and progress and come with the level-test flow.
+ * `estimators.ts`: the pure estimators (levelTest/estimators.json). `status.ts`: the stored status.
+ * `flow.ts`: the rounds, the result, start-at-result and the session hook over a `LearnerDb`.
  */
 export {
   KNOWN_THRESHOLD,
@@ -23,3 +23,18 @@ export {
   type LevelTestAnswers,
 } from './estimators';
 export { LEVEL_TEST_STATUSES, discardLevelTest, levelTestStatus, setLevelTestStatus, type LevelTestStatus } from './status';
+export {
+  isRoundActive,
+  levelTestBlockScores,
+  levelTestBoundaryBlock,
+  levelTestPrompted,
+  levelTestResult,
+  onSessionFinishing,
+  setLevelTestPrompted,
+  startAtResult,
+  startRound1,
+  startRound2,
+  type FinishedSessionItem,
+  type LevelTestOutcome,
+  type LevelTestResult,
+} from './flow';

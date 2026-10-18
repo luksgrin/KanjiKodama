@@ -31,3 +31,5 @@ export function shakeOnMatchingKanji(prefs: Preferences): boolean {
 
 /** `SessionType`. `NONE` reads the self-study settings where Java falls through to them. */
 export type SessionType = 'LESSON' | 'REVIEW' | 'SELF_STUDY' | 'NONE';
+
+export * from './session';

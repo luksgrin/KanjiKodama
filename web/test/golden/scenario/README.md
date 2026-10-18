@@ -29,26 +29,11 @@ the one option a fixture doesn't carry (`exportMode`).
 Run: `npx vitest run test/golden/scenarios.golden.test.ts -t <scenario-name>`; results per file are
 in `test/golden-results/scenarios__<name>.json.json`.
 
-## Status (wave 2a)
+## Status (end of step 3)
 
-51 of 109 scenarios pass completely; every other one fails first on an action that isn't ported yet
-(no failure is a wrong result of a ported action).
-
-| Prefix | Passing | Blocked by |
-|---|---|---|
-| wk-* | 13/13 | |
-| time-* | 9/9 | |
-| ft-* | 11/11 | |
-| jlpt-* | 5/5 | |
-| progress-* | 3/3 | |
-| restore-* | 3/3 | |
-| cur-* | 5/6 | importWaniKani |
-| reminder-* | 2/3 | importWaniKani |
-| import-* | 0/12 | importWaniKani |
-| lt-* | 0/5 | levelTestRound |
-| real-progress | 0/1 | dashboard, then session* |
-| anki-* | 0/6 | session* |
-| session-* | 0/32 | session* |
+All 109 scenarios replay exactly (821 of 821 steps), with no exceptions. Every action in the
+inventory below is implemented. Together with the other fixtures: 172 of 172 files, 387,902 of
+387,902 cases pass (`npm run golden:coverage`).
 
 ## Action inventory
 
@@ -71,26 +56,26 @@ missing action.
 | place | 1 | | actions/curriculum.ts |
 | advance | 1 | | actions/base.ts |
 | progressionUpdate | 1 | | actions/base.ts |
-| sessionStart | 39 | 38 | TODO wave 2b: session engine |
-| sessionAnswer | 35 | | TODO wave 2b: session engine |
-| sessionFinish | 29 | | TODO wave 2b: session engine |
-| importWaniKani | 14 | 14 | TODO wave 2b: importer |
-| sessionStartQuiz | 10 | | TODO wave 2b: session engine (lesson presentation) |
-| sessionAbandon | 7 | | TODO wave 2b: session engine |
-| levelTestRound | 5 | 5 | TODO wave 2b: level test |
-| levelTestResult | 5 | | TODO wave 2b: level test |
-| sessionButton | 5 | | TODO wave 2b: session engine (undo, ignore, skip, lightning toggle) |
-| levelTestStartAtResult | 3 | | TODO wave 2b: level test |
-| sessionWrapUp | 3 | | TODO wave 2b: session engine |
-| sessionRestart | 3 | | TODO wave 2b: session engine (resume from saved items) |
-| sessionBackToPresentation | 3 | | TODO wave 2b: session engine (lesson presentation) |
-| sessionAdvance | 2 | | TODO wave 2b: session engine |
-| sessionPresentationNext | 2 | | TODO wave 2b: session engine (lesson presentation) |
-| sessionInspect | 2 | | TODO wave 2b: session engine |
-| sessionAnkiButton | 1 | | TODO wave 2b: session engine (Anki path, `core/anki`) |
-| levelTestDiscard | 1 | | TODO wave 2b: level test |
-| dashboard | 1 | 1 | TODO wave 2b: dashboard |
-| sessionPresentationPrevious | 1 | | TODO wave 2b: session engine (lesson presentation) |
+| sessionStart | 39 | | actions/session.ts (`core/session` `Session`) |
+| sessionAnswer | 35 | | actions/session.ts (`core/session` `Session`) |
+| sessionFinish | 29 | | actions/session.ts (`core/session` `Session`) |
+| importWaniKani | 14 | | actions/importer.ts (`core/importer`) |
+| sessionStartQuiz | 10 | | actions/session.ts (`core/session` `Session`) |
+| sessionAbandon | 7 | | actions/session.ts (`core/session` `Session`) |
+| levelTestRound | 5 | | actions/levelTest.ts (`core/levelTest` `startRound1/2`, `onSessionFinishing`) |
+| levelTestResult | 5 | | actions/levelTest.ts |
+| sessionButton | 5 | | actions/session.ts (`core/session` `Session`) |
+| levelTestStartAtResult | 3 | | actions/levelTest.ts |
+| sessionWrapUp | 3 | | actions/session.ts (`core/session` `Session`) |
+| sessionRestart | 3 | | actions/session.ts (`core/session` `Session`) |
+| sessionBackToPresentation | 3 | | actions/session.ts (`core/session` `Session`) |
+| sessionAdvance | 2 | | actions/session.ts (`core/session` `Session`) |
+| sessionPresentationNext | 2 | | actions/session.ts (`core/session` `Session`) |
+| sessionInspect | 2 | | actions/session.ts (`core/session` `Session`) |
+| sessionAnkiButton | 1 | | actions/session.ts (`core/session` `Session`) |
+| levelTestDiscard | 1 | | actions/levelTest.ts |
+| dashboard | 1 | | actions/dashboard.ts (`core/dashboard`: timeline, level progress, SRS breakdown; settings from `rs.ext.prefs`, Java defaults without it) |
+| sessionPresentationPrevious | 1 | | actions/session.ts (`core/session` `Session`) |
 
 Also outside the scenarios: `answers/synonyms-storage.json` (no adapter yet) needs the importer and
 the restore/progression ported here.
@@ -128,3 +113,27 @@ switching) and `core/fastTravel` are done and shared: extend them only for a rea
    steps (its sessions need agent 3).
 
 Fast travel, the probation/reminder snapshots and curriculum switching were done in wave 2a.
+
+## Level test hooks for the session engine
+
+`sessionStart {type: SELF_STUDY, levelTestRound: 1 | 2}` (session-self-study-level-test,
+session-level-test-restart) picks its subjects with `startRound1(db, rng)` / `startRound2(db, rng)`
+from `core/levelTest`, where `rng` is `levelTestRandom(rs)` from `actions/levelTest.ts` (Java's
+`ObjectSupport.newRandom()`: a fresh `JavaRandom` with the test seed, not the shared `rs.rng`). Both
+return subject ids in pick order and set the persisted round flag (`isRoundActive(db)`).
+When a session finishes (`Session.finish`, before the items are cleared) the engine calls
+`onSessionFinishing(db, sessionType, items)` with every session item as
+`{id, hasIncorrectAnswers, abandoned, finished}` (`SessionItem.hasIncorrectAnswers`, `isAbandoned`,
+`isFinished`: state not ACTIVE, or all questions done). It records the answers only for a round's
+exact ids and clears the flag; the flag is persisted state, so a restarted session still counts.
+
+## Session engine (wave 2b)
+
+`actions/session.ts` implements all 14 `session*` actions on `core/session`'s `Session` (a port of
+`model/Session`, `Question` and `SessionItem`). State: `rs.ext.session` is the stored part
+(`session_item` rows and the session properties; `restore` deletes it, and the live session is then
+`reset()` like `ProgressStore.restore` does), `rs.ext.sessionLive` the live `Session` (replaced on
+`sessionRestart`, then `load()`), `rs.ext.prefs` the preferences the steps set. Jobs run at once in
+scheduling order and are listed per step; ordering comes from `settingsOrdering`, the level test hooks
+from `core/levelTest` (`onSessionFinishing`, the round flag). With it every scenario replays: 821 of
+821 steps.

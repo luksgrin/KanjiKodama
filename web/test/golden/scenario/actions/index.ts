@@ -6,9 +6,13 @@
 import type { ActionHandler } from '../runner';
 import { baseActions } from './base';
 import { curriculumActions } from './curriculum';
+import { dashboardActions } from './dashboard';
 import { fastTravelActions } from './fastTravel';
+import { importerActions } from './importer';
+import { levelTestActions } from './levelTest';
+import { sessionActions } from './session';
 
-const groups: Record<string, ActionHandler>[] = [baseActions, curriculumActions, fastTravelActions];
+const groups: Record<string, ActionHandler>[] = [baseActions, curriculumActions, fastTravelActions, importerActions, levelTestActions, dashboardActions, sessionActions];
 
 export const actions: Readonly<Record<string, ActionHandler>> = (() => {
   const out: Record<string, ActionHandler> = {};
