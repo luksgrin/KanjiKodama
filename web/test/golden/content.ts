@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import initSqlJs, { type Database } from 'sql.js';
 import type { Content } from '../../src/core/content';
 import { readContent } from '../../src/content/readContent';
+import { mergeExtraContent } from '../../src/content/extraContent';
 
 /** `durtles/app/src/main/assets/wk-content.db`, or `GOLDEN_CONTENT_DB` if set. */
 export const CONTENT_DB_PATH =
@@ -37,4 +38,29 @@ export function contentDb(): Promise<Database> {
 export function loadContent(): Promise<Content> {
   contentPromise ??= contentDb().then(readContent);
   return contentPromise;
+}
+
+/** `durtles/app/src/main/assets/extra-kanji.db` (private like the content DB). */
+export const EXTRA_DB_PATH = fileURLToPath(new URL('../../../durtles/app/src/main/assets/extra-kanji.db', import.meta.url));
+
+let extrasPromise: Promise<Content> | undefined;
+
+/**
+ * The content as the Android app's database holds it: WaniKani content plus the extra kanji and words
+ * (`ExtraContent.ensureImported`, ids from 100000). Device (Tier B) fixtures were recorded on this.
+ */
+export function loadContentWithExtras(): Promise<Content> {
+  extrasPromise ??= (async () => {
+    const base = await loadContent();
+    if (!existsSync(EXTRA_DB_PATH)) return base;
+    const require = createRequire(import.meta.url);
+    const SQL = await initSqlJs({ locateFile: (f: string) => require.resolve(`sql.js/dist/${f}`) });
+    const extra = new SQL.Database(readFileSync(EXTRA_DB_PATH));
+    try {
+      return mergeExtraContent(base, extra);
+    } finally {
+      extra.close();
+    }
+  })();
+  return extrasPromise;
 }

@@ -26,6 +26,16 @@ golden fixtures (`web/test/golden/`, see the README there) pass.
   reason (see below). Name functions after their Java source and cite it in a doc comment
   (`` `util/FuzzyMatching.cleanString` ``).
 
+## Shared helpers outside the module folders
+
+- `settings/`: the user's settings (`Preferences`, the `SharedPreferences` values by key) and getters named
+  after their `GlobalSettings` method, with Java's defaults and the `enable_advanced` gate. Add the ones
+  your module needs there.
+- `text/richText.ts`: `escapeHtml` and `renderHtml` (`HtmlCompat` compact mode for the small markup the
+  logic builds) as `{text, spans}`, for subject info lines and Anki answers.
+- Java exceptions: throw `JavaException` from `kana/javaException.ts` (`javaClass` is the simple class name
+  the fixtures record).
+
 ## Java vs JavaScript pitfalls
 
 - **Integers.** Java `int` division truncates: `Math.trunc(a / b)`. `%` behaves the same for
