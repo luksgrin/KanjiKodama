@@ -59,6 +59,7 @@
     {"name":"malformed-single-quotes","input":{"text":"{'format':'kanjikodama-progress','version':1,'subjects':[]}"},"output":{"ok":true,"summary":"Saved Jan 1, 1970 12:00 AM, WaniKani order, level 1, 0 items with progress.","exportedAt":0}},
     {"name":"malformed-duplicate-key","input":{"text":"{\"format\":\"kanjikodama-progress\",\"version\":1,\"version\":2,\"subjects\":[]}"},"output":{"ok":false,"error":"java.lang.IllegalArgumentException","message":"This progress file was made by a newer KanjiKodama.","exportedAt":0}},
     {"name":"bom-prefixed","input":{"text":"﻿{\"format\":\"kanjikodama-progress\",\"version\":1,\"exportedAt\":1760659200000,\"userLevel\":3,\"levelProgression\":[],\"subjects\":[{\"id\":440,\"srsStage\":1,\"unlockedAt\":1760572800000,\"startedAt\":1760655600000},{\"id\":441,\"srsStage\":2,\"unlockedAt\":1760572800000,\"startedAt\":1760655600000}],\"curriculum\":\"WANIKANI\",\"probation\":[],\"jumps\":[]}"},"output":{"ok":true,"summary":"Saved Oct 17, 2025 12:00 AM, WaniKani order, level 3, 2 items with progress.","exportedAt":1760659200000}},
-    {"name":"empty-object","input":{"text":"{}"},"output":{"ok":false,"error":"java.lang.IllegalArgumentException","message":"This is not a KanjiKodama progress file.","exportedAt":0}}
+    {"name":"empty-object","input":{"text":"{}"},"output":{"ok":false,"error":"java.lang.IllegalArgumentException","message":"This is not a KanjiKodama progress file.","exportedAt":0}},
+    {"name":"real-android-export","input":{"file":"progress/android-export.json"},"output":{"ok":true,"summary":"Saved Oct 18, 2026 4:37 AM, JLPT order, level 6, 1034 items with progress.","exportedAt":1792298260372}}
   ]
 }

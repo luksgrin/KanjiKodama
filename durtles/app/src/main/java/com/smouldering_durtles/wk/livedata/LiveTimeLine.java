@@ -26,6 +26,7 @@ import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.model.Subject;
+import com.smouldering_durtles.wk.local.Clock;
 import com.smouldering_durtles.wk.model.TimeLine;
 import com.smouldering_durtles.wk.util.AudioUtil;
 import com.smouldering_durtles.wk.util.PitchInfoUtil;
@@ -62,38 +63,9 @@ public final class LiveTimeLine extends ConservativeLiveData<TimeLine> {
     @Override
     protected void updateLocal() {
         final AppDatabase db = WkApplication.getDatabase();
-        final int maxLevel = db.propertiesDao().getUserMaxLevelGranted();
         final int userLevel = db.propertiesDao().getUserLevel();
-        final boolean vacationMode = db.propertiesDao().getVacationMode();
-
-        final Collection<Long> levelUpIds = db.subjectCollectionsDao().getLevelUpIds(userLevel, maxLevel);
-
-        final int size = GlobalSettings.Dashboard.getTimeLineChartSize();
-        final TimeLine timeLine = new TimeLine(size);
         final Collection<Subject> scanSubjects = new ArrayList<>();
-
-        if (!vacationMode) {
-            db.subjectCollectionsDao().getAvailableLessonItems(maxLevel).forEach(subject -> {
-                timeLine.addLesson(subject);
-                scanSubjects.add(subject);
-            });
-
-            final long ahead = size * HOUR;
-            final long cutoff = System.currentTimeMillis() + ahead;
-            db.subjectCollectionsDao().getUpcomingReviewItems(maxLevel, cutoff).forEach(subject -> {
-                timeLine.addReview(subject, !subject.isPassed() && levelUpIds.contains(subject.getId()));
-                scanSubjects.add(subject);
-            });
-
-            final long longDate = db.subjectAggregatesDao().getNextLongTermReviewDate(maxLevel, getTopOfHour(cutoff));
-            timeLine.setLongTermUpcomingReviewDate(longDate);
-            if (longDate == 0) {
-                timeLine.setNumLongTermUpcomingReviews(0);
-            }
-            else {
-                timeLine.setNumLongTermUpcomingReviews(db.subjectAggregatesDao().getNextLongTermReviewCount(maxLevel, longDate));
-            }
-        }
+        final TimeLine timeLine = computeTimeLine(db, scanSubjects);
 
         instance.postValue(timeLine);
 
@@ -113,6 +85,51 @@ public final class LiveTimeLine extends ConservativeLiveData<TimeLine> {
                 db.propertiesDao().setLastPitchInfoScanDate(System.currentTimeMillis());
             }
         }
+    }
+
+    /**
+     * KanjiKodama: the timeline part of updateLocal, moved here unchanged so golden tests can run it. The cutoff reads
+     * Clock.now(), which is System.currentTimeMillis() unless a golden test pinned it.
+     *
+     * @param db the database
+     * @param scanSubjects receives the lessons and upcoming reviews, for the audio scan
+     * @return the timeline
+     */
+    @SuppressLint("NewApi")
+    public static TimeLine computeTimeLine(final AppDatabase db, final Collection<? super Subject> scanSubjects) {
+        final int maxLevel = db.propertiesDao().getUserMaxLevelGranted();
+        final int userLevel = db.propertiesDao().getUserLevel();
+        final boolean vacationMode = db.propertiesDao().getVacationMode();
+
+        final Collection<Long> levelUpIds = db.subjectCollectionsDao().getLevelUpIds(userLevel, maxLevel);
+
+        final int size = GlobalSettings.Dashboard.getTimeLineChartSize();
+        final TimeLine timeLine = new TimeLine(size);
+
+        if (!vacationMode) {
+            db.subjectCollectionsDao().getAvailableLessonItems(maxLevel).forEach(subject -> {
+                timeLine.addLesson(subject);
+                scanSubjects.add(subject);
+            });
+
+            final long ahead = size * HOUR;
+            final long cutoff = Clock.now() + ahead;
+            db.subjectCollectionsDao().getUpcomingReviewItems(maxLevel, cutoff).forEach(subject -> {
+                timeLine.addReview(subject, !subject.isPassed() && levelUpIds.contains(subject.getId()));
+                scanSubjects.add(subject);
+            });
+
+            final long longDate = db.subjectAggregatesDao().getNextLongTermReviewDate(maxLevel, getTopOfHour(cutoff));
+            timeLine.setLongTermUpcomingReviewDate(longDate);
+            if (longDate == 0) {
+                timeLine.setNumLongTermUpcomingReviews(0);
+            }
+            else {
+                timeLine.setNumLongTermUpcomingReviews(db.subjectAggregatesDao().getNextLongTermReviewCount(maxLevel, longDate));
+            }
+        }
+
+        return timeLine;
     }
 
     @Override

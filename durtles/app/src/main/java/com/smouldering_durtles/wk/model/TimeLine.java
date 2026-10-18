@@ -17,6 +17,7 @@
 package com.smouldering_durtles.wk.model;
 
 import com.smouldering_durtles.wk.db.model.Subject;
+import com.smouldering_durtles.wk.local.Clock;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +46,8 @@ public final class TimeLine {
      * @param size the size of the timeline in hours.
      */
     public TimeLine(final int size) {
-        createdAt = System.currentTimeMillis();
+        // KanjiKodama: Clock.now() is System.currentTimeMillis() unless a golden test pinned it.
+        createdAt = Clock.now();
         for (int i = 0; i < size; i++) {
             timeLine.add(new ArrayList<>());
             numRequiredForLevelUp.add(0);

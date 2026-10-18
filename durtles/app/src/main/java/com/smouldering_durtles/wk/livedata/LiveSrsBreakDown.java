@@ -52,13 +52,23 @@ public final class LiveSrsBreakDown extends ConservativeLiveData<SrsBreakDown> {
     @SuppressLint("NewApi")
     @Override
     protected void updateLocal() {
-        final AppDatabase db = WkApplication.getDatabase();
+        instance.postValue(computeBreakDown(WkApplication.getDatabase()));
+    }
+
+    /**
+     * KanjiKodama: the computation of updateLocal, moved here unchanged so golden tests can run it.
+     *
+     * @param db the database
+     * @return the SRS breakdown
+     */
+    @SuppressLint("NewApi")
+    public static SrsBreakDown computeBreakDown(final AppDatabase db) {
         final SrsBreakDown breakDown = new SrsBreakDown();
         db.subjectViewsDao().getSrsBreakDownItems().forEach(item -> {
             final SrsSystem.Stage stage = SrsSystemRepository.getSrsSystem(item.getSystemId()).getStage(item.getStageId());
             breakDown.addCount(stage, item.getCount());
         });
-        instance.postValue(breakDown);
+        return breakDown;
     }
 
     @Override

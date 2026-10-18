@@ -30,6 +30,9 @@ import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.enums.SessionItemState;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.jobs.ReportSessionItemJob;
+import com.smouldering_durtles.wk.livedata.LiveLevelProgress;
+import com.smouldering_durtles.wk.livedata.LiveSrsBreakDown;
+import com.smouldering_durtles.wk.livedata.LiveTimeLine;
 import com.smouldering_durtles.wk.local.Clock;
 import com.smouldering_durtles.wk.local.Curriculum;
 import com.smouldering_durtles.wk.local.FastTravel;
@@ -37,10 +40,16 @@ import com.smouldering_durtles.wk.local.LevelTest;
 import com.smouldering_durtles.wk.local.LocalProgression;
 import com.smouldering_durtles.wk.local.Placement;
 import com.smouldering_durtles.wk.local.ProgressStore;
+import com.smouldering_durtles.wk.model.LevelProgress;
+import com.smouldering_durtles.wk.model.SrsBreakDown;
+import com.smouldering_durtles.wk.model.TimeLine;
+import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.tasks.WaniKaniImporter;
 import com.smouldering_durtles.wk.util.ObjectSupport;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -147,6 +156,9 @@ final class ScenarioRunner {
     private final AppDatabase db;
     private final SupportSQLiteDatabase sql;
     private final List<String> exports = new ArrayList<>();
+    /** Scenario option exportMode "delta": snapshots after the first record only what changed in the export. */
+    private boolean exportDelta = false;
+    private @javax.annotation.Nullable JsonNode lastExport = null;
     private final SessionDriver sessions;
     /** Content hiddenAt of the subjects hideSubject/unhideSubject changed; static so every runner instance resets it. */
     private static final Map<Long, Long> ORIGINAL_HIDDEN = new LinkedHashMap<>();
@@ -163,6 +175,26 @@ final class ScenarioRunner {
 
     static String readAsset(final Context ctx, final String path) throws Exception {
         try (final InputStream in = ctx.getAssets().open(path)) {
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            final byte[] buf = new byte[1 << 14];
+            int n;
+            while ((n = in.read(buf)) > 0) {
+                out.write(buf, 0, n);
+            }
+            return new String(out.toByteArray(), StandardCharsets.UTF_8);
+        }
+    }
+
+    /**
+     * A file pushed to the app's external files dir under golden-in/ (run.sh pushes web/test/golden/progress/
+     * android-export.json to golden-in/progress/), so large inputs aren't duplicated as test assets.
+     */
+    static String readPushed(final Context ctx, final String path) throws Exception {
+        final File f = new File(new File(ctx.getExternalFilesDir(null), "golden-in"), path);
+        if (!f.isFile()) {
+            throw new IllegalStateException("pushed input missing: " + f + " (run durtles/golden/run.sh)");
+        }
+        try (final InputStream in = new FileInputStream(f)) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             final byte[] buf = new byte[1 << 14];
             int n;
@@ -192,6 +224,8 @@ final class ScenarioRunner {
     void run(final JsonNode scenario, final GoldenWriter w) throws Exception {
         final long seed = scenario.path("seed").asLong(1);
         baseReset(seed);
+        exportDelta = "delta".equals(scenario.path("exportMode").asText(""));
+        lastExport = null;
         final String mode = scenario.path("mode").asText("WANIKANI");
         final JsonNode start = scenario.get("start");
         final String startText = start == null || start.isNull() ? emptyFile(mode) : progressFile(start, mode);
@@ -264,6 +298,8 @@ final class ScenarioRunner {
         final long now = Clock.now();
         final String export = ProgressStore.export(db);
         exports.add(export);
+        final boolean delta = exportDelta && lastExport != null;
+        final JsonNode record = exportRecord(export);
         final int level = db.propertiesDao().getUserLevel();
         final int maxGranted = db.propertiesDao().getUserMaxLevelGranted();
         return obj(
@@ -282,7 +318,93 @@ final class ScenarioRunner {
                 "fastTravel", fastTravelStatus(),
                 "levelTest", LevelTest.status(db).name(),
                 "reminders", obj("syncReminder", db.propertiesDao().getSyncReminder()),
-                "export", JSON.readTree(export));
+                delta ? "exportDelta" : "export", record);
+    }
+
+    /** The full export, or with exportMode "delta" (after the first snapshot) only what changed since the last one. */
+    private JsonNode exportRecord(final String export) throws Exception {
+        final JsonNode now = JSON.readTree(export);
+        final JsonNode before = lastExport;
+        lastExport = now;
+        if (!exportDelta || before == null) {
+            return now;
+        }
+        final ObjectNode delta = JSON.createObjectNode();
+        final ObjectNode fields = delta.putObject("fields");
+        final Iterator<String> names = now.fieldNames();
+        while (names.hasNext()) {
+            final String name = names.next();
+            if (!"subjects".equals(name) && !now.get(name).equals(before.get(name))) {
+                fields.set(name, now.get(name));
+            }
+        }
+        final Map<Long, JsonNode> old = new LinkedHashMap<>();
+        for (final JsonNode r: before.path("subjects")) {
+            old.put(r.get("id").asLong(), r);
+        }
+        final ArrayNode changed = delta.putArray("subjectsChanged");
+        for (final JsonNode r: now.path("subjects")) {
+            final JsonNode o = old.remove(r.get("id").asLong());
+            if (!r.equals(o)) {
+                changed.add(r);
+            }
+        }
+        final ArrayNode removed = delta.putArray("subjectsRemoved");
+        for (final Long id: old.keySet()) {
+            removed.add(id);
+        }
+        delta.put("subjectCount", now.path("subjects").size());
+        return delta;
+    }
+
+    /** The dashboard as the app computes it: timeline, level progress bars and SRS breakdown (LiveTimeLine etc.). */
+    private Object dashboard() {
+        final TimeLine t = LiveTimeLine.computeTimeLine(db, new ArrayList<>());
+        final List<Object> slots = new ArrayList<>();
+        for (int i = 0; i < t.getTimeLine().size(); i++) {
+            final List<Subject> slot = t.getTimeLine().get(i);
+            if (!slot.isEmpty()) {
+                slots.add(obj("slot", i, "ids", subjectIds(slot), "requiredForLevelUp", t.getNumRequiredForLevelUp().get(i)));
+            }
+        }
+        final LevelProgress lp = LiveLevelProgress.computeLevelProgress(db);
+        final List<Object> bars = new ArrayList<>();
+        for (final LevelProgress.BarEntry e: lp.getEntries()) {
+            final List<Integer> buckets = new ArrayList<>();
+            for (final int b: e.getBuckets()) {
+                buckets.add(b);
+            }
+            bars.add(obj("level", e.getLevel(), "type", e.getType().name(), "buckets", buckets));
+        }
+        final SrsBreakDown sb = LiveSrsBreakDown.computeBreakDown(db);
+        final List<Integer> breakdown = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            breakdown.add(sb.getSrsBreakdownCount(i));
+        }
+        return obj(
+                "settings", obj("timeLineChartSize", GlobalSettings.Dashboard.getTimeLineChartSize(),
+                        "showOverLevelProgression", GlobalSettings.Dashboard.getShowOverLevelProgression(),
+                        "limitPreviousLevelProgression", GlobalSettings.Dashboard.getLimitPreviousLevelProgression()),
+                "userLevel", db.propertiesDao().getUserLevel(),
+                "maxLevelGranted", db.propertiesDao().getUserMaxLevelGranted(),
+                "timeLine", obj("firstSlot", t.getFirstSlot(),
+                        "availableLessons", subjectIds(t.getAvailableLessons()),
+                        "availableReviews", subjectIds(t.getAvailableReviews()),
+                        "upcomingReviewDate", t.getUpcomingReviewDate(),
+                        "numUpcomingReviews", t.getNumUpcomingReviews(),
+                        "slots", slots,
+                        "longTermUpcomingReviewDate", t.getLongTermUpcomingReviewDate(),
+                        "numLongTermUpcomingReviews", t.getNumLongTermUpcomingReviews()),
+                "levelProgress", bars,
+                "srsBreakdown", breakdown);
+    }
+
+    private static List<Long> subjectIds(final List<Subject> subjects) {
+        final List<Long> out = new ArrayList<>();
+        for (final Subject s: subjects) {
+            out.add(s.getId());
+        }
+        return out;
     }
 
     private Map<String, Object> fastTravelStatus() {
@@ -331,6 +453,9 @@ final class ScenarioRunner {
     private String progressFile(final JsonNode spec, final String mode) throws Exception {
         if (spec.has("file")) {
             return readAsset(testContext, "golden-scenarios/start/" + spec.get("file").asText());
+        }
+        if (spec.has("pushed")) {
+            return readPushed(context, spec.get("pushed").asText());
         }
         if (spec.has("inline")) {
             return JSON.writeValueAsString(spec.get("inline"));
@@ -622,6 +747,8 @@ final class ScenarioRunner {
                 return setHidden(step, "hideSubject".equals(action));
             case "progressionUpdate":
                 return obj("unlocked", LocalProgression.update(db));
+            case "dashboard":
+                return dashboard();
             default:
                 if (action.startsWith("session")) {
                     return sessions.perform(action, step, resolved);

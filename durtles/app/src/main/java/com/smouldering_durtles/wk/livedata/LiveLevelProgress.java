@@ -72,7 +72,17 @@ public final class LiveLevelProgress extends ConservativeLiveData<LevelProgress>
     @SuppressLint("NewApi")
     @Override
     protected void updateLocal() {
-        final AppDatabase db = WkApplication.getDatabase();
+        instance.postValue(computeLevelProgress(WkApplication.getDatabase()));
+    }
+
+    /**
+     * KanjiKodama: the computation of updateLocal, moved here unchanged so golden tests can run it.
+     *
+     * @param db the database
+     * @return the level progress
+     */
+    @SuppressLint("NewApi")
+    public static LevelProgress computeLevelProgress(final AppDatabase db) {
         final int userLevel = db.propertiesDao().getUserLevel();
         final int maxLevel;
         if (GlobalSettings.Dashboard.getShowOverLevelProgression()) {
@@ -113,11 +123,17 @@ public final class LiveLevelProgress extends ConservativeLiveData<LevelProgress>
             levelProgress.removePassedAndLockedBars(userLevel);
         }
 
-        levelProgress.getEntries().forEach(
-                entry -> db.subjectCollectionsDao().getLevelProgressSubjects(entry.getLevel(), entry.getType())
-                        .forEach(entry::addSubject));
+        levelProgress.getEntries().forEach(entry -> {
+            db.subjectCollectionsDao().getLevelProgressSubjects(entry.getLevel(), entry.getType())
+                    .forEach(entry::addSubject);
+            // KanjiKodama: the vocabulary bar includes kana-only vocabulary, like its counts above
+            if (entry.getType() == SubjectType.WANIKANI_VOCAB) {
+                db.subjectCollectionsDao().getLevelProgressSubjects(entry.getLevel(), SubjectType.WANIKANI_KANA_VOCAB)
+                        .forEach(entry::addSubject);
+            }
+        });
 
-        instance.postValue(levelProgress);
+        return levelProgress;
     }
 
     @Override

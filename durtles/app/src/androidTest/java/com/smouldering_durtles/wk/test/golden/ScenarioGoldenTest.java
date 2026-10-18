@@ -50,7 +50,9 @@ import java.util.TimeZone;
  *     <li>{@link #scenarios()}: every androidTest asset golden-scenarios/*.json, one fixture per scenario
  *     (instrumentation argument {@code scenario} limits it to a comma-separated list of names).</li>
  *     <li>{@link #srsOutcome()}: lesson and review outcome processing of ReportSessionItemJob.</li>
- *     <li>{@link #progressDescribe()}: ProgressStore.describe on the inputs in golden-inputs/progress-describe.json.</li>
+ *     <li>{@link #progressDescribe()}: ProgressStore.describe on the inputs in golden-inputs/progress-describe.json
+ *     and on the owner's phone export (pushed to golden-in/ by run.sh).</li>
+ *     <li>{@link #progressRealExport()}: restore + export round trip of that export.</li>
  * </ul>
  *
  * <p>Fixtures go to the app's external files dir, golden/, mirroring web/test/golden/.</p>
@@ -270,6 +272,99 @@ public final class ScenarioGoldenTest {
                 }
                 w.add(in.get("name").asText(), obj("text", text), out);
             }
+            // The owner's real phone export, pushed by run.sh rather than duplicated as an asset; input names the file.
+            final String real = ScenarioRunner.readPushed(context, REAL_EXPORT);
+            w.add("real-android-export", obj("file", REAL_EXPORT),
+                    obj("ok", true, "summary", ProgressStore.describe(real), "exportedAt", new JSONObject(real).optLong("exportedAt")));
+        }
+    }
+
+    // --- the owner's real export ---------------------------------------------------------------------
+
+    /** Relative to golden-in/ on the device and to web/test/golden/ in the repo. */
+    static final String REAL_EXPORT = "progress/android-export.json";
+
+    /**
+     * Restores the owner's phone export (clock pinned to its exportedAt, from the empty base state) and exports it
+     * again; records the re-export and every difference from the input, then repeats once to show it is stable.
+     */
+    @Test
+    public void progressRealExport() throws Exception {
+        final AppDatabase db = WkApplication.getDatabase();
+        final String text = ScenarioRunner.readPushed(context, REAL_EXPORT);
+        final JsonNode input = ScenarioRunner.JSON.readTree(text);
+        final ScenarioRunner runner = new ScenarioRunner(context, testContext);
+        try (final GoldenWriter w = GoldenWriter.open("progress/android-roundtrip.json", "progress.roundTrip",
+                "local/ProgressStore.restore + export")) {
+            runner.baseReset(1);
+            final long clock = input.get("exportedAt").asLong();
+            Clock.pin(clock);
+            ProgressStore.restore(db, text);
+            final String first = ProgressStore.export(db);
+            final JsonNode firstTree = ScenarioRunner.JSON.readTree(first);
+            final List<Object> differences = new ArrayList<>();
+            diff("", input, firstTree, differences);
+            // No differences means the re-export equals the input file; textIdentical compares the bytes as well.
+            w.add("restore-then-export", obj("file", REAL_EXPORT, "clockMs", clock, "from", "empty base state"),
+                    obj("differences", differences, "textIdentical", first.equals(text)));
+            ProgressStore.restore(db, first);
+            final String second = ProgressStore.export(db);
+            final List<Object> again = new ArrayList<>();
+            diff("", firstTree, ScenarioRunner.JSON.readTree(second), again);
+            w.add("second-round", obj("of", "restore-then-export", "clockMs", clock),
+                    obj("differences", again, "textIdentical", second.equals(first)));
+            runner.baseReset(1);
+        }
+    }
+
+    /** Differences between two JSON trees; arrays of objects with an "id" are matched by id, others by index. */
+    private static void diff(final String path, final JsonNode a, final JsonNode b, final List<Object> out) {
+        if (a == null || b == null || a.getNodeType() != b.getNodeType()) {
+            if (!(a == null && b == null)) {
+                out.add(obj("path", path, "input", a, "output", b));
+            }
+            return;
+        }
+        if (a.isObject()) {
+            final java.util.Set<String> names = new java.util.TreeSet<>();
+            a.fieldNames().forEachRemaining(names::add);
+            b.fieldNames().forEachRemaining(names::add);
+            for (final String n: names) {
+                diff(path + "/" + n, a.get(n), b.get(n), out);
+            }
+        }
+        else if (a.isArray()) {
+            final boolean byId = a.size() > 0 && a.get(0).has("id") || b.size() > 0 && b.get(0).has("id");
+            if (byId) {
+                final Map<Long, JsonNode> ma = new LinkedHashMap<>();
+                final Map<Long, JsonNode> mb = new LinkedHashMap<>();
+                final List<Long> orderA = new ArrayList<>();
+                final List<Long> orderB = new ArrayList<>();
+                for (final JsonNode x: a) {
+                    ma.put(x.get("id").asLong(), x);
+                    orderA.add(x.get("id").asLong());
+                }
+                for (final JsonNode x: b) {
+                    mb.put(x.get("id").asLong(), x);
+                    orderB.add(x.get("id").asLong());
+                }
+                if (orderA.size() == orderB.size() && ma.keySet().equals(mb.keySet()) && !orderA.equals(orderB)) {
+                    out.add(obj("path", path, "orderDiffers", true));
+                }
+                final java.util.Set<Long> ids = new java.util.TreeSet<>(ma.keySet());
+                ids.addAll(mb.keySet());
+                for (final Long id: ids) {
+                    diff(path + "[id=" + id + "]", ma.get(id), mb.get(id), out);
+                }
+            }
+            else {
+                for (int i = 0; i < Math.max(a.size(), b.size()); i++) {
+                    diff(path + "[" + i + "]", a.get(i), b.get(i), out);
+                }
+            }
+        }
+        else if (!a.equals(b)) {
+            out.add(obj("path", path, "input", a, "output", b));
         }
     }
 }

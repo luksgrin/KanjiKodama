@@ -73,27 +73,29 @@ public final class LevelProgress {
     }
 
     /**
-     * Set the total subject count for each bar in the overview from the aggregate database data supplied.
+     * Add to the total subject count for each bar in the overview from the aggregate database data supplied.
      *
      * @param item the count of subjects for a specific level/type combination
      */
     public void setTotalCount(final LevelProgressItem item) {
         for (final BarEntry entry: entries) {
             if (entry.level == item.getLevel() && entry.type == item.getType()) {
-                entry.totalCount = item.getCount();
+                // KanjiKodama: add, not assign, so kana-only vocabulary folded into the vocabulary bar isn't overwritten
+                entry.totalCount += item.getCount();
             }
         }
     }
 
     /**
-     * Set the passed subject count for each bar in the overview from the aggregate database data supplied.
+     * Add to the passed subject count for each bar in the overview from the aggregate database data supplied.
      *
      * @param item the count of subjects for a specific level/type combination
      */
     public void setNumPassed(final LevelProgressItem item) {
         for (final BarEntry entry: entries) {
             if (entry.level == item.getLevel() && entry.type == item.getType()) {
-                entry.numPassed = item.getCount();
+                // KanjiKodama: add, not assign, so kana-only vocabulary folded into the vocabulary bar isn't overwritten
+                entry.numPassed += item.getCount();
             }
         }
     }

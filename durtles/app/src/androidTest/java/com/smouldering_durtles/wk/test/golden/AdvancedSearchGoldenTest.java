@@ -588,6 +588,25 @@ public final class AdvancedSearchGoldenTest {
             {"raw/starsWhenOff", "{\"starRatings\": [1]}"},
             {"raw/collectionsNull", "{\"maxLevel\": 2, \"starRatings\": null, \"srsStages\": null,"
                     + " \"jlptLevels\": null, \"joyoGrades\": null}"},
+            // KanjiKodama: whole numbers outside the int range are clamped (AdvancedSearchParameters.ClampedInteger)
+            {"raw/hugeNegativeLevel", "{\"maxLevel\": -99999999999}"},
+            {"raw/hugeMaxLevel", "{\"minLevel\": 60, \"maxLevel\": 99999999999}"},
+            {"raw/hugeFrequency", "{\"maxFrequency\": 99999999999, \"itemTypes\": [\"WANIKANI_KANJI\"], \"maxLevel\": 2}"},
+            {"raw/hugeNegativeFrequency", "{\"minFrequency\": -99999999999, \"maxLevel\": 2}"},
+            {"raw/hugeReviewHours", "{\"upcomingReviewLessThan\": 99999999999, \"maxLevel\": 3}"},
+            {"raw/hugeNegativeReviewHours", "{\"upcomingReviewMoreThan\": -99999999999, \"maxLevel\": 3}"},
+            {"raw/hugeIncorrectWithin", "{\"incorrectAnswerWithin\": 99999999999}"},
+            {"raw/hugeBurned", "{\"burnedLessThan\": 99999999999, \"burnedMoreThan\": -99999999999}"},
+            {"raw/hugeInJlpt", "{\"jlptLevels\": [5, 99999999999], \"itemTypes\": [\"WANIKANI_KANJI\"]}"},
+            {"raw/hugeInJoyo", "{\"joyoGrades\": [1, -99999999999], \"itemTypes\": [\"WANIKANI_KANJI\"]}"},
+            {"raw/hugeInStars", "{\"starRatings\": [-99999999999, 1, 99999999999], \"maxLevel\": 3}"},
+            {"raw/hugeBigInteger", "{\"minLevel\": 123456789012345678901234567890}"},
+            {"raw/hugeWithValid", "{\"maxLevel\": 2, \"minFrequency\": -99999999999,"
+                    + " \"itemTypes\": [\"WANIKANI_RADICAL\"], \"sortOrder\": \"LEVEL_TYPE\"}"},
+            {"raw/hugeAsString", "{\"minLevel\": \"99999999999\"}"},
+            {"raw/hugeAsFloat", "{\"minLevel\": 1e20}"},
+            {"raw/intMaxPlusOne", "{\"minLevel\": 2147483648}"},
+            {"raw/intMinMinusOne", "{\"maxLevel\": -2147483649}"},
     };
 
     @Test

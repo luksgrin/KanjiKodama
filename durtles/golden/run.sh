@@ -14,12 +14,20 @@ export PATH=$PATH:~/Library/Android/sdk/platform-tools
 cd "$(dirname "$0")/.."
 export JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
 until mkdir /tmp/claude-501/kk-durtles-gradle.lock 2>/dev/null; do sleep 5; done
-./gradlew -q assembleDebug assembleDebugAndroidTest 2>&1 | grep -E "error:|FAILED" || true
+# a failed build must stop here, or the run would test the APK left over from an earlier build
+if ! ./gradlew -q assembleDebug assembleDebugAndroidTest > /tmp/claude-501/kk-run-build.$$.log 2>&1; then
+  grep -E "error:|FAILED|What went wrong" -A3 /tmp/claude-501/kk-run-build.$$.log | head -40 >&2
+  rmdir /tmp/claude-501/kk-durtles-gradle.lock; exit 1
+fi
+rm -f /tmp/claude-501/kk-run-build.$$.log
 # install while still holding the lock, so another build can't replace the APKs halfway
 adb install -r app/build/outputs/apk/debug/app-debug.apk >/dev/null
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk >/dev/null
 rmdir /tmp/claude-501/kk-durtles-gradle.lock
 adb shell rm -rf /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden
+# inputs too large to keep twice in git are pushed instead of packed as test assets (ScenarioRunner.readPushed)
+adb shell mkdir -p /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden-in/progress
+adb push ../web/test/golden/progress/android-export.json /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden-in/progress/ >/dev/null
 adb logcat -c
 start=$(date +%s)
 adb shell am instrument -w -e class $FILTER "${SCEN[@]}" com.smouldering_durtles.wk.test/androidx.test.runner.AndroidJUnitRunner | tail -8
