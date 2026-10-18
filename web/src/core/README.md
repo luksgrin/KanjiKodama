@@ -33,6 +33,11 @@ golden fixtures (`web/test/golden/`, see the README there) pass.
   your module needs there.
 - `text/richText.ts`: `escapeHtml` and `renderHtml` (`HtmlCompat` compact mode for the small markup the
   logic builds) as `{text, spans}`, for subject info lines and Anki answers.
+- `progression/`: `LearnerDb`, the in-memory learner database (content layout, progress, curriculum
+  state) the local-mode logic works on, with `reportLocal` (`ReportSessionItemJob` in local mode),
+  `updateProgression` (`LocalProgression.update`), restore/export, curriculum switching and placement.
+  Session, level test, importer and dashboard code take a `LearnerDb`; the golden scenario runner
+  (`test/golden/scenario/`) drives it.
 - Java exceptions: throw `JavaException` from `kana/javaException.ts` (`javaClass` is the simple class name
   the fixtures record).
 

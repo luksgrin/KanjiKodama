@@ -22,3 +22,4 @@ export {
   type LevelKnowledge,
   type LevelTestAnswers,
 } from './estimators';
+export { LEVEL_TEST_STATUSES, discardLevelTest, levelTestStatus, setLevelTestStatus, type LevelTestStatus } from './status';
