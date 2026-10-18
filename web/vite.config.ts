@@ -65,6 +65,6 @@ export default defineConfig({
   preview: { https },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
   },
 });

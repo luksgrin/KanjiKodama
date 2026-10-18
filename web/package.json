@@ -14,7 +14,10 @@
     "test": "vitest run",
     "typecheck": "tsc -b",
     "content:spike": "node scripts/copy-content.mjs",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "check": "sh scripts/check.sh",
+    "check:core": "node scripts/check-core-imports.mjs",
+    "golden:coverage": "node test/golden/coverage.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

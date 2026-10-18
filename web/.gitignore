@@ -12,3 +12,6 @@ dev-dist/
 /android/app/build
 /android/.gradle
 /android/local.properties
+
+# Golden test run summaries (node test/golden/coverage.mjs)
+/test/golden-results/
