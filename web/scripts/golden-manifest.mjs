@@ -19,6 +19,8 @@ const goldenDir = join(webDir, 'test', 'golden');
 const manifestPath = join(goldenDir, 'manifest.json');
 const contentDb = join(repoDir, 'durtles', 'app', 'src', 'main', 'assets', 'wk-content.db');
 const NOT_FIXTURES = new Set(['manifest.json', 'README.md']);
+/** Inputs the Java tests read (not fixtures): listed under `inputs` with their hash, no case count. */
+const INPUTS = new Set(['progress/android-export.json']);
 
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 const git = (...args) => execFileSync('git', args, { cwd: repoDir, encoding: 'utf8' }).trim();
@@ -51,7 +53,12 @@ function describeFixture(path, buf) {
   throw new Error(`${path}: neither "cases" nor "steps"`);
 }
 
-const files = walk(goldenDir).map((p) => {
+const relPath = (p) => relative(goldenDir, p).split(sep).join('/');
+const inputs = walk(goldenDir).filter((p) => INPUTS.has(relPath(p))).map((p) => {
+  const buf = readFileSync(p);
+  return { path: relPath(p), bytes: buf.length, sha256: sha256(buf) };
+});
+const files = walk(goldenDir).filter((p) => !INPUTS.has(relPath(p))).map((p) => {
   const buf = readFileSync(p);
   const info = describeFixture(p, buf);
   return { path: relative(goldenDir, p).split(sep).join('/'), area: info.area, javaSource: info.javaSource,
@@ -69,8 +76,16 @@ if (process.argv.includes('--check')) {
     now.delete(f.path);
   }
   for (const p of now.keys()) problems.push(`not in manifest: ${p}`);
+  const inputsNow = new Map(inputs.map((f) => [f.path, f]));
+  for (const f of m.inputs ?? []) {
+    const g = inputsNow.get(f.path);
+    if (!g) problems.push(`missing input: ${f.path}`);
+    else if (g.sha256 !== f.sha256) problems.push(`changed input: ${f.path}`);
+    inputsNow.delete(f.path);
+  }
+  for (const p of inputsNow.keys()) problems.push(`input not in manifest: ${p}`);
   if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
-  console.log(`manifest OK: ${m.files.length} files`);
+  console.log(`manifest OK: ${m.files.length} files, ${(m.inputs ?? []).length} inputs`);
   process.exit(0);
 }
 
@@ -83,6 +98,7 @@ const manifest = {
   contentDbSha256: existsSync(contentDb) ? sha256(readFileSync(contentDb)) : null,
   totalCases: files.reduce((n, f) => n + f.cases, 0),
   files,
+  inputs,
 };
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 console.log(`${manifestPath}: ${files.length} files, ${manifest.totalCases} cases${durtlesDirty ? ' (durtles/ has uncommitted changes: regenerate after committing)' : ''}`);

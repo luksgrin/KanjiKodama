@@ -1,10 +1,10 @@
 {
   "generatorVersion": 1,
-  "generatedAt": "2026-10-18T04:35:21.021Z",
-  "durtlesCommit": "b06874cd0ba5aa2cb5c957ec93842d5c69ba71ca",
+  "generatedAt": "2026-10-18T05:02:45.781Z",
+  "durtlesCommit": "02512c2590724ebaf0dade11bae695d3712a53aa",
   "durtlesDirty": false,
   "contentDbSha256": "a81e44da1bba8e09f2384a458ec97fff06da4024e94499443dd687c5d603a512",
-  "totalCases": 387870,
+  "totalCases": 387902,
   "files": [
     {
       "path": "anki/answer-inflection.json",
@@ -423,12 +423,20 @@
       "sha256": "a87a171e5f620dfb92d2fa0334935abd7dc89ee37ee1ccad4385c774079e7a98"
     },
     {
+      "path": "progress/android-roundtrip.json",
+      "area": "progress.roundTrip",
+      "javaSource": "local/ProgressStore.restore + export",
+      "cases": 2,
+      "bytes": 430,
+      "sha256": "02231df0c40bd7101a064dab86d4559284b185663b615abe1b6a0020b97829e0"
+    },
+    {
       "path": "progress/describe.json",
       "area": "progress.describe",
       "javaSource": "local/ProgressStore.describe (Locale.US, TimeZone UTC)",
-      "cases": 58,
-      "bytes": 134575,
-      "sha256": "093f4443c9f4cd2269130ed032952faf18716a1a3b65c9a79498ae6d3fe5924b"
+      "cases": 59,
+      "bytes": 134794,
+      "sha256": "641bcb913b4b480f47c5149afb9c1c9707755b3d1a162da9c016d3e76c02cd79"
     },
     {
       "path": "scenarios/anki-lesson-quiz.json",
@@ -813,6 +821,14 @@
       "cases": 4,
       "bytes": 119265,
       "sha256": "60a043cdb9de0e87414b446b7dbf2fb747b292dea1e70bd5772576e4117ba41e"
+    },
+    {
+      "path": "scenarios/real-progress.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 12,
+      "bytes": 1405079,
+      "sha256": "9adcc06e72e004c5910288d9020b6bb30efcae541fe6931b6d736f28125d27cb"
     },
     {
       "path": "scenarios/reminder-fast-travel.json",
@@ -1306,9 +1322,9 @@
       "path": "search/advanced.jsonl",
       "area": "search.advanced",
       "javaSource": "util/SearchUtil.searchSubjects(2, json), model/AdvancedSearchParameters (Jackson, db/Converters), adapter/search/SearchResultAdapter.setResult, enums/SearchSortOrder",
-      "cases": 173,
-      "bytes": 3154521,
-      "sha256": "e30d40ccc53bc79ddf54fb6ea93c9d76812379d63e232abd0e81e4ebd282b563"
+      "cases": 190,
+      "bytes": 3181464,
+      "sha256": "69028ef129266c3d620b85e1288fa8b94d4affa4a252bb403793ca20e0c873f9"
     },
     {
       "path": "search/content.jsonl",
@@ -1365,6 +1381,13 @@
       "cases": 2,
       "bytes": 4465,
       "sha256": "27f087d69902b527a4b92ee61584d072e023e0c3be33d7f9db6930467948f99f"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "progress/android-export.json",
+      "bytes": 749461,
+      "sha256": "237f33a29986f897b5b4e620e5a05227fc9fea6152905d6e70ad0f9bc87704d4"
     }
   ]
 }
