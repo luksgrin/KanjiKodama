@@ -100,9 +100,11 @@ def add(S, lvl):
                rule(kana_vocabulary_min=4), rule(kana_vocabulary_max=0), rule(vocabulary_min=3, kana_vocabulary_max=0),
                rule(kana_vocabulary_max=1, radical_max=0, kanji_max=0, vocabulary_max=0),
                rule(radical_min=3, current_min=3), rule(radical_min=8, kanji_min=8),
-               rule(radical_min=-5), rule(current_max=-1)]
+               rule(radical_min=-5), rule(current_max=-1),
+               rule(kana_vocabulary_max=1), rule(kana_vocabulary_min=2, kana_vocabulary_max=2),
+               rule(kana_vocabulary_min=3, vocabulary_max=0), rule(radical_min=0, radical_max=-1, kanji_min=0)]
     S["session-size-review"] = {
-      "description": "Review session size and subject selection: the 22 due reviews of session-order-review in LEVEL_THEN_SRS order, max_review_session_size 5, 1, 22, 50, then invalid values (0, -3, x, empty, unset: 100); it applies with enable_advanced off too. Then with a size of 8 the subject selection rules (min/max per age: current level / earlier levels, and per type): the selection runs in five passes (both a min and an age min, a min without exceeding a max, any min, nothing exceeded, anything) and the chosen 8 are put back in session order. Kana-only vocabulary is checked against the vocabulary count, which only counts ordinary vocabulary: a kana-only maximum of 1 with every other type at 0 still takes all 4 kana-only items before the rest.",
+      "description": "Review session size and subject selection: the 22 due reviews of session-order-review in LEVEL_THEN_SRS order, max_review_session_size 5, 1, 22, 50, then invalid values (0, -3, x, empty, unset: 100); it applies with enable_advanced off too. Then with a size of 8 the subject selection rules (min/max per age: current level / earlier levels, and per type): the selection runs in five passes (both a min and an age min, a min without exceeding a max, any min, nothing exceeded, anything) and the chosen 8 are put back in session order. Kana-only vocabulary has its own count (ordinary vocabulary rules don't include it): a kana-only maximum of 1 takes one kana-only item in the passes that respect maximums; with every other type at 0 the last pass (anything, while the session isn't full) still fills up with the rest in order. Rules that are all explicit no-ops (min 0, max -1) take the first 8 in order, the same as no rules.",
       "mode": "WANIKANI", "seed": 43,
       "start": review_start,
       "steps": starts("REVIEW", {"where": {}}, combos)}
@@ -120,9 +122,10 @@ def add(S, lvl):
                            **{"lesson_subjects_" + k: v for k, v in kw.items()})
     combos += [lrule(vocabulary_min=3), lrule(kanji_min=4, radical_max=2), lrule(current_min=10),
                lrule(earlier_max=0), lrule(kana_vocabulary_min=2), lrule(Kana_vocabulary_min=2),
-               lrule(kana_vocabulary_max=0, vocabulary_min=10)]
+               lrule(kana_vocabulary_max=0, vocabulary_min=10),
+               lrule(kana_vocabulary_min=3, vocabulary_max=0), lrule(kana_vocabulary_max=1, radical_max=0)]
     S["session-order-lesson"] = {
-      "description": "Lesson order and size: user level 2 with every level 1 and 2 subject an unlocked lesson; a lesson session (abandoned in the presentation) under each lesson order, each reversed (shuffle orders shuffle first, the others keep the lesson queue order for ties), each priority, shuffle after selection, an invalid order (LEVEL_THEN_TYPE), enable_advanced off; max_lesson_session_size 1, 12, 500 and invalid values (0, abc: 5); subject selection rules with a size of 10. The kana-only vocabulary minimum is read from the key lesson_subjects_Kana_vocabulary_min (capital K), not lesson_subjects_kana_vocabulary_min, which the settings screen writes.",
+      "description": "Lesson order and size: user level 2 with every level 1 and 2 subject an unlocked lesson; a lesson session (abandoned in the presentation) under each lesson order, each reversed (shuffle orders shuffle first, the others keep the lesson queue order for ties), each priority, shuffle after selection, an invalid order (LEVEL_THEN_TYPE), enable_advanced off; max_lesson_session_size 1, 12, 500 and invalid values (0, abc: 5); subject selection rules with a size of 10. The kana-only vocabulary minimum is read from lesson_subjects_kana_vocabulary_min, the key the settings screen writes; the old misspelled key lesson_subjects_Kana_vocabulary_min (capital K) is ignored. Kana-only vocabulary has its own count.",
       "mode": "WANIKANI", "seed": 47,
       "start": lesson_start,
       "steps": starts("LESSON", {"where": {}}, combos)}

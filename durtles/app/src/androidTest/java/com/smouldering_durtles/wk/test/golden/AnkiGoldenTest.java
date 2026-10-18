@@ -25,6 +25,7 @@ import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.Converters;
 import com.smouldering_durtles.wk.db.model.SessionItem;
 import com.smouldering_durtles.wk.db.model.Subject;
+import com.smouldering_durtles.wk.db.model.SubjectEntity;
 import com.smouldering_durtles.wk.enums.QuestionType;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.jobs.SaveStudyMaterialJob;
@@ -62,11 +63,12 @@ import java.util.TreeSet;
  *   <li>{@code anki/answer-text.jsonl}: the answer AnkiSessionFragment reveals ("Show answer"), for every visible
  *   subject and each question type it can get, in a review session without randomized inflections. Per question
  *   type: {@code text}, what the screen shows ({@code Question.getAnkiAnswerRichText(...).toString()});
- *   {@code bold}, the bold ranges [start, end) of the rich text that {@code QuestionType.getAnkiAnswerRichText}
- *   builds (the primary meaning or reading when there are several); {@code shownStyled}, whether the CharSequence
- *   the screen gets still has any style span. Kanji reading and on'yomi questions also have {@code katakana}: the
- *   same with show_onyomi_in_katakana on. Case {@code synonyms/<id>} is {@code Subject.getMeaningSynonymsRichText}
- *   (shown under a revealed meaning when the subject has user synonyms), after saving those synonyms.</li>
+ *   {@code bold}, the bold ranges [start, end) of that same CharSequence (the primary meaning or reading when there
+ *   are several); {@code shownStyled}, whether it has any style span. Kanji reading and on'yomi questions also have
+ *   {@code katakana}: the same with show_onyomi_in_katakana on. Case {@code synonyms/<id>} is
+ *   {@code Subject.getMeaningSynonymsRichText} (shown under a revealed meaning when the subject has user synonyms),
+ *   after saving those synonyms. Cases {@code escape/<id>} reveal a real subject whose meanings and readings were
+ *   replaced in memory with values containing {@code <}, {@code &} and {@code >}, which must show as typed.</li>
  *   <li>{@code anki/answer-inflection.json}: with review_randomize_inflections on, a verb or adjective question asks
  *   for an inflected form; the revealed text gets " (form)" appended. For two subjects of each part of speech that
  *   inflects and every form InflectionUtil can pick (Question's random pick is replaced by each form in turn):
@@ -209,7 +211,7 @@ public final class AnkiGoldenTest {
 
     private static Map<String, Object> reveal(final Subject subject, final QuestionType type) {
         final CharSequence shown = question(subject, type).getAnkiAnswerRichText(subject, SessionType.REVIEW);
-        return obj("text", shown.toString(), "bold", bold(type.getAnkiAnswerRichText(subject)), "shownStyled", styled(shown));
+        return obj("text", shown.toString(), "bold", bold(shown), "shownStyled", styled(shown));
     }
 
     @Test
@@ -253,6 +255,31 @@ public final class AnkiGoldenTest {
                 final CharSequence cs = s.getMeaningSynonymsRichText();
                 w.add("synonyms/" + id, obj("id", id, "synonyms", Arrays.asList((String[]) m[1])),
                         obj("hasMeaningSynonyms", s.hasMeaningSynonyms(), "text", cs.toString(), "bold", bold(cs)));
+            }
+            final String[][] escapes = {
+                    {"[{\"meaning\":\"R&B <one>\",\"primary\":true,\"accepted_answer\":true},"
+                            + "{\"meaning\":\"a < b & c > d\",\"primary\":false,\"accepted_answer\":true},"
+                            + "{\"meaning\":\"&amp; &lt;b&gt;\",\"primary\":false,\"accepted_answer\":true}]",
+                            "[{\"reading\":\"いち<b>\",\"primary\":true,\"accepted_answer\":true,\"type\":\"onyomi\"},"
+                            + "{\"reading\":\"いつ&amp;\",\"primary\":false,\"accepted_answer\":true,\"type\":\"onyomi\"},"
+                            + "{\"reading\":\"ひと<>\",\"primary\":false,\"accepted_answer\":true,\"type\":\"kunyomi\"}]"},
+            };
+            final Field entityField = Subject.class.getDeclaredField("entity");
+            entityField.setAccessible(true);
+            for (final String[] e: escapes) {
+                final Subject s = db.subjectDao().getById(440);
+                final SubjectEntity entity = (SubjectEntity) entityField.get(s);
+                entity.meanings = e[0];
+                entity.readings = e[1];
+                entity.parsedMeanings = null;
+                entity.parsedReadings = null;
+                final Map<String, Object> output = new LinkedHashMap<>();
+                final TreeSet<QuestionType> types = new TreeSet<>(s.getType().getPossibleQuestionTypes(false));
+                types.addAll(s.getType().getPossibleQuestionTypes(true));
+                for (final QuestionType t: types) {
+                    output.put(t.name(), reveal(s, t));
+                }
+                w.add("escape/" + s.getId(), obj("id", s.getId(), "meanings", e[0], "readings", e[1]), output);
             }
         }
         new ScenarioRunner(context, testContext).baseReset(1);

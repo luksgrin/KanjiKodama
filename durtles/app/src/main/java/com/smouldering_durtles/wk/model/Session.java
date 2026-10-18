@@ -673,13 +673,36 @@ s     *
      */
     public void goBackToPresentation() {
         LOGGER.info("Go back to lesson presentation");
+        // KanjiKodama: open on the item being quizzed; read it before advance() clears it.
+        final @Nullable SessionItem shownItem = currentQuestion != null ? currentQuestion.getItem() : currentItem;
+        // KanjiKodama: an answer still on screen is taken as if Next had been pressed, so the finished question
+        // leaves the queue and the item isn't asked and reported a second time. If that was the last question,
+        // the session finishes as it would after Next, and the guard below returns.
+        if (answered && isActive() && type == LESSON) {
+            advance();
+        }
         if (!isActive() || type != LESSON || items.isEmpty() || questions.isEmpty()) {
             LOGGER.info("Go back to lesson presentation: not in an active lesson session");
+            // KanjiKodama: the guard used to log and carry on.
+            return;
         }
 
         state = IN_LESSON_PRESENTATION;
         adapter.addEventBackToLessonPresentation();
-        currentItem = items.get(items.size()-1);
+        // KanjiKodama: open on the quizzed item, else the stored one, else the last (the old behavior), and store it
+        // so a restart opens the same item.
+        @Nullable SessionItem target = shownItem != null && items.contains(shownItem) ? shownItem : null;
+        if (target == null) {
+            final long storedItemId = WkApplication.getDatabase().propertiesDao().getCurrentItemId();
+            for (final SessionItem item: items) {
+                if (item.getId() == storedItemId) {
+                    target = item;
+                    break;
+                }
+            }
+        }
+        currentItem = target != null ? target : items.get(items.size()-1);
+        WkApplication.getDatabase().propertiesDao().setCurrentItemId(currentItem.getId());
         setCurrentQuestion(questions.get(0), QuestionChoiceReason.BACK_TO_PRESENTATION);
         LiveSessionState.getInstance().post(state);
         LiveSessionProgress.getInstance().ping();

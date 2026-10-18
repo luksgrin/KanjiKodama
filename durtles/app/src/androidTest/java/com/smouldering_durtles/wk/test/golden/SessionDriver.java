@@ -30,7 +30,6 @@ import com.smouldering_durtles.wk.enums.ReviewOrder;
 import com.smouldering_durtles.wk.enums.SessionState;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.enums.SpecialButtonBehavior;
-import com.smouldering_durtles.wk.fragments.AnkiSessionFragment;
 import com.smouldering_durtles.wk.fragments.SummarySessionFragment;
 import com.smouldering_durtles.wk.jobs.AbandonSessionItemJob;
 import com.smouldering_durtles.wk.jobs.FinishSessionJob;
@@ -94,7 +93,7 @@ import java.util.function.Consumer;
  *     (Next, or lightning mode), {@code count} times or until the session is FINISHING. {@code answer} is
  *     "correct" (the first of the subject's meanings or readings that the question type accepts without a typo),
  *     "wrong" (a fixed wrong text that passes the pre-checks), "dontKnow" (Session.submitDontKnow), "ankiCorrect" / "ankiIncorrect" (Anki mode's
- *     Correct button, AnkiSessionFragment.submitCorrectButton, and Incorrect button, Session.submitAnkiIncorrect; these
+ *     Correct button, Session.submitAnkiCorrect, and Incorrect button, Session.submitAnkiIncorrect; these
  *     answers also list {@code ankiMode}, GlobalSettings.getAnkiMode for the question, which SessionActivity uses to
  *     pick AnkiSessionFragment, and {@code ankiAnswer}, the revealed text Question.getAnkiAnswerRichText) or
  *     {@code {"text": "..."}}; {@code rules} overrides it per question: keys "id:meaning", "id:reading", "id",
@@ -327,9 +326,8 @@ final class SessionDriver {
             }
             case "sessionAnkiButton": {
                 resolved.put("before", obj("answered", session.isAnswered(), "correct", session.isCorrect()));
-                final Question q = session.getCurrentQuestion();
                 if ("correct".equals(step.get("button").asText())) {
-                    AnkiSessionFragment.submitCorrectButton(session, q);
+                    session.submitAnkiCorrect();
                 }
                 else {
                     session.submitAnkiIncorrect();
@@ -568,7 +566,7 @@ final class SessionDriver {
                 anki = obj("ankiMode", GlobalSettings.getAnkiMode(session.getType(), q.getType()),
                         "ankiAnswer", q.getAnkiAnswerRichText(s, session.getType()).toString());
                 if ("ankiCorrect".equals(kind)) {
-                    AnkiSessionFragment.submitCorrectButton(session, q);
+                    session.submitAnkiCorrect();
                 }
                 else {
                     session.submitAnkiIncorrect();

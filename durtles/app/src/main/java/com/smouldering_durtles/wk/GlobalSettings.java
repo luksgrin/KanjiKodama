@@ -2526,7 +2526,9 @@ public final class GlobalSettings {
             if (!getAdvancedEnabled()) {
                 return -1;
             }
-            return prefs().getInt("lesson_subjects_Kana_vocabulary_min", -1);
+            // KanjiKodama: the settings screen writes lesson_subjects_kana_vocabulary_min; this read
+            // lesson_subjects_Kana_vocabulary_min (capital K), which nothing writes, so the minimum never applied.
+            return prefs().getInt("lesson_subjects_kana_vocabulary_min", -1);
         }
 
         /**

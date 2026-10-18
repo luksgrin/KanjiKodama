@@ -38,6 +38,7 @@ import com.smouldering_durtles.wk.adapter.search.SubjectItem;
 import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.Converters;
 import com.smouldering_durtles.wk.db.model.Subject;
+import com.smouldering_durtles.wk.db.model.TaskDefinition;
 import com.smouldering_durtles.wk.enums.SearchSortOrder;
 import com.smouldering_durtles.wk.enums.SubjectType;
 import com.smouldering_durtles.wk.local.Clock;
@@ -45,6 +46,7 @@ import com.smouldering_durtles.wk.local.LocalContent;
 import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.local.ProgressStore;
 import com.smouldering_durtles.wk.model.AdvancedSearchParameters;
+import com.smouldering_durtles.wk.tasks.LoadReferenceDataTask;
 import com.smouldering_durtles.wk.util.ObjectSupport;
 import com.smouldering_durtles.wk.util.SearchUtil;
 import com.smouldering_durtles.wk.views.AdvancedSearchFormView;
@@ -94,9 +96,24 @@ public final class AdvancedSearchGoldenTest {
             Thread.sleep(500);
         }
         Thread.sleep(3000);
+        // The JLPT, Jōyō and frequency columns come from LoadReferenceDataTask, which the background task runner may
+        // not have run yet on a fresh install. Run the real task here so the search sees the same data everywhere.
+        final TaskDefinition referenceTask = new TaskDefinition();
+        referenceTask.setTaskClass(LoadReferenceDataTask.class);
+        referenceTask.setPriority(LoadReferenceDataTask.PRIORITY);
+        referenceTask.setData("");
+        new LoadReferenceDataTask(referenceTask).run();
+        assertTrue("Reference data did not load", referenceDataLoaded());
         Locale.setDefault(Locale.US);
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         GoldenWriter.setBaseDir(new File(context.getExternalFilesDir(null), "golden"));
+    }
+
+    private static boolean referenceDataLoaded() {
+        try (final Cursor c = sql.query("SELECT COUNT(*) FROM subject WHERE jlptLevel != 0")) {
+            c.moveToFirst();
+            return c.getLong(0) > 0;
+        }
     }
 
     @AfterClass
@@ -426,6 +443,13 @@ public final class AdvancedSearchGoldenTest {
         }
         final String[] tags = {"locked", "initial", "prepass:0", "prepass:1", "prepass:2", "prepass:3", "pass:0", "pass:1",
                 "master", "enlightened", "burned", "prepass:4", "bogus"};
+        // KanjiKodama: unknown tags next to a known one; the known tag still filters
+        {
+            final AdvancedSearchParameters a = p();
+            a.srsStages.addAll(Arrays.asList("bogus", "burned"));
+            a.sortOrder = SearchSortOrder.STAGE_TYPE;
+            m.put("stage/bogus+burned", json(a));
+        }
         for (final String t: tags) {
             final AdvancedSearchParameters a = p();
             a.srsStages.add(t);
@@ -562,6 +586,8 @@ public final class AdvancedSearchGoldenTest {
             {"raw/hugeLevel", "{\"minLevel\": 99999999999}"},
             {"raw/hugeHours", "{\"upcomingReviewLessThan\": 2147483647}"},
             {"raw/starsWhenOff", "{\"starRatings\": [1]}"},
+            {"raw/collectionsNull", "{\"maxLevel\": 2, \"starRatings\": null, \"srsStages\": null,"
+                    + " \"jlptLevels\": null, \"joyoGrades\": null}"},
     };
 
     @Test
@@ -575,6 +601,9 @@ public final class AdvancedSearchGoldenTest {
                     {"progress", true, false, false},
                     {"progress-stars", true, true, false},
                     {"progress-hidden", true, false, true},
+                    // KanjiKodama: the progress state with srsStage -999 on locked rows, as the WaniKani sync writes
+                    // them in server mode; the stage cases must match the "progress" group's
+                    {"progress-synced", true, false, false},
             };
             for (final Object[] g: groups) {
                 final String group = (String) g[0];
@@ -582,6 +611,23 @@ public final class AdvancedSearchGoldenTest {
                 final boolean stars = (Boolean) g[2];
                 final List<Long> hide = (Boolean) g[3] ? hiddenIds() : new ArrayList<>();
                 final Map<Long, Long> original = setUpGroup(runner, progress, stars, hide);
+                if (group.equals("progress-synced")) {
+                    sql.execSQL("UPDATE subject SET srsStage = -999 WHERE unlockedAt = 0");
+                    final long locked;
+                    try (final Cursor c = sql.query("SELECT COUNT(*) FROM subject WHERE srsStage = -999")) {
+                        c.moveToFirst();
+                        locked = c.getLong(0);
+                    }
+                    w.add("group/" + group, obj("sameAs", "progress",
+                            "sql", "UPDATE subject SET srsStage = -999 WHERE unlockedAt = 0"), obj("lockedRows", locked));
+                    final Map<String, String> all = advancedCases();
+                    for (final String k: new String[] {"stage/locked", "stage/initial", "stage/locked+initial/levels6-8",
+                            "stage/burned", "sort/STAGE_TYPE/levels<=6"}) {
+                        w.add(group + "/" + k, obj("parameters", all.get(k), "group", group), run(2, all.get(k)));
+                    }
+                    tearDownGroup(runner, original);
+                    continue;
+                }
                 w.add("group/" + group, obj("clockMs", Clock.now(), "progressFile",
                                 progress ? ScenarioRunner.JSON.readTree(progressFile(Clock.now())) : null,
                                 "starRatings", progress ? stars() : new LinkedHashMap<>(), "starRatingsEnabled", stars,
@@ -750,6 +796,8 @@ public final class AdvancedSearchGoldenTest {
                     + " \"joyoGradeNone\", \"joyoGrade1\", \"joyoGrade2\", \"joyoGrade3\", \"joyoGrade4\", \"joyoGrade5\","
                     + " \"joyoGrade6\", \"joyoGrade7\"]}",
             "{\"on\": [\"starRating0\", \"starRating3\", \"starRating5\"]}",
+            "{\"texts\": {\"minLevel\": \"-99999999999\", \"reviewLessHours\": \"99999999999\","
+                    + " \"burnedMoreDays\": \"+99999999999\", \"maxFrequency\": \"99999999999.5\"}}",
     };
 
     /** Parameter JSON injected into the form (Refine on the results screen), then extracted again. */
@@ -793,6 +841,13 @@ public final class AdvancedSearchGoldenTest {
                             return extract(form);
                         }));
             }
+            // a second inject replaces the values the form can't show; it doesn't add to them
+            w.add("reinject/00", obj("parameters", obj("first", INJECT[3], "second", INJECT[1]), "starRatingsEnabled", true),
+                    onMain(true, form -> {
+                        form.injectParameters(Converters.getObjectMapper().readValue(INJECT[3], AdvancedSearchParameters.class));
+                        form.injectParameters(Converters.getObjectMapper().readValue(INJECT[1], AdvancedSearchParameters.class));
+                        return extract(form);
+                    }));
         }
     }
 }

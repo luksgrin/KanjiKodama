@@ -41,6 +41,9 @@ public final class SubjectSelectionRules {
     private int radicalDone = 0;
     private int kanjiDone = 0;
     private int vocabularyDone = 0;
+    // KanjiKodama: kana-only vocabulary has its own count; the kana-only rules used to read vocabularyDone, which
+    // never counts kana-only items (SubjectType.isVocabulary is false for them).
+    private int kanaVocabularyDone = 0;
 
     /**
      * The constructor.
@@ -82,9 +85,13 @@ public final class SubjectSelectionRules {
      * @return true if it doesn't
      */
     public boolean isEmpty() {
-        return currentMin == -1 && currentMax == -1 && earlierMin == -1 && earlierMax == -1
-                && radicalMin == -1 && radicalMax == -1 && kanjiMin == -1 && kanjiMax == -1
-                && vocabularyMin == -1 && vocabularyMax == -1&& kanaVocabularyMin == -1 && kanaVocabularyMax == -1;
+        // KanjiKodama: compare with the normalized "no rule" values (min 0, max Integer.MAX_VALUE). The old check
+        // compared with -1, which the constructor never leaves, so it was never true. With no rules the selection
+        // passes pick the first maxSize candidates in order anyway, so the result is the same.
+        return currentMin == 0 && currentMax == Integer.MAX_VALUE && earlierMin == 0 && earlierMax == Integer.MAX_VALUE
+                && radicalMin == 0 && radicalMax == Integer.MAX_VALUE && kanjiMin == 0 && kanjiMax == Integer.MAX_VALUE
+                && vocabularyMin == 0 && vocabularyMax == Integer.MAX_VALUE
+                && kanaVocabularyMin == 0 && kanaVocabularyMax == Integer.MAX_VALUE;
     }
 
     /**
@@ -143,10 +150,10 @@ public final class SubjectSelectionRules {
             }
         }
         if (subject.getType().isKanaVocabulary()) {
-            if (vocabularyDone < kanaVocabularyMin) {
+            if (kanaVocabularyDone < kanaVocabularyMin) {
                 fulfillsTypeMin = true;
             }
-            if (vocabularyDone >= kanaVocabularyMax) {
+            if (kanaVocabularyDone >= kanaVocabularyMax) {
                 exceedsTypeMax = true;
             }
         }
@@ -197,6 +204,9 @@ public final class SubjectSelectionRules {
         }
         if (subject.getType().isVocabulary()) {
             vocabularyDone++;
+        }
+        if (subject.getType().isKanaVocabulary()) {
+            kanaVocabularyDone++;
         }
     }
 }

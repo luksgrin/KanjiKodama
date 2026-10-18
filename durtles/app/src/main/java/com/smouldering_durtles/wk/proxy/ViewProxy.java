@@ -706,6 +706,14 @@ public final class ViewProxy {
         }
     }
 
+    // KanjiKodama: used by the answer field to keep focus (UnansweredSessionFragment.swallowFocusKey).
+    public void setOnKeyListener(final @Nullable View.OnKeyListener listener) {
+        final @Nullable View delegate = getDelegate();
+        if (delegate != null) {
+            delegate.setOnKeyListener(listener);
+        }
+    }
+
     public void setOnCheckedChangeListener(final CompoundButton.OnCheckedChangeListener listener) {
         final @Nullable View delegate = getDelegate();
         if (delegate instanceof CompoundButton) {

@@ -16,6 +16,8 @@
 
 package com.smouldering_durtles.wk.model;
 
+import android.text.TextUtils;
+
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.db.model.SessionItem;
 import com.smouldering_durtles.wk.db.model.Subject;
@@ -206,7 +208,9 @@ public final class Question {
      */
     public CharSequence getAnkiAnswerRichText(final Subject subject, final SessionType sessionType) {
         String inflection = getInflection(subject, sessionType);
-        return type.getAnkiAnswerRichText(subject) + (inflection != null ? " (" + inflection + ")" : "");
+        // KanjiKodama: concatenated with TextUtils.concat, not a String, so the bold primary answer keeps its style.
+        final CharSequence answer = type.getAnkiAnswerRichText(subject);
+        return inflection != null ? TextUtils.concat(answer, " (" + inflection + ")") : answer;
     }
 
     private boolean isVerb(final Subject subject, final SessionType sessionType) {

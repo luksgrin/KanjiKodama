@@ -24,6 +24,7 @@ import com.smouldering_durtles.wk.adapter.search.ItemTypeHeaderItem;
 import com.smouldering_durtles.wk.adapter.search.LevelHeaderItem;
 import com.smouldering_durtles.wk.adapter.search.SrsStageHeaderItem;
 import com.smouldering_durtles.wk.db.model.Subject;
+import com.smouldering_durtles.wk.model.SrsSystem;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -107,19 +108,30 @@ public enum SearchSortOrder {
     STAGE_TYPE("SRS Stage, Type", false) {
         @Override
         public Comparator<Subject> getComparator(final long searchTime) {
-            return Comparator.comparing(Subject::getSrsStage).thenComparingInt(Subject::getTypeOrder);
+            return Comparator.comparing(SearchSortOrder::searchStage).thenComparingInt(Subject::getTypeOrder);
         }
 
         @Override
         public String getTopLevelTag(final Subject subject, final long searchTime) {
-            return subject.getSrsStage().getAdvancedSearchTag();
+            return searchStage(subject).getAdvancedSearchTag();
         }
 
         @Override
         public HeaderItem createTopLevelHeaderItem(final Subject subject, final long searchTime) {
-            return new SrsStageHeaderItem(subject.getSrsStage());
+            return new SrsStageHeaderItem(searchStage(subject));
         }
     };
+
+    /**
+     * KanjiKodama: the stage a subject is sorted and grouped under. A locked subject (unlockedAt = 0) goes under the
+     * Locked stage even when its srsStage is 0, as it is in local mode; the same rule as the "Locked" filter.
+     *
+     * @param subject the subject
+     * @return the stage
+     */
+    private static SrsSystem.Stage searchStage(final Subject subject) {
+        return subject.isLocked() ? subject.getSrsSystem().getLockedStage() : subject.getSrsStage();
+    }
 
     private final String description;
     private final boolean singleLevel;

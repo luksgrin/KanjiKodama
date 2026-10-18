@@ -33,6 +33,7 @@ import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.smouldering_durtles.wk.activities.KeyboardHelpActivity;
+import com.smouldering_durtles.wk.fragments.UnansweredSessionFragment;
 import com.smouldering_durtles.wk.local.LocalMode;
 import com.smouldering_durtles.wk.util.PseudoIme;
 
@@ -202,7 +203,8 @@ public final class FixupKeysGoldenTest {
 
     /**
      * Copy of {@code UnansweredSessionFragment.handleEditorAction} (with {@code safe(false, ...)} around it),
-     * fragment state fixed: active, interactionEnabled, not answered. Records calls and submits.
+     * fragment state fixed: active, interactionEnabled, not answered. Records calls and submits. The field also gets
+     * the fragment's OnKeyListener ({@code UnansweredSessionFragment.swallowFocusKey}).
      */
     private static final class AppEditorAction implements TextView.OnEditorActionListener {
         final List<Map<String, Object>> calls = new ArrayList<>();
@@ -223,10 +225,10 @@ public final class FixupKeysGoldenTest {
 
         private boolean handle(final TextView v, final int actionId, final KeyEvent event) {
             boolean ok = event == null && actionId != 0;
-            if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (UnansweredSessionFragment.isEnterKey(event) && event.getAction() == KeyEvent.ACTION_DOWN) {
                 ok = true;
             }
-            if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+            if (UnansweredSessionFragment.isEnterKey(event) && event.getAction() == KeyEvent.ACTION_UP) {
                 return true;
             }
             if (ok) {
@@ -252,6 +254,7 @@ public final class FixupKeysGoldenTest {
             edit.setText("");
             edit.addTextChangedListener(watcher);
             edit.setOnEditorActionListener(action);
+            edit.setOnKeyListener((v, keyCode, event) -> safe(false, () -> UnansweredSessionFragment.swallowFocusKey(event)));
             edit.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
             if (attach) {

@@ -65,7 +65,7 @@ def add(S, lvl):
         {"action": "sessionFinish", "advanceSeconds": 120}]}
 
     S["anki-test-mode"] = {
-      "description": "Leftover developer code: with the hidden Test mode switch on (test_mode, TestActivity), Anki mode's Correct button counts as Incorrect while the item has no wrong answer yet. 2 radicals in review: each first Correct is recorded as wrong (the item drops a stage), the second Correct counts.",
+      "description": "Fixed leftover developer code: the hidden Test mode switch (test_mode, TestActivity) used to turn an item's first Correct in Anki mode into Incorrect. With it on, 2 radicals in review: every Correct now counts as correct and each item goes up a stage.",
       "mode": "WANIKANI",
       "start": {"generate": {"userLevel": 1, "rows": due(r1[:2])}},
       "steps": [

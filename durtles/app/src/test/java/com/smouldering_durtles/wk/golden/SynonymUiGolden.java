@@ -28,13 +28,14 @@ import static com.smouldering_durtles.wk.golden.GoldenWriter.obj;
  *
  * <p>Case groups (by name prefix):</p>
  * <ul>
- *   <li>{@code input/...}: the "Add synonym" dialog text → {@code StudyMaterialsSupport.synonymInput} (String.trim,
- *   which strips only chars &lt;= U+0020). Output {@code {value, ignored}}, {@code ignored} when the value is empty
- *   (addSynonym then does nothing).</li>
+ *   <li>{@code input/...}: the "Add synonym" dialog text → {@code StudyMaterialsSupport.synonymInput} (String.trim's
+ *   chars plus the ones isBlank counts as blank, e.g. no-break and ideographic spaces, stripped at both ends; runs of
+ *   line breaks inside become one space). Output {@code {value, ignored}}, {@code ignored} when addSynonym does
+ *   nothing for it on an empty list (blank value).</li>
  *   <li>{@code add/...}: SubjectInfoView.addSynonym, one or more dialog inputs in a row on a subject whose
  *   {@code meaningSynonyms} column, meaning note and reading note are given. Per step: the synonyms the view
  *   started from (Subject.getMeaningSynonyms, in memory), the trimmed value, the new list ({@code null} = nothing
- *   happens, no job), the job data, and what SaveStudyMaterialJob makes of it (stored column, notes, read back).</li>
+ *   happens, no job: a blank value or one the list already contains), the job data, and what SaveStudyMaterialJob makes of it (stored column, notes, read back).</li>
  *   <li>{@code form/...}: StudyMaterialsActivity: the 10 synonym rows populated from the column
  *   ({@code fields}), then {@code edits} (row index → new text) and the note fields as given, the save job data
  *   and the SaveStudyMaterialJob result. Synonyms beyond the 10th are not shown and are dropped by any save
@@ -66,9 +67,10 @@ public final class SynonymUiGolden {
                 {"plain", "papa"}, {"leading-trailing-spaces", "  papa  "}, {"inner-spaces-kept", " big  dad "},
                 {"tabs-newlines", "\tpapa\n"}, {"crlf", "papa\r\n"}, {"empty", ""}, {"spaces-only", "   "},
                 {"tab-only", "\t"}, {"newline-only", "\n"}, {"control-chars", "\u0001papa\u001f"},
-                {"nbsp-kept", " papa "}, {"nbsp-only", " "}, {"ideographic-space-kept", "　パパ　"},
+                {"nbsp-trimmed", " papa "}, {"nbsp-only", " "}, {"ideographic-space-trimmed", "　パパ　"},
                 {"ideographic-space-only", "　"}, {"em-space-only", " "}, {"zero-width-space", "​"},
-                {"nel", "\u0085papa"}, {"del-kept", "papa\u007f"}, {"japanese", " 一番 "}, {"emoji", " 🍺 "},
+                {"nel", "\u0085papa"}, {"del-kept", "papa\u007f"}, {"inner-newline", "line\nbreak"},
+                {"inner-crlf-run", "line\r\n\r\nbreak"}, {"inner-nbsp-kept", "big dad"}, {"japanese", " 一番 "}, {"emoji", " 🍺 "},
         };
         for (final String[] e: c) {
             final String v = StudyMaterialsSupport.synonymInput(e[1]);
@@ -84,13 +86,14 @@ public final class SynonymUiGolden {
         addCase("trimmed", "[\"papa\"]", null, null, "  daddy\t");
         addCase("duplicate-exact", "[\"papa\",\"daddy\"]", null, null, "papa");
         addCase("duplicate-after-trim", "[\"papa\"]", null, null, " papa ");
+        addCase("duplicate-after-nbsp-trim", "[\"papa\"]", null, null, "\u00a0papa\u3000");
         addCase("case-variant-added", "[\"papa\"]", null, null, "Papa");
         addCase("upper-variant-added", "[\"papa\"]", null, null, "PAPA");
         addCase("stored-with-spaces-not-duplicate", "[\" papa \"]", null, null, "papa");
         addCase("empty-ignored", "[\"papa\"]", "note", "rnote", "");
         addCase("spaces-ignored", "[\"papa\"]", null, null, "   ");
-        addCase("nbsp-only-added-and-saved", "[\"papa\"]", null, null, " ");
-        addCase("ideographic-space-only-added-and-saved", "[\"papa\"]", null, null, "　");
+        addCase("nbsp-only-ignored", "[\"papa\"]", null, null, " ");
+        addCase("ideographic-space-only-ignored", "[\"papa\"]", null, null, "　");
         addCase("blank-and-null-entries-dropped", "[\"\",\" \",null,\"papa\"]", null, null, "daddy");
         addCase("garbage-column", "not json", null, null, "papa");
         addCase("notes-kept", "[]", "meaning note\nline 2", "  reading note  ", "papa");

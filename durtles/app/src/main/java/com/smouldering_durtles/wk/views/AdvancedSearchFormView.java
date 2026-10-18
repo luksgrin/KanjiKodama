@@ -30,7 +30,10 @@ import com.smouldering_durtles.wk.model.AdvancedSearchParameters;
 import com.smouldering_durtles.wk.model.SrsSystemRepository;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -66,6 +69,12 @@ public final class AdvancedSearchFormView extends TableLayout {
     private final ViewProxy burnedMoreDays = new ViewProxy();
     private final ViewProxy sortOrder = new ViewProxy();
     private final ViewProxy starRatingsHeader = new ViewProxy();
+
+    /**
+     * KanjiKodama: injected values that have no switch in the form (e.g. JLPT 6 from a preset). Refine used to drop
+     * them; extractParameters now adds them back so a Refine round trip doesn't change the search.
+     */
+    private final AdvancedSearchParameters unshownValues = new AdvancedSearchParameters();
 
     /**
      * The constructor.
@@ -291,6 +300,49 @@ public final class AdvancedSearchFormView extends TableLayout {
     }
 
     /**
+     * KanjiKodama: Integer.parseInt, except that a whole number outside the int range is clamped to
+     * Integer.MIN_VALUE/MAX_VALUE. It used to throw, and the filter was silently dropped, so a huge minimum level
+     * matched everything instead of nothing. Text that isn't a whole number still throws.
+     *
+     * @param text the field's text
+     * @return the number
+     */
+    private static int parseNumber(final String text) {
+        try {
+            return Integer.parseInt(text, 10);
+        }
+        catch (final NumberFormatException e) {
+            final BigInteger value = new BigInteger(text, 10);
+            return value.signum() < 0 ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        }
+    }
+
+    /**
+     * KanjiKodama: the values of a collection that no switch's tag stands for.
+     *
+     * @param switches the switches
+     * @param values the injected values
+     * @param result the collection to fill
+     * @param <T> the value type
+     */
+    private static <T> void collectUnshown(final Iterable<ViewProxy> switches, final Iterable<T> values,
+                                           final Collection<T> result) {
+        final Collection<Object> tags = new HashSet<>();
+        for (final ViewProxy view: switches) {
+            final @Nullable Object tag = view.getTag(R.id.advancedSearchSwitchTag);
+            if (tag != null) {
+                tags.add(tag);
+            }
+        }
+        result.clear();
+        for (final T value: values) {
+            if (!tags.contains(value)) {
+                result.add(value);
+            }
+        }
+    }
+
+    /**
      * Extract the current contents of the form as an object.
      *
      * @return the search parameters
@@ -300,47 +352,47 @@ public final class AdvancedSearchFormView extends TableLayout {
 
         final String minLevelStr = minLevel.getText();
         if (!minLevelStr.isEmpty()) {
-            safe(() -> parameters.minLevel = Integer.parseInt(minLevelStr, 10));
+            safe(() -> parameters.minLevel = parseNumber(minLevelStr));
         }
 
         final String maxLevelStr = maxLevel.getText();
         if (!maxLevelStr.isEmpty()) {
-            safe(() -> parameters.maxLevel = Integer.parseInt(maxLevelStr, 10));
+            safe(() -> parameters.maxLevel = parseNumber(maxLevelStr));
         }
 
         final String minFrequencyStr = minFrequency.getText();
         if (!minFrequencyStr.isEmpty()) {
-            safe(() -> parameters.minFrequency = Integer.parseInt(minFrequencyStr, 10));
+            safe(() -> parameters.minFrequency = parseNumber(minFrequencyStr));
         }
 
         final String maxFrequencyStr = maxFrequency.getText();
         if (!maxFrequencyStr.isEmpty()) {
-            safe(() -> parameters.maxFrequency = Integer.parseInt(maxFrequencyStr, 10));
+            safe(() -> parameters.maxFrequency = parseNumber(maxFrequencyStr));
         }
 
         final String reviewLessHoursStr = reviewLessHours.getText();
         if (!reviewLessHoursStr.isEmpty()) {
-            safe(() -> parameters.upcomingReviewLessThan = Integer.parseInt(reviewLessHoursStr, 10));
+            safe(() -> parameters.upcomingReviewLessThan = parseNumber(reviewLessHoursStr));
         }
 
         final String reviewMoreHoursStr = reviewMoreHours.getText();
         if (!reviewMoreHoursStr.isEmpty()) {
-            safe(() -> parameters.upcomingReviewMoreThan = Integer.parseInt(reviewMoreHoursStr, 10));
+            safe(() -> parameters.upcomingReviewMoreThan = parseNumber(reviewMoreHoursStr));
         }
 
         final String incorrectHoursStr = incorrectHours.getText();
         if (!incorrectHoursStr.isEmpty()) {
-            safe(() -> parameters.incorrectAnswerWithin = Integer.parseInt(incorrectHoursStr, 10));
+            safe(() -> parameters.incorrectAnswerWithin = parseNumber(incorrectHoursStr));
         }
 
         final String burnedLessDaysStr = burnedLessDays.getText();
         if (!burnedLessDaysStr.isEmpty()) {
-            safe(() -> parameters.burnedLessThan = Integer.parseInt(burnedLessDaysStr, 10));
+            safe(() -> parameters.burnedLessThan = parseNumber(burnedLessDaysStr));
         }
 
         final String burnedMoreDaysStr = burnedMoreDays.getText();
         if (!burnedMoreDaysStr.isEmpty()) {
-            safe(() -> parameters.burnedMoreThan = Integer.parseInt(burnedMoreDaysStr, 10));
+            safe(() -> parameters.burnedMoreThan = parseNumber(burnedMoreDaysStr));
         }
 
         parameters.leechesOnly = limitToLeeches.isChecked();
@@ -384,6 +436,13 @@ public final class AdvancedSearchFormView extends TableLayout {
                 parameters.joyoGrades.add((Integer) tag);
             }
         }
+
+        // KanjiKodama: keep the injected values the form can't show
+        parameters.starRatings.addAll(unshownValues.starRatings);
+        parameters.srsStages.addAll(unshownValues.srsStages);
+        parameters.itemTypes.addAll(unshownValues.itemTypes);
+        parameters.jlptLevels.addAll(unshownValues.jlptLevels);
+        parameters.joyoGrades.addAll(unshownValues.joyoGrades);
 
         return parameters;
     }
@@ -495,5 +554,11 @@ public final class AdvancedSearchFormView extends TableLayout {
                 grade.setChecked(parameters.joyoGrades.contains(tag));
             }
         }
+
+        collectUnshown(starRatingSwitches, parameters.starRatings, unshownValues.starRatings);
+        collectUnshown(srsStageSwitches, parameters.srsStages, unshownValues.srsStages);
+        collectUnshown(itemTypeSwitches, parameters.itemTypes, unshownValues.itemTypes);
+        collectUnshown(jlptLevelSwitches, parameters.jlptLevels, unshownValues.jlptLevels);
+        collectUnshown(joyoGradeSwitches, parameters.joyoGrades, unshownValues.joyoGrades);
     }
 }

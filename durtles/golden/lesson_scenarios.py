@@ -16,7 +16,7 @@ def add(S, lvl):
     assert V_HITO in lvl(1, "vocabulary") and K_HITO in k1 and K_SHITA in k1
 
     S["session-lesson-back-to-presentation"] = {
-      "description": "Fresh start: a lesson session of 5 radicals. The presentation's next/previous buttons move through the items (next stops at the last one; each move stores the item for a restart). After two quiz answers (the first wrong) the menu's \"Back to lesson presentation\" (visible: LESSON and ACTIVE) shows the LAST item, not the stored one, and does not store it; the quiz progress stays (the finished radical stays REPORTED and is still shown in the presentation, the wrong one keeps its incorrect count and stays queued); next does nothing on the last item. Starting the quiz again continues where it was, until Finish; the wrong radical's lesson report carries its incorrect count.",
+      "description": "Fresh start: a lesson session of 5 radicals. The presentation's next/previous buttons move through the items (next stops at the last one; each move stores the item for a restart). After two quiz answers (the first wrong) the menu's \"Back to lesson presentation\" (visible: LESSON and ACTIVE) opens on the item being quizzed and stores it (KanjiKodama fix; it used to show the last item and store nothing); the quiz progress stays (the finished radical stays REPORTED and is still shown in the presentation, the wrong one keeps its incorrect count and stays queued); next and previous move from there. Starting the quiz again continues where it was, until Finish; the wrong radical's lesson report carries its incorrect count.",
       "mode": "WANIKANI", "start": None,
       "steps": [
         {"action": "sessionStart", "type": "LESSON", "where": {}},
@@ -34,7 +34,7 @@ def add(S, lvl):
         {"action": "sessionFinish"}]}
 
     S["session-lesson-back-answer-on-screen"] = {
-      "description": "Lesson quiz of 5 radicals: \"Back to lesson presentation\" while an answer is still on screen (answered, Next not pressed). Session.advance never runs for it: a correct answer that finished its radical (reported as a lesson at once) leaves the finished question in the queue, so the radical is asked again later and REPORTED A SECOND TIME (two ReportSessionItemJob for subject 1; the snapshot shows the result); a wrong answer on screen is taken back the same way (no choice delay, not in the undo history). The presentation keeps answered = true until the quiz starts again.",
+      "description": "Lesson quiz of 5 radicals: \"Back to lesson presentation\" while an answer is still on screen (answered, Next not pressed). KanjiKodama fix: the answer is taken as if Next had been pressed (Session.advance), so the finished radical leaves the queue and is reported once (it used to be asked again and reported a second time), and a wrong answer gets its choice delay and undo entry. Back with the session's last answer on screen finishes the session as Next would (the presentation is not shown).",
       "mode": "WANIKANI", "start": None,
       "steps": [
         {"action": "sessionStart", "type": "LESSON", "where": {}},
@@ -46,12 +46,14 @@ def add(S, lvl):
         {"action": "sessionAnswer", "answer": "wrong", "advance": False, "advanceSeconds": 5},
         {"action": "sessionBackToPresentation", "advanceSeconds": 10},
         {"action": "sessionStartQuiz", "advanceSeconds": 10},
-        {"action": "sessionAnswer", "until": "finishing", "spacingSeconds": 5},
+        {"action": "sessionAnswer", "count": 2, "spacingSeconds": 5},
+        {"action": "sessionAnswer", "advance": False, "advanceSeconds": 5},
+        {"action": "sessionBackToPresentation", "advanceSeconds": 10},
         {"action": "sessionFinish"},
         {"action": "snapshot"}]}
 
     S["session-lesson-back-restart"] = {
-      "description": "App restarts around the lesson presentation (5 radicals). Session.load reloads only items that are not yet reported and opens the presentation while none of them is started, on the stored item: a restart during the presentation comes back on the item the next button stored; after one radical is finished (reported) and Back to presentation, a restart opens the presentation again on the item stored by the quiz (not the last item Back showed); after a wrong answer (an item started) and Back, a restart resumes the quiz.",
+      "description": "App restarts around the lesson presentation (5 radicals). Session.load reloads only items that are not yet reported and opens the presentation while none of them is started, on the stored item: a restart during the presentation comes back on the item the next button stored; after one radical is finished (reported) and Back to presentation, a restart opens the presentation again on the stored item, the one Back showed (Back now opens on the quizzed item and stores it); after a wrong answer (an item started) and Back, a restart resumes the quiz.",
       "mode": "WANIKANI", "start": None,
       "steps": [
         {"action": "sessionStart", "type": "LESSON", "where": {}},

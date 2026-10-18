@@ -200,21 +200,24 @@ Notes per area:
   the subject info screen (`BrowseActivity` with `id`). The answered-question screen uses the same
   `SubjectInfoView` code. Ops DSL in the class javadoc; each step records `dialogShowing`, `field`
   and `shown` (the "My synonyms:" line); then `saved` (the save job ran), `stored`,
-  `storedSynonyms`, `shownReopened`. The field is a plain `EditText`: input type
-  `TEXT | MULTI_LINE` (131073), multi-line. Findings:
-  - Save takes `String.trim()` of the text. An empty or blank value (`isBlank`: NBSP and U+3000
-    count) does nothing and runs no job. NBSP and U+3000 around a word are not trimmed and are
-    stored (`save-nbsp-padded`, `save-ideographic-padded`). Inner spaces are stored as typed,
-    and the line shows them collapsed. There is no length limit.
-  - A value already in the list (exact, case-sensitive, after trim) leaves the list as it is,
-    but the save job still runs (`studyMaterialPatched` = 1). `Papa` next to `papa` is added.
-    Blank entries already in the column are dropped on the next save.
+  `storedSynonyms`, `shownReopened`. The field is a single-line `EditText` (input type `TEXT`,
+  1; ime options `DONE`) with an input filter that turns line breaks into a space. Findings:
+  - Save takes `StudyMaterialsSupport.synonymInput` of the text: `String.trim()` plus NBSP,
+    U+3000 and the other chars `isBlank` counts, at both ends (`save-nbsp-padded`,
+    `save-ideographic-padded`); runs of line breaks inside become one space. An empty or blank
+    value does nothing and runs no job. Inner spaces are stored as typed, and the line shows them
+    collapsed. There is no length limit.
+  - A value already in the list (exact, case-sensitive, after trim) does nothing: no job runs
+    (`saved` false). `Papa` next to `papa` is added. Blank entries already in the column are
+    dropped on the next save.
   - Enter (no modifiers) closes the dialog and saves, like Save. A second Enter does nothing.
-    Shift+Enter and `NUMPAD_ENTER` insert `\n` (multi-line field), which Save trims away at the
-    end. Every IME editor action (DONE, GO, UNSPECIFIED) closes and saves: the listener accepts
-    only DONE, but TextView's Enter fallback (see `keys-session.json`) reaches it as an Enter
-    key. An IME newline (`commitText("\n")`) stays in the text: `line\nbreak` is stored with
-    the newline and shown as `line break`.
+    The listener accepts numpad Enter too, but this dialog runs with the emulator's Gboard bound,
+    which passes numpad Enter on only for an empty field (`hardware-numpad-enter-empty`); after
+    typing, Gboard commits it, like Shift+Enter, as a `\n`. Every IME editor action (DONE, GO,
+    UNSPECIFIED) closes and saves: the listener accepts only DONE, but TextView's Enter fallback
+    (see `keys-session.json`) reaches it as an Enter key. A newline that arrives as text
+    (Shift+Enter or numpad Enter through Gboard, an IME `commitText("\n")`, a paste) becomes a
+    space: `line\nbreak` is stored as `line break`, a trailing one is trimmed.
   - Cancel and Back close without saving. The screen shows the new line at once; reopening shows
     the stored list.
 - `search/*`: matching is SQL `LIKE '%term%'` per term (AND) on the subject's `searchTarget`
@@ -235,28 +238,37 @@ Notes per area:
   has a NULL object). Browse offers levels 1 to the highest subject level (61 holds the extra kanji
   and words). The advanced search parses the JSON with Jackson (`FAIL_ON_UNKNOWN_PROPERTIES` off:
   numbers as strings and floats are coerced, floats truncated; enum names must match exactly;
-  `itemTypes: null` makes the search throw and return nothing; a single string for an array, a bad
-  enum or a level above 2^31 fails the parse, and the search returns nothing). Filters are ANDed:
+  an explicit `null` for `sortOrder` or a collection keeps the default, i.e. no filter and the
+  type order; a single string for an array, a bad enum or a level above 2^31 in the JSON fails
+  the parse, and the search returns nothing). Filters are ANDed:
   levels and frequency inclusive, `leechesOnly` = `srsStage` strictly between initial and burned and
   `leechScore > 1000`; upcoming review needs `availableAt != 0` and compares `availableAt <= now +
   h` / `>= now + h`; burned needs `burnedAt != 0` and `burnedAt >= now - d` (less than) / `<= now - d`
   (more than); incorrect is `lastIncorrectAnswer != 0 AND >= now - h`. Star ratings (stored in
   `typeCode`, 0 = unrated) filter only when the setting is on. Stage tags turn into `(srsSystemId,
-  srsStage)` pairs ORed; a tag no SRS system has adds nothing, so a selection of only unknown tags
-  is no filter at all. Type, JLPT and Jōyō are `IN` lists. Results are ordered by level,
+  srsStage)` pairs ORed, except `locked` = `unlockedAt = 0` and `initial` = `srsStage = 0 AND
+  unlockedAt != 0`; a tag no SRS system has adds nothing, and a selection of only unknown tags
+  matches nothing. Type, JLPT and Jōyō are `IN` lists. Results are ordered by level,
   lessonPosition, id; the screen re-sorts stably by the sort order (next review clamps overdue
   times to the search time, so overdue items share one header) and groups consecutive equal items
-  under headers (`view`: `Class:tag` strings and ids, in screen order). `"sortOrder": null` parses
-  but the screen's `setResult` throws. Sets in the serialized JSON (`srsStages` especially) are Java
+  under headers (`view`: `Class:tag` strings and ids, in screen order). Sets in the serialized JSON (`srsStages` especially) are Java
   `HashSet`s, so compare them as sets. The form reads its number fields with `Integer.parseInt`
-  (digits only on the keyboard; text that does not parse, like an overflowing number, is silently
-  dropped) and injecting parameters drops values the form has no switch for (`prepass:5`, JLPT 6,
-  Jōyō 8). Test seams: `SearchUtil`'s time filters and `SearchResultAdapter`'s search time read
+  (digits only on the keyboard); a whole number outside the int range is clamped to
+  `Integer.MIN_VALUE`/`MAX_VALUE`, and other text that does not parse (`1.5`, `abc`, ` 5`) is
+  silently dropped. Injecting parameters (Refine) keeps the values the form has no switch for
+  (`prepass:5`, JLPT 6, Jōyō 8, star 7) and adds them back on extract, so a Refine round trip
+  doesn't change the search; the next inject replaces them (`reinject/00`). Test seams: `SearchUtil`'s time filters and `SearchResultAdapter`'s search time read
   `Clock`.
-- **Known, not fixed:** in local mode locked subjects keep `srsStage = 0` (`ProgressStore` resets
-  every subject to 0; only the upstream sync wrote `-999`), so the "Locked" stage filter never
-  matches anything, "Initiate" matches locked subjects as well as lessons, and the "SRS Stage" sort
-  puts locked subjects under Initiate. Locked is `unlockedAt = 0`.
+- Locked subjects: in local mode they keep `srsStage = 0` (`ProgressStore` resets every subject to
+  0); only the WaniKani sync writes `-999`, exactly when `unlockedAt = 0`. So the stage filters and
+  the "SRS Stage" sort go by `unlockedAt` (`Subject.isLocked`): a locked subject sorts and groups
+  under the Locked stage whatever its `srsStage`. The `progress-synced` group re-runs the stage
+  cases with `-999` on the locked rows (as server mode stores them) and gets the same results as
+  `progress`.
+- `AdvancedSearchGoldenTest` runs the real `LoadReferenceDataTask` in its setup: the JLPT, Jōyō and
+  frequency columns come from that background task, which may not have run yet on a fresh install
+  (the JLPT, Jōyō and frequency cases then found nothing or everything). The output is identical on
+  a fresh emulator and on one with an existing database.
 - `answers/unicode-android*`: made on the device. The port takes general categories for
   `cleanString` from `unicode-android-table.json` (Unicode 16), uses the device's lower-casing for
   the 27 newer case pairs, and copies Android's final sigma: Σ is final from the UTF-16 units right
@@ -285,10 +297,12 @@ Notes per area:
   DEL removes a whole surrogate pair where `deleteSurroundingText(1, 0)` leaves a lone surrogate
   (`del-emoji`), and a styled paste (`clip-html-*`, `paste`, not `pasteAsPlainText`) inserts the
   clip's HTML text, not its plain text. A paste of several clip items joins them with `\n`;
-  whitespace (newline, tab, space) is removed by `fixup` as usual. Submit: only `KEYCODE_ENTER`
-  down without modifiers submits (once per down, so auto-repeat submits again); Enter up is
-  consumed without submit; shift/ctrl/alt+Enter, `NUMPAD_ENTER` and `DPAD_CENTER` never submit
-  (shift+Enter inserts a `\n` that `fixup` removes); an IME's `performEditorAction` submits for
+  whitespace (newline, tab, space) is removed by `fixup` as usual. The field also has the
+  fragment's `OnKeyListener` (`swallowFocusKey`), so Tab and every Enter or numpad Enter release
+  are consumed before TextView sees them (`handled` true, and the editor action listener records
+  no `up` calls). Submit: `KEYCODE_ENTER` or `KEYCODE_NUMPAD_ENTER` down without modifiers submits
+  (once per down, so auto-repeat submits again); shift/ctrl/alt+Enter and `DPAD_CENTER` never
+  submit (shift+Enter inserts a `\n` that `fixup` removes); an IME's `performEditorAction` submits for
   any action id but 0 (`IME_ACTION_UNSPECIFIED`); the field's EditorInfo action is
   `IME_ACTION_DONE`. Not covered here: the real fragment (see `kana/keys-session.json`), non-QWERTY
   or kana hardware layouts.
@@ -299,15 +313,13 @@ Notes per area:
   records `fragment`, `current`, `answered`, `correct`, `field`, `fieldActive`, `focus`,
   `progress`. The field: input type `TEXT | NO_SUGGESTIONS` (524289), ime options
   `DONE | NO_FULLSCREEN | NO_PERSONALIZED_LEARNING`, single line. Findings:
-  - Enter down (no modifiers) submits, for meaning and reading; auto-repeat downs after it do
-    nothing (the field is inactive once submitted). Enter up alone does not submit.
-    Shift/ctrl/alt+Enter and `DPAD_CENTER` do nothing.
-  - **Focus leaves the field** on `NUMPAD_ENTER`, Tab and a lone Enter up (TextView's "advance
-    focus on Enter" for a single-line field, because `handleEditorAction` only sees Enter
-    keys TextView passes to it). The next view is the Don't know button. Typed keys are then lost,
-    and the next Enter or numpad Enter **clicks Don't know** (`numpad-enter-twice`,
-    `numpad-enter-then-type-enter`, `tab-then-enter`): a wrong answer. Escape clears focus; after
-    it, keys and Enter do nothing.
+  - Enter or numpad Enter down (no modifiers) submits, for meaning and reading; auto-repeat downs
+    after it do nothing (the field is inactive once submitted). An Enter or numpad Enter up alone
+    does nothing. Shift/ctrl/alt+Enter and `DPAD_CENTER` do nothing.
+  - Focus stays on the field on Tab, Shift+Tab and a lone Enter or numpad Enter up (fixed
+    2026-10-18: before, these moved focus to the Don't know button, so typed keys were lost and
+    the next Enter answered "Don't know"). DPAD_DOWN doesn't move it either. Escape clears focus;
+    after it, keys and Enter do nothing.
   - After a submit, the answered screen focuses Next: Enter goes to the next question, and
     keys typed before that are lost. After a retry verdict (kanji reading answered with the
     kun'yomi), the field stays active and keeps its text; Enter again gives the retry again.
@@ -324,7 +336,8 @@ Notes per area:
     every hardware key goes to Gboard first. Gboard passed ASCII keys through and the results
     matched these, except two that were not deterministic: in 1 of 5 runs, an Enter right
     after a retry reached the field as an editor action plus a lone Enter up. Focus then moved
-    to Don't know, and the next Enter answered Don't know. Also, after Escape, keys still reached
+    to Don't know, and the next Enter answered Don't know (fixed 2026-10-18: the field now
+    swallows a lone Enter up; not re-checked with Gboard, since it isn't deterministic). Also, after Escape, keys still reached
     the field through Gboard's InputConnection. This depends on the IME, its version and timing.
     The port can only match what it does itself (no Android IME on the web or in the Capacitor
     WebView).
@@ -460,13 +473,13 @@ Notes per area:
   unset; current = the user's level, earlier = below it, a subject above it counts as neither) pick in
   five passes over the sorted list (a subject that helps both an age and a type minimum; one that helps a
   minimum without exceeding a maximum; any minimum; nothing exceeded; anything), then the chosen ones are
-  sorted again. `SubjectSelectionRules.isEmpty()` is never true (it compares the normalized values with
-  -1), so the passes always run; with no rules they give the same result as cutting the list. Frozen
-  bugs: the lesson kana-only minimum is read from `lesson_subjects_Kana_vocabulary_min` (capital K),
-  while the settings screen writes `lesson_subjects_kana_vocabulary_min`, so it never applies
-  (`session-order-lesson` has both); and kana-only vocabulary is compared with the ordinary vocabulary
-  count and never counted itself, so its minimum and maximum act on the wrong number
-  (`session-size-review`: a kana-only maximum of 1 still takes all four).
+  sorted again. With no effective rules (every min 0 or unset, every max unset) `isEmpty()` skips the
+  passes and cuts the list, which gives the same result. Kana-only vocabulary has its own count: the
+  `vocabulary` rules count ordinary vocabulary only (`SubjectType.isVocabulary` is false for
+  kana-only), the `kana_vocabulary` rules count kana-only vocabulary only. Maximums are soft: the last
+  pass still fills the session past them. The lesson kana-only minimum is read from
+  `lesson_subjects_kana_vocabulary_min`, the key the settings screen writes (`session-order-lesson`
+  also sets the old misspelled `lesson_subjects_Kana_vocabulary_min`, which is ignored).
   Question order (`Session.chooseQuestion`, `session-sequence-*`, `resolved.answers` in order): the
   candidates are filtered in turn, each filter skipped when it would leave nothing: back-to-back (only
   questions of started items), reading first (an item with both questions pending offers only its
@@ -491,19 +504,18 @@ Notes per area:
   Grading goes through `Session.submitAnkiCorrect` / `submitAnkiIncorrect`, which mark the question
   exactly like a typed right or wrong answer (same session_item updates, reports, SRS outcome, re-queue;
   no `lastTypedIncorrectAnswer`, no verdict, no close-match toast) and ignore a second press on an
-  answered question. Test mode (`test_mode`, the hidden TestActivity switch) turns an item's first
-  Correct into Incorrect (`anki-test-mode`): leftover developer code, the port should drop it.
-  Frozen bug: the revealed text loses its bold (the primary meaning/reading when there are several),
-  because `Question.getAnkiAnswerRichText` concatenates it with a String; `bold` lists the intended
-  ranges, `shownStyled` is always false. Meanings are put into HTML unescaped (synonyms are escaped).
+  answered question. Test mode (`test_mode`, the hidden TestActivity switch) has no effect on grading
+  (`anki-test-mode`, see fix 11). The revealed text keeps its bold (the primary meaning/reading when
+  there are several): `bold` lists the ranges in the shown text, `shownStyled` is true exactly when
+  there are some. Meanings and readings are HTML-escaped like synonyms (`escape/*` cases).
 - **Lesson quiz** (`session-lesson-*`, `session-matching-kanji`; `sessionBackToPresentation`,
   `sessionPresentationNext`/`Previous` and `sessionInspect` add `result.presentation` {item, index, storedItemId}).
-  Back to lesson presentation (menu visible while a LESSON session is `ACTIVE`) shows the last item, not the
-  stored one, and does not store it; everything about the quiz stays (finished items stay `REPORTED` and are shown
+  Back to lesson presentation (menu visible while a LESSON session is `ACTIVE`) opens on the item being quizzed
+  and stores it; everything about the quiz stays (finished items stay `REPORTED` and are shown
   in the presentation, wrong ones keep their counts and stay queued) and Start quiz continues. With an answer still on
-  screen, `Session.advance` never runs for it: a finished question stays queued, so the item is asked and reported a
-  second time (the second report moves `startedAt` and `availableAt` to its own time), and a wrong one gets no
-  choice delay or undo entry. A restart reloads only unreported items and opens the presentation while none of them is
+  screen, it first acts as Next (`Session.advance`): a finished question leaves the queue (reported once), a wrong
+  one gets its choice delay and undo entry, and if that was the last question the session finishes instead of
+  showing the presentation. A restart reloads only unreported items and opens the presentation while none of them is
   started, on the stored item. A lesson report carries the item's incorrect counts, but the lesson still lands on
   Apprentice I with no review statistics; a wrong answer sets `lastIncorrectAnswer`, a retry does not. **Matching
   kanji:** only `SubjectType.isVocabulary` subjects (not kana-only vocabulary) with exactly one UTF-16 char qualify,
@@ -515,7 +527,7 @@ Notes per area:
   even for radicals; switching order keeps already unlocked items; `ProgressStore.describe`
   throws a `NullPointerException` when `subjects` is missing.
 
-## Java bugs fixed before freezing (2026-10-17)
+## Java bugs fixed before freezing (2026-10-17, 2026-10-18)
 
 Found while generating these fixtures, fixed in `durtles/` first, then regenerated:
 
@@ -534,6 +546,54 @@ Found while generating these fixtures, fixed in `durtles/` first, then regenerat
    match literally.
 7. **A level-test round was forgotten when the app was killed mid-round**, so it finished as plain
    self-study and was never recorded. The round flag is now persisted.
+8. **Back to lesson presentation with an answer still on screen reported the item twice.** The
+   answered question was never removed, so the item was asked again and reported a second time
+   (moving its `startedAt`/`availableAt`), and a wrong answer got no choice delay or undo entry.
+   It now acts as Next first; with the last answer on screen the session finishes.
+9. **Back to lesson presentation opened on the last item** and stored nothing, so a restart opened
+   a different item. It now opens on the item being quizzed (else the stored one) and stores it.
+10. **`Session.goBackToPresentation`'s guard only logged** outside an active lesson; it now returns.
+
+11. **Anki mode's Correct counted as Incorrect with the hidden test mode on** (an item's first
+   Correct). Leftover developer code, removed: Correct is always correct.
+12. **Anki mode's revealed answer lost its bold**, because `Question.getAnkiAnswerRichText` joined it
+   to a String. It now uses `TextUtils.concat`, so the primary meaning or reading stays bold.
+13. **Meanings and readings went into HTML unescaped** (revealed answer and the subject headline), so a
+   `<` or `&` could be swallowed or turned into markup. No current content has one; they are now
+   escaped like synonyms and notes already were.
+14. **The "Locked" stage filter matched nothing in local mode**, "Initiate" matched locked subjects
+   too, and the "SRS Stage" sort put them under Initiate. Locked now means `unlockedAt = 0`, the same
+   as before in server mode, where the sync writes `-999` exactly for those rows.
+15. **A stage selection with only unknown tags returned every subject.** It now matches nothing.
+16. **An advanced search with `"itemTypes": null` (or another collection set to null) came back
+   empty**, and **`"sortOrder": null` blanked the results screen.** Both could only come from a preset or
+   an import. An explicit null now keeps the default (no filter, type order).
+17. **A number above 2^31−1 in an advanced search field was silently dropped**, so a huge minimum
+   level matched everything. Whole numbers outside the int range are now clamped to the int range.
+18. **Refine dropped values the form has no switch for** (JLPT 6, Jōyō 8, a star rating of 7, an
+   unknown stage tag), so refining a preset changed its search. They are now kept through the form.
+19. **The lesson kana-only vocabulary minimum never applied**: it was read from
+   `lesson_subjects_Kana_vocabulary_min` (capital K), which nothing writes, while the settings screen
+   writes `lesson_subjects_kana_vocabulary_min`. It now reads the screen's key. A value under the old
+   key could only have been set by hand, so it isn't migrated.
+20. **The kana-only selection rules counted the wrong items**: they were compared with the ordinary
+   vocabulary count, and kana-only items were never counted, so a kana-only maximum of 1 took every
+   kana-only item. Kana-only vocabulary now has its own count.
+21. **`SubjectSelectionRules.isEmpty()` was never true** (it compared normalized values with -1). It
+   now recognizes "no rules"; the selected subjects are the same either way.
+22. **Numpad Enter, Tab or a lone Enter release moved focus from the answer field to Don't know**, so
+   the keys typed next were lost and the next Enter answered "Don't know" (a wrong answer). Numpad
+   Enter now submits like Enter, and the field swallows Tab and every Enter release
+   (`UnansweredSessionFragment.isEnterKey`/`swallowFocusKey`, an `OnKeyListener`). This also covers
+   the Gboard case where a quick Enter after a retry arrived as an editor action plus a lone release.
+23. **"Add synonym" kept no-break and ideographic spaces around a word.** `synonymInput` now strips
+   the chars `isBlank` counts as blank as well as `String.trim`'s.
+24. **Newlines could get into a synonym** (multi-line field: Shift+Enter, numpad Enter, an IME or a
+   paste). The field is single-line, an input filter turns line breaks into a space, and
+   `synonymInput` does the same, so `line\nbreak` is saved as `line break`. Enter and every IME action
+   save; numpad Enter saves when the keyboard passes it on as a key.
+25. **Adding a synonym already in the list still ran the save job.** `StudyMaterialsSupport.addSynonym`
+   now returns null for it, so nothing is saved.
 
 Not changed on purpose: search matches characters, meanings and readings only (not notes or
 synonyms) and has no romaji-to-kana conversion. These are upstream design choices, not bugs.
@@ -599,6 +659,16 @@ adb shell run-as app.kanjikodama.wk.debug rm -rf databases shared_prefs files no
 adb exec-in run-as app.kanjikodama.wk.debug tar -xf - < backup.tar
 # and relaunch the app
 ```
+
+**Two emulators.** `emulator-5554` (AVD `mojimori`) holds the owner's progress: back it up and restore
+it around every run as above. `emulator-5556` (AVD `kk-golden2`, same `android-36` google_apis arm64
+image, Pixel 6 profile, same Gboard and animation settings) holds no owner data and needs no backup;
+prefer it. Start it headless with
+`emulator -avd kk-golden2 -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot-save`.
+With both attached, `run.sh` and `unicode.sh` need `ANDROID_SERIAL=emulator-5556` (or 5554); `run.sh`
+refuses to guess. Every Tier B fixture comes out byte-identical on both (checked 2026-10-18).
+Agents coordinate with `mkdir` locks: `/tmp/claude-501/kk-emulator.lock` (5554),
+`/tmp/claude-501/kk-emulator2.lock` (5556), `/tmp/claude-501/kk-durtles-gradle.lock` (builds and installs).
 
 The run takes about 80 s and is deterministic (two runs give identical files). Subsets: one test
 with `class=…ScenarioGoldenTest#scenarios`, `#srsOutcome` or `#progressDescribe`; some scenarios

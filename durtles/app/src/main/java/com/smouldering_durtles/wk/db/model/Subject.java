@@ -1642,10 +1642,11 @@ public final class Subject implements PronunciationAudioOwner {
      */
     @SuppressLint("NewApi")
     public CharSequence getMeaningRichText(final CharSequence prefix) {
+        // KanjiKodama: the values are HTML-escaped, so a "<" or "&" in a meaning shows as typed.
         final String html = getAcceptedMeanings().stream()
                 .map(meaning -> meaning.isPrimary() && getNumAcceptedMeanings() > 1
-                ? String.format(Locale.ROOT, "<b>%s</b>", meaning.getMeaning())
-                : meaning.getMeaning())
+                ? String.format(Locale.ROOT, "<b>%s</b>", escapeHtml(meaning.getMeaning()))
+                : escapeHtml(meaning.getMeaning()))
                 .collect(Collectors.joining(", ", prefix, ""));
         return renderHtml(html);
     }
@@ -1738,10 +1739,11 @@ public final class Subject implements PronunciationAudioOwner {
     @SuppressLint("NewApi")
     public CharSequence getRegularReadingRichText(final CharSequence prefix) {
         final boolean showOnInKatakana = GlobalSettings.Other.getShowOnInKatakana();
+        // KanjiKodama: the values are HTML-escaped, so a "<" or "&" in a reading shows as typed.
         final String html = getAcceptedReadings().stream()
                 .map(reading -> reading.isPrimary() && getNumAcceptedReadings() > 1
-                        ? String.format(Locale.ROOT, "<b>%s</b>", reading.getValue(showOnInKatakana))
-                        : reading.getValue(showOnInKatakana))
+                        ? String.format(Locale.ROOT, "<b>%s</b>", escapeHtml(reading.getValue(showOnInKatakana)))
+                        : escapeHtml(reading.getValue(showOnInKatakana)))
                 .collect(Collectors.joining(", ", prefix, ""));
         return renderHtml(html);
     }
@@ -1799,7 +1801,8 @@ public final class Subject implements PronunciationAudioOwner {
         final String html = getReadings().stream()
                 .filter(Reading::isOnYomi)
                 .filter(reading -> !hasAcceptedOnYomi() || reading.isAcceptedAnswer())
-                .map(reading -> reading.getValue(showOnInKatakana))
+                // KanjiKodama: HTML-escaped, so a "<" or "&" shows as typed
+                .map(reading -> escapeHtml(reading.getValue(showOnInKatakana)))
                 .collect(Collectors.joining(", ", prefix, ""));
         return renderHtml(html);
     }
@@ -1815,7 +1818,8 @@ public final class Subject implements PronunciationAudioOwner {
         final String html = getReadings().stream()
                 .filter(Reading::isKunYomi)
                 .filter(reading -> !hasAcceptedKunYomi() || reading.isAcceptedAnswer())
-                .map(reading -> reading.getValue(false))
+                // KanjiKodama: HTML-escaped, so a "<" or "&" shows as typed
+                .map(reading -> escapeHtml(reading.getValue(false)))
                 .collect(Collectors.joining(", ", prefix, ""));
         return renderHtml(html);
     }

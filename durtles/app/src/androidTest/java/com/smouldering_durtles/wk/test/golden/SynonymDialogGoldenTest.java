@@ -187,6 +187,9 @@ public final class SynonymDialogGoldenTest {
                 {"ime-unspecified", 512L, "[]", new Object[] {open(), text("dad"), ime(EditorInfo.IME_ACTION_UNSPECIFIED), save()}},
                 {"ime-newline-commit", 512L, "[]", new Object[] {open(), commit("line"), commit("\n"), commit("break"), save()}},
                 {"ime-trailing-newline", 512L, "[]", new Object[] {open(), commit("dad"), commit("\n"), save()}},
+                {"paste-newline", 512L, "[]", new Object[] {open(), text("line\nbreak"), save()}},
+                {"paste-crlf-padded", 512L, "[]", new Object[] {open(), text(" dad\r\n"), save()}},
+                {"hardware-numpad-enter-empty", 512L, "[\"papa\"]", new Object[] {open(), key("NUMPAD_ENTER")}},
         };
         try (final GoldenWriter w = GoldenWriter.open("answers/synonyms-dialog-device.json", "answers.synonymsDialogDevice",
                 "views/SubjectInfoView.prepareAddSynonymButton/onSynonymEditorAction/addSynonym (real dialog in"

@@ -450,10 +450,11 @@ public final class UnansweredSessionFragment extends AbstractSessionFragment {
             return false;
         }
         boolean ok = event == null && actionId != 0;
-        if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+        // KanjiKodama: numpad Enter counts as Enter (it used to move focus to the Don't know button).
+        if (isEnterKey(event) && event.getAction() == KeyEvent.ACTION_DOWN) {
             ok = true;
         }
-        if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+        if (isEnterKey(event) && event.getAction() == KeyEvent.ACTION_UP) {
             return true;
         }
 
@@ -493,10 +494,40 @@ public final class UnansweredSessionFragment extends AbstractSessionFragment {
 
     }
 
+    /**
+     * KanjiKodama: true for the Enter key and the numpad Enter key.
+     *
+     * @param event the key event, or null for an IME action
+     * @return true if it is an Enter key
+     */
+    public static boolean isEnterKey(final @Nullable KeyEvent event) {
+        return event != null
+                && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_NUMPAD_ENTER);
+    }
+
+    /**
+     * KanjiKodama: the answer field's OnKeyListener. It swallows the keys that used to move focus from the field to
+     * the session buttons, after which the next Enter clicked Don't know: Tab (with or without Shift), and an Enter
+     * release the field didn't see the press of (TextView only hands a release to the editor action listener after
+     * a handled press; a lone one, e.g. after a retry with a soft keyboard bound, advanced focus). Enter presses
+     * still go to handleEditorAction.
+     *
+     * @param event the key event
+     * @return true if the key is consumed here
+     */
+    public static boolean swallowFocusKey(final KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_TAB) {
+            return true;
+        }
+        return isEnterKey(event) && event.getAction() == KeyEvent.ACTION_UP;
+    }
+
     private void addActionListenerToEditText() {
         final TextView.OnEditorActionListener onEditorActionListener = (v, actionId, event) ->
                 safe(false, () -> handleEditorAction(actionId, event));
 
         questionEdit.setOnEditorActionListener(onEditorActionListener);
+        // KanjiKodama: keep focus on the field (see swallowFocusKey).
+        questionEdit.setOnKeyListener((v, keyCode, event) -> safe(false, () -> swallowFocusKey(event)));
     }
 }

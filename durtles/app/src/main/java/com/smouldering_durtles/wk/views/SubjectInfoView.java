@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.BlurMaskFilter;
+import android.text.InputFilter;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
@@ -458,7 +459,8 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
             return true;
         }
         boolean ok = event == null && actionId == EditorInfo.IME_ACTION_DONE;
-        if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+        // KanjiKodama: numpad Enter confirms too (it used to insert a newline).
+        if (event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_NUMPAD_ENTER)) {
             ok = true;
         }
         if (ok) {
@@ -488,6 +490,14 @@ public final class SubjectInfoView extends LinearLayout implements SubjectChange
         addSynonymButton.setOnClickListener(v -> safe(() -> {
             final EditText synonym = new EditText(getContext());
             synonym.setTag(false);
+            // KanjiKodama: single-line, so Enter (or the keyboard's Done) saves. A line break a keyboard or a paste
+            // still commits (Gboard sends Shift+Enter as text) becomes a space, as StudyMaterialsSupport.synonymInput
+            // does, so a newline can't get into a synonym.
+            synonym.setSingleLine(true);
+            synonym.setFilters(new InputFilter[] {(source, start, end, dest, dstart, dend) -> {
+                final String text = source.subSequence(start, end).toString();
+                return text.indexOf('\n') < 0 && text.indexOf('\r') < 0 ? null : text.replaceAll("[\\r\\n]+", " ");
+            }});
 
             final AlertDialog alertDialog = new AlertDialog.Builder(getContext())
                     .setTitle("Add synonym")

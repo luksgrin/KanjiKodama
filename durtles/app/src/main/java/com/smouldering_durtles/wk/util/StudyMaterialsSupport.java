@@ -30,13 +30,30 @@ public final class StudyMaterialsSupport {
     }
 
     /**
-     * What the "Add synonym" dialog passes on: the field text, trimmed with String.trim.
+     * What the "Add synonym" dialog passes on: the field text, trimmed. KanjiKodama: this was String.trim, which
+     * strips only chars up to U+0020, so no-break and ideographic spaces around a word were stored. It now also strips
+     * the chars {@link #isBlank} counts as blank, and turns each run of line breaks inside the text into one space (the
+     * field is single-line now, but a paste could still bring one in; the synonym list showed them as a space anyway).
      *
      * @param text the dialog's EditText contents
      * @return the trimmed text
      */
     public static String synonymInput(final CharSequence text) {
-        return text.toString().trim();
+        final String s = text.toString().replaceAll("[\\r\\n]+", " ");
+        int start = 0;
+        int end = s.length();
+        while (start < end && isTrimmable(s.charAt(start))) {
+            start++;
+        }
+        while (end > start && isTrimmable(s.charAt(end - 1))) {
+            end--;
+        }
+        return s.substring(start, end);
+    }
+
+    // KanjiKodama: String.trim's chars plus the ones isBlank counts as blank.
+    private static boolean isTrimmable(final char c) {
+        return c <= ' ' || Character.isWhitespace(c) || Character.isSpaceChar(c);
     }
 
     /**
@@ -73,7 +90,8 @@ public final class StudyMaterialsSupport {
 
     /**
      * SubjectInfoView.addSynonym: the new synonym list, or null when nothing happens (empty value).
-     * The value is appended unless the list already contains it (case-sensitive, exact).
+     * The value is appended unless the list already contains it (case-sensitive, exact). KanjiKodama: a value the list
+     * already contains now also returns null, so no SaveStudyMaterialJob runs for a list that didn't change.
      *
      * @param current the subject's current synonyms (Subject.getMeaningSynonyms)
      * @param value the trimmed dialog input
@@ -83,10 +101,11 @@ public final class StudyMaterialsSupport {
         if (isBlank(value)) {
             return null;
         }
-        final List<String> list = new ArrayList<>(current);
-        if (!list.contains(value)) {
-            list.add(value);
+        if (current.contains(value)) {
+            return null;
         }
+        final List<String> list = new ArrayList<>(current);
+        list.add(value);
         return list;
     }
 

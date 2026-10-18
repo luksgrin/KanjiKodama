@@ -357,6 +357,11 @@ public final class SearchUtil {
             sb.append(" AND ");
             sb.append(join(" OR ", "(", ")", srsStageFragments));
         }
+        else if (!parameters.srsStages.isEmpty()) {
+            // KanjiKodama: stages were selected but none of the tags is known, so nothing matches (it used to drop
+            // the filter and return every subject).
+            sb.append(" AND 0");
+        }
 
         final Collection<String> itemTypeFragments = new ArrayList<>();
         for (final SubjectType itemType: parameters.itemTypes) {

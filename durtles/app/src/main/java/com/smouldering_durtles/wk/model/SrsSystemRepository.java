@@ -129,11 +129,14 @@ public final class SrsSystemRepository {
      * @param tag the stage tag
      */
     public static void addSrsStageFragments(final Collection<? super String> fragments, final String tag) {
+        // KanjiKodama: locked means not unlocked yet (Subject.isLocked). Only the WaniKani sync writes srsStage -999,
+        // and it does so exactly when unlockedAt = 0, so this matches the old filter in server mode; in local mode
+        // srsStage stays 0 for locked subjects, which made "Locked" match nothing and "Initiate" match them too.
         if (tag.equals("locked")) {
-            fragments.add("(srsStage = -999)");
+            fragments.add("(unlockedAt = 0)");
         }
         else if (tag.equals("initial")) {
-            fragments.add("(srsStage = 0)");
+            fragments.add("(srsStage = 0 AND unlockedAt != 0)");
         }
         else {
             for (final SrsSystem system: getSystems()) {

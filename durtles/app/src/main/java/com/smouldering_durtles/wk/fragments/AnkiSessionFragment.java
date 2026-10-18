@@ -34,7 +34,6 @@ import com.smouldering_durtles.wk.enums.FragmentTransitionAnimation;
 import com.smouldering_durtles.wk.enums.QuestionType;
 import com.smouldering_durtles.wk.model.FloatingUiState;
 import com.smouldering_durtles.wk.model.Question;
-import com.smouldering_durtles.wk.model.Session;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
 import com.smouldering_durtles.wk.util.AudioUtil;
 import com.smouldering_durtles.wk.views.SubjectInfoView;
@@ -195,7 +194,8 @@ public final class AnkiSessionFragment extends AbstractSessionFragment {
             }
             disableInteraction();
             showingAnswer = false;
-            submitCorrectButton(session, question);
+            // KanjiKodama: no longer turned into Incorrect when the hidden test mode is on (leftover developer code).
+            session.submitAnkiCorrect();
         }));
 
         ankiIncorrectButton.setOnClickListener(v -> safe(() -> {
@@ -206,20 +206,6 @@ public final class AnkiSessionFragment extends AbstractSessionFragment {
             showingAnswer = false;
             session.submitAnkiIncorrect();
         }));
-    }
-
-    /**
-     * The Correct button's effect on the session. KanjiKodama: moved here unchanged so golden tests can press it.
-     *
-     * @param session the session
-     * @param question the question this fragment shows
-     */
-    public static void submitCorrectButton(final Session session, final Question question) {
-        if (GlobalSettings.getTestMode() && !question.getItem().hasIncorrectAnswers()) {
-            session.submitAnkiIncorrect();
-        } else {
-            session.submitAnkiCorrect();
-        }
     }
 
     @Override

@@ -202,6 +202,11 @@ public final class KeysSessionGoldenTest {
                 {"meaning-capitals", new Object[] {obj("toMeaning", true), type("ONE"), key("ENTER")}},
                 {"meaning-spaces", new Object[] {obj("toMeaning", true), type(" one "), key("ENTER")}},
                 {"meaning-wrong", new Object[] {obj("toMeaning", true), type("@wrong"), key("ENTER"), key("ENTER")}},
+                {"shift-tab", new Object[] {type("@answer"), key("TAB", "shift")}},
+                {"enter-up-only-then-enter", new Object[] {type("@answer"), obj("keyUp", "ENTER"), key("ENTER")}},
+                {"numpad-enter-up-only", new Object[] {type("@answer"), obj("keyUp", "NUMPAD_ENTER")}},
+                {"numpad-enter-wrong", new Object[] {type("@wrong"), key("NUMPAD_ENTER"), key("NUMPAD_ENTER")}},
+                {"dpad-down-then-enter", new Object[] {type("@answer"), key("DPAD_DOWN"), key("ENTER")}},
         };
         final ScenarioRunner runner = new ScenarioRunner(context, testContext);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
