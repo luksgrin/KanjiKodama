@@ -11,7 +11,8 @@
 // - a content-manifest.json whose variant is not "public";
 // - an SQLite file whose content_meta says a variant other than "public", or with a `subject` table holding
 //   WaniKani ids (below 100000; the extra kanji and words start there);
-// - any file containing WaniKani content URLs (files.wanikani.com audio, wanikani.com/radicals|kanji|vocabulary/ pages).
+// - any file containing WaniKani content URLs (the audio file host and the radical/kanji/vocabulary pages;
+//   the markers are joined at run time so this file doesn't match itself).
 //
 // web/test/golden/ is excluded from the tracked-files check: the golden fixtures are the owner's call.
 import { execFileSync } from 'node:child_process';
@@ -24,7 +25,8 @@ import initSqlJs from 'sql.js';
 const webDir = fileURLToPath(new URL('..', import.meta.url));
 const repoRoot = resolve(webDir, '..');
 const EXCLUDED_TRACKED = ['web/test/golden/'];
-const MARKERS = ['files.wanikani.com/', 'wanikani.com/radicals/', 'wanikani.com/kanji/', 'wanikani.com/vocabulary/'];
+const WK = ['wanikani', 'com'].join('.');
+const MARKERS = [`files.${WK}/`, `${WK}/radicals/`, `${WK}/kanji/`, `${WK}/vocabulary/`];
 const SQLITE_MAGIC = Buffer.from('SQLite format 3\0', 'latin1');
 const BUILT_CONTENT = /^content-[0-9a-f]+\.db$/;
 
