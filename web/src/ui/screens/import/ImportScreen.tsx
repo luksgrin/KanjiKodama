@@ -1,7 +1,9 @@
 /**
  * Settings → Import progress from WaniKani (`ProgressPreferences.askToken` / `checkToken`,
  * `WaniKaniImporter`): paste a token, check it, confirm the override, download and replace local
- * progress (core `applyWaniKaniImport` through `app.write`). Local mode only.
+ * progress (core `applyWaniKaniImport` through `app.write`, `persist: 'replace'`: rows of subjects the
+ * content lacks are dropped too, as `ProgressStore.resetProgress` does). Local mode only, so the
+ * server is WaniKani's, as Java's `ApiTask.getBaseUrl()` returns in local mode.
  */
 import { useState } from 'react';
 import { applyWaniKaniImport } from '../../../core/importer';
@@ -58,7 +60,7 @@ function Import() {
     setStep({ kind: 'busy', label: 'Importing from WaniKani…' });
     try {
       const download = await downloadWaniKani({ http: await getHttp(), token: key, appVersion: __APP_VERSION__ }, user);
-      const summary = await app.write((l, now) => applyWaniKaniImport(l, download, now), { persist: 'all' });
+      const summary = await app.write((l, now) => applyWaniKaniImport(l, download, now), { persist: 'replace' });
       setMessage({ error: false, text: summary });
       setToken('');
       afterProgressChange(app, platform);

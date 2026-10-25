@@ -3,12 +3,13 @@
  * "<description>: n subject(s) found", the hits under collapsible headers in the search's sort order
  * (`resultView`), subject cards (`SubjectCardBinder`: type colour, characters, meaning, reading, the
  * stage and next review, here on the stage's colour), and the "Search result..." menu as buttons:
- * Refine search (not for keyword searches), Save preset, Resurrect burned items / Burn resurrected
- * items (local mode), Set star rating (with `enable_star_ratings`).
+ * Refine search (not for keyword searches), Save preset, Start self-study quiz (when there are hits;
+ * while a session runs it just opens that session, as Java's `goToActivity(SessionActivity)` does),
+ * Resurrect burned items / Burn resurrected items (local mode), Set star rating (with
+ * `enable_star_ratings`).
  *
  * Route `/browse/results?t=<0|1|2>&q=<level|query|parameters JSON>[&preset=<name>]`.
  * Added: subject type filter buttons above the list (they narrow the list and the menu actions).
- * Not here: "Start self-study quiz" (the self-study screen's job).
  */
 import { useMemo, useState } from 'react';
 import { SUBJECT_TYPE_BY_OBJECT, SUBJECT_TYPES, type SubjectTypeName } from '../../../core/content';
@@ -37,6 +38,7 @@ import {
   type SearchType,
 } from './searchData';
 import { useSearchPresets } from './searchPresets';
+import { sessionPath, sessionRuntime, useActiveSession } from '../../components/session';
 import './browse.css';
 
 /** `SubjectType` description / plural (`ItemTypeHeaderItemViewHolder`). */
@@ -112,6 +114,8 @@ export function SearchResultsScreen() {
   const navigate = useNavigate();
   const stars = useStarRatings();
   const { save } = useSearchPresets();
+  const activeSession = useActiveSession();
+  const [starting, setStarting] = useState(false);
 
   const rawType = Number(query.get('t') ?? '0');
   const type: SearchType = rawType === 1 || rawType === 2 ? rawType : 0;
@@ -216,6 +220,22 @@ export function SearchResultsScreen() {
     );
   };
 
+  /** `action_search_result_self_study`: the shown hits become a self-study session. */
+  const startSelfStudy = async (): Promise<void> => {
+    if (starting) return;
+    if (activeSession.active) {
+      navigate(sessionPath(activeSession.type));
+      return;
+    }
+    setStarting(true);
+    try {
+      const ok = shown.length > 0 && await sessionRuntime(app).start('SELF_STUDY', shown.map((s) => s.id));
+      if (ok) navigate(paths.selfStudyQuiz());
+    } finally {
+      setStarting(false);
+    }
+  };
+
   const toggleType = (t: SubjectTypeName): void =>
     setTypes((cur) => {
       const next = new Set(cur);
@@ -239,6 +259,12 @@ export function SearchResultsScreen() {
           </button>
         )}
         <button type="button" className="kk-btn small secondary" onClick={() => setPresetDialog(presetName ?? '')}>Save preset</button>
+        {shown.length > 0 && (
+          <button type="button" className="kk-btn small secondary" data-testid="start-self-study" disabled={starting}
+            onClick={() => void startSelfStudy()}>
+            Start self-study quiz
+          </button>
+        )}
         {resurrectable.length > 0 && (
           <button type="button" className="kk-btn small secondary" onClick={() => setBurnDialog('resurrect')}>Resurrect burned items</button>
         )}

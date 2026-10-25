@@ -33,7 +33,7 @@ import { progressFileName } from '../progress/exportFile';
 import { importProgress, previewImport, type ImportPreview } from '../progress/importFile';
 import { lastSavedStore, type KkDb } from '../storage/db';
 import { ensurePersistence, type PersistenceInfo } from '../storage/persistence';
-import { hydrateLearnerDb, readSnapshot, saveLearnerDb, saveSubjects, type LearnerSnapshot } from '../storage/progressRepo';
+import { hydrateLearnerDb, readSnapshot, saveLearnerDb, saveSubjects, snapshotOf, writeSnapshot, type LearnerSnapshot } from '../storage/progressRepo';
 import { systemClock, type Clock } from './clock';
 import { DB_BLOCKED, DB_CLOSED, contentError, dbError, type AppError } from './errors';
 import { createStore, type ReadableStore } from './store';
@@ -85,8 +85,13 @@ export interface AppDeps {
 export type PersistMode =
   /** Default: diff the learner before/after; only changed subject rows, or everything if anything else changed. */
   | 'auto'
-  /** Save the whole learner state (`saveLearnerDb`). */
+  /** Save the whole learner state (`saveLearnerDb`); rows of subjects the content lacks are kept. */
   | 'all'
+  /**
+   * The learner replaces ALL stored progress (Java `ProgressStore.resetProgress` then the new rows, as
+   * the WaniKani import does): rows of subjects the content lacks ("orphans") are dropped too.
+   */
+  | 'replace'
   /** Save only these subjects' rows (`saveSubjects`); the caller guarantees nothing else changed. */
   | { subjects: Iterable<number> };
 
@@ -252,6 +257,11 @@ export function createAppController(deps: AppDeps): AppController {
 
   async function persist(learner: LearnerDb, mode: PersistMode, before?: { rows: Map<number, unknown>; others: string; progress: unknown }): Promise<void> {
     if (mode === 'all') return saveLearnerDb(kk, learner);
+    if (mode === 'replace') {
+      await writeSnapshot(kk, snapshotOf(learner));
+      orphans = { subjects: new Map(), probation: new Map() };
+      return;
+    }
     if (mode !== 'auto') return saveSubjects(kk, learner, mode.subjects);
     if (!before || before.progress !== learner.progress || before.others !== fingerprintOthers(learner)) {
       return saveLearnerDb(kk, learner);

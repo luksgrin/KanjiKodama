@@ -98,3 +98,6 @@
   .kk-srs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .kk-lp-row { grid-template-columns: 7em 1fr auto; }
 }
+
+/* SessionButtonsView's resume row */
+.kk-resume-row { display: flex; justify-content: center; margin: 0 0 var(--space-4); }

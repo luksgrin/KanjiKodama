@@ -13,15 +13,27 @@ import type { Session } from '../../../core/session';
 import type { Preferences } from '../../../core/settings';
 import {
   enableSrsIndicator,
+  indicateKanjiReadingType,
+  kanjiAcceptedReadingType,
   specialButtonBehavior,
   specialButtonCanShow,
   specialButtonLabel,
+  type KanjiAcceptedReadingType,
   type SessionButtonState,
 } from '../../../core/settings/sessionUi';
+
+/** `Question.getTitle()`: the title with the subject's reading kind when the setting asks for it. */
+export function titleFor(type: QuestionType, subject: ContentSubject, prefs: Preferences): string {
+  return questionTitle(type, indicateKanjiReadingType(prefs) ? kanjiAcceptedReadingType(subject) : null);
+}
 import type { SessionToast } from './runtime';
 
-/** `QuestionType.getTitle(indicateKanjiReadingType, …)`: the banner and toolbar text. */
-export function questionTitle(type: QuestionType): string {
+/**
+ * `QuestionType.getTitle(indicateKanjiReadingType, kanjiAcceptedReadingType)`: the banner and toolbar
+ * text. With `indicate_kanji_reading_type` (advanced) a kanji reading question names the reading kind
+ * when the kanji accepts only one.
+ */
+export function questionTitle(type: QuestionType, readingType: KanjiAcceptedReadingType | null = null): string {
   switch (type) {
     case 'WANIKANI_RADICAL_NAME':
       return 'Radical Name';
@@ -32,6 +44,8 @@ export function questionTitle(type: QuestionType): string {
     case 'WANIKANI_KANA_VOCAB_MEANING':
       return 'Kana Vocabulary Meaning';
     case 'WANIKANI_KANJI_READING':
+      if (readingType === 'ONYOMI') return "Kanji On'yomi";
+      if (readingType === 'KUNYOMI') return "Kanji Kun'yomi";
       return 'Kanji Reading';
     case 'WANIKANI_VOCAB_READING':
       return 'Vocabulary Reading';
@@ -115,7 +129,7 @@ export function QuestionView({
       </div>
       {questionType !== null && (
         <div className={`kk-quiz-type ${QUESTION_TYPE_INFO[questionType].meaning ? 'meaning' : 'reading'}`} data-testid="question-type">
-          {questionTitle(questionType)}
+          {titleFor(questionType, subject, prefs)}
         </div>
       )}
     </>

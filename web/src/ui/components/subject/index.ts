@@ -30,6 +30,7 @@ export { readPitchInfo, readStrokeData, readSubjectTexts, type ContextSentence, 
 export { hasPitchInfo, parsePitchInfo, pitchInfoFor, type PitchInfo } from './pitchInfo';
 export { parseStroke, parseStrokes, type Stroke } from './strokePaths';
 export { StarRating, type StarRatingProps } from './StarRating';
+export { useSaveStudyMaterial } from './useSaveStudyMaterial';
 export {
   STAR_RATINGS_META_KEY,
   loadStarRatings,

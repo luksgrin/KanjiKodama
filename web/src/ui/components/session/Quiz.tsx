@@ -33,7 +33,7 @@ import type { RichText } from '../../../core/text/richText';
 import type { HapticKind } from '../../../platform';
 import { useReady } from '../../hooks/useApp';
 import { AnswerField, type AnswerFieldHandle } from './AnswerField';
-import { QuestionView, buttonState, questionHint, questionTitle } from './QuestionView';
+import { QuestionView, buttonState, questionHint, titleFor } from './QuestionView';
 import { SessionItemInfo } from './SessionItemInfo';
 import { SessionMenu } from './SessionMenu';
 import type { SessionRuntime, SessionSnapshot } from './runtime';
@@ -168,7 +168,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
           ref={field}
           kana={kana}
           placeholder={questionHint(question.type)}
-          label={questionTitle(question.type)}
+          label={titleFor(question.type, subject, prefs)}
           questionKey={answered ? `${questionKey}:a:${floating.shownAnswer}` : `${questionKey}:u`}
           initial={answered ? floating.shownAnswer : session.currentAnswer}
           readOnly={answered || busy}

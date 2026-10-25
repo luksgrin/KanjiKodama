@@ -75,6 +75,14 @@ function wroteData(r: SyncResult): { any: boolean; content: boolean } {
   return { any, content };
 }
 
+/**
+ * Java `AbstractActivity.onResume`: with "Sync on open" (`sync_on_open`, default false), sync when the
+ * app comes back after more than 3 minutes away. (Java's first-resume case is the start-up sync.)
+ */
+export function shouldSyncOnResume(prefs: AppState['prefs'], lastPause: number, now: number): boolean {
+  return prefBoolean(prefs, 'sync_on_open', false) && lastPause !== 0 && now - lastPause > 3 * 60_000;
+}
+
 export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
   const reporter = createServerReporter();
   let platform: Platform | null = null;
@@ -172,11 +180,14 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
     return afterSync(await e.flushUploads(opts));
   }
 
+  let lastPause = 0;
+
   function onResume(): void {
     deps.tick();
     if (mode() === 'server') {
+      const syncOnOpen = shouldSyncOnResume(deps.get().prefs, lastPause, deps.clock.now());
       // The background worker may have written while we were away.
-      quiet(deps.reload({ content: true, inPlace: true }).then(() => refresh()).then(() => syncNow()));
+      quiet(deps.reload({ content: true, inPlace: true }).then(() => refresh()).then(() => (syncOnOpen ? syncNow() : null)));
     } else {
       quiet(refresh());
     }
@@ -184,6 +195,7 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
   }
 
   function onPause(): void {
+    lastPause = deps.clock.now();
     quiet(refresh());
   }
 

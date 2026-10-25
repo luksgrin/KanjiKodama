@@ -20,7 +20,8 @@
     "check": "sh scripts/check.sh",
     "check:core": "node scripts/check-core-imports.mjs",
     "check:private": "node scripts/check-no-private.mjs",
-    "golden:coverage": "node test/golden/coverage.mjs"
+    "golden:coverage": "node test/golden/coverage.mjs",
+    "e2e": "sh test/e2e/run.sh"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.3",
+    "@playwright/test": "1.64.0",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

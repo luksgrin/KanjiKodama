@@ -15,8 +15,10 @@ android {
         applicationId "app.kanjikodama.wk"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.1"
+        // Same versionName as the Java app (durtles/app/build.gradle) and the same CI overrides.
+        versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 2
+        versionName project.hasProperty('versionName') ? project.property('versionName') : '0.1.0'
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

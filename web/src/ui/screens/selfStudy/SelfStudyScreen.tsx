@@ -133,6 +133,8 @@ export function SelfStudyScreen() {
           starRatingsEnabled={enableStarRatings(state.prefs)}
           initial={defaults}
           blocks={learner.progress.curriculum === 'JLPT' ? content.jlptBlocks : []}
+          searchLabel="Start"
+          showSortOrder={false}
           onSearch={(p) => void startSession(2, writeParameters(p), true)}
         />
       </section>

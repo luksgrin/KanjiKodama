@@ -33,3 +33,18 @@ export function previousLevelProgressionLimitedAmount(prefs: Preferences): numbe
   const v = prefs.previous_level_progression_limit_amount;
   return javaParseInt(v ?? '1') ?? 1;
 }
+
+/** `getShowTimeLine`: `show_timeline`, default true (`TimeLineBarChart.update`). */
+export function showTimeLine(prefs: Preferences): boolean {
+  return prefBoolean(prefs, 'show_timeline', true);
+}
+
+/** `getShowSrsBreakdown`: `show_srs_breakdown`, default true (`SrsBreakDownView.update`). */
+export function showSrsBreakdown(prefs: Preferences): boolean {
+  return prefBoolean(prefs, 'show_srs_breakdown', true);
+}
+
+/** `getShowLevelProgression`: `show_level_progression`, default true (`LevelProgressView.update`). */
+export function showLevelProgression(prefs: Preferences): boolean {
+  return prefBoolean(prefs, 'show_level_progression', true);
+}

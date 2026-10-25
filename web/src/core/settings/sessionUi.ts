@@ -5,6 +5,7 @@
  * session state the enums' `canShow` reads comes in as arguments.
  */
 import { QUESTION_TYPE_INFO, type QuestionType } from '../answer/questionType';
+import type { ContentSubject } from '../content';
 import { advancedEnabled, prefBoolean, type Preferences, type SessionType } from './index';
 
 /** `enums/SpecialButtonBehavior`. */
@@ -235,4 +236,22 @@ export function uiConfirmAbandonSession(prefs: Preferences): boolean {
 /** `GlobalSettings.UiConfirmations.getUiConfirmWrapupSession` (default true). */
 export function uiConfirmWrapupSession(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'ui_confirm_wrapup_session', true);
+}
+
+/** `AdvancedOther.getIndicateKanjiReadingType`: `indicate_kanji_reading_type`, false without `enable_advanced`. */
+export function indicateKanjiReadingType(prefs: Preferences): boolean {
+  return advancedEnabled(prefs) && prefBoolean(prefs, 'indicate_kanji_reading_type', false);
+}
+
+/** `enums/KanjiAcceptedReadingType`. */
+export type KanjiAcceptedReadingType = 'ONYOMI' | 'KUNYOMI' | 'NEITHER' | 'BOTH';
+
+/** `Subject.getKanjiAcceptedReadingType`: which kinds of accepted readings a kanji has. */
+export function kanjiAcceptedReadingType(subject: ContentSubject): KanjiAcceptedReadingType {
+  if (subject.object !== 'kanji') return 'NEITHER';
+  const on = subject.readings.some((r) => r.accepted_answer && r.type === 'onyomi');
+  const kun = subject.readings.some((r) => r.accepted_answer && r.type === 'kunyomi');
+  if (on && kun) return 'BOTH';
+  if (on) return 'ONYOMI';
+  return kun ? 'KUNYOMI' : 'NEITHER';
 }

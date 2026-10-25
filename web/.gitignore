@@ -15,3 +15,8 @@ dev-dist/
 
 # Golden test run summaries (node test/golden/coverage.mjs)
 /test/golden-results/
+
+# Playwright e2e output (screenshots contain WaniKani text: never commit)
+/test/e2e/screenshots/
+/test/e2e/results/
+/test/e2e/report/

@@ -15,6 +15,12 @@ properties. `index.css` imports `fonts.css`, `tokens.css` and `base.css`; `main.
 
 ## Tokens
 
+Contrast: every text/background pair the screens use meets WCAG AA (4.5:1) in both themes. A few
+Java colours were nudged for that: light `--color-text-muted` (#3E7F6B → #36735F), `--color-text-toned`
+(#5C8A7A → #4A7566), `--color-level-up` (#3FA383 → #2C7560), the light Anki fills (#909000 → #707000,
+#00A000 → #008000) and dark `--color-stage-initial` (#4A5F66 → #7D9399); coloured buttons (`danger`,
+`radical`, `kanji`) use `--color-on-subject` text. The raw `--kk-*` palette is unchanged.
+
 | Token | Use |
 |---|---|
 | `--color-text` | normal text (mmInk) |
@@ -28,11 +34,13 @@ properties. `index.css` imports `fonts.css`, `tokens.css` and `base.css`; `main.
 | `--color-on-pastel` | text on the pastel stage/subject colours |
 | `--color-toolbar-bg` / `--color-toolbar-fg` | top bar |
 | `--color-level-up` | level-up counts in the timeline |
-| `--color-ok` / `--color-bad` | correct / wrong, success / error text and borders |
+| `--color-ok` / `--color-bad` | correct / wrong marks, success / error borders and banner tints |
+| `--color-bad-text` | error text (`.kk-error-text`; `--color-bad` is below AA as small text in light) |
 | `--color-warn-bg` | banner background (backup reminder) |
 | `--color-chip` | small labels (JLPT block chip) |
 | `--color-shadow` | soft shadows (mmShadow) |
 | `--btn-fill` `--btn-light` `--btn-shade` `--btn-outline` `--btn-text` | the pixel pill button (mm_btn); override the first three for a coloured button |
+| `--btn-secondary-text` | `.kk-btn.secondary` text (surface fill: the theme's text colour, so it reads in dark) |
 | `--color-radical` `--color-kanji` `--color-vocab` | subject-type backgrounds (item headers, buttons) |
 | `--color-radical-strong` `--color-kanji-strong` `--color-vocab-strong` | subject-type chart colours |
 | `--color-on-subject` | text on subject-type backgrounds |

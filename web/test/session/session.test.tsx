@@ -2,6 +2,9 @@
 import 'fake-indexeddb/auto';
 import { act } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { makeContent } from '../../src/core/content';
+import { titleFor } from '../../src/ui/components/session/QuestionView';
+import { testSubjects } from './helpers';
 import { num, progressRow } from '../../src/core/progression';
 import { KkDb } from '../../src/storage/db';
 import { sessionRuntime } from '../../src/ui/components/session/runtime';
@@ -249,6 +252,41 @@ describe('reviews', () => {
     expect(currentQuestion(again.el).chars).toBe(secondChars);
   });
 
+  it('the dashboard offers Resume session while one runs (SessionButtonsView)', async () => {
+    const { el, location } = await renderApp('/reviews', { setup: dueReviews([1, 2]), prefs: { enable_lightning_mode: false } });
+    await waitFor(() => q(el, 'submit'), 'question');
+    const chars = currentQuestion(el).chars;
+    await act(async () => location.navigate('/'));
+    const resume = await waitFor(() => q(el, 'resume-session'), 'resume button');
+    expect(resume.textContent).toBe('Resume session');
+    expect(el.querySelector<HTMLButtonElement>('.kk-session.reviews')?.disabled).toBe(true);
+    await click(resume);
+    expect(location.get()).toBe('/reviews');
+    await waitFor(() => q(el, 'submit'), 'resumed question');
+    expect(currentQuestion(el).chars).toBe(chars);
+  });
+
+  it('adds a synonym from the item info after answering (SubjectInfoView\'s "+")', async () => {
+    const { el, app } = await renderApp('/reviews', { setup: dueReviews([1, 2]), prefs: { enable_lightning_mode: false } });
+    await waitFor(() => q(el, 'submit'), 'question');
+    const id = currentQuestion(el).chars === '一' ? 1 : 2;
+    await answer(el, 'zzz');
+    const add = await waitFor(() => el.querySelector<HTMLButtonElement>('.kk-quiz-info button[aria-label="Add synonym"]'), 'add synonym');
+    expect(el.querySelector('.kk-quiz-info')?.textContent).toContain('Edit notes and synonyms');
+    await click(add);
+    const dialog = await waitFor(() => document.querySelector<HTMLElement>('dialog[open]'), 'dialog');
+    const input = dialog.querySelector<HTMLInputElement>('input')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, 'zzz');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await click([...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Save')!);
+    await waitFor(() => String(progressRow(app.requireLearner(), id).meaningSynonyms ?? '').includes('zzz'), 'saved synonym');
+    const kk = new KkDb(app.db.name);
+    expect(String((await kk.subjects.get(id))?.meaningSynonyms)).toContain('zzz');
+    kk.close();
+  });
+
   it('wrap up and abandon from the session menu, with Java\'s confirmation', async () => {
     const { el, app } = await renderApp('/reviews', { setup: dueReviews([1, 2, 10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
@@ -262,6 +300,21 @@ describe('reviews', () => {
     await waitFor(() => q(el, 'reviews-count'), 'dashboard');
     expect(sessionRuntime(app).get().session!.state).toBe('INACTIVE');
     expect(await app.db.session.count()).toBe(0);
+  });
+});
+
+describe('question title', () => {
+  it('names the reading kind with indicate_kanji_reading_type (advanced only), as QuestionType.getTitle', () => {
+    const kanji = makeContent(testSubjects(), []).byId.get(10)!;
+    expect(titleFor('WANIKANI_KANJI_READING', kanji, {})).toBe('Kanji Reading');
+    expect(titleFor('WANIKANI_KANJI_READING', kanji, { indicate_kanji_reading_type: true })).toBe('Kanji Reading');
+    const on = { enable_advanced: true, indicate_kanji_reading_type: true };
+    expect(titleFor('WANIKANI_KANJI_READING', kanji, on)).toBe("Kanji On'yomi");
+    const kun = { ...kanji, readings: [{ reading: 'ふた', primary: true, accepted_answer: true, type: 'kunyomi' }] };
+    expect(titleFor('WANIKANI_KANJI_READING', kun, on)).toBe("Kanji Kun'yomi");
+    const both = { ...kanji, readings: [...kanji.readings, ...kun.readings] };
+    expect(titleFor('WANIKANI_KANJI_READING', both, on)).toBe('Kanji Reading');
+    expect(titleFor('WANIKANI_KANJI_MEANING', kanji, on)).toBe('Kanji Meaning');
   });
 });
 
@@ -300,7 +353,7 @@ describe('self-study and the level test', () => {
     const { el, app } = await renderApp('/self-study', { setup: dueReviews([1, 2]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'self-study-tutorial'), 'self-study screen');
     const before = num(progressRow(app.requireLearner(), 1), 'srsStage');
-    const search = [...el.querySelectorAll('button')].find((b) => b.textContent === 'Search') as HTMLElement;
+    const search = [...el.querySelectorAll('button')].find((b) => b.textContent === 'Start') as HTMLElement;
     await click(search);
     await waitFor(() => q(el, 'submit'), 'self-study question');
     expect(el.querySelector('.kk-topbar h1')?.textContent).toBe('Self-study');

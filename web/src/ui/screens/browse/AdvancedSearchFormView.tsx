@@ -68,9 +68,13 @@ export interface AdvancedSearchFormViewProps {
   /** The JLPT order's blocks; empty in WaniKani order (no block choice). */
   blocks?: readonly number[];
   onSearch: (parameters: AdvancedSearchParameters) => void;
+  /** The two buttons' label (`setSearchButtonLabel`; the self-study screen: "Start"). */
+  searchLabel?: string;
+  /** Whether the sort order row shows (`setSortOrderVisibility`; hidden on the self-study screen). */
+  showSortOrder?: boolean;
 }
 
-export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, blocks = [], onSearch }: AdvancedSearchFormViewProps) {
+export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, blocks = [], onSearch, searchLabel = 'Search', showSortOrder = true }: AdvancedSearchFormViewProps) {
   const id = useId();
   const formRef = useRef<AdvancedSearchForm | null>(null);
   if (formRef.current === null) {
@@ -139,7 +143,7 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
         search();
       }}
     >
-      <button type="submit" className="kk-btn small">Search</button>
+      <button type="submit" className="kk-btn small">{searchLabel}</button>
       <div className="kk-search-grid">
         <span>Level range:</span>
         <span className="kk-search-range">{text('minLevel', 'Min level')} - {text('maxLevel', 'Max level')}</span>
@@ -183,19 +187,23 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
         <span>{text('burnedLessDays', 'Burned less than (days ago)')} days ago</span>
         <span>Burned more than:</span>
         <span>{text('burnedMoreDays', 'Burned more than (days ago)')} days ago</span>
-        <label htmlFor={`${id}-sort`}>Sort order:</label>
-        <select
-          id={`${id}-sort`}
-          value={form.sortOrder}
-          onChange={(e) => {
-            form.sortOrder = e.target.value as SearchSortOrder;
-            changed();
-          }}
-        >
-          {SEARCH_SORT_ORDERS.map((o) => (
-            <option key={o} value={o}>{SORT_ORDER_DESCRIPTIONS[o]}</option>
-          ))}
-        </select>
+        {showSortOrder && (
+          <>
+            <label htmlFor={`${id}-sort`}>Sort order:</label>
+            <select
+              id={`${id}-sort`}
+              value={form.sortOrder}
+              onChange={(e) => {
+                form.sortOrder = e.target.value as SearchSortOrder;
+                changed();
+              }}
+            >
+              {SEARCH_SORT_ORDERS.map((o) => (
+                <option key={o} value={o}>{SORT_ORDER_DESCRIPTIONS[o]}</option>
+              ))}
+            </select>
+          </>
+        )}
       </div>
       {starRatingsEnabled && (
         <fieldset className="kk-search-group">
@@ -219,7 +227,7 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
         <legend>Jōyō kanji grades:</legend>
         {group('joyoGrade')}
       </fieldset>
-      <button type="submit" className="kk-btn small">Search</button>
+      <button type="submit" className="kk-btn small">{searchLabel}</button>
     </form>
   );
 }

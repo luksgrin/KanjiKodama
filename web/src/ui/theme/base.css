@@ -192,10 +192,10 @@ button { font: inherit; color: inherit; }
 .kk-btn:disabled { cursor: default; opacity: 0.55; }
 .kk-btn.small { min-height: 40px; padding: 2px 16px 7px; font-size: 13px; }
 .kk-btn.block { display: flex; width: 100%; }
-.kk-btn.secondary { --btn-fill: var(--color-surface); --btn-light: var(--kk-mint-hi); --btn-shade: var(--color-divider); }
-.kk-btn.danger { --btn-fill: var(--color-kanji); --btn-light: #FADDE6; --btn-shade: var(--color-kanji-strong); }
-.kk-btn.radical { --btn-fill: var(--color-radical); --btn-light: #D6E8F8; --btn-shade: var(--color-radical-strong); }
-.kk-btn.kanji { --btn-fill: var(--color-kanji); --btn-light: #FADDE6; --btn-shade: var(--color-kanji-strong); }
+.kk-btn.secondary { --btn-text: var(--btn-secondary-text); --btn-fill: var(--color-surface); --btn-light: var(--kk-mint-hi); --btn-shade: var(--color-divider); }
+.kk-btn.danger { --btn-text: var(--color-on-subject); --btn-fill: var(--color-kanji); --btn-light: #FADDE6; --btn-shade: var(--color-kanji-strong); }
+.kk-btn.radical { --btn-text: var(--color-on-subject); --btn-fill: var(--color-radical); --btn-light: #D6E8F8; --btn-shade: var(--color-radical-strong); }
+.kk-btn.kanji { --btn-text: var(--color-on-subject); --btn-fill: var(--color-kanji); --btn-light: #FADDE6; --btn-shade: var(--color-kanji-strong); }
 
 .kk-btn-row {
   display: flex;
@@ -301,6 +301,6 @@ a.kk-row { color: inherit; text-decoration: none; }
 
 .kk-segmented { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .kk-segmented > .kk-btn { flex: 1 1 0; }
-.kk-error-text { color: var(--color-bad); }
+.kk-error-text { color: var(--color-bad-text); }
 .kk-limitations { margin: 0; padding-left: 1.4em; }
 .kk-limitations li + li { margin-top: var(--space-2); }

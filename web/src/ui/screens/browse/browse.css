@@ -147,7 +147,7 @@
   color: var(--color-on-pastel);
   min-height: 1.4em;
 }
-.kk-stage--locked { background: var(--color-stage-locked); }
+.kk-stage--locked { background: var(--color-stage-locked); color: var(--color-text); } /* on-pastel is unreadable on the dark locked colour */
 .kk-stage--initial { background: var(--color-stage-initial); }
 .kk-stage--apprentice { background: var(--color-stage-apprentice); }
 .kk-stage--guru { background: var(--color-stage-guru); }

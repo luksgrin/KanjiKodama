@@ -32,12 +32,17 @@ persisted. `ensurePersistence` runs in the background (`state.persistence`).
 await app.write((learner, now) => reportLocal(learner, id, …, now));   // persist: 'auto'
 await app.write(op, { persist: { subjects: [id] } });                  // only these rows
 await app.write(op, { persist: 'all' });                               // everything
+await app.write(op, { persist: 'replace' });                           // everything, orphan rows dropped (WaniKani import)
 ```
 
 Writes run one at a time. `'auto'` diffs the learner (subject rows by reference, the rest by value)
 and saves only changed subject rows, or everything when anything else changed (level-ups, curriculum,
 level test state). If `op` throws or saving fails, memory is reloaded from the DB, `lastWriteError`
 is set and the error is rethrown. The clock is injected (`deps.clock`; tests use `manualClock`).
+
+Rows of subjects the content lacks ("orphans", after a content update) are kept by every save and
+exported in the progress file, except `'replace'` and `restoreProgress`, which replace all progress
+like Java's `ProgressStore.resetProgress`.
 
 Other actions: `setPreference(key, value)`, `saveProgress()` (call straight from the tap handler:
 the file text is built synchronously so iOS keeps the user activation), `exportProgressFile()`,

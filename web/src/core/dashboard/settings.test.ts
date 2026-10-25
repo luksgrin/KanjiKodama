@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   limitPreviousLevelProgression,
   previousLevelProgressionLimitedAmount,
+  showLevelProgression,
   showOverLevelProgression,
+  showSrsBreakdown,
+  showTimeLine,
   timeLineChartSize,
 } from './settings';
 
@@ -28,5 +31,11 @@ describe('dashboard settings', () => {
   it('reads the boolean settings', () => {
     expect(showOverLevelProgression({ show_over_level_progression: true })).toBe(true);
     expect(limitPreviousLevelProgression({ previous_level_progression_limit: true })).toBe(true);
+  });
+
+  it('reads the panel switches, default on', () => {
+    expect([showTimeLine({}), showSrsBreakdown({}), showLevelProgression({})]).toEqual([true, true, true]);
+    const off = { show_timeline: false, show_srs_breakdown: false, show_level_progression: false };
+    expect([showTimeLine(off), showSrsBreakdown(off), showLevelProgression(off)]).toEqual([false, false, false]);
   });
 });

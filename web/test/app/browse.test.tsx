@@ -17,6 +17,7 @@ import { KkDb } from '../../src/storage/db';
 import { SCHEMA_SQL } from '../../scripts/content/schema';
 import { NO_JLPT, subject } from '../progress-storage/helpers';
 import { makeApp, T0, type Harness } from './fixtures';
+import { sessionRuntime } from '../../src/ui/components/session';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -193,6 +194,37 @@ describe('browse and search', () => {
     await click(el.querySelector('[data-testid="result-10"]')!);
     expect(location.get()).toBe('/subject/10');
     app.dispose();
+  });
+
+  it('starts a self-study quiz from the results (Java\'s "Start self-study quiz")', async () => {
+    const { el, app, location } = await render('/browse/results?t=0&q=1');
+    await click(button(el, 'Kanji'));
+    await click(el.querySelector('[data-testid="start-self-study"]')!);
+    expect(location.get()).toBe('/self-study/quiz');
+    const session = sessionRuntime(app).get().session!;
+    expect(session.type).toBe('SELF_STUDY');
+    expect(session.items.map((i) => i.id)).toEqual([10]);
+    // While it runs, the menu entry just opens it.
+    await act(async () => location.navigate('/browse/results?t=0&q=1'));
+    await flush();
+    await click(el.querySelector('[data-testid="start-self-study"]')!);
+    expect(location.get()).toBe('/self-study/quiz');
+    expect(sessionRuntime(app).get().session!.items.map((i) => i.id)).toEqual([10]);
+    app.dispose();
+  });
+
+  it('labels the self-study form "Start" without a sort order, as SelfStudyStartActivity does', async () => {
+    const { el, app } = await render('/self-study');
+    const form = el.querySelector('.kk-advanced-search')!;
+    expect([...form.querySelectorAll('button[type="submit"]')].map((b) => b.textContent)).toEqual(['Start', 'Start']);
+    expect(form.textContent).not.toContain('Sort order:');
+    // Browse keeps both.
+    const browse = await render('/browse');
+    const form2 = browse.el.querySelector('.kk-advanced-search')!;
+    expect(form2.querySelector('button[type="submit"]')?.textContent).toBe('Search');
+    expect(form2.textContent).toContain('Sort order:');
+    app.dispose();
+    browse.app.dispose();
   });
 
   it('finds a reading typed in romaji', async () => {

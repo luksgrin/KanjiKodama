@@ -78,4 +78,32 @@ describe('dashboard', () => {
     expect(el.querySelector('.kk-topbar button[aria-label="Back"]')).not.toBeNull();
     app.dispose();
   });
+
+  it('honours the dashboard panel settings', async () => {
+    const { el, app } = await render();
+    expect(el.querySelector('.kk-srs')).not.toBeNull();
+    await act(async () => {
+      await app.setPreference('show_timeline', false);
+      await app.setPreference('show_srs_breakdown', false);
+      await app.setPreference('show_level_progression', false);
+    });
+    expect(el.querySelector('.kk-timeline-bars')).toBeNull();
+    expect(text(el, 'srs-apprentice')).toBeNull();
+    expect(el.querySelector('[data-testid="level-1"]')).toBeNull();
+    // The session tiles and the upcoming line stay (Java has no setting for them).
+    expect(text(el, 'reviews-count')).toBe('1');
+    app.dispose();
+  });
+
+  it('shows the install hint on the web build until dismissed', async () => {
+    const { el, app } = await render();
+    const hint = el.querySelector('[data-testid="install-hint"]');
+    expect(hint).not.toBeNull();
+    await act(async () => {
+      el.querySelector<HTMLButtonElement>('[data-testid="install-hint-dismiss"]')!.click();
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expect(el.querySelector('[data-testid="install-hint"]')).toBeNull();
+    app.dispose();
+  });
 });

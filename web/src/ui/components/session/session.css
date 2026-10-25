@@ -272,6 +272,3 @@
 .kk-num-pair { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
 .kk-num-pair input { width: 6em; min-height: 40px; font-size: 16px; padding: 0 var(--space-2); border: 2px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); }
 
-/* Secondary buttons on the dark surface: the base pill text (mmInkLight) is too dark there. */
-.kk-quiz .kk-btn.secondary,
-.kk-lesson .kk-btn.secondary { --btn-text: var(--color-text); }

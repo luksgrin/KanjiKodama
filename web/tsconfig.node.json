@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["vite.config.ts", "scripts/build-content.ts", "scripts/content"]
+  "include": ["vite.config.ts", "playwright.config.ts", "scripts/build-content.ts", "scripts/content"]
 }

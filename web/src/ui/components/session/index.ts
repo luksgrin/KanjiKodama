@@ -11,7 +11,7 @@ export { sessionRuntime, setSessionRuntime, SessionRuntime, type FinishedSession
 export { useActiveSession, useSession, useSessionRuntime } from './useSession';
 export { SessionScreen, sessionPath, type SessionScreenProps } from './SessionScreen';
 export { AnswerField, replayEdit, type AnswerFieldHandle, type AnswerFieldProps } from './AnswerField';
-export { QuestionView, questionHint, questionTitle } from './QuestionView';
+export { QuestionView, questionHint, questionTitle, titleFor } from './QuestionView';
 export { Quiz, RichTextView } from './Quiz';
 export { SessionDialog, type SessionDialogProps } from './SessionDialog';
 export { SessionItemInfo } from './SessionItemInfo';

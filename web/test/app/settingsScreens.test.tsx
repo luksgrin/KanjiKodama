@@ -10,7 +10,9 @@ import { makeContent, type Content } from '../../src/core/content';
 import { lessonOrder, maxSessionSize } from '../../src/core/settings';
 import type { Capabilities } from '../../src/platform';
 import { ADVANCED_GROUPS, MAIN_GROUPS, storedKeys } from '../../src/ui/screens/settings/schema';
-import { subject } from '../progress-storage/helpers';
+import { smallContent, smallSubjects, subject } from '../progress-storage/helpers';
+import { updateProgress } from '../../src/core/progression';
+import { KkDb } from '../../src/storage/db';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FakeHttp, json } from '../sync/helpers';
@@ -65,11 +67,13 @@ function jlptContent(): { content: Content; jlpt: Map<string, number> } {
   return { content: makeContent(subjects, []), jlpt };
 }
 
-async function render(path: string, opts: { caps?: Partial<Capabilities>; jlpt?: boolean } = {}) {
+async function render(path: string, opts: { caps?: Partial<Capabilities>; jlpt?: boolean; dbName?: string; content?: Content } = {}) {
   const platform = fakePlatform({}, opts.caps);
   const j = opts.jlpt ? jlptContent() : null;
   const h = makeApp({
     platform,
+    ...(opts.dbName ? { dbName: opts.dbName } : {}),
+    ...(opts.content ? { content: opts.content } : {}),
     ...(j ? { content: j.content, loadContent: async () => ({ ...loaded(j.content), jlptKanji: j.jlpt }) } : {}),
   });
   await h.app.start();
@@ -274,6 +278,26 @@ describe('WaniKani import', () => {
     expect((await waitFor('import-message', el)).textContent).toMatch(/^Imported level 2: \d+ items, \d+ review statistics, \d+ notes\./);
     expect(app.get().learner!.progress.userLevel).toBe(2);
     expect(app.get().learner!.progress.subjects.get(1)?.srsStage).toBe(5);
+    app.dispose();
+  });
+
+  it('drops progress rows of subjects the content lacks, as Java\'s resetProgress does', async () => {
+    // Subject 11 has progress, then a content update drops it: an orphan row the normal saves keep.
+    const seed = makeApp();
+    await seed.app.start();
+    await seed.app.write((ldb, now) => updateProgress(ldb, 11, { unlockedAt: now, startedAt: now, srsStage: 3 }));
+    seed.app.dispose();
+    const v2 = smallContent(smallSubjects().filter((x) => x.id !== 11));
+    const { el, app, dbName } = await render('/settings/import', { dbName: seed.dbName, content: v2 });
+    expect(JSON.parse(app.exportProgressFile().text).subjects.some((x: { id: number }) => x.id === 11)).toBe(true);
+    await act(async () => setValue($(el, 'import-token') as HTMLInputElement, 'secret-token'));
+    await click($(el, 'import-next'));
+    await click(dialogButton(el, 'Import and override'));
+    await waitFor('import-message', el);
+    expect(JSON.parse(app.exportProgressFile().text).subjects.some((x: { id: number }) => x.id === 11)).toBe(false);
+    const kk = new KkDb(dbName);
+    expect(await kk.subjects.get(11)).toBeUndefined();
+    kk.close();
     app.dispose();
   });
 

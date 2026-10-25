@@ -21,6 +21,9 @@ export { SRS_BREAKDOWN_BUCKETS, computeSrsBreakdown } from './srsBreakdown';
 export {
   limitPreviousLevelProgression,
   previousLevelProgressionLimitedAmount,
+  showLevelProgression,
   showOverLevelProgression,
+  showSrsBreakdown,
+  showTimeLine,
   timeLineChartSize,
 } from './settings';

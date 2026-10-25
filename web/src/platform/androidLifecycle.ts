@@ -2,6 +2,7 @@
 import { App } from '@capacitor/app';
 import { SystemBars, SystemBarsStyle } from '@capacitor/core';
 import type { HapticKind, HapticsApi, LifecycleApi, SystemBarsApi } from './index';
+import { resyncAndroidSystemUi, startAndroidSystemUi } from './androidSystemUi';
 
 type Unsubscribe = () => void;
 
@@ -76,12 +77,18 @@ export const androidHaptics: HapticsApi = {
   },
 };
 
-/** Edge-to-edge is configured in capacitor.config.ts (SystemBars.insetsHandling 'css'). */
+/**
+ * Edge-to-edge is configured in capacitor.config.ts (SystemBars.insetsHandling 'css'). The bar
+ * colours then follow what the page shows at its top and bottom edge (androidSystemUi.ts, started
+ * by the first call, which main.tsx makes at start-up); setStyle resets them, so they are re-sent.
+ */
 export const androidSystemBars: SystemBarsApi = {
   async setTheme(theme): Promise<void> {
     // SystemBarsStyle.Dark = light icons for a dark background.
     const style = theme === 'dark' ? SystemBarsStyle.Dark : theme === 'light' ? SystemBarsStyle.Light : SystemBarsStyle.Default;
+    startAndroidSystemUi();
     await SystemBars.setStyle({ style });
+    resyncAndroidSystemUi();
   },
 };
 

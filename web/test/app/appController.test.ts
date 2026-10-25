@@ -175,6 +175,43 @@ describe('save and restore', () => {
     again.app.dispose();
   });
 
+  it('drops orphan rows on a replacing write and on restore, keeps them on normal saves', async () => {
+    const seed = async () => {
+      const h = makeApp();
+      await h.app.start();
+      await h.app.write((ldb, now) => updateProgress(ldb, 11, { unlockedAt: now, startedAt: now, srsStage: 3 }));
+      h.app.dispose();
+      const again = makeApp({ dbName: h.dbName, content: smallContent(smallSubjects().filter((s) => s.id !== 11)) });
+      await again.app.start();
+      return again;
+    };
+    const has11 = (h: Awaited<ReturnType<typeof seed>>) => (JSON.parse(h.app.exportProgressFile().text) as { subjects: { id: number }[] }).subjects.some((s) => s.id === 11);
+    const stored11 = async (dbName: string) => {
+      const kk = new KkDb(dbName);
+      const row = await kk.subjects.get(11);
+      kk.close();
+      return row !== undefined;
+    };
+
+    const kept = await seed();
+    await kept.app.write((ldb, now) => updateProgress(ldb, 1, { startedAt: now }), { persist: 'all' });
+    expect(has11(kept)).toBe(true);
+    expect(await stored11(kept.dbName)).toBe(true);
+    kept.app.dispose();
+
+    const replaced = await seed();
+    await replaced.app.write((ldb, now) => updateProgress(ldb, 1, { startedAt: now }), { persist: 'replace' });
+    expect(has11(replaced)).toBe(false);
+    expect(await stored11(replaced.dbName)).toBe(false);
+    replaced.app.dispose();
+
+    const restored = await seed();
+    await restored.app.restoreProgress(progressFile({ userLevel: 1, subjects: [{ id: 10, srsStage: 1, unlockedAt: 1, startedAt: 2 }] }));
+    expect(has11(restored)).toBe(false);
+    expect(await stored11(restored.dbName)).toBe(false);
+    restored.app.dispose();
+  });
+
   it('rejects a bad file without changing anything', async () => {
     const platform = fakePlatform({ openText: vi.fn(async () => ({ name: 'x.json', text: '{"format":"other"}' })) });
     const h = makeApp({ platform });

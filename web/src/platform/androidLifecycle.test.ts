@@ -17,7 +17,12 @@ const app = vi.hoisted(() => {
 });
 const bars = vi.hoisted(() => ({ setStyle: vi.fn(async () => undefined) }));
 vi.mock('@capacitor/app', () => ({ App: app }));
-vi.mock('@capacitor/core', () => ({ SystemBars: bars, SystemBarsStyle: { Dark: 'DARK', Light: 'LIGHT', Default: 'DEFAULT' } }));
+const systemUi = vi.hoisted(() => ({ setBarColors: vi.fn(async () => undefined), setImeHints: vi.fn(async () => undefined) }));
+vi.mock('@capacitor/core', () => ({
+  SystemBars: bars,
+  SystemBarsStyle: { Dark: 'DARK', Light: 'LIGHT', Default: 'DEFAULT' },
+  registerPlugin: () => systemUi,
+}));
 
 const { androidLifecycle, androidHaptics, androidSystemBars, resetBackButtonForTests } = await import('./androidLifecycle');
 const { webLifecycle } = await import('./web');
@@ -120,5 +125,7 @@ describe('haptics and system bars', () => {
     await androidSystemBars.setTheme('light');
     await androidSystemBars.setTheme('system');
     expect(bars.setStyle.mock.calls).toEqual([[{ style: 'DARK' }], [{ style: 'LIGHT' }], [{ style: 'DEFAULT' }]]);
+    // setStyle resets the window background: the sampled bar colours are sent again after each call.
+    expect(systemUi.setBarColors.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 });

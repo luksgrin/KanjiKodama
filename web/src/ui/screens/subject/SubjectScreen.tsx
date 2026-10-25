@@ -13,10 +13,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { voicePreference } from '../../../core/audio';
 import type { ContentSubject } from '../../../core/content';
-import { isBurnable, isResurrectable, updateProgress } from '../../../core/progression';
+import { isBurnable, isResurrectable } from '../../../core/progression';
 import { enableStarRatings } from '../../../core/settings/subjectInfo';
-import { enqueueStudyMaterial } from '../../../sync/queue';
-import { ItemPage, StarRating, useStarRatings, type ItemProgress, type StudyMaterialSave } from '../../components/subject';
+import { ItemPage, StarRating, useSaveStudyMaterial, useStarRatings, type ItemProgress } from '../../components/subject';
 import { NUMERIC_COLUMNS, TEXT_COLUMNS, numberOf, type SubjectProgressRow } from '../../../core/progressFile/format';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate, useRoute } from '../../hooks/useRoute';
@@ -46,7 +45,6 @@ export function SubjectScreen() {
   const navigate = useNavigate();
   const stars = useStarRatings();
   const [dialog, setDialog] = useState<BurnResurrectKind | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const subject = Number.isInteger(id) ? learner.content.byId.get(id) : undefined;
   const progress = useMemo(() => (subject ? itemProgress(learner.progress.subjects.get(subject.id)) : null), [learner, subject, state.revision]);
@@ -55,23 +53,7 @@ export function SubjectScreen() {
   const levelOf = useCallback((s: ContentSubject) => learner.table.get(s.id)?.level ?? s.level, [learner, state.revision]);
   const onOpenSubject = useCallback((target: number) => navigate(paths.subject(target)), [navigate]);
 
-  const onSave = useCallback(async (save: StudyMaterialSave) => {
-    setError(null);
-    try {
-      await app.write((l) => updateProgress(l, save.subjectId, { ...save.columns }), { persist: { subjects: [save.subjectId] } });
-      if (app.get().mode === 'server') {
-        const { job } = save;
-        await enqueueStudyMaterial(app.db, {
-          subjectId: job.subjectId,
-          meaningNote: job.meaningNote,
-          readingNote: job.readingNote,
-          meaningSynonyms: job.meaningSynonyms,
-        }, app.clock.now());
-      }
-    } catch (e) {
-      setError(`Could not save: ${String(e instanceof Error ? e.message : e)}`);
-    }
-  }, [app]);
+  const { onSave, error } = useSaveStudyMaterial();
 
   const local = state.mode !== 'server';
   const canResurrect = useMemo(() => subject !== undefined && local && isResurrectable(learner, subject.id),
