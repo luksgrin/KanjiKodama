@@ -17,5 +17,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["test/**/*.ts", "src/**/*.test.ts", "src/core", "src/content/readContent.ts"]
+  "include": ["test/**/*.ts", "test/**/*.tsx", "src/**/*.test.ts", "src/**/*.test.tsx", "src/vite-env.d.ts", "src/core", "src/content/readContent.ts"]
 }

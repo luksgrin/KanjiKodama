@@ -15,7 +15,10 @@
  *   (`mm_state.<key>`), and later the server mode settings and sync cursors.
  * - `levelTest` (key `id`): `round`, `known` (`mm_level_test`).
  * - `session` (key `subjectId`): the current session's items (shape defined in step 5).
- * - `tasks` (auto key `id`): the server-mode upload queue (step 5).
+ * - `tasks` (auto key `id`): the server-mode upload queue (`src/sync/`; order and payloads in core
+ *   `server/queue`). Non-indexed retry fields `attempts`, `nextAttemptAt`, `lastError`.
+ * - `serverSubjects` (key `id`, v3): subjects downloaded in server mode, as the API sends them
+ *   (`{id, object, dataUpdatedAt, data}`, readings "None" dropped). Local mode never reads it.
  * - `settings` (key `key`): the settings in use.
  * - `meta` (key `key`): `schemaVersion`, persistence result, last backup time, diagnostics.
  *
@@ -34,7 +37,7 @@ import {
 
 export const DB_NAME = 'kanjikodama';
 /** The newest schema version (Dexie's `verno`). */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /** A `subjects` row: the subject id and its saved progress columns. */
 export type SubjectRecord = SubjectProgressRow & { id: number };
@@ -46,8 +49,18 @@ export interface StateRecord { key: string; value: unknown }
 export interface LevelTestRecord { id: number; round: number; known: number }
 /** One item of the current session. Its fields are defined with the session screens (step 5). */
 export interface SessionRecord { subjectId: number; [field: string]: unknown }
-/** A queued server-mode upload (step 5). */
-export interface TaskRecord { id?: number; kind: string; payload: unknown; createdAt: number }
+/** A queued server-mode upload (`StoredTask` of core `server/queue`). */
+export interface TaskRecord {
+  id?: number;
+  kind: string;
+  payload: unknown;
+  createdAt: number;
+  attempts?: number;
+  nextAttemptAt?: number;
+  lastError?: string | null;
+}
+/** A subject downloaded in server mode. */
+export interface ServerSubjectRecord { id: number; object: string; dataUpdatedAt: string | null; data: Record<string, unknown> }
 export interface SettingRecord { key: string; value: unknown }
 export interface MetaRow { key: string; value: unknown }
 
@@ -93,6 +106,7 @@ export class KkDb extends Dexie {
   levelTest!: EntityTable<LevelTestRecord, 'id'>;
   session!: EntityTable<SessionRecord, 'subjectId'>;
   tasks!: EntityTable<TaskRecord, 'id'>;
+  serverSubjects!: EntityTable<ServerSubjectRecord, 'id'>;
   settings!: EntityTable<SettingRecord, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
 
@@ -116,6 +130,12 @@ export class KkDb extends Dexie {
         meta: 'key',
       })
       .upgrade(upgradeFromSpike);
+    // v3: server mode (step 5c) adds the downloaded subjects; queued tasks keep their shape.
+    this.version(3)
+      .stores({ serverSubjects: 'id' })
+      .upgrade(async (tx) => {
+        await tx.table('meta').put({ key: 'schemaVersion', value: 3 });
+      });
     this.on('populate', (tx) => {
       void tx.table('meta').put({ key: 'schemaVersion', value: SCHEMA_VERSION });
     });

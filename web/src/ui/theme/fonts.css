@@ -1,0 +1,31 @@
+/*
+ * Bundled fonts only (no network), all SIL OFL 1.1; licenses in public/licenses/:
+ * - Pixelify Sans: body text (Latin)                     OFL-pixelifysans.txt
+ * - Silkscreen 400/700: headings, buttons, counters      OFL-silkscreen.txt
+ * - Zen Maru Gothic Medium: all Japanese text            OFL-zenmarugothic.txt
+ * Same files as the Java app (durtles/app/src/main/res/font/).
+ */
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('../../assets/fonts/pixelify_sans.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('../../assets/fonts/silkscreen_regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('../../assets/fonts/silkscreen_bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Zen Maru Gothic';
+  src: url('../../assets/fonts/zen_maru_gothic_medium.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: block;
+}

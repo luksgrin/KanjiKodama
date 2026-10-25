@@ -1,0 +1,14 @@
+{
+  "object": "collection",
+  "url": "https://kk.example.test/v2/review_statistics",
+  "pages": { "per_page": 500, "next_url": null, "previous_url": null },
+  "total_count": 1,
+  "data_updated_at": "2026-10-20T07:00:00.000000Z",
+  "data": [
+    { "id": 7003, "object": "review_statistic", "url": "https://kk.example.test/v2/review_statistics/7003", "data_updated_at": "2026-10-20T07:00:00.000000Z",
+      "data": { "created_at": "2026-01-06T00:00:00.000000Z", "subject_id": 10, "subject_type": "kanji",
+        "meaning_correct": 3, "meaning_incorrect": 1, "meaning_max_streak": 2, "meaning_current_streak": 2,
+        "reading_correct": 2, "reading_incorrect": 2, "reading_max_streak": 1, "reading_current_streak": 1,
+        "percentage_correct": 63, "hidden": false } }
+  ]
+}

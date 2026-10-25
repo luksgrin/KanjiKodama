@@ -1,0 +1,190 @@
+/*
+ * Item page (ui/components/subject). Theme tokens from ui/theme/tokens.css (fallbacks for use without
+ * it). The pitch accent colors are the Java app's fixed ones (wkLight/wkDarkPitchInfo*: the same in both
+ * themes), kept as local custom properties; stroke ghosts use the divider token.
+ */
+.kk-item {
+  color: var(--color-text, #2E4756);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.kk-item .kk-ja,
+.kk-item :lang(ja) {
+  font-family: var(--font-ja, 'Zen Maru Gothic', sans-serif);
+  font-weight: 500;
+}
+
+.kk-item p { margin: 0 0 var(--space-2, 8px); }
+.kk-item .kk-subject-divider {
+  border: 0;
+  border-top: 2px solid var(--color-divider, #BFD9CB);
+  margin: var(--space-3, 12px) 0;
+}
+.kk-item .kk-subject-section { margin: 0 0 var(--space-2, 8px); }
+.kk-item .kk-subject-section-header {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  letter-spacing: normal;
+  margin: 0 0 var(--space-1, 4px);
+}
+
+/* Headline */
+.kk-headline {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+  margin-bottom: var(--space-3, 12px);
+}
+.kk-subject-tile {
+  flex: none;
+  min-width: 2.2em;
+  padding: var(--space-1, 4px) var(--space-3, 12px);
+  border: var(--border-pixel, 3px) solid var(--btn-outline, #2E4756);
+  border-radius: var(--radius-md, 12px);
+  font-size: 2.75em;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-on-subject, #2E4756);
+}
+.kk-headline-text { flex: 1; min-width: 0; }
+.kk-headline-title { font-size: var(--text-sm, 14px); color: var(--color-text-muted, #3E7F6B); }
+.kk-headline-meaning,
+.kk-headline-reading { font-size: 1.25em; }
+.kk-headline-buttons { flex: none; display: flex; flex-direction: column; gap: var(--space-2, 8px); }
+
+/* Subject type colors (tile, links, tags) */
+.kk-type--radical { background: var(--color-radical, #9EC9F0); }
+.kk-type--kanji { background: var(--color-kanji, #F5A9B8); }
+.kk-type--vocabulary,
+.kk-type--kana_vocabulary { background: var(--color-vocab, #C9B6F2); }
+
+/* WaniKani markup */
+.kk-wk-tag {
+  color: var(--color-on-subject, #2E4756);
+  border-radius: 3px;
+  padding: 0 0.15em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.kk-wk-tag--radical { background: var(--color-radical, #9EC9F0); }
+.kk-wk-tag--kanji { background: var(--color-kanji, #F5A9B8); }
+.kk-wk-tag--vocabulary,
+.kk-wk-tag--kana_vocabulary { background: var(--color-vocab, #C9B6F2); }
+.kk-wk-tag--reading {
+  background: var(--color-toolbar-bg, #2E4756);
+  color: var(--color-toolbar-fg, #EAF7EF);
+}
+.kk-item .kk-big { font-size: 1.25em; }
+.kk-item .kk-tt { font-family: ui-monospace, monospace; }
+
+/* Synonyms */
+.kk-synonyms { display: flex; align-items: center; gap: var(--space-2, 8px); margin-bottom: var(--space-2, 8px); }
+.kk-synonyms-text { flex: 1; min-width: 0; }
+.kk-add-synonym { flex: none; min-width: 40px; }
+.kk-subject-input {
+  width: 100%;
+  font: inherit;
+  color: var(--color-text, #2E4756);
+  background: var(--color-surface, #F8FDF9);
+  border: 2px solid var(--color-divider, #BFD9CB);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--space-2, 8px);
+}
+.kk-subject-input:focus { border-color: var(--color-accent, #7CC8AC); outline: none; }
+
+/* Notes editor */
+.kk-study-materials { display: flex; flex-direction: column; gap: var(--space-2, 8px); }
+.kk-study-materials-head { display: flex; align-items: center; justify-content: space-between; }
+.kk-subject-label { font-weight: 700; }
+.kk-subject-note { min-height: 5em; resize: vertical; }
+.kk-synonym-row { display: flex; align-items: center; gap: var(--space-2, 8px); }
+.kk-synonym-move { flex: none; min-width: 44px; padding-left: 8px; padding-right: 8px; }
+
+/* Context sentences */
+.kk-sentence { margin-bottom: var(--space-2, 8px); }
+.kk-sentence p { margin: 0; }
+.kk-sentence-en--hidden .kk-subject-reveal {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0 0.25em 0 0;
+  text-align: start;
+  cursor: pointer;
+  filter: blur(0.33em);
+}
+
+/* Linked subjects */
+.kk-link-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5em, 1fr));
+  gap: var(--space-2, 8px);
+}
+.kk-link { border: 2px solid var(--btn-outline, #2E4756); border-radius: var(--radius-sm, 6px); overflow: hidden; }
+.kk-link--wide { grid-column: span 2; }
+.kk-link-button {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: none;
+  padding: var(--space-1, 4px);
+  color: var(--color-on-subject, #2E4756);
+  text-align: center;
+  cursor: pointer;
+}
+span.kk-link-button { cursor: default; }
+.kk-link-chars { font-size: 1.75em; line-height: 1.2; }
+.kk-link-meaning,
+.kk-link-reading { font-size: var(--text-xs, 13px); }
+
+/* Stroke order */
+.kk-stroke-diagram {
+  appearance: none;
+  display: block;
+  padding: 0;
+  margin: 0 auto var(--space-2, 8px);
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.kk-stroke-diagram svg { display: block; }
+.kk-stroke-ghost { stroke: var(--color-divider, #BFD9CB); }
+.kk-stroke-done { stroke: var(--color-text, #2E4756); }
+.kk-stroke-tip { fill: var(--color-text, #2E4756); }
+.kk-stroke-labels { font-family: var(--font-body, sans-serif); }
+.kk-stroke-label-ghost { fill: var(--color-divider, #BFD9CB); }
+.kk-stroke-label-done { fill: var(--color-text, #2E4756); }
+
+/* Pitch accent */
+.kk-pitch {
+  --kk-pitch-heiban: #D20CA3;
+  --kk-pitch-atamadaka: #EA9316;
+  --kk-pitch-nakadaka: #27A2FF;
+  --kk-pitch-odaka: #0CD24D;
+  margin: var(--space-1, 4px) 0;
+}
+.kk-pitch-row { display: flex; align-items: center; gap: var(--space-2, 8px); margin-top: var(--space-1, 4px); }
+.kk-pitch-diagram { flex: none; overflow: visible; }
+.kk-pitch-kana { line-height: 1.2; }
+.kk-pitch--heiban { --kk-pitch-color: var(--kk-pitch-heiban); }
+.kk-pitch--atamadaka { --kk-pitch-color: var(--kk-pitch-atamadaka); }
+.kk-pitch--nakadaka { --kk-pitch-color: var(--kk-pitch-nakadaka); }
+.kk-pitch--odaka { --kk-pitch-color: var(--kk-pitch-odaka); }
+.kk-pitch-line { stroke: var(--kk-pitch-color); }
+.kk-pitch-dot { fill: var(--kk-pitch-color); stroke: var(--kk-pitch-color); stroke-width: 1; }
+.kk-pitch-dot--hollow { fill: var(--color-surface, #F8FDF9); }
+
+/* Details table */
+.kk-subject-details { border-collapse: collapse; font-size: var(--text-sm, 14px); }
+.kk-subject-details th { text-align: start; font-weight: 700; padding: 2px var(--space-3, 12px) 2px 2px; vertical-align: top; white-space: nowrap; }
+.kk-subject-details td { padding: 2px; }
+
+.kk-notes-editor { margin-top: var(--space-4, 16px); }

@@ -1,4 +1,4 @@
-import type { Capabilities, FilesApi, NotificationsApi, OpenedText, Platform, SaveResult } from './index';
+import type { AudioApi, Capabilities, FilesApi, HapticsApi, LifecycleApi, NotificationsApi, OpenedText, Platform, SaveResult } from './index';
 import { browserStorage } from './browserStorage';
 
 const capabilities: Capabilities = {
@@ -12,11 +12,41 @@ const capabilities: Capabilities = {
   autoBackup: false,
 };
 
+// Known limitations of the PWA: no review notifications (the dashboard shows the next review time),
+// no audio (WaniKani's audio host sends no CORS headers), no haptics (iOS Safari has no vibrate).
 const notifications: NotificationsApi = {
   supported: false,
+  permission: () => Promise.resolve('denied'),
   requestPermission: () => Promise.resolve(false),
-  schedule: () => Promise.reject(new Error('Notifications are not supported in the web build')),
+  scheduleReviews: () => Promise.resolve(0),
   cancelAll: () => Promise.resolve(),
+  schedule: () => Promise.reject(new Error('Notifications are not supported in the web build')),
+};
+
+const audio: AudioApi = {
+  supported: false,
+  setCatalog: () => undefined,
+  play: () => Promise.resolve(false),
+  download: () => Promise.reject(new Error('Audio is not supported in the web build')),
+  status: () => Promise.resolve({ levels: [], files: 0, bytes: 0 }),
+  deleteAll: () => Promise.resolve(),
+};
+
+const haptics: HapticsApi = { supported: false, feedback: () => undefined };
+
+/** Page visibility: hidden when the tab/app goes to the background, visible when it comes back. */
+function onVisibility(state: DocumentVisibilityState, cb: () => void): () => void {
+  if (typeof document === 'undefined') return () => undefined;
+  const listener = () => {
+    if (document.visibilityState === state) cb();
+  };
+  document.addEventListener('visibilitychange', listener);
+  return () => document.removeEventListener('visibilitychange', listener);
+}
+
+export const webLifecycle: LifecycleApi = {
+  onResume: (cb) => onVisibility('visible', cb),
+  onPause: (cb) => onVisibility('hidden', cb),
 };
 
 function isAbort(e: unknown): boolean {
@@ -95,4 +125,13 @@ export function openTextViaInput(accept = '.json,application/json,text/plain'): 
 
 const files: FilesApi = { saveText, openText: () => openTextViaInput() };
 
-export const webPlatform: Platform = { name: 'web', capabilities, notifications, files, storage: browserStorage };
+export const webPlatform: Platform = {
+  name: 'web',
+  capabilities,
+  notifications,
+  audio,
+  haptics,
+  lifecycle: webLifecycle,
+  files,
+  storage: browserStorage,
+};

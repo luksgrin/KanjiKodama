@@ -1,0 +1,26 @@
+{
+  "object": "user",
+  "url": "https://kk.example.test/v2/user",
+  "data_updated_at": "2026-10-20T08:00:00.000000Z",
+  "data": {
+    "id": "5a6a5234-a392-4a87-8f3f-33342afe8a42",
+    "username": "kodama",
+    "level": 2,
+    "profile_url": "https://kk.example.test/users/kodama",
+    "started_at": "2026-01-01T00:00:00.000000Z",
+    "current_vacation_started_at": null,
+    "subscription": {
+      "active": true,
+      "type": "recurring",
+      "max_level_granted": 60,
+      "period_ends_at": "2027-01-01T00:00:00.000000Z"
+    },
+    "preferences": {
+      "default_voice_actor_id": 1,
+      "lessons_autoplay_audio": false,
+      "lessons_batch_size": 5,
+      "reviews_autoplay_audio": false,
+      "reviews_display_srs_indicator": true
+    }
+  }
+}

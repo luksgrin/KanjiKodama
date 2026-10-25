@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">KanjiKodama Spike</string>
-    <string name="title_activity_main">KanjiKodama Spike</string>
-    <string name="package_name">app.kanjikodama.spike</string>
-    <string name="custom_url_scheme">app.kanjikodama.spike</string>
+    <string name="app_name">KanjiKodama</string>
+    <string name="title_activity_main">KanjiKodama</string>
+    <string name="package_name">app.kanjikodama.wk.web</string>
+    <string name="custom_url_scheme">app.kanjikodama.wk.web</string>
 </resources>

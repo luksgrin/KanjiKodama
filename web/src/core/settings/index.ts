@@ -33,3 +33,4 @@ export function shakeOnMatchingKanji(prefs: Preferences): boolean {
 export type SessionType = 'LESSON' | 'REVIEW' | 'SELF_STUDY' | 'NONE';
 
 export * from './session';
+export * from './feedback';

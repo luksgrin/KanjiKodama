@@ -1,10 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "app.kanjikodama.spike"
+    namespace = "app.kanjikodama.wk"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.kanjikodama.spike"
+        // Identity (issue #3). The Java package and namespace are already the final
+        // app.kanjikodama.wk. Until the cutover (step 6) every build type installs as
+        // app.kanjikodama.wk.web, next to the Java app (app.kanjikodama.wk, debug
+        // app.kanjikodama.wk.debug) without touching its data.
+        // Step 6 ("Same identity"): drop the ".web" suffix from release so it becomes
+        // app.kanjikodama.wk, signed with the Java app's key (keystore.properties), versionCode
+        // above the installed one (start at 1000); debug keeps a suffix (".debug" to test the
+        // legacy migration against the Java debug app). Also set appId in capacitor.config.ts.
+        applicationId "app.kanjikodama.wk"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2
@@ -17,7 +25,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            applicationIdSuffix ".web"
+        }
         release {
+            applicationIdSuffix ".web" // step 6: remove
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

@@ -1,0 +1,57 @@
+# Theme: Pixel Forest
+
+The Java app's KanjiKodama theme (`durtles/app/src/main/res/values/colors.xml` `mm*`,
+`styles.xml` `KanjiKodamaLightTheme`/`KanjiKodamaDarkTheme`, `enums/ActiveTheme.java`) as CSS custom
+properties. `index.css` imports `fonts.css`, `tokens.css` and `base.css`; `main.tsx` imports it once.
+
+- **Light / dark:** tokens on `:root` are light; dark applies under `prefers-color-scheme: dark`,
+  unless `<html data-theme="light">`; `data-theme="dark"` forces dark. Set it with `applyTheme()`
+  (`src/app/theme.ts`, setting `kk_theme`: `system`/`light`/`dark`). Never hard-code colours in
+  components: use the tokens, so both themes work.
+- **Fonts** (bundled, OFL, licenses in `public/licenses/`): `--font-body` Pixelify Sans (body Latin),
+  `--font-display` Silkscreen (headings, buttons, counters, tabs), `--font-ja` Zen Maru Gothic.
+  Japanese text: mark it `lang="ja"` (or class `ja`); both Latin stacks also fall back to Zen Maru
+  Gothic, so stray Japanese never renders in a system font.
+
+## Tokens
+
+| Token | Use |
+|---|---|
+| `--color-text` | normal text (mmInk) |
+| `--color-text-muted` | secondary text, panel titles (mmMuted) |
+| `--color-text-toned` | tertiary text, inactive tabs, axis labels (mmToned) |
+| `--color-bg` | page background (mmGround) |
+| `--color-surface` | panels, tiles, dialogs, bottom nav (mmWindow) |
+| `--color-divider` | panel borders, row separators (mmDivider) |
+| `--color-accent` | focus ring, active controls (mmAccent) |
+| `--color-target` | level-up target, warning border (mmPeach) |
+| `--color-on-pastel` | text on the pastel stage/subject colours |
+| `--color-toolbar-bg` / `--color-toolbar-fg` | top bar |
+| `--color-level-up` | level-up counts in the timeline |
+| `--color-ok` / `--color-bad` | correct / wrong, success / error text and borders |
+| `--color-warn-bg` | banner background (backup reminder) |
+| `--color-chip` | small labels (JLPT block chip) |
+| `--color-shadow` | soft shadows (mmShadow) |
+| `--btn-fill` `--btn-light` `--btn-shade` `--btn-outline` `--btn-text` | the pixel pill button (mm_btn); override the first three for a coloured button |
+| `--color-radical` `--color-kanji` `--color-vocab` | subject-type backgrounds (item headers, buttons) |
+| `--color-radical-strong` `--color-kanji-strong` `--color-vocab-strong` | subject-type chart colours |
+| `--color-on-subject` | text on subject-type backgrounds |
+| `--color-stage-{locked,initial,apprentice,guru,master,enlightened,burned}` | SRS stage colours |
+| `--color-lp-0` … `--color-lp-9` | level progress buckets: 0 passed, 1–7 apprentice stages (7 = first), 8 initiate, 9 locked |
+| `--kk-ink` … `--kk-peach`, `--kk-mint(-hi/-lo)`, `--kk-bar` | the raw palette (prefer the semantic tokens) |
+| `--font-body` `--font-display` `--font-ja` | fonts (above) |
+| `--text-xs/sm/md/lg/xl/xxl` | 13/14/16/20/26/34 px (WK.TextView sizes) |
+| `--space-1` … `--space-6` | 4/8/12/16/24/32 px |
+| `--radius-sm/md/pill`, `--border-pixel` | 6/12/999 px, 3 px outlines |
+| `--safe-top/right/bottom/left` | safe-area insets (iOS `env()`, Android SystemBars `--safe-area-inset-*`) |
+| `--topbar-height` `--bottomnav-height` `--content-max-width` | shell layout |
+
+## Shared classes (`base.css`)
+
+`.kk-btn` (pixel pill; modifiers `small`, `block`, `secondary`, `danger`, `radical`, `kanji`),
+`.kk-btn-row`, `.kk-icon-btn`, `.kk-panel` (card, `h2` title), `.kk-banner` (`error`, `ok`),
+`.kk-rows`/`.kk-row` (settings lists, `.kk-row-title`/`.kk-row-sub`), `.kk-dl` (key/value),
+`.kk-dialog` (use `ui/components/ConfirmDialog`), `.kk-segmented`, `.kk-muted`, `.kk-small`,
+`.kk-xsmall`, `.kk-error-text`, `.kk-visually-hidden`, `.ja`.
+
+Screen-specific styles go next to the screen (`screens/dashboard/dashboard.css`), using tokens only.

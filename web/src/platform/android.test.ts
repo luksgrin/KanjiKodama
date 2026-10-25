@@ -9,7 +9,14 @@ const fsState = vi.hoisted(() => ({
 const docMock = vi.hoisted(() => ({ save: vi.fn(), open: vi.fn() }));
 const shareMock = vi.hoisted(() => ({ share: vi.fn() }));
 
-vi.mock('@capacitor/core', () => ({ registerPlugin: () => docMock, Capacitor: { isNativePlatform: () => true } }));
+vi.mock('@capacitor/core', () => ({
+  registerPlugin: () => docMock,
+  Capacitor: { isNativePlatform: () => true, convertFileSrc: (u: string) => u },
+  CapacitorHttp: {},
+  SystemBars: {},
+  SystemBarsStyle: { Dark: 'DARK', Light: 'LIGHT', Default: 'DEFAULT' },
+}));
+vi.mock('@capacitor/app', () => ({ App: {} }));
 vi.mock('@capacitor/local-notifications', () => ({ LocalNotifications: {} }));
 vi.mock('@capacitor/share', () => ({ Share: shareMock }));
 vi.mock('@capacitor/filesystem', () => {

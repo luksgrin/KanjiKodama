@@ -1,6 +1,7 @@
 /**
  * Server mode: URL normalize/label, API v2 types, pure parts of the sync engine. Java:
- * local/ServerMode, api/*. Fixtures: server/*.
+ * local/ServerMode, api/*, tasks/ApiTask and the Get…Task, ReportSessionItemTask and SubmitStudyMaterialTask.
+ * Fixtures: server/*. The HTTP, Dexie and timers are in `src/sync/`.
  */
 export {
   NOT_A_SERVER_ADDRESS,
@@ -12,3 +13,10 @@ export {
   serverLabel,
 } from './serverUrl';
 export { UriSyntaxError, parseJavaUri, type ParsedUri } from './javaUri';
+export * from './api';
+export * from './apiState';
+export * from './merge';
+export * from './messages';
+export * from './queue';
+export * from './rateLimiter';
+export type { HttpMethod } from './types';

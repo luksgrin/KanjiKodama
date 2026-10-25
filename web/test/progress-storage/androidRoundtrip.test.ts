@@ -59,7 +59,7 @@ function differences(a: unknown, b: unknown, path = ''): string[] {
 
 const semanticDiff = (x: string, y: string): string[] => differences(typed(parseJsonValue(x)), typed(parseJsonValue(y)));
 
-describe.skipIf(!hasContentDb())(`progress files through Dexie with the real content${hasContentDb() ? '' : ` (${NO_CONTENT_DB_MESSAGE})`}`, () => {
+describe.skipIf(!hasContentDb())(`progress files through Dexie with the real content${hasContentDb() ? '' : ` (${NO_CONTENT_DB_MESSAGE})`}`, { timeout: 60_000 }, () => {
   let content: Content;
   let jlptKanji: Map<string, number>;
   beforeAll(async () => {

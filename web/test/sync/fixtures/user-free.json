@@ -1,0 +1,12 @@
+{
+  "object": "user",
+  "url": "https://kk.example.test/v2/user",
+  "data_updated_at": "2026-10-20T08:00:00.000000Z",
+  "data": {
+    "id": "5a6a5234-a392-4a87-8f3f-33342afe8a42",
+    "username": "kodama",
+    "level": 3,
+    "current_vacation_started_at": "2026-10-19T00:00:00.000000Z",
+    "subscription": { "active": false, "type": "free", "max_level_granted": 3, "period_ends_at": null }
+  }
+}

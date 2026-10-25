@@ -1,0 +1,251 @@
+/*
+ * Pixel Forest theme tokens (light and dark), ported from the Java app's KanjiKodamaLightTheme /
+ * KanjiKodamaDarkTheme (durtles/app/src/main/res/values/{colors,styles}.xml, enums/ActiveTheme.java).
+ * Dark: the system setting, unless <html data-theme="light|dark"> overrides it (app/theme.ts).
+ * See README.md for what each token is for.
+ */
+:root {
+  color-scheme: light;
+  /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+  --kk-ink: #2E4756;
+  --kk-muted: #3E7F6B;
+  --kk-toned: #5C8A7A;
+  --kk-accent: #7CC8AC;
+  --kk-ground: #EAF7EF;
+  --kk-window: #F8FDF9;
+  --kk-shadow: #9CCDB8;
+  --kk-mint: #A8E6CF;
+  --kk-mint-hi: #D9F7EA;
+  --kk-mint-lo: #7CC8AC;
+  --kk-divider: #BFD9CB;
+  --kk-peach: #E9B572;
+  --kk-on-pastel: #2E4756;
+  --kk-bar: #A8E6CF;
+  /* Semantic */
+  --color-text: #2E4756;
+  --color-text-muted: #3E7F6B;
+  --color-text-toned: #5C8A7A;
+  --color-bg: #EAF7EF;
+  --color-surface: #F8FDF9;
+  --color-divider: #BFD9CB;
+  --color-accent: #7CC8AC;
+  --color-target: #E9B572;
+  --color-on-pastel: #2E4756;
+  --color-toolbar-bg: #2E4756;
+  --color-toolbar-fg: #EAF7EF;
+  --color-level-up: #3FA383;
+  --color-ok: #3FA383;
+  --color-bad: #D9667F;
+  --color-warn-bg: #F6D7B0;
+  --color-chip: #A8E6CF;
+  --btn-fill: #A8E6CF;
+  --btn-light: #D9F7EA;
+  --btn-shade: #7CC8AC;
+  --btn-outline: #2E4756;
+  --color-shadow: #9CCDB8;
+  --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
+  /* Subject types (ActiveTheme KANJIKODAMA_*) */
+  --color-radical: #9EC9F0;
+  --color-kanji: #F5A9B8;
+  --color-vocab: #C9B6F2;
+  --color-radical-strong: #7FB2E6;
+  --color-kanji-strong: #E98BA4;
+  --color-vocab-strong: #A994E6;
+  --color-on-subject: #2E4756;
+  /* SRS stage buckets (ActiveTheme stageBucketColors7) */
+  --color-stage-locked: #DDEBE2;
+  --color-stage-initial: #B7C9BD;
+  --color-stage-apprentice: #F5C1D0;
+  --color-stage-guru: #D7C8F6;
+  --color-stage-master: #BBD8F4;
+  --color-stage-enlightened: #B5E9E3;
+  --color-stage-burned: #F6D7B0;
+  /* Level progress buckets: 0 passed, 1..7 apprentice stages (7 = first), 8 initiate, 9 locked */
+  --color-lp-0: #7CC8AC;
+  --color-lp-1: #E98BA4;
+  --color-lp-2: #F0A5BA;
+  --color-lp-3: #F5C1D0;
+  --color-lp-4: #F7CCD8;
+  --color-lp-5: #F9D6E0;
+  --color-lp-6: #FADDE6;
+  --color-lp-7: #FCE8EE;
+  --color-lp-8: #B7C9BD;
+  --color-lp-9: #DDEBE2;
+
+  /* Fonts: pixel for Latin, Zen Maru Gothic for Japanese (fallback in every stack, and :lang(ja)). */
+  --font-body: 'Pixelify Sans', 'Zen Maru Gothic', system-ui, sans-serif;
+  --font-display: 'Silkscreen', 'Zen Maru Gothic', system-ui, sans-serif;
+  --font-ja: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
+
+  /* Type scale (WK.TextView.*: 13/14/16/20/26/34 sp) */
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 26px;
+  --text-xxl: 34px;
+
+  /* Spacing and shape */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+  --border-pixel: 3px;
+
+  /* Safe areas: Capacitor's SystemBars injects --safe-area-inset-* on Android (edge-to-edge);
+     iOS / browsers provide env(). */
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+
+  /* Layout */
+  --topbar-height: 52px;
+  --bottomnav-height: 60px;
+  --content-max-width: 640px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+    --kk-ink: #E3F4EA;
+    --kk-muted: #A9C9BC;
+    --kk-toned: #7FA898;
+    --kk-accent: #8EE3C8;
+    --kk-ground: #14232B;
+    --kk-window: #1E3139;
+    --kk-shadow: #0A1418;
+    --kk-mint: #8EE3C8;
+    --kk-mint-hi: #C4F4E4;
+    --kk-mint-lo: #5FBFA2;
+    --kk-divider: #2B414A;
+    --kk-peach: #E8B97A;
+    --kk-on-pastel: #0F1C22;
+    --kk-bar: #2E5D57;
+    /* Semantic */
+    --color-text: #E3F4EA;
+    --color-text-muted: #A9C9BC;
+    --color-text-toned: #7FA898;
+    --color-bg: #14232B;
+    --color-surface: #1E3139;
+    --color-divider: #2B414A;
+    --color-accent: #8EE3C8;
+    --color-target: #E8B97A;
+    --color-on-pastel: #0F1C22;
+    --color-toolbar-bg: #1E3139;
+    --color-toolbar-fg: #E3F4EA;
+    --color-level-up: #8EE3C8;
+    --color-ok: #8EE3C8;
+    --color-bad: #E98BA4;
+    --color-warn-bg: #5A4630;
+    --color-chip: #2E5D57;
+    --btn-fill: #8EE3C8;
+    --btn-light: #C4F4E4;
+    --btn-shade: #5FBFA2;
+    --btn-outline: #0A1418;
+    --color-shadow: #0A1418;
+    --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
+    /* Subject types (ActiveTheme KANJIKODAMA_*) */
+    --color-radical: #7FB2E6;
+    --color-kanji: #E98BA4;
+    --color-vocab: #A994E6;
+    --color-radical-strong: #7FB2E6;
+    --color-kanji-strong: #E98BA4;
+    --color-vocab-strong: #A994E6;
+    --color-on-subject: #0F1C22;
+    /* SRS stage buckets (ActiveTheme stageBucketColors7) */
+    --color-stage-locked: #2B414A;
+    --color-stage-initial: #4A5F66;
+    --color-stage-apprentice: #E98BA4;
+    --color-stage-guru: #A994E6;
+    --color-stage-master: #7FB2E6;
+    --color-stage-enlightened: #7FD3CB;
+    --color-stage-burned: #E8B97A;
+    /* Level progress buckets: 0 passed, 1..7 apprentice stages (7 = first), 8 initiate, 9 locked */
+    --color-lp-0: #8EE3C8;
+    --color-lp-1: #E98BA4;
+    --color-lp-2: #EC95AD;
+    --color-lp-3: #EFA2B7;
+    --color-lp-4: #F4B8C8;
+    --color-lp-5: #C98FA3;
+    --color-lp-6: #A57A8A;
+    --color-lp-7: #7D6370;
+    --color-lp-8: #4A5F66;
+    --color-lp-9: #2B414A;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+  --kk-ink: #E3F4EA;
+  --kk-muted: #A9C9BC;
+  --kk-toned: #7FA898;
+  --kk-accent: #8EE3C8;
+  --kk-ground: #14232B;
+  --kk-window: #1E3139;
+  --kk-shadow: #0A1418;
+  --kk-mint: #8EE3C8;
+  --kk-mint-hi: #C4F4E4;
+  --kk-mint-lo: #5FBFA2;
+  --kk-divider: #2B414A;
+  --kk-peach: #E8B97A;
+  --kk-on-pastel: #0F1C22;
+  --kk-bar: #2E5D57;
+  /* Semantic */
+  --color-text: #E3F4EA;
+  --color-text-muted: #A9C9BC;
+  --color-text-toned: #7FA898;
+  --color-bg: #14232B;
+  --color-surface: #1E3139;
+  --color-divider: #2B414A;
+  --color-accent: #8EE3C8;
+  --color-target: #E8B97A;
+  --color-on-pastel: #0F1C22;
+  --color-toolbar-bg: #1E3139;
+  --color-toolbar-fg: #E3F4EA;
+  --color-level-up: #8EE3C8;
+  --color-ok: #8EE3C8;
+  --color-bad: #E98BA4;
+  --color-warn-bg: #5A4630;
+  --color-chip: #2E5D57;
+  --btn-fill: #8EE3C8;
+  --btn-light: #C4F4E4;
+  --btn-shade: #5FBFA2;
+  --btn-outline: #0A1418;
+  --color-shadow: #0A1418;
+  --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
+  /* Subject types (ActiveTheme KANJIKODAMA_*) */
+  --color-radical: #7FB2E6;
+  --color-kanji: #E98BA4;
+  --color-vocab: #A994E6;
+  --color-radical-strong: #7FB2E6;
+  --color-kanji-strong: #E98BA4;
+  --color-vocab-strong: #A994E6;
+  --color-on-subject: #0F1C22;
+  /* SRS stage buckets (ActiveTheme stageBucketColors7) */
+  --color-stage-locked: #2B414A;
+  --color-stage-initial: #4A5F66;
+  --color-stage-apprentice: #E98BA4;
+  --color-stage-guru: #A994E6;
+  --color-stage-master: #7FB2E6;
+  --color-stage-enlightened: #7FD3CB;
+  --color-stage-burned: #E8B97A;
+  /* Level progress buckets: 0 passed, 1..7 apprentice stages (7 = first), 8 initiate, 9 locked */
+  --color-lp-0: #8EE3C8;
+  --color-lp-1: #E98BA4;
+  --color-lp-2: #EC95AD;
+  --color-lp-3: #EFA2B7;
+  --color-lp-4: #F4B8C8;
+  --color-lp-5: #C98FA3;
+  --color-lp-6: #A57A8A;
+  --color-lp-7: #7D6370;
+  --color-lp-8: #4A5F66;
+  --color-lp-9: #2B414A;
+}

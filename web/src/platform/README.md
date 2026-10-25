@@ -12,13 +12,25 @@ never check `platform.name`.
 | `capabilities` | `notifications`, `audio`, `haptics`, `backgroundSync`, `widget`, `cleartextHttp`, `legacyMigration`, `autoBackup` |
 | `storage` | `persist()`, `persisted()`, `estimate()` → `{usage, quota} \| null` |
 | `files` | `saveText(name, text)` → `'saved' \| 'cancelled'`; `openText()` → `{name, text} \| null`; Android only: `writeAutoBackup(text, now?)`, `listAutoBackups()` (newest first) |
-| `notifications` | spike API (`supported`, `requestPermission`, `schedule`, `cancelAll`); step 5 replaces it |
+| `notifications` | `supported`, `permission()` → `'granted' \| 'denied' \| 'prompt'`, `requestPermission()`, `scheduleReviews(ReviewTime[])` → number scheduled, `cancelAll()`; `schedule(at, title, body)` is the deprecated spike test |
+| `audio` | `supported`, `setCatalog(catalog)`, `play(subjectId, voicePref, reading?)` → played, `download(levels, onProgress?, signal?)`, `status()` (per level: files, bytes, expected), `deleteAll()` |
+| `haptics` | `supported`, `feedback('correct' \| 'wrong' \| 'retry' \| 'tap')` |
+| `lifecycle` | `onResume(cb)`, `onPause(cb)`, Android only: `onBackButton(cb → handled)`; each returns an unsubscribe function |
+| `systemBars` | Android only: `setTheme('light' \| 'dark' \| 'system')` (status/navigation bar icon colours) |
 
 Errors (write failure, unreadable file) reject. Cancelling a picker or share sheet does not reject.
 
 The backup policy is in `src/progress/backup.ts`, not here: `runAutoBackup(files, exportText)` after
 each session, `backupReminder(lastSavedAt, now)` for the PWA reminder, `saveProgressFile(files,
 store, name, text)` to save and record `lastSavedAt`, plus the name and rotation helpers.
+
+Helpers: `rescheduleReviewNotifications(api, db, prefs, now?)` (`reviewNotifications.ts`) plans and
+schedules in one call (or cancels when `enable_notifications` is off); call it after each session, in
+`lifecycle.onPause`, on resume and after a server-mode sync. The plan itself is pure:
+`planReviewNotifications` and the Java texts in `src/core/notifications/`. The audio decisions (which
+recording, which files) are pure too: `src/core/audio/`; `readAudioCatalog(db)` in
+`src/content/audio.ts` builds the catalog from the content DB. Settings getters with the Java defaults:
+`enableNotifications`, `voicePreference`, `hapticFeedbackOnCorrect` / `OnWrong` (all in core).
 
 ## What each build does
 
@@ -27,15 +39,29 @@ store, name, text)` to save and record `lastSavedAt`, plus the name and rotation
 | Save progress file | System create-document picker (`ACTION_CREATE_DOCUMENT`) through the local `Document` plugin; Drive, Downloads etc. are offered, as in the Java app. Dismissed → `'cancelled'`. If the plugin is missing (old APK), it writes to the cache dir and opens the share sheet (`@capacitor/share`). | Web Share API with a `File` when `navigator.canShare({files})` (iOS share sheet → Save to Files, iCloud Drive, Google Drive app). `AbortError` → `'cancelled'`. Any other share error, or no file sharing → Blob download, always reported `'saved'` (browsers don't say whether it was kept). |
 | Open progress file | `ACTION_OPEN_DOCUMENT` through the `Document` plugin; falls back to `<input type=file>`. | Hidden `<input type=file>`; `cancel` event → `null` (very old browsers never fire it, so the promise stays pending). |
 | Auto backup | After each session, `files/backups/kanjikodama-autobackup-<UTC ISO time>.json` via `@capacitor/filesystem` (`Directory.Data`); the newest 5 are kept; only files matching that name pattern are ever deleted. Android Auto Backup also covers `files/`. | None. A "last saved N days ago" reminder instead: shown when there is progress and it was never saved, or the last save is 7 or more whole days old. |
+| Review notifications | `@capacitor/local-notifications` (`androidNotifications.ts`): one notification per future hour in which reviews become available, next 7 days, at most 64, with the counts at that hour and the Java texts ("New reviews available" / "N reviews available", or "New lessons and reviews available" / "N lessons and M reviews available"); ids 1000–1063; channel `NewReviewsChannel` (importance default) and the Java status icon `ic_stat_name`. Inexact alarms (`setAndAllowWhileIdle`, like Java; Android may deliver up to ~¾ of the remaining time late for far-away alarms). Scheduling also clears shown review notifications (stale counts). Permission: Android 13+ system prompt from `requestPermission()` only; `scheduleReviews` never prompts. | None (known limitation): the dashboard shows the next review time. |
+| Notifications after reboot / update | The plugin's `LocalNotificationRestoreReceiver` re-arms its stored notifications on `BOOT_COMPLETED` (ones missed while the phone was off fire 15 s after boot, all at once). An update force-stops the app, which drops its alarms; our manifest adds `MY_PACKAGE_REPLACED` to that receiver, so they are re-armed after an update too (checked on the emulator with `adb install -r`). The app reschedules on every resume anyway. | — |
+| Audio | `androidAudio.ts`: download with `CapacitorHttp` (native, no CORS), 4 in parallel, into `files/pronunciation-audio/<WaniKani level>/<source id>.mp3` (the Java app's internal layout; MPEG preferred), via a temp file + rename. Played with `new Audio(Capacitor.convertFileSrc(uri))`; streamed from the content URL when not cached; `play` resolves false when that fails (offline). Recording choice as `AudioUtil` (matched reading, primary reading, voice preference RANDOM/MALE/FEMALE/ALTERNATE). Excluded from Android Auto Backup (`res/xml/backup_rules.xml`, `data_extraction_rules.xml`). | None (known limitation). |
+| Haptics | `navigator.vibrate` in the WebView (VIBRATE permission): 100 / 300 / 200 ms for correct / wrong / retry, the Java `HapticUtil` fallback. Both Java settings are off by default, so no `@capacitor/haptics` dependency. | None (iOS Safari has no vibrate). |
+| Lifecycle, back button | `@capacitor/app`: `resume` / `pause` events; `backButton` runs the handlers newest first, else `history.back()`, else `App.minimizeApp()` (state kept, like Android 12+ for a root activity). | `visibilitychange`; no back button. |
+| Edge-to-edge, bar colours | `capacitor.config.ts` `SystemBars.insetsHandling: 'css'`: the WebView stays inside the system bars unless the page sets `viewport-fit=cover`; with it, use `env(safe-area-inset-*)` or the injected `--safe-area-inset-*` variables. `systemBars.setTheme` sets the icon colours. | Browser handles it. |
 | Storage persistence | `navigator.storage.*` in the WebView (data lives in the app's private dir anyway). | `navigator.storage.persist()`; still not a guarantee (see below). |
 
 ### Why a local plugin for the Android save picker
 No installed plugin can open the create-document picker: `@capacitor/filesystem` writes only to
 app and public directories, and `@capacitor/share` is a share sheet (it offers "Drive" as an upload
 target but not a folder choice, and gives no reliable "saved" signal). The spike already had a ~150
-line `DocumentPlugin.java` (`web/android/app/src/main/java/app/kanjikodama/spike/`, registered in
+line `DocumentPlugin.java` (`web/android/app/src/main/java/app/kanjikodama/wk/`, registered in
 `MainActivity`), so it is kept; the TS side is `registerPlugin<DocumentPlugin>('Document')` in
 `android.ts`. No npm dependency was added.
+
+## Android identity
+
+Until the cutover the app installs as `app.kanjikodama.wk.web` (`applicationId "app.kanjikodama.wk"`
+plus `applicationIdSuffix ".web"` on both build types; Java package and namespace already
+`app.kanjikodama.wk`), next to the Java app. Step 6 removes the release suffix, sets
+`appId: 'app.kanjikodama.wk'` in `capacitor.config.ts`, signs with the Java app's key and raises
+`versionCode` (start at 1000). `minSdk` is 24 (Capacitor 8); the Java app's is 21.
 
 ## Limitations
 
@@ -47,3 +73,12 @@ line `DocumentPlugin.java` (`web/android/app/src/main/java/app/kanjikodama/spike
 - **PWA: a download is assumed saved.** Only the share sheet reports a cancel.
 - **Android: auto backups are lost with "Clear storage" or uninstall** (same directory as the data),
   except what Android Auto Backup restored to Google's cloud.
+- **PWA: server mode needs an `https://` server that allows CORS.** `http.ts` uses `fetch`, which
+  can't set User-Agent and can't reach `http://` from an https page (mixed content). Android uses
+  `CapacitorHttp` (`httpAndroid.ts`): no CORS, LAN `http://` servers work where cleartext is allowed.
+
+## Server-mode HTTP
+
+`HttpApi` (`index.ts`) is not part of `Platform` yet, so `android.ts` / `web.ts` stay untouched:
+`getHttp()` picks `fetchHttp` (`http.ts`) or `androidHttp` (`httpAndroid.ts`). When those files take
+an `http` field, set it to the same objects and make `getHttp()` return `(await getPlatform()).http`.

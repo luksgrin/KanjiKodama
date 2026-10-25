@@ -2,15 +2,17 @@
 // Loaded only when Capacitor.isNativePlatform() is true (see ./index.ts).
 import { registerPlugin } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
-import type { AutoBackupEntry, Capabilities, FilesApi, NotificationsApi, OpenedText, Platform, SaveResult } from './index';
+import type { AutoBackupEntry, Capabilities, FilesApi, OpenedText, Platform, SaveResult } from './index';
+import { androidAudio } from './androidAudio';
+import { androidHaptics, androidLifecycle, androidSystemBars } from './androidLifecycle';
+import { androidNotifications } from './androidNotifications';
 import { browserStorage } from './browserStorage';
 import { openTextViaInput } from './web';
 import { AUTO_BACKUP_DIR, AUTO_BACKUP_KEEP, autoBackupName, parseAutoBackupName, planRotation, sortBackupsNewestFirst } from '../progress/backup';
 
 /**
- * Local native plugin in web/android (app/src/main/java/.../DocumentPlugin.java, registered in
+ * Local native plugin in web/android (app/src/main/java/app/kanjikodama/wk/DocumentPlugin.java, registered in
  * MainActivity) wrapping the Storage Access Framework: ACTION_CREATE_DOCUMENT / ACTION_OPEN_DOCUMENT.
  * The system picker lists Drive, Downloads and other document providers, like the Java app.
  * No installed Capacitor plugin offers a create-document picker (@capacitor/filesystem writes only
@@ -24,54 +26,13 @@ export const Document = registerPlugin<DocumentPlugin>('Document');
 
 const capabilities: Capabilities = {
   notifications: true,
-  audio: false, // step 5
-  haptics: false, // step 5
+  audio: true,
+  haptics: true, // navigator.vibrate in the WebView (androidLifecycle.ts)
   backgroundSync: false,
   widget: false,
   cleartextHttp: true,
   legacyMigration: false, // step 6
   autoBackup: true,
-};
-
-const NOTIFICATION_ID = 1;
-
-const notifications: NotificationsApi = {
-  supported: true,
-  async requestPermission(): Promise<boolean> {
-    let status = await LocalNotifications.checkPermissions();
-    if (status.display === 'prompt' || status.display === 'prompt-with-rationale') {
-      status = await LocalNotifications.requestPermissions();
-    }
-    return status.display === 'granted';
-  },
-  async schedule(at: Date, title: string, body: string): Promise<void> {
-    if (!(await notifications.requestPermission())) {
-      throw new Error('Notification permission denied');
-    }
-    await LocalNotifications.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: NOTIFICATION_ID,
-          title,
-          body,
-          // Inexact on purpose: isExactNotification defaults to true, and on API 33+
-          // SCHEDULE_EXACT_ALARM is denied by default, so the plugin would open the
-          // "Alarms & reminders" settings screen on every schedule. With false +
-          // allowWhileIdle it calls AlarmManager.setAndAllowWhileIdle(RTC_WAKEUP),
-          // the same call the current Kotlin app uses. Review reminders need no exactness.
-          schedule: { at, allowWhileIdle: true },
-          isExactNotification: false,
-        },
-      ],
-    });
-  },
-  async cancelAll(): Promise<void> {
-    const pending = await LocalNotifications.getPending();
-    if (pending.notifications.length > 0) {
-      await LocalNotifications.cancel({ notifications: pending.notifications.map((n) => ({ id: n.id })) });
-    }
-  },
 };
 
 /** The native Document plugin is missing (e.g. an APK built before it existed). */
@@ -164,7 +125,11 @@ const files: FilesApi = { saveText, openText, writeAutoBackup, listAutoBackups }
 export const androidPlatform: Platform = {
   name: 'android',
   capabilities,
-  notifications,
+  notifications: androidNotifications,
+  audio: androidAudio,
+  haptics: androidHaptics,
+  lifecycle: androidLifecycle,
+  systemBars: androidSystemBars,
   files,
   storage: browserStorage,
 };

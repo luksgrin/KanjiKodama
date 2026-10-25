@@ -8,7 +8,12 @@ import { exportProgressFile } from '../../src/progress/exportFile';
 import { loadProgressState } from '../../src/storage/progressRepo';
 import { freshName } from './helpers';
 
-const ALL_TABLES = ['jumps', 'levelProgression', 'levelTest', 'meta', 'probation', 'session', 'settings', 'state', 'subjects', 'tasks'];
+const ALL_TABLES = ['jumps', 'levelProgression', 'levelTest', 'meta', 'probation', 'serverSubjects', 'session', 'settings', 'state', 'subjects', 'tasks'];
+
+const V2_STORES = {
+  subjects: 'id', levelProgression: 'id', probation: 'id', jumps: '++seq, at', state: 'key', levelTest: 'id',
+  session: 'subjectId', tasks: '++id', settings: 'key', meta: 'key',
+};
 
 /**
  * Every earlier schema version: its Dexie schema, data as that version stored it, and the checks
@@ -49,6 +54,31 @@ const EARLIER_VERSIONS: Array<{
       const file = JSON.parse(text) as { subjects: Array<{ id: number }> };
       // 441 has no answers and isn't unlocked: not exported, like the Java filter.
       expect(file.subjects.map((s) => s.id)).toEqual([440]);
+    },
+  },
+  {
+    version: 2, // the progress schema (step 4)
+    stores: V2_STORES,
+    async seed(db) {
+      await db.table('subjects').put({ ...emptySubjectRow(), id: 440, srsStage: 5, assignmentId: 9001 });
+      await db.table('state').bulkPut([
+        { key: 'userLevel', value: 7 },
+        { key: 'curriculum', value: 'JLPT' },
+      ]);
+      await db.table('tasks').bulkAdd([
+        { kind: 'review', payload: { subjectId: 440, assignmentId: 9001, meaningIncorrect: 1, readingIncorrect: 0, at: 1, justPassed: false }, createdAt: 1 },
+        { kind: 'lessonStart', payload: { subjectId: 441, assignmentId: 0, at: 2 }, createdAt: 2 },
+      ]);
+      await db.table('meta').put({ key: 'schemaVersion', value: 2 });
+    },
+    async verify(kk) {
+      expect((await kk.subjects.get(440))?.assignmentId).toBe(9001);
+      expect(await kk.state.get('curriculum')).toEqual({ key: 'curriculum', value: 'JLPT' });
+      const tasks = await kk.tasks.orderBy('id').toArray();
+      expect(tasks.map((t) => [t.id, t.kind])).toEqual([[1, 'review'], [2, 'lessonStart']]);
+      expect(await kk.serverSubjects.count()).toBe(0);
+      await kk.tasks.add({ kind: 'review', payload: {}, createdAt: 3 });
+      expect((await kk.tasks.toArray()).map((t) => t.id)).toEqual([1, 2, 3]);
     },
   },
 ];

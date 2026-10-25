@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs';
 const cert = process.env.KK_HTTPS_CERT;
 const key = process.env.KK_HTTPS_KEY;
 const https = cert && key ? { cert: readFileSync(cert), key: readFileSync(key) } : undefined;
+const appVersion = (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }).version;
 
 // Relative base: works under any subpath (e.g. GitHub Pages) and inside the Capacitor WebView.
 export default defineConfig({
@@ -26,8 +27,9 @@ export default defineConfig({
         start_url: './',
         scope: './',
         display: 'standalone',
-        background_color: '#1B4332',
-        theme_color: '#1B4332',
+        // Pixel Forest: splash on mmGroundLight, browser UI in the toolbar colour (mmInkLight).
+        background_color: '#EAF7EF',
+        theme_color: '#2E4756',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -71,12 +73,12 @@ export default defineConfig({
       },
     }),
   ],
-  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
+  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()), __APP_VERSION__: JSON.stringify(appVersion) },
   build: { target: 'es2022', sourcemap: false },
   server: { https },
   preview: { https },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'test/**/*.test.ts', 'test/**/*.test.tsx'],
   },
 });
