@@ -143,7 +143,7 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
         search();
       }}
     >
-      <button type="submit" className="kk-btn small">{searchLabel}</button>
+      <button type="submit" className="kk-btn">{searchLabel}</button>
       <div className="kk-search-grid">
         <span>Level range:</span>
         <span className="kk-search-range">{text('minLevel', 'Min level')} - {text('maxLevel', 'Max level')}</span>
@@ -229,7 +229,7 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
         <legend>Jōyō kanji grades:</legend>
         {group('joyoGrade')}
       </fieldset>
-      <button type="submit" className="kk-btn small">{searchLabel}</button>
+      <button type="submit" className="kk-btn">{searchLabel}</button>
     </form>
   );
 }

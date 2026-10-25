@@ -39,20 +39,28 @@ export function SessionDialog({
 }: SessionDialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const before = useRef<Element | null>(null);
   useBackHandler(() => { if (!busy && !noButtons) onNo(); return true; }, open);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
     if (open && !d.open) {
+      before.current = document.activeElement;
       if (typeof d.showModal === 'function') d.showModal();
       else d.setAttribute('open', '');
+      // Like Java, no button looks focused when the dialog opens.
+      d.focus({ preventScroll: true });
     } else if (!open && d.open) {
       if (typeof d.close === 'function') d.close();
       else d.removeAttribute('open');
+      // Back to the answer field (Java's dialog leaves the keyboard and the field's focus alone).
+      const el = before.current;
+      before.current = null;
+      if (el instanceof HTMLElement && el.isConnected) el.focus({ preventScroll: true });
     }
   }, [open]);
   return (
-    <dialog ref={ref} className="kk-dialog kk-sdialog" aria-labelledby={title ? titleId : undefined} data-testid={testId}
+    <dialog ref={ref} tabIndex={-1} className="kk-dialog kk-sdialog" aria-labelledby={title ? titleId : undefined} data-testid={testId}
       onCancel={(e) => { e.preventDefault(); if (!busy && !noButtons) onNo(); }}>
       {open && (
         <>

@@ -95,6 +95,8 @@ export interface ItemPageProps {
   cardProgress?: (subject: ContentSubject) => string | null;
   /** Below the details table (Java's Resurrect / Burn buttons): the subject screen's extras. */
   extras?: ReactNode;
+  /** Largest tile glyph height in px (Java `max_font_size_lesson` 128 / `_quiz` 28 / `_browse` 64). */
+  maxFontSize?: number;
 }
 
 const textOrNull = (v: string | number | null | undefined): string | null =>
@@ -124,6 +126,7 @@ export function ItemPage({
   onSaveStudyMaterial,
   cardProgress,
   extras,
+  maxFontSize = 64,
 }: ItemPageProps) {
   const { db } = content;
   const v = { ...SHOW_ALL, ...visibility };
@@ -160,8 +163,11 @@ export function ItemPage({
   const withPitch = (pitch ?? showPitchInfo(settings)) && hasPitchInfo(subject, pitchInfo) && v.readingAnswers;
   const withStrokes = v.meaningRelated && (strokeOrder ?? showStrokeOrder(settings)) && strokes.length > 0;
 
+  // componentsDivider / visuallySimilarsDivider / amalgamationsDivider: a line above each card table.
   const links = (header: string, ids: readonly number[]) =>
-    v.meaningRelated && ids.length > 0 ? (
+    v.meaningRelated && ids.some((id) => content.content.byId.has(id)) ? (
+      <>
+      <hr className="kk-subject-divider" />
       <SubjectLinks
         header={header}
         ids={ids}
@@ -171,6 +177,7 @@ export function ItemPage({
         onOpenSubject={onOpenSubject}
         progressOf={cardProgress}
       />
+      </>
     ) : null;
   const similar = links('Visually similar:', subject.visuallySimilarSubjectIds);
   const usedIn = links('Used in:', subject.amalgamationSubjectIds);
@@ -187,6 +194,7 @@ export function ItemPage({
         pitchInfo={withPitch ? pitchInfo : null}
         audio={audio}
         fontSize={fontSize}
+        maxFontSize={maxFontSize}
       />
 
       {v.readingAnswers && subject.object === 'kanji' && <KanjiReadings subject={subject} showOnInKatakana={katakana} />}

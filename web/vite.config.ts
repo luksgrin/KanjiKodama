@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
@@ -15,6 +15,15 @@ const appVersion = (JSON.parse(readFileSync(new URL('./package.json', import.met
  * Start-up: a <link rel=preload> for the hashed sql.js wasm, so its download starts with the HTML
  * instead of after the JS bundle has run (src/app/contentLoader.ts imports it with `?url`).
  */
+function contentFileName(): string | null {
+  try {
+    const m = JSON.parse(readFileSync(new URL('./public/content/content-manifest.json', import.meta.url), 'utf8')) as { file?: unknown };
+    return typeof m.file === 'string' && /^[\w.-]+$/.test(m.file) ? m.file : null;
+  } catch {
+    return null;
+  }
+}
+
 function preloadWasm(): Plugin {
   return {
     name: 'kk-preload-wasm',
@@ -23,8 +32,13 @@ function preloadWasm(): Plugin {
       order: 'post',
       handler(_html, ctx) {
         const wasm = Object.keys(ctx.bundle ?? {}).find((f) => /sql-wasm-browser[^/]*\.wasm$/.test(f));
-        if (wasm === undefined) return [];
-        return [{ tag: 'link', attrs: { rel: 'preload', href: `./${wasm}`, as: 'fetch', type: 'application/wasm', crossorigin: 'anonymous' }, injectTo: 'head' }];
+        const tags: HtmlTagDescriptor[] = wasm === undefined ? []
+          : [{ tag: 'link', attrs: { rel: 'preload', href: `./${wasm}`, as: 'fetch', type: 'application/wasm', crossorigin: 'anonymous' }, injectTo: 'head' as const }];
+        // The content file named in the bundled manifest (when there is one): its download is the
+        // longest step of the start-up, so it starts with the HTML too.
+        const file = contentFileName();
+        if (file !== null) tags.push({ tag: 'link', attrs: { rel: 'preload', href: `./content/${file}`, as: 'fetch', crossorigin: 'anonymous' }, injectTo: 'head' as const });
+        return tags;
       },
     },
   };

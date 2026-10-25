@@ -114,11 +114,17 @@ export const RESULTS_TUTORIAL = 'This screen shows the results from the search y
   + 'starting a self-study session can be accessed from the menu.';
 
 function useWindowWidth(): number {
-  const [w, setW] = useState(() => (typeof window === 'undefined' ? 411 : window.innerWidth));
+  const read = () => (typeof document === 'undefined' ? 411 : document.documentElement.clientWidth || window.innerWidth);
+  const [w, setW] = useState(read);
   useEffect(() => {
-    const on = () => setW(window.innerWidth);
+    // The Android WebView can report a wrong width for a moment while the keyboard closes and then
+    // not send another resize event: follow the root element's layout size instead.
+    const on = () => setW(read());
+    on();
     window.addEventListener('resize', on);
-    return () => window.removeEventListener('resize', on);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(on);
+    ro?.observe(document.documentElement);
+    return () => { window.removeEventListener('resize', on); ro?.disconnect(); };
   }, []);
   return w;
 }
@@ -280,7 +286,7 @@ export function SearchResultsScreen() {
   return (
     <div className="kk-search-results">
       {tutorial && (
-        <div className="kk-tip" data-testid="results-tutorial">
+        <div className="kk-tip bleed" data-testid="results-tutorial">
           <p className="kk-tip-text">{RESULTS_TUTORIAL}</p>
           <div className="kk-tip-actions">
             <button type="button" className="kk-tip-btn" onClick={() => void app.setPreference('search_result_dismissed', true)}>Dismiss</button>

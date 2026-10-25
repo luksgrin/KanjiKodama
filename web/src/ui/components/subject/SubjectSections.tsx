@@ -43,6 +43,8 @@ export interface HeadlineProps {
   audio?: ReactNode;
   /** Base font size in px (`font_size_subject_info`, default 16). */
   fontSize?: number;
+  /** Largest tile glyph height in px; the tile also fits the screen width minus 80 px (SubjectInfoHeadlineView). */
+  maxFontSize?: number;
 }
 
 /** Title tile, "Level N kanji", meanings, readings (or pitch accent) and the audio slot. */
@@ -55,12 +57,16 @@ export function Headline({
   pitchInfo = null,
   audio,
   fontSize = 16,
+  maxFontSize = 64,
 }: HeadlineProps) {
+  const title = subjectTitle(subject);
+  const chars = Math.max(1, [...(title ?? '')].length);
+  const tileStyle = { fontSize: `min(${maxFontSize}px, calc((100cqi - 112px) / ${chars}))` };
   const blocks = pitchInfo !== null && showReadingAnswers ? pitchBlocks(subject, pitchInfo) : [];
   return (
     <header className="kk-headline">
-      <div className={`kk-subject-tile kk-type--${subject.object}`} lang="ja">
-        <span className="kk-ja">{subjectTitle(subject)}</span>
+      <div className={`kk-subject-tile kk-type--${subject.object}`} lang="ja" style={tileStyle}>
+        <span className="kk-ja">{title}</span>
       </div>
       <div className="kk-headline-text">
         <div className="kk-headline-title">{simpleInfoTitle(subject.object, level)}</div>

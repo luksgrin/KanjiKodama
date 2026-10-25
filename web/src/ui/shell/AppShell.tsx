@@ -60,9 +60,11 @@ export function AppShell() {
     pathRef.current = route.path;
   }
 
+  // A new screen starts at the top; settings sub-screens (`?screen=`) are screens of their own too.
+  const query = route.query.toString();
   useEffect(() => {
     if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
-  }, [route.path]);
+  }, [route.path, query]);
 
   if (!ready) return <StartupScreen status={state.status} onRetry={() => void app.start()} />;
 

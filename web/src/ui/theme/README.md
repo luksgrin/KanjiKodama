@@ -27,7 +27,10 @@ Java colours were nudged for that: light `--color-text-muted` (#3E7F6B → #3673
 | `--color-text-muted` | secondary text, panel titles (mmMuted) |
 | `--color-text-toned` | tertiary text, inactive tabs, axis labels (mmToned) |
 | `--color-bg` | page background (mmGround) |
-| `--color-surface` | panels, tiles, dialogs, bottom nav (mmWindow) |
+| `--color-surface` | panels, tiles (mmWindow) |
+| `--color-dialog` | dialog background (AppCompat `background_floating`: white / #424242) |
+| `--color-dialog-item`, `--color-control-normal` | radio-list dialog items and unchecked radio rings (87 % / 54 % black, white in dark) |
+| `--color-pref-summary` | preference summaries (`textColorSecondary`) |
 | `--color-divider` | panel borders, row separators (mmDivider) |
 | `--color-accent` | focus ring, active controls (mmAccent) |
 | `--color-target` | level-up target, warning border (mmPeach) |

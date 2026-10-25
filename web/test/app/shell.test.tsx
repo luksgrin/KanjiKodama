@@ -96,7 +96,7 @@ describe('toolbar', () => {
     const { el, app, location } = await render('/');
     await click(q(el, 'toolbar-search'));
     const input = q(el, 'toolbar-search-input') as HTMLInputElement;
-    expect(input.placeholder).toBe('Search all radicals, kanji and vocabulary');
+    expect(input.placeholder).toBe(''); // android.widget.SearchView without a queryHint
     await act(async () => {
       const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
       set.call(input, 'ichi');

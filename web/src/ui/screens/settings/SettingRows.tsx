@@ -250,9 +250,16 @@ export function useSettingWriter(): { write: Write; dialog: ReactNode } {
   };
   const answer = (yes: boolean) => { setAskAdvanced(false); void app.setPreference('enable_advanced', yes); };
   const dialog = (
-    <AlertDialog open={askAdvanced} warning title="Enable advanced settings?" message={ENABLE_ADVANCED_WARNING} testId="dialog-enable-advanced"
+    <AlertDialog open={askAdvanced} warning title="Enable advanced settings?" testId="dialog-enable-advanced"
       onCancel={() => setAskAdvanced(false)}
-      negative={{ label: 'No', onClick: () => answer(false) }} positive={{ label: 'Yes', onClick: () => answer(true) }} />
+      negative={{ label: 'No', onClick: () => answer(false) }} positive={{ label: 'Yes', onClick: () => answer(true) }}>
+      {/* Java renders the message as HTML: the same text with its two bold parts. */}
+      <p className="kk-alert-message">
+        <b>Warning:</b>{ENABLE_ADVANCED_WARNING.slice('Warning:'.length, ENABLE_ADVANCED_WARNING.indexOf('only change'))}
+        <b>only change these settings if you are an experienced user</b>
+        {ENABLE_ADVANCED_WARNING.slice(ENABLE_ADVANCED_WARNING.indexOf(' and know'))}
+      </p>
+    </AlertDialog>
   );
   return { write, dialog };
 }

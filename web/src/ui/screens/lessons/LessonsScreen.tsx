@@ -63,6 +63,7 @@ function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Sess
         visibility={infoDumpFlags(dump, null)}
         revealLabel={infoDumpShowReveal(dump) ? infoDumpRevealLabel(dump) : null}
         onReveal={() => setDump(infoDumpNextStage(dump))}
+        maxFontSize={128}
       />
       {menu.dialogs}
     </section>

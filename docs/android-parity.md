@@ -1,236 +1,160 @@
 # Android parity: TS app vs Java app
 
-Side-by-side check on emulator-5556 (Pixel-class, 1080×2400, Android 16 / API 36, Android System
-WebView 133) on 2026-10-25: the Java debug app `app.kanjikodama.wk.debug` (built from `durtles/`)
-next to the TS app `app.kanjikodama.wk.web` (`web/`, built with `npm run build && npx cap sync android
-&& ./gradlew assembleDebug`). Both had the same progress file restored ("Restore progress from a
-file", level 6, JLPT order, 1034 reviews due); lesson screens were checked on fresh data (25 lessons).
-Screenshots stay outside the repo (WaniKani content): scratchpad `parity/` (`j-*` Java, `t-*` TS,
-`pair-*` side by side).
+Side-by-side check (round 2) on emulator-5556 (Pixel-class, 1080×2400, density 420 = 2.625, Android 16 /
+API 36, Android System WebView 133) on 2026-10-25: the Java debug app `app.kanjikodama.wk.debug`
+(built from `durtles/`) next to the TS app `app.kanjikodama.wk.web` (`web/`, built with
+`npm run build && npx cap sync android && ./gradlew assembleDebug`). Both had the same progress file
+restored ("Restore progress from a file": JLPT order, level 6, 1034 reviews due); lesson screens were
+checked on fresh data (level 1, 20 lessons). Screenshots stay outside the repo (WaniKani content):
+scratchpad `parity2/` (`j-*` Java, `t-*` TS, `pair-*` side by side; round 1 in `parity/`).
 
-Severity: **blocker** = the app is clearly not "the same app" / wrong behaviour; **noticeable** = a
-user switching apps sees it at once; **minor** = detail.
+Severity: **blocker** = clearly not "the same app" / wrong behaviour; **noticeable** = a user switching
+apps sees it at once; **minor** = detail. "Deliberate" = an owner decision or a web/platform limit.
 
-The TS UI is being reworked in parallel (`web/src/ui/`, `web/src/app/`); the UI rows below are for
-that work. Rows marked **fixed** were Android-specific and are fixed in `web/android/` and
-`web/src/platform/android*.ts` (see "Fixed here").
+Round 1's blockers (bottom tab bar, "Locked" stage on search results) and most noticeable items
+(toolbar colours and titles, dashboard layout, session menu, dialogs, settings sub-screens, curriculum
+and level-test dialogs, summary, version) were fixed in wave 4 (commit 46e09cc). Round 2 fixed the
+items listed under "Fixed in round 2"; what is left is listed per screen.
 
 ## Start-up
 
-| | Java | TS before | TS after (this change) |
+Same restored progress, cold start (`am force-stop`, then `am start`), 5 runs each.
+
+| | Java | TS round 1 | TS before round 2 | TS after round 2 |
+|---|---|---|---|---|
+| `am start -W` TotalTime (first frame) | 0.89–0.95 s | 1.32–1.50 s | 1.31–1.41 s | ≈ first frame of the dashboard (splash held until the shell exists) |
+| Process start → dashboard with counts | ~0.95–1.0 s (dashboard fades in with its data) | 1.2–1.3 s | 1.24–1.34 s | **1.03–1.15 s** |
+| In-page time (time origin → dashboard) | — | — | 640–710 ms | 500–555 ms |
+
+Where the time goes now: ~0.55–0.6 s Android process + WebView + Capacitor bridge start until the page's
+time origin (fixed cost, the Java app's activity is ready at about the same time); ~0.16–0.2 s until the
+first script and asset responses arrive (all of them land together, the WebView's asset loader is
+cold); the content file is then read in ~0.1 s; `readContent` + hydrate + first render ~0.2 s.
+
+Fixed in round 2:
+- `web/android/app/build.gradle`: `noCompress 'db'`: the 33 MB content file is stored uncompressed in the
+  APK, so the WebView streams it without inflating it first (−0.1 s; the APK grows from 16 to 41 MB,
+  still less on disk than the Java app, which keeps a compressed copy in the APK and an expanded copy in
+  its files).
+- `web/vite.config.ts`: a `<link rel=preload>` for the content file named in the bundled manifest, so its
+  download starts with the HTML instead of after the manifest (−0.05 s).
+- `web/src/content/readContent.ts`: all subject rows come from one SQL result (SQLite builds one JSON
+  text, decoded and parsed once) instead of ~180 000 wasm→JS string conversions (sql.js `UTF8ToString`
+  85 ms → 22 ms on the emulator). Falls back to the row-by-row read if the JSON path fails; the output
+  is identical (checked against the real content DB).
+- Tried and reverted: copying a frozen template in `core/progressFile/format.ts emptySubjectRow`
+  (object spread of a 40-key object is ~8× slower in V8 than the key loop).
+
+Remaining (minor): ~0.05–0.15 s behind Java. Left: `emptySubjectRow` is called ~100 000 times during
+start-up (~40 ms, core progression getters returning fresh empty rows; a shared read-only row would need
+core changes), and the cold asset-loader delay before the first responses.
+
+## Fixed in round 2 (all screens)
+
+| Area | Java | TS before | Fix (file) |
 |---|---|---|---|
-| Cold start, process start to dashboard | ~1.0–1.15 s (splash, then dashboard fades in) | 1.5–1.85 s (`am start` → JS loaded ~0.75 s → content file fetched ~1.15–1.3 s → dashboard ~1.55–1.85 s) | 1.2–1.3 s from process start (`adb logcat -s KkStartup`), `am start -W` TotalTime 1.32–1.50 s |
-| What the user sees | system splash (torii) → dashboard | system splash → web start-up screen "木霊 KanjiKodama · Loading kanji… / Preparing your reviews…" for ~0.7 s → dashboard | system splash → dashboard (splash kept until `.kk-shell` exists) |
+| Button font | AppCompat applies the theme's `app:fontFamily` (Pixelify Sans) over the styles' `android:fontFamily` (Silkscreen): every Button is Pixelify Sans in capitals | Silkscreen, so all buttons were ~25 % wider with wide letter gaps | `.kk-btn`, quiz special buttons, tutorial Dismiss: body font + `text-transform: uppercase` (`ui/theme/base.css`, `session.css`) |
+| Quiz buttons | 18 sp, letterSpacing 0.06 | 13–18 px, 0.04 em | `session.css` |
+| Dialogs | white (`background_floating`), Pixelify 14 sp button text without spacing, message line height ~1.2, red warning icon, no focused button on open | mint surface, Silkscreen buttons with spacing, line height 1.4, dark icon, first button focused (outline) | `--color-dialog` token, `.kk-dialog`/`.kk-alert`/`.kk-sdialog` styles, `ConfirmDialog` flat buttons, `SessionDialog` focuses the dialog and gives the focus back (the answer field) on close |
+| Radio list dialogs | item text 87 % black, unchecked rings 54 % black, text 73 dp from the edge | ink text, green rings, 64 dp | `--color-dialog-item`, `--color-control-normal`, `alert.css` |
+| Preference summaries | `textColorSecondary` (grey) | green (`--color-text-muted`) | `--color-pref-summary`, `settings.css`; row line heights as Java |
+| Overflow menu | top at the toolbar's top, no list padding, Silkscreen without letter spacing, max(50 %, 320 dp) wide with ellipsis, keyboard stays open, Back closes it | 8 px lower, padded, spaced, full width, keyboard closed, Back left the app | `base.css`, `ToolbarView.tsx` |
+| Toolbar SearchView | magnifier inside the field, no hint, clear "×", other actions (Mute, overflow) stay | wide field with a hint, no other actions | `ToolbarView.tsx`, `base.css` (+ `test/app/shell.test.tsx`) |
+| Dashboard | "Lessons:"/"Reviews:" 26 sp at ≥ 360 dp (`layout-w360dp`); level bars all end at the same x (TableLayout); hairline chart grid; 1-px-device text shadows; SRS tiles in one row ≥ 480 dp (`layout-w480dp`) | 20 px labels, bars as wide as each label allowed, 1 px grid, 3 px blurred shadows, always 3 + 2 | `dashboard.css` |
+| Headline tile | glyph = `max_font_size_lesson` 128 / `_quiz` 28 / `_browse` 64 sp, bounded by the screen width − 80 dp | 3.5 em everywhere (small in lessons, big under answers) | `ItemPage`/`Headline` `maxFontSize`, `SessionItemInfo`, `LessonsScreen`, `subject.css` |
+| Quiz question (Android) | question view = progress line + 104 sp text (~133 dp) with the keyboard open | 88 px (the keyboard allowance was subtracted twice: the WebView already shrinks) | `kk-viewport-resizes` class (`main.tsx`) + `session.css` |
+| Answer mark | Lottie: white mark on a filled red/green circle | coloured ✗ glyph | `session.css` |
+| Item info | dividers above Used radicals / Visually similar / Used in; reveal button normal size; Pixelify line height ~1.21; fake-bold primary meaning (same width as regular) | no dividers, small reveal button, 1.3 line height, real bold (long meanings wrapped earlier) | `ItemPage.tsx`, `SessionItemInfo.tsx`, `subject.css` |
+| Search results | (width + 10) / 90 columns; tutorial box edge to edge; card text 24 sp glyph box, 1.21 lines | 5 columns after the toolbar search (WebView reported a wrong width while the keyboard closed and sent no second resize); inset box; taller cards | `SearchResultsScreen.tsx`/`BrowseScreen.tsx` width via `ResizeObserver`, `browse.css` |
+| Browse | level cells with gaps, crisp numbers; Search buttons normal size | 1 px gaps, blurred numbers, small Search buttons | `browse.css`, `AdvancedSearchFormView.tsx` |
+| Settings | sub-screens open at the top; advanced warning with its bold parts | sub-screen kept the root's scroll position; plain text | `AppShell.tsx` (scroll reset on query change), `SettingRows.tsx` |
+| Level test | dialog over the dashboard with the dashboard's toolbar | toolbar "Level test" with a back arrow | `ToolbarView.tsx` (level test counts as the main screen) |
+| Summary | rows 25 dp apart | 23 px | `session.css` |
+| About | "• item" lines without indent | indented list | `about.css` |
 
-Measured with an empty and with the restored progress (the hydrate step adds ~0.1–0.2 s with 1034
-items in progress). Under 2 s, so not a blocker, but still ~0.2–0.3 s behind Java. Where the time goes
-(CDP CPU profile, warm and cold):
+## Per screen: what still differs
 
-1. ~0.55–0.7 s process + WebView start until the page's time origin (Java's first frame is at ~0.55–0.85 s; this part is mostly fixed cost).
-2. ~0.15–0.2 s loading/parsing `index-*.js` (631 kB) before the content fetch starts.
-3. The 33 MB content file: fetched from the APK assets in ~0.15–0.28 s; the sha256 check costs ~15 ms (not a problem).
-4. `readContent` (`web/src/content/readContent.ts`) runs `SELECT * FROM subject` over 9887 rows: every mnemonic, hint, context sentence, audio list and search target (26 MB of text) is decoded to JS strings (`TextDecoder.decode` 130 ms warm, more cold, plus ~70 ms GC) and then dropped, because `subjectRow` keeps 17 columns.
-5. Start-up write (ordering + local progression) and first render.
+### Dashboard (`pair-dashboard`, `pair-dashboard2`, `pair-overflow-menu`)
 
-Concrete fixes (not in files this check owns):
-- **`web/src/content/readContent.ts`**: select only the columns `subjectRow` reads (`id, object, hiddenAt, lessonPosition, srsSystemId, level, characters, slug, meanings, auxiliaryMeanings, readings, componentSubjectIds, amalgamationSubjectIds, visuallySimilarSubjectIds, partsOfSpeech, frequency, joyoGrade, jlptLevel`); read mnemonics/sentences/audio on demand by id (like `strokeData`/`pitchInfo`). Expected gain 0.15–0.3 s on cold start.
-- **`web/index.html`** (shared): `<link rel="preload" href="content/content-manifest.json" as="fetch" crossorigin>` and a preload for the sql.js wasm, so the fetches start while `index-*.js` is parsed (~0.1 s).
-- **`web/vite.config.ts`** (shared): split the 631 kB entry (screens other than the dashboard via `React.lazy`), so less JS is parsed before the first screen.
-- The splash hold (fixed here) removes the visible start-up screen, which is what made the TS start feel slow.
-
-## Fixed here (Android-specific)
-
-| Issue | Java | TS before | Fix |
-|---|---|---|---|
-| Status bar colour | toolbar colour (dark `#2e4756`, subject-type colour in sessions/item pages), light icons | light grey `#fafafa` band above the dark top bar, dark icons (WebView < 140 keeps the page inside the bars; the band is the decor background) | `SystemUiPlugin.setBarColors` + `androidSystemUi.ts`: the page's colour at its top/bottom edge paints the bar areas, icon colours by luminance; follows the top bar automatically once it takes the subject colour; dialogs dim the bars like Java's scrim |
-| Navigation bar colour | page background | `#fafafa` band below the bottom nav | same fix (bottom edge colour) |
-| Start-up screen | splash → dashboard | splash → web loading screen → dashboard | `MainActivity`: `installSplashScreen` + keep-on-screen until the app shell (or the start-up error) is rendered, max 6 s; `postSplashScreenTheme` in `styles.xml` |
-| Keyboard "no personalized learning" | on (`enable_no_learning` default): incognito icon in Gboard | off | `KkWebView` (`res/layout/capacitor_bridge_layout_main.xml` override) adds `IME_FLAG_NO_PERSONALIZED_LEARNING` while an `input.kk-answer` has focus |
-| Force ASCII keyboard for meanings | on (`force_ascii_meaning` default) | off | same, `IME_FLAG_FORCE_ASCII` for meaning answers (not for readings, `force_ascii_reading` default off) |
-| versionName | 0.1.0 | 1.1 | `android/app/build.gradle`: `0.1.0`, with the Java app's `-PversionName/-PversionCode` overrides |
-
-Checked unchanged and matching: suggestions off and no auto-capitalisation on answer fields
-(`inputType` has `NO_SUGGESTIONS`, no `CAP_*`), keyboard opens on each question, `IME_ACTION_DONE`,
-no fullscreen IME; the keyboard resizes the page (buttons stay above it); back on the dashboard
-moves the app to the background; launcher icon identical; widget identical; notification texts
-identical.
-
-## Per screen
-
-### Dashboard (`pair-dashboard`, `pair-dashboard-scroll`)
-
-| Difference | Java | TS | Severity | Suspected TS file |
+| Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| App bar actions | Search, Mute, overflow menu (Settings, Download audio, Browse/search…, Fast travel…, Kanji level test…, Self-study quiz, About…) | title only; bottom tab bar (Home/Browse/Study/Settings) instead | blocker (navigation model differs) | `ui/shell/TopBar.tsx`, `ui/shell/BottomNav.tsx`, `ui/shell/AppShell.tsx` |
-| Session counts | text row "Lessons: 0   Reviews: 1034" + one "START REVIEWS"/"START LESSONS" button | two big tiles (LESSONS / REVIEWS) | noticeable | `screens/dashboard/AvailableSessions.tsx` |
-| Level line | "You are level 6 (N4, level 4 of 4). Your time on this level is 13.8 days." | missing | noticeable | `screens/dashboard/DashboardScreen.tsx` |
-| Upcoming text | "1034 reviews available now" only | also "No reviews scheduled yet." while 1034 are due | noticeable (wrong text) | `screens/dashboard/UpcomingReviews.tsx` |
-| Keyboard hints banner | yellow "Please take a moment to review some hints for your keyboard settings" DISMISS / VIEW (fresh install) | missing | minor | `screens/dashboard/DashboardScreen.tsx` |
-| Timeline chart | no heading; y axis with 300/600/900 grid lines; bars coloured by SRS stage (legend Apprentice/Guru/Master/Enlightened); labels every 4 h; level-up arrow marker | heading "REVIEW TIMELINE"; no y axis; bars by type (Radicals/Kanji/Vocabulary); labels every 3 h; "max 1034/h" | noticeable | `screens/dashboard/TimeLineChart.tsx` |
-| Section order | sessions → timeline → SRS breakdown → level progression → recent unlocks | sessions → timeline → SRS breakdown → level progress (order now as Java in the latest build); no recent unlocks | noticeable | `screens/dashboard/DashboardScreen.tsx` |
-| SRS breakdown | 3+2 large tiles, label top-left, big number | 5 small tiles in one row, number above label, labels truncated ("Appren…", "Enlighte…") | noticeable | `screens/dashboard/SrsBreakdown.tsx` |
-| Level progression | flat list, bar left, label right ("Lvl 4 kanji"), legend Passed/Apprentice/Initiate/Locked | grouped per level with JLPT chips ("N4, level 2 of 4"), label left, count right ("33/38"), no legend | noticeable | `screens/dashboard/LevelProgress.tsx` |
-| Recent unlocks | "Recent unlocks in the last 30 days" list (character + date rows) | missing | noticeable | `screens/dashboard/DashboardScreen.tsx` |
+| Keyboard hints banner | yellow "Please take a moment to review some hints for your keyboard settings" DISMISS / VIEW until dismissed; VIEW opens Keyboard help | missing | noticeable | The TS app has no Keyboard help screen and no Keyboard input settings (the IME flags are fixed to the Java defaults in `KkWebView`; a browser can't set them at all). Deliberate until those settings exist |
+| Recent-unlocks rows | ~36 dp | 40 px | minor | deliberate: 40 px tap-target floor (`test/e2e/layout.spec.ts`) |
+| App label in the toolbar | "KanjiKodama - Debug" (debug build) | "KanjiKodama" | — | build label only |
 
-### Lesson presentation (`pair-lesson-pres`, `pair-lesson-last`)
+### Lesson presentation and quiz (`pair-lesson-pres`, `pair-lesson-last`, `pair-lesson-quiz`)
 
-| Difference | Java | TS | Severity | Suspected TS file |
+| Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Title / toolbar | "一 (level 1 radical)", toolbar + status bar in the subject colour, Search/Home/menu | "LESSONS", dark toolbar | noticeable | `screens/lessons/LessonsScreen.tsx`, `ui/shell/TopBar.tsx` |
-| Character box | large (~150 dp), fills the left third | small (~100 dp) | minor | `components/subject/ItemPage.tsx` |
-| Subject cards (Used in) | 4 columns, meaning + reading + SRS stage ("Initiate") | 3 columns, no SRS stage line | noticeable | `components/subject/SubjectSections.tsx` |
-| Synonyms "+" | small inline "+" right after "My synonyms:" | large round button at the right | minor | `components/subject/StudyMaterials.tsx` |
-| Extra "⋮" button | none (menu is in the toolbar) | "⋮" next to Next | minor | `screens/lessons/LessonsScreen.tsx` |
+| Don't know / Submit position | at the bottom, above the keyboard | directly under the field | minor | deliberate (owner decision: must fit the iPhone SE with the keyboard open) |
+| Card grid gaps | slightly larger | slightly smaller | minor | `subject.css` |
 
-### Lesson quiz / review question, keyboard open (`pair-lesson-quiz`, `j-review-q1` / `t-review-q1`, `pair-review-meaning-kb`)
+(The headline tile, buttons, toolbar and session menu now match; checked on the emulator before the
+restore and in the e2e screenshots after the fix.)
 
-| Difference | Java | TS | Severity | Suspected TS file |
+### Review question, wrong answer, item info (`pair-review-meaning-kb`, `pair-review-reading-kb`, `pair-wrong`, `pair-info-more`)
+
+| Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Toolbar | subject colour, title = question type ("Kanji Reading", "Radical Name"), Search/Home/menu | dark, title "REVIEWS"/"LESSONS" | noticeable | `components/session/SessionScreen.tsx`, `ui/shell/TopBar.tsx` |
-| Answer field | centred underlined field (~65% width), no box | full-width boxed field | noticeable | `components/session/AnswerField.tsx`, `session.css` |
-| Button position | Don't know / Submit at the bottom, just above the keyboard | directly under the field (owner decision for small iPhones; keep) | minor (intended) | — |
-| Character size with keyboard open | stays large | shrinks (e.g. 母 drawn smaller once the keyboard opens) | minor | `components/session/QuestionView.tsx` |
-| Session menu | toolbar overflow: Settings, Mute, Download audio, Browse/search…, Session log…, Abandon session, Wrap up session, My notes…, About… | "⋮" on the subject box with Abandon / Wrap up only | noticeable | `components/session/SessionMenu.tsx` |
-| IME flags | no personalized learning, force ASCII for meanings | **fixed** (same flags now) | — | — |
+| NEXT after answering | in the coloured header (and one at the bottom); the header grows to ~193 dp | under the answer band (and one at the bottom); header stays 136 px | minor | deliberate (owner decision: Next replaces Submit under the field) |
+| Keyboard under dialogs | a dialog (wrap-up, abandon) leaves the keyboard open | the modal dialog takes the focus, the keyboard closes; the field gets the focus back on close | minor | web `<dialog>` makes the page inert |
 
-### Wrong answer state and item info after answering (`pair-wrong`, `pair-info-more`)
+### Session menu, wrap-up / abandon dialogs, summary (`pair-session-menu`, `pair-wrapup-dialog`, `pair-summary`)
 
-| Difference | Java | TS | Severity | Suspected TS file |
+Match (entries and order, dialog look and texts, summary blocks and buttons). Java's FINISH shows the
+focus highlight; TS doesn't (minor).
+
+### Item pages (`pair-item-radical`, `pair-item-kanji`, `pair-item-vocab`)
+
+| Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Wrong answer row | full-width tinted band with the centred answer, no mark | boxed field with "✗" at the right | minor | `components/session/AnswerField.tsx` |
-| Next buttons | NEXT on the subject box (top right) and another NEXT at the bottom of the info | one Next under the field (owner decision) | minor (intended) | — |
-| Show more / Show all | inline right of the item header | separate row under Next | minor | `components/session/SessionItemInfo.tsx` |
-| Info table | labels right-aligned next to the values | labels left-aligned in a column | minor | `components/subject/SubjectSections.tsx` |
-| Reading in header | first/primary reading bold ("**きょう**, けい") | all readings same weight | minor | `components/subject/ItemPage.tsx` |
-| Cards in info | meaning, reading and SRS stage ("Guru I - now") | meaning only (kanji in vocab info) | noticeable | `components/subject/SubjectSections.tsx` |
+| Radicals without characters (e.g. "Yurt") | the radical's image | the slug as text ("yurt") | noticeable | no image data in the built content (`content/`); listed in `ItemPage.tsx` "Not ported" |
+| Japanese face in plain text rows (dashboard tables) | system CJK font | Zen Maru Gothic | minor | one bundled Japanese font for all platforms |
 
-### Abandon / wrap-up dialogs (`pair-abandon`)
+### Browse and search results (`pair-browse`, `pair-browse-level`, `pair-search`, `pair-search-open`)
 
-| Difference | Java | TS | Severity | Suspected TS file |
+| Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Dialog style | Material alert: warning icon, title in body font, flat text buttons in one row ("YES AND DON'T ASK AGAIN · NO · YES") | pixel title font, raised buttons on two rows, no icon | noticeable | `components/ConfirmDialog.tsx`, `components/session/SessionDialog.tsx` |
-| Scrim over status bar | dimmed | **fixed** (bars are dimmed with the backdrop) | — | — |
-| Texts | — | identical | — | — |
+| Advanced search | Level range, Frequency range, Only leeches… | also a "JLPT block" row | minor | deliberate (JLPT curriculum addition, `AdvancedSearchFormView.tsx`) |
+| Level cells | ~35 × 31 dp | 40 px tall (gaps drawn inside), grid half a gutter wider | minor | deliberate: tap-target floor |
+| DISMISS on the results tutorial | grey pressed/focus background | flat | minor | — |
 
-### Session summary (`pair-summary`)
+### Settings (`pair-settings-main`, `pair-settings-display`, `pair-list-dialog`, `pair-advanced-warning`, `pair-advanced`, `pair-curriculum`, `pair-restore-confirm`, `pair-restore-done`)
 
-| Difference | Java | TS | Severity | Suspected TS file |
+| Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Button order/size | "SHOW ITEMS · FINISH", compact, right-aligned | "FINISH · SHOW ITEMS", full width | noticeable | `screens/summary/SummaryScreen.tsx` |
-| Correct / incorrect blocks | green-tinted block, red-tinted block | one white panel | noticeable | `screens/summary/SummaryScreen.tsx` |
-| Label alignment | right-aligned labels, value right after the colon | label left, value far right | minor | `screens/summary/SummaryScreen.tsx` |
-| Toast "Session wrapping up…" | Android toast on wrap-up | none | minor | `components/session/SessionScreen.tsx` (needs a toast component) |
-| Bottom nav | — | hidden (correct) | — | — |
+| Keyboard input settings | own sub-screen | missing | noticeable | see the dashboard banner; Android flags fixed to Java's defaults |
+| Display settings | Light Theme / Dark Theme lists (8 themes), Theme customisation, centre caret, Anki button size, fixed question height, slide animations, stretch question view | Theme (Follow the system / Light / Dark), swap Anki buttons | noticeable | deliberate: the TS app has the KanjiKodama light/dark themes only; the other rows are not ported (`settings/schema.ts`) |
+| Other actions | Data import / export, Reset database, Backup / Restore your settings | Known limitations (TS only) | minor | not ported / deliberate |
+| Sub-screen back stack | the root keeps its scroll position when you come back | the root starts at the top again | minor | `AppShell.tsx` scroll reset |
 
-### Item pages: radical, kanji, vocabulary (`pair-item-radical`, `pair-item-kanji`, `pair-item-vocab`)
-
-| Difference | Java | TS | Severity | Suspected TS file |
-|---|---|---|---|---|
-| Title / toolbar | "力 (level 3 radical)" / "電源 (level 31 vocabulary)", toolbar + status bar in the subject colour | "ITEM", dark | noticeable | `screens/subject/SubjectScreen.tsx`, `ui/shell/TopBar.tsx` |
-| Subject cards | 4 columns, meaning + reading + SRS stage; long meanings shrink ("Congratulations") | 4 columns, no SRS stage; long meanings break mid-word ("Achievemen-t", "Cooperatio-n") | noticeable | `components/subject/SubjectSections.tsx` |
-| Audio button | grey flat chip with speaker icon "🔊 電源" | raised pill "▶ 電源" | minor | `components/subject/ItemPage.tsx` |
-| Info table at the bottom | SRS System / SRS Stage / JLPT on the vocab page | present further down (same values) | — | — |
-| Line spacing | dense | ~20% more line height, so less fits | minor | `components/subject/subject.css` |
-
-### Browse level and search results (`pair-browse`, `pair-browse-level`, `pair-search`)
-
-| Difference | Java | TS | Severity | Suspected TS file |
-|---|---|---|---|---|
-| Level picker | plain 10-column grid of all levels, current level lighter | grouped by N5/N4/N3/N2/N1/Obscure, 7 columns, current level filled | noticeable | `screens/browse/BrowseScreen.tsx` |
-| Tutorial banners | yellow explanation + DISMISS on Browse and on results | missing | minor | `screens/browse/*` |
-| Search entry | toolbar Search action (on every screen), `SearchView` | only the "Keyword search" field on the Browse tab | noticeable | `ui/shell/TopBar.tsx` |
-| Results actions | in the toolbar menu | buttons row (Refine search, Save preset, Radicals/Kanji/Vocabulary/Kana vocabulary) | noticeable | `screens/browse/SearchResultsScreen.tsx` |
-| Group headers | large "30 Radicals" with chevron, "30 passed" right | small header, status on a second line | minor | `screens/browse/SearchResultsScreen.tsx` |
-| Grid | 4 columns; vocabulary as full-width rows (word left, meaning/reading/stage right) | 3-column cards for every type | noticeable | `screens/browse/SearchResultsScreen.tsx` |
-| Stage label of unstarted unlocked items | "Initiate" | "Locked" (item page says "Initiate") | blocker (wrong data shown) | `screens/browse/SearchResultsScreen.tsx` (line ~69, `tag === 'locked'`), `screens/browse/searchData.ts` |
-| Stage band | plain text | coloured band (Guru purple) | minor | `screens/browse/browse.css` |
-
-### Settings main (`pair-settings-main`)
-
-| Difference | Java | TS | Severity | Suspected TS file |
-|---|---|---|---|---|
-| Structure | list of sub-screens (Audio download, Display, Dashboard, Subject Info, Audio, Lesson/review, Keyboard input, Font, Notifications and other), then Advanced, Progress, Other actions | one long page of cards (Progress, Progress screens, Lesson/review settings…, Appearance, Storage, Version, Known limitations) | noticeable (owner decided: basics + Advanced page; the sub-screen navigation itself still differs) | `screens/settings/SettingsScreen.tsx` |
-| Progress section | "Save progress to a file" / "Restore progress from a file" rows with summaries | two big buttons in a card | minor | `screens/settings/ProgressSection.tsx` |
-| Restore confirm | "Override local progress?" … "RESTORE AND OVERRIDE" / "CANCEL"; then a dialog "Progress restored, level 6." OK | "Restore progress?" … "Restore" / "Cancel"; inline text "Progress restored, level 6." | noticeable (texts) | `screens/settings/ProgressSection.tsx` |
-| Keyboard input settings | own screen (force ASCII, visible password, no learning, IME hints, auto-correct) | missing (Android flags now use the Java defaults, see "Fixed here") | noticeable | `screens/settings/*` + `src/core/settings` |
-| Advanced warning dialog | same text, YES / NO | same text | — | — |
-
-### Advanced settings (`pair-advanced`)
-
-| Difference | Java | TS | Severity | Suspected TS file |
-|---|---|---|---|---|
-| Layout | separate screens per area (Lesson / Review / Self-study / Other advanced settings) | one page with all areas | minor (owner decision) | `screens/settings/AdvancedSettingsScreen.tsx` |
-| List settings | row with the value as summary, tap → radio dialog | inline `<select>` (WebView dropdown) | noticeable | `screens/settings/SettingRows.tsx` |
-| Switches | small Material switches at the right | large pill switches | minor | `screens/settings/settings.css` |
+List dialogs, the advanced warning, the curriculum dialog and the restore dialogs match (texts, layout,
+colours).
 
 ### About (`pair-about`)
 
-| Difference | Java | TS | Severity | Suspected TS file |
+| Difference | Java | TS | Severity | Why |
 |---|---|---|---|---|
-| Version | "KanjiKodama (漢字木霊) 0.1.0" | "0.0.1" (from `web/package.json` "version") | noticeable | `web/package.json` (shared) or `screens/about/AboutScreen.tsx`; the APK's versionName is 0.1.0 now |
-| Title | "About KanjiKodama" | "ABOUT" + a panel heading "ABOUT" | minor | `ui/routes.ts`, `screens/about/AboutScreen.tsx` |
-| Links | green underlined | dark underlined | minor | `screens/about/about.css` |
-| Text | same | same | — | — |
-
-### Curriculum order (`pair-curriculum`)
-
-| Difference | Java | TS | Severity | Suspected TS file |
-|---|---|---|---|---|
-| Form | single-choice dialog over Settings (radio buttons, CANCEL) | separate screen with two cards | noticeable | `screens/curriculum/CurriculumScreen.tsx` |
-| Texts | same | same | — | — |
+| Open-source components | Jackson, Lottie, JSoup, OkHttp, Pikolo | React, Dexie.js, sql.js, Workbox, Capacitor | — | deliberate: different stack |
+| URL wrapping | the GitHub link breaks at "/" | moves to the next line whole | minor | browser line breaking |
 
 ### Kanji level test start (`pair-leveltest`)
 
-| Difference | Java | TS | Severity | Suspected TS file |
+Matches (dialog over the dashboard, toolbar, texts, buttons).
+
+### Widget (`widgets-crop`), icon, notification (`notifications`)
+
+| Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Form | dialog over the dashboard ("CANCEL · START ROUND 1") | separate screen, button text wraps ("START ROUND / 1") | noticeable | `screens/levelTest/LevelTestScreen.tsx` |
-| Texts | same | same | — | — |
+| Widget | dark rounded 1×1 tile "R: 1033 / More at …" | identical layout and texts | — | (the two showed different "More at" hours only because the two apps' progress diverged during the test sessions) |
+| Notification | one notification (id 1) on `NewReviewsChannel`, category recommendation, public, "New reviews available" / "1034 reviews available" | identical (checked by moving the emulator clock forward a day; id, channel, category, visibility, title and text the same) | — | native `ReviewNotifications.java` since wave 4 |
+| App label | "KanjiKodama - Debug" (debug build) | "KanjiKodama" | minor | `android/app/src/main/res/values/strings.xml` (step 6) |
 
-### Widget, icon, label (`widgets-crop`, `icons-crop`)
+## Top remaining differences
 
-| Difference | Java | TS | Severity | Suspected file |
-|---|---|---|---|---|
-| Widget (1×1) | dark rounded tile "R: 1034" | identical | — | — |
-| Launcher icon | torii icon | identical | — | — |
-| Label | "KanjiKodama - Debug" (debug build), "KanjiKodama" (release) | "KanjiKodama" for every build type | minor (useful while both are installed) | `android/app/src/main/res/values/strings.xml` (step 6) |
-
-### Notifications
-
-Triggered both by finishing the same lesson session on fresh data and moving the emulator clock to the
-next review hour.
-
-| Difference | Java | TS | Severity | Suspected file |
-|---|---|---|---|---|
-| Title / text | "New lessons and reviews available" / "20 lessons and 5 reviews available" | identical | — | — |
-| Channel | `NewReviewsChannel` | `NewReviewsChannel`, plus an extra "Default" channel created by `@capacitor/local-notifications` (visible in the app's notification settings) | minor | plugin default; `platform/androidNotifications.ts` |
-| Notification id / stacking | one notification (id 1), updated in place | one per planned hour (ids 1000–1063): if the app isn't opened for several review hours, several notifications pile up instead of one updated | noticeable | `platform/androidNotifications.ts`; fix needs a native publisher (e.g. post from the widget's existing hourly alarm with id 1) |
-| Lock-screen visibility | PUBLIC | PRIVATE (the plugin doesn't set it per notification; the channel is public) | minor | `platform/androidNotifications.ts` |
-| Category / sound | category `recommendation` (setting default), sound on new reviews | no category, `ONLY_ALERT_ONCE` | minor | `platform/androidNotifications.ts` |
-| Pending reviews after a restore | the hourly alarm posts once for reviews already due | nothing until new reviews become due | minor | `core/notifications/plan.ts` (behaviour), by design |
-
-### Behaviour
-
-| Difference | Java | TS | Severity | Suspected TS file |
-|---|---|---|---|---|
-| Back button at the dashboard | always backgrounds the app | backgrounds it, but after "Finish" on the summary one extra back press is swallowed (history has `#/` over the start entry) | minor | `web/src/app/router.ts` (`location.home()`), `web/src/app/back.ts` |
-| Back from Settings (a tab) | returns to the previous screen | tabs replace each other, so back can land on an older screen (e.g. search results) | minor | `ui/shell/AppShell.tsx` (`goTab`) |
-| Screen transitions | Activity slide/fade transitions between screens | instant switch | minor | `ui/shell/AppShell.tsx` |
-| Toasts | Android toasts (wrap-up, SRS changes, close-enough answers) | none on the screens checked | minor | needs a shared toast component |
-
-## Top differences (for the UI work)
-
-1. Navigation model: toolbar with Search/Home/overflow menu (Java) vs bottom tab bar (TS) — blocker.
-2. Search results show "Locked" for unlocked, unstarted items (Java: "Initiate") — blocker.
-3. Toolbar (and so the status bar) not in the subject colour in sessions, lessons and item pages; toolbar title not the question type / subject — noticeable (status bar follows automatically now).
-4. Dashboard session counts: text + one START button (Java) vs two tiles; missing level line and "Recent unlocks" — noticeable.
-5. Dashboard "No reviews scheduled yet." shown while reviews are due — noticeable.
-6. Timeline chart: SRS-stage colours, y axis, 4-h labels in Java — noticeable.
-7. Subject cards everywhere lack the reading/SRS-stage lines and break long meanings mid-word — noticeable.
-8. Session menu has 2 of Java's 9 entries — noticeable.
-9. Answer field style (Java centred underline vs TS box) — noticeable.
-10. Settings: Java's sub-screen list (incl. Keyboard input settings) vs one long page; list settings as dropdowns — noticeable.
-11. Curriculum order and Level test start are dialogs in Java, full screens in TS — noticeable.
-12. Summary: button order, green/red blocks — noticeable.
-13. Browse level picker and results grid layout (vocabulary rows, 4 columns) — noticeable.
-14. About shows version 0.0.1 instead of 0.1.0 — noticeable.
-15. Notifications pile up (one per hour) instead of one updated notification — noticeable.
+1. Keyboard help banner + Keyboard input settings sub-screen missing — noticeable (no keyboard settings in the TS app).
+2. Display settings: TS has only Theme (system/light/dark) and the Anki swap — noticeable, deliberate.
+3. Radicals without characters show their slug instead of the image — noticeable (no image data).
+4. Next under the answer band instead of in the header after answering — minor, owner decision.
+5. Start-up still ~0.05–0.15 s behind Java — minor.
+6. 40 px tap-target floor makes recent-unlock rows and browse level cells a little taller — minor, deliberate.

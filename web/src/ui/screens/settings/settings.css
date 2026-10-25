@@ -28,8 +28,8 @@ button.kk-pref:focus-visible { outline: 2px solid var(--color-accent); outline-o
 .kk-pref:disabled, .kk-pref.is-disabled { cursor: default; }
 .kk-pref:disabled .kk-pref-text, .kk-pref:disabled .kk-switch, .kk-pref.is-disabled .kk-pref-text { opacity: 0.38; }
 .kk-pref-text { flex: 1; min-width: 0; display: block; }
-.kk-pref-title { display: block; font-size: var(--text-md); line-height: 1.3; overflow-wrap: anywhere; }
-.kk-pref-summary { display: block; font-size: var(--text-sm); line-height: 1.35; color: var(--color-text-muted); overflow-wrap: anywhere; margin-top: 2px; }
+.kk-pref-title { display: block; font-size: var(--text-md); line-height: 1.21; overflow-wrap: anywhere; }
+.kk-pref-summary { display: block; font-size: var(--text-sm); line-height: 1.25; color: var(--color-pref-summary); overflow-wrap: anywhere; }
 .kk-pref-info { cursor: default; }
 .kk-pref-page { padding: var(--space-4) 16px var(--space-4) 72px; }
 

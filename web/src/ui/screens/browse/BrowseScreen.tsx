@@ -49,11 +49,17 @@ export function browseMaxLevel(learner: LearnerDb): number {
 }
 
 function useWindowWidth(): number {
-  const [w, setW] = useState(() => (typeof window === 'undefined' ? 411 : window.innerWidth));
+  const read = () => (typeof document === 'undefined' ? 411 : document.documentElement.clientWidth || window.innerWidth);
+  const [w, setW] = useState(read);
   useEffect(() => {
-    const on = () => setW(window.innerWidth);
+    // The Android WebView can report a wrong width for a moment while the keyboard closes and then
+    // not send another resize event: follow the root element's layout size instead.
+    const on = () => setW(read());
+    on();
     window.addEventListener('resize', on);
-    return () => window.removeEventListener('resize', on);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(on);
+    ro?.observe(document.documentElement);
+    return () => { window.removeEventListener('resize', on); ro?.disconnect(); };
   }, []);
   return w;
 }

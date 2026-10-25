@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { handleBack } from '../../app/back';
 import { Icon, type IconName } from '../components/Icon';
 import { useApp, useAppState } from '../hooks/useApp';
-import { useLocation, useNavigate, useRoute } from '../hooks/useRoute';
+import { useBackHandler, useLocation, useNavigate, useRoute } from '../hooks/useRoute';
 import { paths, ROUTE_BY_NAME } from '../routes';
 import { isMuted, MUTE_PREF } from '../../app/mute';
 import { useToolbarOptions, type ToolbarAction, type ToolbarColor } from './toolbar';
@@ -70,7 +70,8 @@ export function ToolbarView() {
   const [query, setQuery] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  const isMain = route.name === 'dashboard';
+  // The level test's steps are dialogs over the dashboard (Java: over MainActivity): its toolbar too.
+  const isMain = route.name === 'dashboard' || route.name === 'levelTest';
   const muted = isMuted(state.prefs);
 
   // Content changes collapse the search box (Java collapseSearchBox) and close the menu.
@@ -123,6 +124,9 @@ export function ToolbarView() {
     return { icons: items.filter((a) => shown.has(a)), overflow: items.filter((a) => !shown.has(a)) };
   }, [items, width]);
 
+  // Back (Android button, Escape) closes the popup first, as Java's PopupWindow.
+  useBackHandler(() => { setMenuOpen(false); return true; }, menuOpen);
+
   useEffect(() => {
     if (!menuOpen) return;
     const onDown = (e: PointerEvent) => {
@@ -140,7 +144,7 @@ export function ToolbarView() {
   const onBack = typeof back === 'function'
     ? back
     : back ? () => { handleBack(() => { navigate.back(); return true; }); } : undefined;
-  const title = opts.title ?? ROUTE_BY_NAME[route.name].title;
+  const title = opts.title ?? ROUTE_BY_NAME[isMain ? 'dashboard' : route.name].title;
 
   const submitSearch = () => {
     const q = query.trim();
@@ -157,18 +161,26 @@ export function ToolbarView() {
             <button type="button" className="kk-toolbar-btn" aria-label="Collapse" onClick={() => setSearchOpen(false)}>
               <Icon name="arrowBack" />
             </button>
+            {/* android.widget.SearchView: magnifier inside the field, no hint, the clear "x" always there. */}
             <form className="kk-toolbar-search" role="search" onSubmit={(e) => { e.preventDefault(); submitSearch(); }}>
+              <span className="kk-toolbar-search-icon" aria-hidden="true"><Icon name="search" /></span>
               <input ref={searchRef} type="search" enterKeyHint="search" value={query} aria-label="Search"
-                placeholder="Search all radicals, kanji and vocabulary" data-testid="toolbar-search-input"
+                data-testid="toolbar-search-input"
                 autoCapitalize="none" autoCorrect="off" spellCheck={false}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setSearchOpen(false); } }} />
-              {query !== '' && (
-                <button type="button" className="kk-toolbar-btn" aria-label="Clear query" onClick={() => { setQuery(''); searchRef.current?.focus(); }}>
-                  <Icon name="closeFilled" />
-                </button>
-              )}
+              <button type="button" className="kk-toolbar-btn kk-toolbar-search-clear" aria-label="Clear query"
+                onClick={() => { if (query === '') setSearchOpen(false); else { setQuery(''); searchRef.current?.focus(); } }}>
+                <Icon name="closeFilled" />
+              </button>
             </form>
+            {icons.filter((a) => a.id !== 'search').map((a) => (
+              <button key={a.id} type="button" className="kk-toolbar-btn" aria-label={a.label} title={a.label}
+                data-testid={`toolbar-${a.id}`} disabled={a.disabled} aria-pressed={a.checked}
+                onClick={() => a.onSelect()}>
+                <Icon name={ICONS[a.icon ?? a.id] ?? (a.icon as IconName | undefined) ?? 'more'} />
+              </button>
+            ))}
           </>
         ) : (
           <>
@@ -190,14 +202,16 @@ export function ToolbarView() {
             ))}
           </>
         )}
-        {overflow.length > 0 && !searchOpen && (
+        {overflow.length > 0 && (
           <div className="kk-toolbar-overflow" ref={menuRef}>
             <button type="button" className="kk-toolbar-btn" aria-label="More options" aria-haspopup="menu"
-              aria-expanded={menuOpen} data-testid="toolbar-overflow" onClick={() => setMenuOpen((o) => !o)}>
+              aria-expanded={menuOpen} data-testid="toolbar-overflow"
+              // Keep the answer field focused (the keyboard stays open under the popup, as Java).
+              onMouseDown={(e) => e.preventDefault()} onClick={() => setMenuOpen((o) => !o)}>
               <Icon name="more" />
             </button>
             {menuOpen && (
-              <ul className="kk-toolbar-menu" role="menu" data-testid="toolbar-menu">
+              <ul className="kk-toolbar-menu" role="menu" data-testid="toolbar-menu" onMouseDown={(e) => e.preventDefault()}>
                 {overflow.map((a) => (
                   <li key={a.id} role="none">
                     <button type="button" role={a.checked === undefined ? 'menuitem' : 'menuitemcheckbox'}

@@ -22,6 +22,10 @@ if (BACKGROUND_SYNC) {
     void import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
   }
 
+  // The Android WebView is resized by the keyboard (adjustResize), so the session layout needs no keyboard
+  // allowance there (session.css).
+  if (Capacitor.getPlatform() === 'android') document.documentElement.classList.add('kk-viewport-resizes');
+
   // Paint the remembered theme before anything else.
   applyTheme(storedThemeChoice());
 

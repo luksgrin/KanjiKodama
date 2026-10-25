@@ -27,6 +27,10 @@
   --color-text-toned: #5C8A7A; /* mmTonedLight */
   --color-bg: #EAF7EF;
   --color-surface: #F8FDF9;
+  --color-dialog: #FFFFFF; /* AppCompat light background_floating */
+  --color-pref-summary: rgb(0 0 0 / 0.6); /* Preference summary: ?android:textColorSecondary */
+  --color-dialog-item: rgb(0 0 0 / 0.87); /* AlertDialog list items: ?textColorAlertDialogListItem */
+  --color-control-normal: rgb(0 0 0 / 0.54); /* unchecked radio buttons: ?colorControlNormal */
   --color-divider: #BFD9CB;
   --color-accent: #7CC8AC;
   --color-target: #E9B572;
@@ -152,6 +156,10 @@
     --color-text-toned: #7FA898;
     --color-bg: #14232B;
     --color-surface: #1E3139;
+  --color-dialog: #424242; /* AppCompat dark background_floating */
+  --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
+  --color-dialog-item: rgb(255 255 255 / 0.87);
+  --color-control-normal: rgb(255 255 255 / 0.7);
     --color-divider: #2B414A;
     --color-accent: #8EE3C8;
     --color-target: #E8B97A;
@@ -239,6 +247,10 @@
   --color-text-toned: #7FA898;
   --color-bg: #14232B;
   --color-surface: #1E3139;
+  --color-dialog: #424242; /* AppCompat dark background_floating */
+  --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
+  --color-dialog-item: rgb(255 255 255 / 0.87);
+  --color-control-normal: rgb(255 255 255 / 0.7);
   --color-divider: #2B414A;
   --color-accent: #8EE3C8;
   --color-target: #E8B97A;

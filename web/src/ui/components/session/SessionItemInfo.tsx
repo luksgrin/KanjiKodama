@@ -22,9 +22,11 @@ export interface SessionItemInfoProps {
   /** The reveal button's label; null hides it (`SubjectInfoDump.getShowRevealButton`). */
   revealLabel: string | null;
   onReveal(): void;
+  /** Headline tile size: 128 in the lesson presentation, 28 under an answered question (Java defaults). */
+  maxFontSize?: number;
 }
 
-export function SessionItemInfo({ subjectId, visibility, revealLabel, onReveal }: SessionItemInfoProps) {
+export function SessionItemInfo({ subjectId, visibility, revealLabel, onReveal, maxFontSize = 28 }: SessionItemInfoProps) {
   const { learner, content, platform, state } = useReady();
   const navigate = useNavigate();
   const { onSave, error } = useSaveStudyMaterial();
@@ -40,7 +42,7 @@ export function SessionItemInfo({ subjectId, visibility, revealLabel, onReveal }
   const buttons = revealLabel !== null || hasAudio ? (
     <>
       {revealLabel !== null && (
-        <button type="button" className="kk-btn small kk-reveal-btn" onClick={onReveal} data-testid="reveal">{revealLabel}</button>
+        <button type="button" className="kk-btn kk-reveal-btn" onClick={onReveal} data-testid="reveal">{revealLabel}</button>
       )}
       {hasAudio && (
         <AudioButton label={subject.characters ?? ''}
@@ -63,6 +65,7 @@ export function SessionItemInfo({ subjectId, visibility, revealLabel, onReveal }
         onOpenSubject={(id) => navigate(paths.subject(id))}
         onSaveStudyMaterial={onSave}
         cardProgress={cardProgress}
+        maxFontSize={maxFontSize}
       />
     </div>
   );

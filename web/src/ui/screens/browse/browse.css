@@ -11,6 +11,8 @@
   padding: 8px 8px 0;
   margin-bottom: 12px;
 }
+/* fragment_search_result.xml: the tutorial box has no outer margin (edge to edge under the toolbar). */
+.kk-tip.bleed { margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) 12px; }
 .kk-tip-text { margin: 0; font-size: 16px; white-space: pre-line; }
 .kk-tip-actions { display: flex; }
 .kk-tip-btn {
@@ -44,14 +46,18 @@
 .kk-browse-levels {
   display: grid;
   gap: 0;
+  /* Half the gutter outside, so the cells keep a ≥ 38 px tap area on 390 px phones (10 columns). */
   margin: 8px calc(-0.5 * var(--main-gutter)) 0;
 }
 .kk-browse-level {
   appearance: none;
   min-height: 40px;
   min-width: 0;
-  padding: 6px 0;
-  border: 1px solid var(--color-bg); /* Java's 2dp cell margins, drawn inside the tap area */
+  padding: 2px 0;
+  /* Java's cells: ~35 x 31 dp, 2 dp apart side by side and ~7 dp apart row to row; the gaps are drawn
+     inside the 40 px tap area. */
+  border: solid var(--color-bg);
+  border-width: 4px 1px;
   border-radius: 0;
   background: var(--kk-bar);
   background-clip: padding-box;
@@ -59,7 +65,8 @@
   font-family: var(--font-body);
   font-size: 16px;
   text-align: center;
-  text-shadow: 1px 1px 3px #000;
+  /* shadowDx/Dy/Radius 1/1/3 device pixels. */
+  text-shadow: 0.4px 0.4px 1.15px #000;
   cursor: pointer;
 }
 .kk-browse-level.current { background: var(--kk-mint-hi); }
@@ -179,16 +186,16 @@
   margin-top: 4px;
   font-family: var(--font-ja);
   font-size: 24px;
-  line-height: 1.25;
+  line-height: 1; /* SubjectInfoButtonView.setSizeSp(24): the view is exactly 24 sp high */
   color: var(--color-on-subject);
   overflow-wrap: anywhere;
 }
 .kk-card-meaning,
 .kk-card-reading,
 .kk-card-progress { display: block; color: var(--card-ink); min-width: 0; }
-.kk-card-meaning { margin-top: 4px; white-space: nowrap; overflow: hidden; line-height: 1.25; }
-.kk-card-reading { font-family: var(--font-ja); font-size: 16px; line-height: 1.3; word-break: keep-all; overflow-wrap: anywhere; }
-.kk-card-progress { font-size: 14px; line-height: 1.3; overflow-wrap: break-word; }
+.kk-card-meaning { margin-top: 4px; white-space: nowrap; overflow: hidden; line-height: 1.21; }
+.kk-card-reading { font-family: var(--font-ja); font-size: 16px; line-height: 1.21; word-break: keep-all; overflow-wrap: anywhere; }
+.kk-card-progress { font-size: 14px; line-height: 1.21; overflow-wrap: break-word; }
 
 .kk-card.wide { flex-direction: row; align-items: center; text-align: right; }
 .kk-card.wide .kk-card-chars { margin: 0 0 0 4px; flex: 0 1 auto; text-align: left; overflow-wrap: normal; word-break: keep-all; }

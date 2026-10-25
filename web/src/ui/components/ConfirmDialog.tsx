@@ -42,8 +42,8 @@ export function ConfirmDialog({ open, title, children, confirmLabel = 'OK', canc
           <h2 id={titleId}>{title}</h2>
           <div className="kk-dialog-body">{children}</div>
           <div className="kk-dialog-actions">
-            <button type="button" className="kk-btn small secondary" onClick={onCancel} disabled={busy}>{cancelLabel}</button>
-            <button type="button" className={`kk-btn small${danger ? ' danger' : ''}`} onClick={onConfirm} disabled={busy}>{confirmLabel}</button>
+            <button type="button" className="kk-dialog-btn" onClick={onCancel} disabled={busy}>{cancelLabel}</button>
+            <button type="button" className={`kk-dialog-btn${danger ? ' danger' : ''}`} onClick={onConfirm} disabled={busy}>{confirmLabel}</button>
           </div>
         </>
       )}

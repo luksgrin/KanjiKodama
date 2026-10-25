@@ -15,6 +15,12 @@
   flex-direction: column;
   --kk-qv-height: clamp(88px, min(calc(100svh - 474px), 34svh), 260px);
 }
+/* Android app: the viewport already ends at the keyboard. Java's question view with the keyboard open is the
+   progress line plus the 104 sp text (~133 dp). */
+:root.kk-viewport-resizes .kk-quiz { --kk-qv-height: clamp(88px, calc(100dvh - 206px), 136px); }
+:root.kk-viewport-resizes .kk-quiz-glyph { line-height: 1; }
+:root.kk-viewport-resizes .kk-quiz-question .kk-quiz-glyph { font-size: min(104px, calc((100vw - 16px) / var(--len, 1)), calc(var(--kk-qv-height) - 30px)); }
+:root.kk-viewport-resizes .kk-quiz-question.with-mark .kk-quiz-glyph { font-size: min(104px, calc((100vw - 140px) / var(--len, 1)), calc(var(--kk-qv-height) - 30px)); }
 
 .kk-quiz-question {
   position: relative;
@@ -83,7 +89,7 @@
   min-width: 48px;
   margin: 0;
   padding: 0 var(--space-2);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 18px;
   text-transform: uppercase;
   cursor: pointer;
@@ -102,13 +108,17 @@
   margin-top: -32px;
   display: grid;
   place-items: center;
-  font-size: 48px;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 36px;
+  font-weight: 700;
   line-height: 1;
   pointer-events: none;
-  animation: kk-mark 1.4s ease-out forwards;
+  animation: kk-mark 1.5s ease-out forwards;
 }
-.kk-quiz-mark.ok { color: var(--color-ok); }
-.kk-quiz-mark.bad { color: var(--color-bad); }
+/* The Lottie animations' fills (res/raw/success.json, fail.json): a white mark on a filled circle. */
+.kk-quiz-mark.ok { background: #3BBD5E; }
+.kk-quiz-mark.bad { background: #CD5050; }
 @keyframes kk-mark {
   0% { transform: scale(0.3); opacity: 0; }
   25% { transform: scale(1.15); opacity: 1; }
@@ -239,9 +249,9 @@
   padding-left: 8px;
   padding-right: 8px;
   white-space: nowrap;
-  /* 18 sp, one line from 320 px wide. */
-  font-size: clamp(13px, 4.2vw, 18px);
-  letter-spacing: 0.04em;
+  /* 18 sp, letterSpacing 0.06 (WK.Button.Borderless.Light); one line from 320 px wide. */
+  font-size: clamp(14px, 5.6vw, 18px);
+  letter-spacing: 0.06em;
 }
 .kk-quiz-actions.bottom { padding-top: var(--space-2); }
 
@@ -304,7 +314,7 @@
   color: inherit;
   min-height: 44px;
   padding: 0 var(--space-2);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 16px;
   text-transform: uppercase;
   cursor: pointer;
@@ -375,7 +385,7 @@ button.kk-log-row { cursor: pointer; }
   letter-spacing: normal;
   text-transform: none;
 }
-.kk-sdialog-icon { flex: none; }
+.kk-sdialog-icon { flex: none; color: #FF0000; } /* ic_baseline_warning_24px fillColor */
 .kk-sdialog-message { margin: 0 0 var(--space-4); font-size: 16px; }
 .kk-sdialog-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 var(--space-2); margin: 0 -16px; }
 .kk-sdialog-spacer { display: none; }
@@ -388,9 +398,10 @@ button.kk-log-row { cursor: pointer; }
   border: 0;
   border-radius: 2px;
   background: transparent;
-  color: var(--color-ok);
-  font-family: var(--font-display);
-  font-size: 15px;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 0;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -416,8 +427,8 @@ button.kk-log-row { cursor: pointer; }
 .kk-summary-table { width: 100%; margin-top: var(--space-4); border-collapse: collapse; font-size: 16px; }
 .kk-summary-table.correct { background: var(--color-answer-correct); }
 .kk-summary-table.incorrect { background: var(--color-answer-incorrect); }
-.kk-summary-table th { width: 1%; padding: 2px 0 2px 4px; font-weight: 400; text-align: right; white-space: nowrap; }
-.kk-summary-table td { padding: 2px 4px 2px 2px; text-align: left; }
+.kk-summary-table th { width: 1%; padding: 3px 0 3px 4px; font-weight: 400; text-align: right; white-space: nowrap; }
+.kk-summary-table td { padding: 3px 4px 3px 2px; text-align: left; }
 .kk-summary-resurrect { margin-top: var(--space-4); }
 .kk-summary-header { margin: var(--space-4) 0 var(--space-1); font-family: var(--font-body); font-size: 16px; font-weight: 700; letter-spacing: normal; text-transform: none; color: var(--color-text); }
 .kk-summary-stars { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
