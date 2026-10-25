@@ -28,8 +28,8 @@ export function InstallSection() {
   const install = useInstall();
   if (!isWebBuild(platform.capabilities)) return null;
   return (
-    <section className="kk-panel" data-testid="install-section" aria-labelledby="about-install">
-      <h2 id="about-install">Install</h2>
+    <section data-testid="install-section" aria-labelledby="about-install">
+      <h4 id="about-install">Install</h4>
       {install.standalone ? <p className="kk-small">Running from the home screen.</p> : <InstallActions />}
     </section>
   );

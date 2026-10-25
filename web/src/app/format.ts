@@ -53,3 +53,10 @@ export function dateTime(ts: number): string {
 export function megabytes(bytes: number): string {
   return `${(bytes / 1e6).toFixed(1)} MB`;
 }
+
+/** `TextUtil.formatTimestampForDisplay`: medium date and short time in the user's locale; "" for 0. (Same as components/subject `formatTimestamp`; this one keeps the dashboard bundle small.) */
+export function formatTimestamp(ms: number): string {
+  if (ms === 0) return '';
+  const d = new Date(ms);
+  return `${d.toLocaleDateString(undefined, { dateStyle: 'medium' })} ${d.toLocaleTimeString(undefined, { timeStyle: 'short' })}`;
+}

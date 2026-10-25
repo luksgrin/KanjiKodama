@@ -1,21 +1,22 @@
 /**
- * Search results (`fragments/SearchResultFragment` with `adapter/search/SearchResultAdapter`):
- * "<description>: n subject(s) found", the hits under collapsible headers in the search's sort order
- * (`resultView`), subject cards (`SubjectCardBinder`: type colour, characters, meaning, reading, the
- * stage and next review, here on the stage's colour), and the "Search result..." menu as buttons:
- * Refine search (not for keyword searches), Save preset, Start self-study quiz (when there are hits;
- * while a session runs it just opens that session, as Java's `goToActivity(SessionActivity)` does),
- * Resurrect burned items / Burn resurrected items (local mode), Set star rating (with
- * `enable_star_ratings`).
+ * Search results (`fragments/SearchResultFragment`, `fragment_search_result.xml`, with
+ * `adapter/search/SearchResultAdapter`): the tutorial banner (`search_result_dismissed`),
+ * "<description>: n subject(s) found" (Large), the hits under collapsible headers in the search's sort
+ * order (`resultView`; `search_result_top_header` / `_sub_header`: chevron, XLarge title, counts at the
+ * right), the cards in a grid of (width + 10) / 90 columns, vocabulary as full rows (`SubjectCardBinder`).
+ * The "Search result..." menu in the toolbar overflow (`res/menu/generic_options_menu.xml`): Refine search
+ * (not for keyword searches; the form opens above the list), Save preset, Start self-study quiz (when
+ * there are hits; a running session just opens), Resurrect burned items / Burn resurrected items
+ * (local mode), Set to ☆ … ★ (with `enable_star_ratings`). Title: the preset name or "Search results".
  *
  * Route `/browse/results?t=<0|1|2>&q=<level|query|parameters JSON>[&preset=<name>]`.
- * Added: subject type filter buttons above the list (they narrow the list and the menu actions).
  */
-import { useMemo, useState } from 'react';
-import { SUBJECT_TYPE_BY_OBJECT, SUBJECT_TYPES, type SubjectTypeName } from '../../../core/content';
+import { useEffect, useMemo, useState } from 'react';
+import type { SubjectTypeName } from '../../../core/content';
 import { toKatakana } from '../../../core/kana';
 import { isBurnable, isResurrectable, num, progressRow } from '../../../core/progression';
 import { oneMeaning, writeParameters, type SearchSubject } from '../../../core/search';
+import { prefBoolean } from '../../../core/settings';
 import { enableStarRatings, showOnInKatakana } from '../../../core/settings/subjectInfo';
 import type { SrsSystem } from '../../../core/srs';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -23,21 +24,23 @@ import { formatTimestamp, starsText, useStarRatings } from '../../components/sub
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate, useRoute } from '../../hooks/useRoute';
 import { paths } from '../../routes';
+import { toast } from '../../shell/toast';
+import { useToolbar, type ToolbarAction } from '../../shell/toolbar';
 import { BurnResurrectDialog, runBurnResurrect, type BurnResurrectKind } from '../subject/BurnResurrectDialog';
 import { AdvancedSearchFormView } from './AdvancedSearchFormView';
 import {
   buildSearchSubjects,
   cardProgressText,
+  cardStage,
   headerDetails,
   readSearchTexts,
   resultView,
   runSearch,
   searchDescription,
-  stageColorName,
-  stageOfSearchSubject,
   type SearchType,
 } from './searchData';
 import { useSearchPresets } from './searchPresets';
+import { SubjectCard } from './SubjectCard';
 import { sessionPath, sessionRuntime, useActiveSession } from '../../components/session';
 import './browse.css';
 
@@ -47,14 +50,6 @@ const TYPE_TEXT: Readonly<Record<SubjectTypeName, [string, string]>> = {
   WANIKANI_KANJI: ['Kanji', 'Kanji'],
   WANIKANI_VOCAB: ['Vocabulary', 'Vocabulary'],
   WANIKANI_KANA_VOCAB: ['Kana-only Vocabulary', 'Vocabulary'],
-};
-
-/** The filter buttons' labels. */
-const TYPE_FILTER_LABEL: Readonly<Record<SubjectTypeName, string>> = {
-  WANIKANI_RADICAL: 'Radicals',
-  WANIKANI_KANJI: 'Kanji',
-  WANIKANI_VOCAB: 'Vocabulary',
-  WANIKANI_KANA_VOCAB: 'Kana vocabulary',
 };
 
 interface Group {
@@ -107,6 +102,27 @@ function oneReading(s: SearchSubject, katakana: boolean): string {
   return katakana && t.type === 'onyomi' ? toKatakana(r) : r;
 }
 
+/** `SearchResultFragment`: columns of the result grid for a screen width in dp. */
+export function resultSpans(dpWidth: number): number {
+  return Math.max(1, Math.trunc((dpWidth + 10) / 90));
+}
+
+export const RESULTS_TUTORIAL = 'This screen shows the results from the search you chose before.'
+  + ' You can click on the various headers in the list to collapse/expand groups'
+  + ' of subjects.\n'
+  + 'Other actions such as refining your search, saving a preset or '
+  + 'starting a self-study session can be accessed from the menu.';
+
+function useWindowWidth(): number {
+  const [w, setW] = useState(() => (typeof window === 'undefined' ? 411 : window.innerWidth));
+  useEffect(() => {
+    const on = () => setW(window.innerWidth);
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  return w;
+}
+
 export function SearchResultsScreen() {
   const app = useApp();
   const { learner, content, state } = useReady();
@@ -116,6 +132,7 @@ export function SearchResultsScreen() {
   const { save } = useSearchPresets();
   const activeSession = useActiveSession();
   const [starting, setStarting] = useState(false);
+  const width = useWindowWidth();
 
   const rawType = Number(query.get('t') ?? '0');
   const type: SearchType = rawType === 1 || rawType === 2 ? rawType : 0;
@@ -124,12 +141,10 @@ export function SearchResultsScreen() {
 
   const [searchTime] = useState(() => app.clock.now());
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
-  const [types, setTypes] = useState<ReadonlySet<SubjectTypeName>>(new Set());
   const [refining, setRefining] = useState(false);
   const [presetDialog, setPresetDialog] = useState<string | null>(null);
   const [starsDialog, setStarsDialog] = useState<number | null>(null);
   const [burnDialog, setBurnDialog] = useState<BurnResurrectKind | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
 
   const starsOn = enableStarRatings(state.prefs);
   const katakana = showOnInKatakana(state.prefs);
@@ -140,10 +155,8 @@ export function SearchResultsScreen() {
     () => runSearch(subjects, type, data, { systems, starRatingsEnabled: starsOn, now: searchTime }),
     [subjects, type, data, systems, starsOn, searchTime],
   );
-  const shown = useMemo(
-    () => (types.size === 0 ? run.subjects : run.subjects.filter((s) => types.has(SUBJECT_TYPE_BY_OBJECT[s.object]))),
-    [run.subjects, types],
-  );
+  const shown = run.subjects;
+  const singleLevel = run.sortOrder === 'TYPE';
   const groups = useMemo(() => {
     const view = resultView(shown, run.sortOrder, searchTime, systems);
     const root: Group[] = [];
@@ -171,56 +184,7 @@ export function SearchResultsScreen() {
   const burnable = useMemo(() => (local ? shown.filter((s) => isBurnable(learner, s.id)) : []), [shown, learner, local, state.revision]);
   const passedAt = (id: number): number => num(progressRow(learner, id), 'passedAt');
 
-  const allOf = (g: Group): SearchSubject[] => [...g.subjects, ...g.children.flatMap(allOf)];
-  const toggle = (key: string): void =>
-    setCollapsed((c) => {
-      const next = new Set(c);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-
-  const card = (s: SearchSubject) => {
-    const stage = stageOfSearchSubject(s, systems);
-    const progress = cardProgressText(s, stage, state.now);
-    const reading = s.object === 'kana_vocabulary' ? (s.characters ?? '') : oneReading(s, katakana);
-    return (
-      <button
-        key={s.id}
-        type="button"
-        className={`kk-result-card ${s.object}`}
-        data-testid={`result-${s.id}`}
-        onClick={() => navigate(paths.subject(s.id))}
-      >
-        <span className="kk-result-chars" lang="ja">{s.characters ?? s.slug ?? ''}</span>
-        {s.meanings.length > 0 && <span className="kk-result-meaning">{oneMeaning(s.meanings)}</span>}
-        {reading !== '' && <span className="kk-result-reading" lang="ja">{reading}</span>}
-        <span className={`kk-result-stage kk-stage--${stageColorName(stage)}`}>{progress ?? stage.name}</span>
-      </button>
-    );
-  };
-
-  const renderGroup = (g: Group) => {
-    const all = allOf(g);
-    const isCollapsed = collapsed.has(g.key);
-    return (
-      <section key={g.key} className="kk-result-group">
-        <button type="button" className={`kk-result-header${g.top ? ' top' : ''}`} aria-expanded={!isCollapsed} onClick={() => toggle(g.key)}>
-          <span className="kk-result-arrow" aria-hidden="true">{isCollapsed ? '▸' : '▾'}</span>
-          <span className="kk-result-header-title">{headerTitle(g.title, all.length, systems, searchTime)}</span>
-          <span className="kk-result-header-details">{headerDetails(all, systems, passedAt)}</span>
-        </button>
-        {!isCollapsed && (
-          <>
-            {g.subjects.length > 0 && <div className="kk-result-grid">{g.subjects.map(card)}</div>}
-            {g.children.map(renderGroup)}
-          </>
-        )}
-      </section>
-    );
-  };
-
-  /** `action_search_result_self_study`: the shown hits become a self-study session. */
+  /** `action_search_result_self_study`: the hits become a self-study session; a running session just opens. */
   const startSelfStudy = async (): Promise<void> => {
     if (starting) return;
     if (activeSession.active) {
@@ -236,55 +200,99 @@ export function SearchResultsScreen() {
     }
   };
 
-  const toggleType = (t: SubjectTypeName): void =>
-    setTypes((cur) => {
-      const next = new Set(cur);
-      if (next.has(t)) next.delete(t);
-      else next.add(t);
+  const actions: ToolbarAction[] = [];
+  if (type !== 1) actions.push({ id: 'search_result_refine', label: 'Refine search', onSelect: () => setRefining((r) => !r) });
+  actions.push({ id: 'search_result_save_preset', label: 'Save preset', onSelect: () => setPresetDialog(presetName ?? '') });
+  if (shown.length > 0) {
+    actions.push({ id: 'search_result_self_study', label: 'Start self-study quiz', disabled: starting, onSelect: () => void startSelfStudy() });
+  }
+  if (resurrectable.length > 0) actions.push({ id: 'search_result_resurrect', label: 'Resurrect burned items', onSelect: () => setBurnDialog('resurrect') });
+  if (burnable.length > 0) actions.push({ id: 'search_result_burn', label: 'Burn resurrected items', onSelect: () => setBurnDialog('burn') });
+  if (starsOn) {
+    for (let n = 0; n <= 5; n++) actions.push({ id: `search_result_star${n}`, label: `Set to ${starsText(n)}`, onSelect: () => setStarsDialog(n) });
+  }
+  useToolbar({ title: presetName ?? 'Search results', actions, searchPrefill: type === 1 ? data : undefined });
+
+  const allOf = (g: Group): SearchSubject[] => [...g.subjects, ...g.children.flatMap(allOf)];
+  const toggle = (key: string): void =>
+    setCollapsed((c) => {
+      const next = new Set(c);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
 
+  const spans = resultSpans(width);
+  const wideSpan = spans >= 6 ? 3 : spans;
+
+  const card = (s: SearchSubject) => {
+    const stage = cardStage(s, systems);
+    const progress = cardProgressText(s, stage, state.now);
+    const reading = s.object === 'kana_vocabulary' ? (s.characters ?? '') : oneReading(s, katakana);
+    const wide = s.object === 'vocabulary' || s.object === 'kana_vocabulary';
+    return (
+      <div key={s.id} className="kk-card-cell" style={wide ? { gridColumn: `span ${wideSpan}` } : undefined}>
+        <SubjectCard
+          object={s.object}
+          characters={s.characters ?? s.slug ?? ''}
+          meaning={s.meanings.length > 0 ? oneMeaning(s.meanings) : null}
+          reading={s.object === 'radical' || reading === '' ? null : reading}
+          progress={progress}
+          testId={`result-${s.id}`}
+          onClick={() => navigate(paths.subject(s.id))}
+        />
+      </div>
+    );
+  };
+
+  const renderGroup = (g: Group) => {
+    const all = allOf(g);
+    const isCollapsed = collapsed.has(g.key);
+    const top = g.top || singleLevel;
+    return (
+      <section key={g.key} className="kk-result-group">
+        <button type="button" className={`kk-result-header${top ? ' top' : ' sub'}`} aria-expanded={!isCollapsed} onClick={() => toggle(g.key)}>
+          <svg className="kk-result-arrow" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d={isCollapsed ? 'M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z' : 'M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'} />
+          </svg>
+          <span className="kk-result-header-title">{headerTitle(g.title, all.length, systems, searchTime)}</span>
+          <span className="kk-result-header-details">{headerDetails(all, systems, passedAt)}</span>
+        </button>
+        {!isCollapsed && (
+          <>
+            {g.subjects.length > 0 && (
+              <div className="kk-result-grid" style={{ gridTemplateColumns: `repeat(${spans}, minmax(0, 1fr))` }}>{g.subjects.map(card)}</div>
+            )}
+            {g.children.map(renderGroup)}
+          </>
+        )}
+      </section>
+    );
+  };
+
+  const savePreset = (name: string): void => {
+    setPresetDialog(null);
+    if (name !== '') void save({ name, type, data }).then(() => toast(`Preset '${name}' saved`));
+  };
+
+  const tutorial = !prefBoolean(state.prefs, 'search_result_dismissed', false);
+
   return (
     <div className="kk-search-results">
-      {toast !== null && <p className="kk-banner ok" role="status">{toast}</p>}
-      {presetName !== null && <h2 className="kk-search-results-head">{presetName}</h2>}
-      <p className="kk-search-results-head" data-testid="num-hits">
+      {tutorial && (
+        <div className="kk-tip" data-testid="results-tutorial">
+          <p className="kk-tip-text">{RESULTS_TUTORIAL}</p>
+          <div className="kk-tip-actions">
+            <button type="button" className="kk-tip-btn" onClick={() => void app.setPreference('search_result_dismissed', true)}>Dismiss</button>
+          </div>
+        </div>
+      )}
+      <p className="kk-num-hits" data-testid="num-hits">
         {searchDescription(type, data)}: {shown.length} subject(s) found
       </p>
 
-      <div className="kk-search-actions">
-        {type !== 1 && (
-          <button type="button" className="kk-btn small secondary" aria-expanded={refining} onClick={() => setRefining((r) => !r)}>
-            Refine search
-          </button>
-        )}
-        <button type="button" className="kk-btn small secondary" onClick={() => setPresetDialog(presetName ?? '')}>Save preset</button>
-        {shown.length > 0 && (
-          <button type="button" className="kk-btn small secondary" data-testid="start-self-study" disabled={starting}
-            onClick={() => void startSelfStudy()}>
-            Start self-study quiz
-          </button>
-        )}
-        {resurrectable.length > 0 && (
-          <button type="button" className="kk-btn small secondary" onClick={() => setBurnDialog('resurrect')}>Resurrect burned items</button>
-        )}
-        {burnable.length > 0 && (
-          <button type="button" className="kk-btn small secondary" onClick={() => setBurnDialog('burn')}>Burn resurrected items</button>
-        )}
-        {starsOn && shown.length > 0 && (
-          <select
-            aria-label="Set star rating"
-            value=""
-            onChange={(e) => e.target.value !== '' && setStarsDialog(Number(e.target.value))}
-          >
-            <option value="">Set star rating...</option>
-            {[0, 1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>Set to {starsText(n)}</option>)}
-          </select>
-        )}
-      </div>
-
       {refining && run.parameters !== null && (
-        <div className="kk-panel">
+        <div className="kk-results-form">
           <AdvancedSearchFormView
             systems={systems}
             starRatingsEnabled={starsOn}
@@ -298,14 +306,6 @@ export function SearchResultsScreen() {
         </div>
       )}
 
-      <div className="kk-segmented kk-type-filter" role="group" aria-label="Subject types">
-        {SUBJECT_TYPES.map((t) => (
-          <button key={t} type="button" className={`kk-btn small${types.has(t) ? '' : ' secondary'}`} aria-pressed={types.has(t)} onClick={() => toggleType(t)}>
-            {TYPE_FILTER_LABEL[t]}
-          </button>
-        ))}
-      </div>
-
       {groups.map(renderGroup)}
 
       <ConfirmDialog
@@ -313,11 +313,7 @@ export function SearchResultsScreen() {
         title="Preset name"
         confirmLabel="Save"
         onCancel={() => setPresetDialog(null)}
-        onConfirm={() => {
-          const name = presetDialog ?? '';
-          setPresetDialog(null);
-          if (name !== '') void save({ name, type, data }).then(() => setToast(`Preset '${name}' saved`));
-        }}
+        onConfirm={() => savePreset(presetDialog ?? '')}
       >
         <p>Choose a name for the search preset</p>
         <input
@@ -331,9 +327,7 @@ export function SearchResultsScreen() {
           onKeyDown={(e) => {
             if (e.key !== 'Enter') return;
             e.preventDefault();
-            const name = presetDialog ?? '';
-            setPresetDialog(null);
-            if (name !== '') void save({ name, type, data }).then(() => setToast(`Preset '${name}' saved`));
+            savePreset(presetDialog ?? '');
           }}
         />
       </ConfirmDialog>
@@ -347,7 +341,7 @@ export function SearchResultsScreen() {
         onConfirm={() => {
           const n = starsDialog ?? 0;
           setStarsDialog(null);
-          void stars.set(shown.map((s) => s.id), n).then(() => setToast('Star ratings updated'));
+          void stars.set(shown.map((s) => s.id), n).then(() => toast('Star ratings updated'));
         }}
       >
         <p>

@@ -14,7 +14,7 @@ async function toReadingQuestion(page: Page, info: Parameters<typeof writeReview
   const seed = await writeReviewSeed(info, { kanji: 1 });
   await openApp(page);
   await restoreFile(page, seed.path);
-  await page.getByRole('button', { name: /Reviews: 1 available/ }).click();
+  await page.getByTestId('start-reviews').click();
   for (let i = 0; i < 2; i++) {
     await expect(quiz(page)).toHaveAttribute('data-answered', 'false');
     const q = await questionInfo(page);

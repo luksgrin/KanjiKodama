@@ -4,7 +4,10 @@
  * (`Session.startNewSelfStudySession`), which never touches SRS. The form's parameters are kept as the
  * internal preset `"\u0000SELF_STUDY_DEFAULT"` and fill the form next time, as in Java.
  *
- * While a session runs, Java closes this screen; here it offers Resume.
+ * Layout as `activity_self_study_start.xml`: the tutorial box with Dismiss, "Search presets:" (spinner,
+ * Start, Delete, divider), "Selection criteria for self-study:" and the form; "Preset deleted" and "No
+ * subjects found for self-study!" are toasts. While a session runs, Java closes this screen; here it
+ * offers Resume.
  */
 import { useMemo, useState } from 'react';
 import { writeParameters, type AdvancedSearchParameters } from '../../../core/search';
@@ -21,6 +24,8 @@ import { AdvancedSearchFormView } from '../browse/AdvancedSearchFormView';
 import { buildSearchSubjects, readSearchTexts, runSearch, type SearchType } from '../browse/searchData';
 import { presetByName, presetNames, useSearchPresets } from '../browse/searchPresets';
 import { parseParameters } from '../../../core/search';
+import { toast } from '../../shell/toast';
+import { useToolbar } from '../../shell/toolbar';
 import '../../components/session/session.css';
 
 export const SELF_STUDY_DEFAULT_PRESET = '\u0000SELF_STUDY_DEFAULT';
@@ -59,7 +64,6 @@ export function SelfStudyScreen() {
   const search = useSelfStudySearch();
   const names = presetNames(presets);
   const [selected, setSelected] = useState<string>('');
-  const [message, setMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const preset = selected !== '' && names.includes(selected) ? selected : names[0] ?? '';
@@ -75,6 +79,8 @@ export function SelfStudyScreen() {
   const dismissed = prefBoolean(state.prefs, 'start_self_study_dismissed', false);
   const session = snap.session;
   const running = session !== null && session.state !== 'INACTIVE';
+  // The activity's label; Self-study quiz is not in its own menu.
+  useToolbar({ title: 'Self-study quiz', actions: [{ id: 'self_study', label: 'Self-study quiz', hidden: true, onSelect: () => undefined }] });
 
   const startSession = async (type: SearchType, data: string, saveDefault: boolean): Promise<void> => {
     if (busy) return;
@@ -84,7 +90,7 @@ export function SelfStudyScreen() {
       const ids = search(type, data);
       const ok = ids.length > 0 && await rt.start('SELF_STUDY', ids);
       if (!ok) {
-        setMessage(NO_SUBJECTS);
+        toast(NO_SUBJECTS);
         return;
       }
       navigate(paths.selfStudyQuiz());
@@ -106,38 +112,37 @@ export function SelfStudyScreen() {
   return (
     <div className="kk-self-study">
       {!dismissed && (
-        <section className="kk-panel" data-testid="self-study-tutorial">
+        <div className="kk-tutorial" data-testid="self-study-tutorial">
           <p className="kk-pre-line">{SELF_STUDY_TUTORIAL}</p>
-          <button type="button" className="kk-btn small secondary" onClick={() => void app.setPreference('start_self_study_dismissed', true)}>Dismiss</button>
-        </section>
+          <button type="button" className="kk-tutorial-dismiss" onClick={() => void app.setPreference('start_self_study_dismissed', true)}>Dismiss</button>
+        </div>
       )}
       {names.length > 0 && (
-        <section className="kk-panel">
-          <h2>Search presets:</h2>
+        <>
+          <h2 className="kk-self-study-header">Search presets:</h2>
           <select value={preset} onChange={(e) => setSelected(e.target.value)} aria-label="Search preset" className="kk-select">
             {names.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
-          <div className="kk-btn-row">
-            <button type="button" className="kk-btn small" disabled={busy} onClick={() => {
+          <div className="kk-self-study-presets">
+            <button type="button" className="kk-btn" disabled={busy} onClick={() => {
               const p = presetByName(presets, preset);
               if (p !== null) void startSession(p.type as SearchType, p.data, false);
             }}>Start</button>
-            <button type="button" className="kk-btn small secondary" onClick={() => setConfirmDelete(preset)}>Delete</button>
+            <button type="button" className="kk-btn" onClick={() => setConfirmDelete(preset)}>Delete</button>
           </div>
-        </section>
+          <hr className="kk-self-study-divider" />
+        </>
       )}
-      <section className="kk-panel">
-        <h2>Selection criteria for self-study:</h2>
-        <AdvancedSearchFormView
-          systems={learner.srsSystems}
-          starRatingsEnabled={enableStarRatings(state.prefs)}
-          initial={defaults}
-          blocks={learner.progress.curriculum === 'JLPT' ? content.jlptBlocks : []}
-          searchLabel="Start"
-          showSortOrder={false}
-          onSearch={(p) => void startSession(2, writeParameters(p), true)}
-        />
-      </section>
+      <h2 className="kk-self-study-header">Selection criteria for self-study:</h2>
+      <AdvancedSearchFormView
+        systems={learner.srsSystems}
+        starRatingsEnabled={enableStarRatings(state.prefs)}
+        initial={defaults}
+        blocks={learner.progress.curriculum === 'JLPT' ? content.jlptBlocks : []}
+        searchLabel="Start"
+        showSortOrder={false}
+        onSearch={(p) => void startSession(2, writeParameters(p), true)}
+      />
       <SessionDialog
         open={confirmDelete !== null}
         title="Delete preset?"
@@ -146,10 +151,9 @@ export function SelfStudyScreen() {
         onYes={() => {
           const name = confirmDelete;
           setConfirmDelete(null);
-          if (name !== null) void remove(name).then(() => setMessage('Preset deleted'));
+          if (name !== null) void remove(name).then(() => toast('Preset deleted'));
         }}
       />
-      <SessionDialog open={message !== null} title="Self-study" message={message ?? ''} onNo={() => setMessage(null)} />
     </div>
   );
 }

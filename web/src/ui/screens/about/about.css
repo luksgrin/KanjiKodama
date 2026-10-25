@@ -1,0 +1,10 @@
+/* About (activity_about.xml): one WK.TextView.Normal document (the 8 dp padding is .kk-main's gutter), accent links. Tokens only. */
+.kk-about { overflow-wrap: anywhere; }
+.kk-about h3 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-lg); margin: 0 0 var(--space-4); }
+.kk-about h4 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-md); margin: var(--space-5) 0 var(--space-2); }
+.kk-about p { margin: 0 0 var(--space-4); }
+.kk-about p.kk-about-list-head { margin-bottom: 0; }
+.kk-about ul { margin: 0 0 var(--space-4); padding-left: 1.2em; }
+.kk-about a { color: var(--color-accent); }
+.kk-about .kk-limitations { padding-left: 1.4em; }
+.kk-install-steps { margin: 0 0 var(--space-2); padding-left: 1.4em; }

@@ -143,3 +143,18 @@ export function jlptLevelString(level: number): string {
 export function subjectTitle(subject: Pick<ContentSubject, 'characters' | 'slug' | 'id'>): string {
   return subject.characters ?? subject.slug ?? String(subject.id);
 }
+
+const INFO_TITLE_LABELS: Readonly<Record<SubjectObject, string>> = {
+  radical: 'radical',
+  kanji: 'kanji',
+  vocabulary: 'vocabulary',
+  kana_vocabulary: 'Kana-only Vocab',
+};
+
+/**
+ * `Subject.getInfoTitle("", "")`: "力 (level 3 kanji)", the toolbar title of the item page and the lesson
+ * presentation (`SubjectType.getInfoTitleLabel`).
+ */
+export function infoTitle(subject: Pick<ContentSubject, 'characters' | 'slug' | 'id' | 'object'>, level: number): string {
+  return `${subjectTitle(subject)} (level ${level} ${INFO_TITLE_LABELS[subject.object]})`;
+}

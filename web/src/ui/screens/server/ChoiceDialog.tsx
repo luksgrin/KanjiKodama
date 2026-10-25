@@ -1,7 +1,9 @@
 /**
- * A modal with up to three actions (Android's AlertDialog negative / neutral / positive), for the
- * server-mode questions. Same look and back handling as `ConfirmDialog`.
+ * A modal with several actions (Android's AlertDialog negative / neutral / positive), for the
+ * server-mode questions: the Java AlertDialog look of `settings/AlertDialog` (flat accent text
+ * buttons, right-aligned, wrapping when they don't fit one row).
  */
+import '../settings/alert.css';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { useBackHandler } from '../../hooks/useRoute';
 
@@ -38,21 +40,21 @@ export function ChoiceDialog({ open, title, children, actions, onCancel, busy, t
     }
   }, [open]);
   return (
-    <dialog ref={ref} className="kk-dialog" aria-labelledby={titleId} data-testid={testId}
+    <dialog ref={ref} className="kk-alert" aria-labelledby={titleId} data-testid={testId}
       onCancel={(e) => { e.preventDefault(); if (!busy) onCancel(); }}>
       {open && (
-        <>
-          <h2 id={titleId}>{title}</h2>
-          <div className="kk-dialog-body">{children}</div>
-          <div className="kk-dialog-actions kk-server-actions">
+        <div className="kk-alert-inner">
+          <h2 id={titleId} className="kk-alert-title"><span>{title}</span></h2>
+          <div className="kk-alert-body">{children}</div>
+          <div className="kk-alert-buttons wrap">
             {actions.map((a) => (
               <button key={a.label} type="button" disabled={busy || a.disabled}
-                className={`kk-btn small${a.secondary ? ' secondary' : ''}${a.danger ? ' danger' : ''}`} onClick={a.onClick}>
+                className={`kk-alert-btn${a.danger ? ' danger' : ''}`} onClick={a.onClick}>
                 {a.label}
               </button>
             ))}
           </div>
-        </>
+        </div>
       )}
     </dialog>
   );

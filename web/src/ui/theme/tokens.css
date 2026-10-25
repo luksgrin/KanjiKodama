@@ -23,8 +23,8 @@
   --kk-bar: #A8E6CF;
   /* Semantic */
   --color-text: #2E4756;
-  --color-text-muted: #36735F; /* mmMuted #3E7F6B darkened for WCAG AA on --color-bg */
-  --color-text-toned: #4A7566; /* mmToned #5C8A7A darkened for WCAG AA */
+  --color-text-muted: #3E7F6B; /* mmMutedLight */
+  --color-text-toned: #5C8A7A; /* mmTonedLight */
   --color-bg: #EAF7EF;
   --color-surface: #F8FDF9;
   --color-divider: #BFD9CB;
@@ -32,11 +32,13 @@
   --color-target: #E9B572;
   --color-on-pastel: #2E4756;
   --color-toolbar-bg: #2E4756;
-  --color-toolbar-fg: #EAF7EF;
-  --color-level-up: #2C7560; /* #3FA383 darkened: 10px text needs AA */
+  --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
+  --color-toast-bg: #F1F1F1;
+  --color-toast-fg: #1F1F1F;
+  --color-level-up: #3FA383;
   --color-ok: #3FA383;
   --color-bad: #D9667F;
-  --color-bad-text: #B03A55; /* error text: --color-bad is below AA as text */
+  --color-bad-text: #D9667F; /* = --color-bad (Java has one error colour) */
   --color-warn-bg: #F6D7B0;
   --color-chip: #A8E6CF;
   --btn-fill: #A8E6CF;
@@ -45,7 +47,7 @@
   --btn-outline: #2E4756;
   --color-shadow: #9CCDB8;
   --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
-  --btn-secondary-text: #2E4756; /* .kk-btn.secondary (surface fill): the theme's text colour */
+  --btn-secondary-text: #2E4756; /* Java has one button style (mm_btn): .kk-btn.secondary = .kk-btn */
   /* Subject types (ActiveTheme KANJIKODAMA_*) */
   --color-radical: #9EC9F0;
   --color-kanji: #F5A9B8;
@@ -81,12 +83,12 @@
   --color-q-reading-fg: #FFFFFF;
   --color-answer-correct: #B7DAC7;
   --color-answer-incorrect: #EAC2BC;
-  --color-anki-show: #707000; /* Java #909000; white text needs AA */
-  --color-anki-next: #707000;
-  --color-anki-correct: #008000; /* Java #00A000 */
+  --color-anki-show: #909000;
+  --color-anki-next: #909000;
+  --color-anki-correct: #00A000;
   --color-anki-incorrect: #A00000;
   --color-anki-text: #FFFFFF;
-  --color-anki-answer-bg: #707000;
+  --color-anki-answer-bg: #909000;
 
   /* Fonts: pixel for Latin, Zen Maru Gothic for Japanese (fallback in every stack, and :lang(ja)). */
   --font-body: 'Pixelify Sans', 'Zen Maru Gothic', system-ui, sans-serif;
@@ -121,8 +123,8 @@
   --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
 
   /* Layout */
-  --topbar-height: 52px;
-  --bottomnav-height: 60px;
+  --toolbar-height: 56px; /* ?attr/actionBarSize */
+  --main-gutter: 8px; /* .kk-main padding (the Java layouts' 8dp margins); bleed with calc(-1 * var(--main-gutter)) */
   --content-max-width: 640px;
 }
 
@@ -155,7 +157,9 @@
     --color-target: #E8B97A;
     --color-on-pastel: #0F1C22;
     --color-toolbar-bg: #1E3139;
-    --color-toolbar-fg: #E3F4EA;
+    --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
+    --color-toast-bg: #303030;
+    --color-toast-fg: #E3E3E3;
     --color-level-up: #8EE3C8;
     --color-ok: #8EE3C8;
     --color-bad: #E98BA4;
@@ -168,8 +172,7 @@
     --btn-outline: #0A1418;
     --color-shadow: #0A1418;
     --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
-  --btn-secondary-text: #E3F4EA; /* mmInkLight is unreadable on the dark surface */
-    --btn-secondary-text: #E3F4EA; /* mmInkLight is unreadable on the dark surface */
+    --btn-secondary-text: #2E4756;
     /* Subject types (ActiveTheme KANJIKODAMA_*) */
     --color-radical: #7FB2E6;
     --color-kanji: #E98BA4;
@@ -180,7 +183,7 @@
     --color-on-subject: #0F1C22;
     /* SRS stage buckets (ActiveTheme stageBucketColors7) */
     --color-stage-locked: #2B414A;
-    --color-stage-initial: #7D9399; /* #4A5F66 lightened: --color-on-pastel text needs AA */
+    --color-stage-initial: #4A5F66;
     --color-stage-apprentice: #E98BA4;
     --color-stage-guru: #A994E6;
     --color-stage-master: #7FB2E6;
@@ -241,7 +244,9 @@
   --color-target: #E8B97A;
   --color-on-pastel: #0F1C22;
   --color-toolbar-bg: #1E3139;
-  --color-toolbar-fg: #E3F4EA;
+  --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
+  --color-toast-bg: #303030;
+  --color-toast-fg: #E3E3E3;
   --color-level-up: #8EE3C8;
   --color-ok: #8EE3C8;
   --color-bad: #E98BA4;
@@ -254,7 +259,7 @@
   --btn-outline: #0A1418;
   --color-shadow: #0A1418;
   --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
-  --btn-secondary-text: #E3F4EA; /* mmInkLight is unreadable on the dark surface */
+  --btn-secondary-text: #2E4756;
   /* Subject types (ActiveTheme KANJIKODAMA_*) */
   --color-radical: #7FB2E6;
   --color-kanji: #E98BA4;
@@ -265,7 +270,7 @@
   --color-on-subject: #0F1C22;
   /* SRS stage buckets (ActiveTheme stageBucketColors7) */
   --color-stage-locked: #2B414A;
-  --color-stage-initial: #7D9399; /* #4A5F66 lightened: --color-on-pastel text needs AA */
+  --color-stage-initial: #4A5F66;
   --color-stage-apprentice: #E98BA4;
   --color-stage-guru: #A994E6;
   --color-stage-master: #7FB2E6;

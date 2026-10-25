@@ -1,3 +1,4 @@
+import { infoTitle } from './subjectText';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -159,7 +160,16 @@ describe.skipIf(!HAS_WK_CONTENT)('ItemPage', () => {
     expect(render(kanji)).not.toContain('Add synonym');
     const html = render(kanji, { onSaveStudyMaterial: () => {} });
     expect(html).toContain('aria-label="Add synonym"');
-    expect(html).toContain('Edit notes and synonyms');
+    // Notes: the "My notes..." menu item (NotesDialog), not a button on the page (Java).
+    expect(html).not.toContain('Edit notes');
+  });
+
+  it('shows the cards\' progress line and Java\'s info title', () => {
+    const kanji = find((s) => s.object === 'kanji' && s.characters === '語');
+    const html = render(kanji, { cardProgress: () => 'Guru I - 3h' });
+    expect(html).toContain('<span class="kk-link-progress">Guru I - 3h</span>');
+    expect(infoTitle(kanji, 5)).toBe('語 (level 5 kanji)');
+    expect(infoTitle({ ...kanji, object: 'kana_vocabulary' }, 7)).toBe('語 (level 7 Kana-only Vocab)');
   });
 
   function readHasStroke(id: number): boolean {

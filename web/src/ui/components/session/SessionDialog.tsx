@@ -1,15 +1,21 @@
 /**
- * An `AlertDialog` with up to three buttons (negative, neutral, positive), as the Java session and level
- * test dialogs use. `ConfirmDialog` has two; this one adds the neutral button. Native `<dialog>`; Escape
- * and the back gesture press the negative button.
+ * The Java session and level test dialogs (`AlertDialog.Builder` with up to three buttons): optional
+ * warning icon (`setIcon(R.drawable.ic_baseline_warning_24px)`) and the title in the body font, the
+ * message (`\n` breaks lines), and flat text buttons in one row, neutral at the left, then negative and
+ * positive at the right ("YES AND DON'T ASK AGAIN · NO · YES"). Native `<dialog>` (the Android bars are
+ * dimmed like Java's scrim); Escape and the back gesture press the negative button.
  */
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { useBackHandler } from '../../hooks/useRoute';
+import './session.css';
 
 export interface SessionDialogProps {
   open: boolean;
-  title: string;
+  /** Empty or absent: no title (`setTitle(null)`). */
+  title?: string;
   message: string;
+  /** The warning icon before the title (Java's abandon / wrap-up / star rating confirmations). */
+  warning?: boolean;
   noLabel?: string;
   /** The neutral button; hidden when `onYesDontAsk` is absent. */
   neutralLabel?: string;
@@ -18,14 +24,22 @@ export interface SessionDialogProps {
   onYesDontAsk?(): void;
   /** Absent: a message box with only the negative button (labelled `noLabel`, default OK). */
   onYes?(): void;
+  /** Disables the buttons (work in progress). */
+  busy?: boolean;
+  /** No buttons at all (Java's non-cancelable "Picking kanji…" box); back does nothing. */
+  noButtons?: boolean;
+  /** Extra content under the message. */
+  children?: ReactNode;
+  testId?: string;
 }
 
 export function SessionDialog({
-  open, title, message, noLabel, neutralLabel = "Yes and don't ask again", yesLabel = 'Yes', onNo, onYesDontAsk, onYes,
+  open, title, message, warning = false, noLabel, neutralLabel = "Yes and don't ask again", yesLabel = 'Yes', onNo, onYesDontAsk, onYes,
+  busy = false, noButtons = false, children, testId,
 }: SessionDialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  useBackHandler(() => { onNo(); return true; }, open);
+  useBackHandler(() => { if (!busy && !noButtons) onNo(); return true; }, open);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -38,16 +52,26 @@ export function SessionDialog({
     }
   }, [open]);
   return (
-    <dialog ref={ref} className="kk-dialog" aria-labelledby={titleId} onCancel={(e) => { e.preventDefault(); onNo(); }}>
+    <dialog ref={ref} className="kk-dialog kk-sdialog" aria-labelledby={title ? titleId : undefined} data-testid={testId}
+      onCancel={(e) => { e.preventDefault(); if (!busy && !noButtons) onNo(); }}>
       {open && (
         <>
-          <h2 id={titleId}>{title}</h2>
-          <div className="kk-dialog-body kk-pre-line">{message}</div>
-          <div className="kk-dialog-actions kk-dialog-actions-3">
-            <button type="button" className="kk-btn small secondary" onClick={onNo}>{noLabel ?? (onYes ? 'No' : 'OK')}</button>
-            {onYesDontAsk && <button type="button" className="kk-btn small secondary" onClick={onYesDontAsk}>{neutralLabel}</button>}
-            {onYes && <button type="button" className="kk-btn small" onClick={onYes}>{yesLabel}</button>}
-          </div>
+          {title !== undefined && title !== '' && <h2 id={titleId} className="kk-sdialog-title">
+            {warning && (
+              <svg className="kk-sdialog-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                <path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+              </svg>
+            )}
+            <span>{title}</span>
+          </h2>}
+          <div className="kk-dialog-body kk-sdialog-message kk-pre-line">{message}</div>
+          {children}
+          {!noButtons && <div className="kk-sdialog-buttons">
+            {onYesDontAsk && <button type="button" className="kk-sdialog-btn neutral" disabled={busy} onClick={onYesDontAsk}>{neutralLabel}</button>}
+            <span className="kk-sdialog-spacer" />
+            <button type="button" className="kk-sdialog-btn negative" disabled={busy} onClick={onNo}>{noLabel ?? (onYes ? 'No' : 'OK')}</button>
+            {onYes && <button type="button" className="kk-sdialog-btn positive" disabled={busy} onClick={onYes}>{yesLabel}</button>}
+          </div>}
         </>
       )}
     </dialog>

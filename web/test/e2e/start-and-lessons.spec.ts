@@ -12,16 +12,16 @@ test('first start: content loads and the dashboard shows the counts', async ({ p
   const counts = await dashboardCounts(page);
   expect(counts.lessons).toBe(radicals.length);
   expect(counts.reviews).toBe(0);
-  await expect(page.getByRole('button', { name: /Reviews: 0 available/ })).toBeDisabled();
-  await expect(page.getByText('Level 1 progress')).toBeVisible();
-  await expect(page.getByText(`0/${radicals.length}`).first()).toBeVisible();
+  await expect(page.getByTestId('start-reviews')).toHaveCount(0);
+  await expect(page.getByTestId('level-duration')).toContainText('You are level 1');
+  await expect(page.getByTestId('level-1').first()).toHaveText('Lvl 1 radicals');
   await checkScreen(page, info, '01-dashboard-first-start');
 });
 
 test('lesson batch: presentation, quiz, summary', async ({ page }, info) => {
   await openApp(page);
   const before = await dashboardCounts(page);
-  await page.getByRole('button', { name: /Lessons: \d+ available/ }).click();
+  await page.getByTestId('start-lessons').click();
   await expect(page.getByRole('region', { name: 'Lesson' })).toBeVisible();
   const batch = await throughPresentation(page, async (i) => {
     if (i === 0) await checkScreen(page, info, '02-lesson-presentation');

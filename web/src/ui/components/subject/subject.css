@@ -5,8 +5,10 @@
  */
 .kk-item {
   color: var(--color-text, #2E4756);
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  /* Java TextViews: no extra line spacing. */
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  container-type: inline-size;
 }
 
 .kk-item .kk-ja,
@@ -14,45 +16,77 @@
   font-family: var(--font-ja, 'Zen Maru Gothic', sans-serif);
   font-weight: 500;
 }
+/* The Japanese face has one weight: draw <b> (the primary reading) heavier, as Android's fake bold. */
+.kk-item b:lang(ja),
+.kk-item .kk-ja b {
+  -webkit-text-stroke: 0.035em currentColor;
+  paint-order: stroke fill;
+}
 
-.kk-item p { margin: 0 0 var(--space-2, 8px); }
+.kk-item p { margin: 0 0 var(--space-1, 4px); }
 .kk-item .kk-subject-divider {
   border: 0;
-  border-top: 2px solid var(--color-divider, #BFD9CB);
-  margin: var(--space-3, 12px) 0;
+  border-top: 1px solid var(--color-divider, #BFD9CB);
+  margin: var(--space-1, 4px) 0;
 }
-.kk-item .kk-subject-section { margin: 0 0 var(--space-2, 8px); }
+.kk-item .kk-subject-section { margin: 0 0 var(--space-1, 4px); }
 .kk-item .kk-subject-section-header {
   font-family: inherit;
   font-size: inherit;
   font-weight: 700;
   letter-spacing: normal;
+  text-transform: none;
+  color: inherit;
   margin: 0 0 var(--space-1, 4px);
 }
 
-/* Headline */
+/* Headline (subject_info_headline_narrow.xml): the big title tile, "Level 3 kanji", the meanings and
+   readings (20 sp), the buttons column at the right. */
 .kk-headline {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3, 12px);
-  margin-bottom: var(--space-3, 12px);
+  gap: var(--space-2, 8px);
+  margin-bottom: var(--space-1, 4px);
 }
 .kk-subject-tile {
   flex: none;
-  min-width: 2.2em;
-  padding: var(--space-1, 4px) var(--space-3, 12px);
-  border: var(--border-pixel, 3px) solid var(--btn-outline, #2E4756);
-  border-radius: var(--radius-md, 12px);
-  font-size: 2.75em;
-  line-height: 1.2;
+  /* SubjectInfoButtonView: 12 dp top, 8 dp bottom, 16 dp sides. */
+  min-width: 1em;
+  padding: 12px 16px 8px;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  font-size: 3.5em;
+  line-height: 1.1;
   text-align: center;
   color: var(--color-on-subject, #2E4756);
 }
 .kk-headline-text { flex: 1; min-width: 0; }
-.kk-headline-title { font-size: var(--text-sm, 14px); color: var(--color-text-muted, #3E7F6B); }
+.kk-headline-title { font-size: 1em; color: inherit; }
 .kk-headline-meaning,
-.kk-headline-reading { font-size: 1.25em; }
-.kk-headline-buttons { flex: none; display: flex; flex-direction: column; gap: var(--space-2, 8px); }
+.kk-headline-reading { font-size: 1.25em; line-height: 1.25; }
+.kk-headline-buttons { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2, 8px); max-width: 45%; }
+.kk-headline-buttons .kk-reveal-btn { white-space: nowrap; }
+
+/* The headline's audio button: a flat grey chip with the speaker icon. */
+.kk-audio-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  min-height: 40px;
+  padding: 0 var(--space-3, 12px);
+  border: 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-text, #2E4756) 16%, var(--color-bg, #EAF7EF));
+  color: var(--color-text, #2E4756);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.24);
+  font-size: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.kk-audio-btn svg { width: 24px; height: 24px; }
+.kk-audio-hint { font-size: var(--text-xs, 13px); color: var(--color-text-muted, #3E7F6B); }
 
 /* Subject type colors (tile, links, tags) */
 .kk-type--radical { background: var(--color-radical, #9EC9F0); }
@@ -79,10 +113,31 @@
 .kk-item .kk-big { font-size: 1.25em; }
 .kk-item .kk-tt { font-family: ui-monospace, monospace; }
 
-/* Synonyms */
-.kk-synonyms { display: flex; align-items: center; gap: var(--space-2, 8px); margin-bottom: var(--space-2, 8px); }
-.kk-synonyms-text { flex: 1; min-width: 0; }
-.kk-add-synonym { flex: none; min-width: 40px; }
+/* Synonyms: "My synonyms:" with a small inline "+" (40 px tap area around a 24 px square). */
+.kk-synonyms { display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--space-1, 4px); margin-bottom: 0; }
+.kk-synonyms-text { min-width: 0; }
+.kk-add-synonym {
+  appearance: none;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: -6px 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text, #2E4756);
+  font: 700 18px/1 var(--font-body, sans-serif);
+  cursor: pointer;
+}
+.kk-add-synonym > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  background: var(--color-surface, #F8FDF9);
+}
 .kk-subject-input {
   width: 100%;
   font: inherit;
@@ -115,17 +170,32 @@
   filter: blur(0.33em);
 }
 
-/* Linked subjects */
+/* Subject cards (SubjectGridView, subject_card_*.xml): 2 dp margins, 3 dp padding, small rounded
+   corners, elevation 4 dp; floor((width + 10) / 90) columns; vocabulary rows span the width (3 columns
+   from 6). The text colours are the KanjiKodama themes' deep shades of the card colour
+   (SubjectCardBinder.styleCardText), the same in light and dark. */
 .kk-link-grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.5em, 1fr));
-  gap: var(--space-2, 8px);
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 4px;
 }
-.kk-link { border: 2px solid var(--btn-outline, #2E4756); border-radius: var(--radius-sm, 6px); overflow: hidden; }
-.kk-link--wide { grid-column: span 2; }
+.kk-link {
+  --kk-card-text: #7E1E40;
+  border-radius: var(--radius-sm, 6px);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  overflow: hidden;
+  container-type: inline-size;
+}
+.kk-link.kk-type--radical { --kk-card-text: #1D4A7A; }
+.kk-link.kk-type--vocabulary,
+.kk-link.kk-type--kana_vocabulary { --kk-card-text: #45297F; }
+.kk-link--wide { grid-column: 1 / -1; }
+@container (min-width: 536px) {
+  .kk-link-grid .kk-link--wide { grid-column: span 3; }
+}
 .kk-link-button {
   appearance: none;
   display: flex;
@@ -133,17 +203,32 @@
   align-items: center;
   width: 100%;
   height: 100%;
+  min-height: 40px;
   border: 0;
   background: none;
-  padding: var(--space-1, 4px);
+  padding: 3px;
   color: var(--color-on-subject, #2E4756);
+  font: inherit;
   text-align: center;
   cursor: pointer;
 }
 span.kk-link-button { cursor: default; }
-.kk-link-chars { font-size: 1.75em; line-height: 1.2; }
+.kk-link-chars { margin-top: 4px; font-size: 26px; line-height: 1.15; }
+.kk-link-text { display: flex; flex-direction: column; align-items: center; width: 100%; min-width: 0; }
 .kk-link-meaning,
-.kk-link-reading { font-size: var(--text-xs, 13px); }
+.kk-link-reading,
+.kk-link-progress,
+.kk-link-level { max-width: 100%; color: var(--kk-card-text); white-space: nowrap; overflow: hidden; }
+/* autoSizeTextType uniform 9..14 sp on one line. */
+.kk-link-meaning { margin-top: 4px; font-size: clamp(9px, calc(100cqi / (var(--mlen, 8) * 0.62)), 14px); }
+.kk-link-reading { font-size: 16px; line-height: 1.25; }
+.kk-link-progress,
+.kk-link-level { font-size: 14px; }
+/* subject_card_vocabulary.xml: characters left, the texts right-aligned at the right. */
+.kk-link--wide .kk-link-button { flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 7px; }
+.kk-link--wide .kk-link-chars { margin-top: 0; flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kk-link--wide .kk-link-text { align-items: flex-end; text-align: end; flex: 1; }
+.kk-link--wide .kk-link-meaning { margin-top: 0; font-size: 14px; text-overflow: ellipsis; }
 
 /* Stroke order */
 .kk-stroke-diagram {
@@ -183,11 +268,14 @@ span.kk-link-button { cursor: default; }
 .kk-pitch-dot--hollow { fill: var(--color-surface, #F8FDF9); }
 
 /* Details table */
-.kk-subject-details { border-collapse: collapse; font-size: var(--text-sm, 14px); }
-.kk-subject-details th { text-align: start; font-weight: 700; padding: 2px var(--space-3, 12px) 2px 2px; vertical-align: top; white-space: nowrap; }
-.kk-subject-details td { padding: 2px; }
+/* The details table (subject_info.xml TableLayout): labels right-aligned and bold, the value right after. */
+.kk-subject-details { border-collapse: collapse; font-size: inherit; margin: 0 auto 0 0; }
+.kk-subject-details th { text-align: end; font-weight: 700; padding: 0 0 2px 2px; vertical-align: top; white-space: nowrap; }
+.kk-subject-details td { padding: 0 2px 2px 0; }
 
-.kk-notes-editor { margin-top: var(--space-4, 16px); }
+/* My notes... (NotesDialog) */
+.kk-notes-dialog { width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 32px); }
+.kk-notes-dialog-body { max-height: calc(100dvh - 200px); overflow-y: auto; }
 
 /* Star rating (StarRatingView). */
 .kk-star-rating {

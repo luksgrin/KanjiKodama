@@ -16,9 +16,49 @@ export async function waitReady(page: Page): Promise<void> {
   await expect(page.locator('.kk-shell')).toBeVisible({ timeout: 60_000 });
 }
 
-/** Bottom-nav tab by label (Home, Browse, Study, Settings). */
+/** Opens the toolbar's overflow menu and picks the item (`settings`, `browse`, `self_study`, `about`, `download_audio`, `fast_travel`, `level_test`, `session_log`, `abandon_session`, …: Java menu ids without `action_`). */
+export async function menu(page: Page, id: string): Promise<void> {
+  await page.getByTestId('toolbar-overflow').click();
+  await page.getByTestId(`menu-${id}`).click();
+}
+
+/** Taps a toolbar action (`search`, `dashboard`, `mute`): its icon, or its overflow item when the screen is too narrow (androidx ActionBarPolicy). */
+export async function toolbarAction(page: Page, id: string): Promise<void> {
+  const icon = page.getByTestId(`toolbar-${id}`);
+  if (await icon.count() > 0) await icon.click();
+  else await menu(page, id);
+}
+
+/** The toolbar's up arrow. */
+export async function toolbarBack(page: Page): Promise<void> {
+  await page.getByTestId('toolbar-back').click();
+}
+
+/**
+ * The former bottom-nav destinations, reached as in the Java app: Home = the toolbar's Dashboard
+ * action (nothing on the dashboard), Browse / Study / Settings = the overflow menu's
+ * "Browse/search...", "Self-study quiz", "Settings".
+ */
 export async function tab(page: Page, label: 'Home' | 'Browse' | 'Study' | 'Settings'): Promise<void> {
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: label }).click();
+  if (label === 'Home') {
+    const home = page.getByTestId('toolbar-dashboard');
+    if (await home.count() > 0) await home.click();
+    else if (await page.getByTestId('toolbar-back').count() > 0) await menu(page, 'dashboard'); // narrow screens: in the overflow
+    return;
+  }
+  await menu(page, label === 'Browse' ? 'browse' : label === 'Study' ? 'self_study' : 'settings');
+}
+
+/** Toolbar search (SearchView): opens it, types `query` and submits (→ keyword search results). */
+export async function toolbarSearch(page: Page, query: string): Promise<void> {
+  const field = page.getByTestId('toolbar-search-input');
+  if (await field.count() === 0) {
+    const icon = page.getByTestId('toolbar-search');
+    if (await icon.count() > 0) await icon.click();
+    else await menu(page, 'search');
+  }
+  await field.fill(query);
+  await field.press('Enter');
 }
 
 export async function dashboardCounts(page: Page): Promise<{ lessons: number; reviews: number }> {
@@ -165,37 +205,40 @@ export async function throughPresentation(page: Page, onItem?: (i: number) => Pr
 
 // ---- progress files -----------------------------------------------------------------------------
 
-/** Settings → Restore progress with `path`; returns the confirmation summary text (not yet confirmed). */
+/** Settings → Restore progress from a file with `path`; returns the file's summary from "Override local progress?" (not yet confirmed). */
 export async function pickRestoreFile(page: Page, path: string): Promise<string> {
   await openApp(page, '/settings');
   const chooser = page.waitForEvent('filechooser');
-  await page.getByRole('button', { name: 'Restore progress' }).click();
+  await page.getByTestId('progress-restore').click();
   await (await chooser).setFiles(path);
-  const dialog = page.getByRole('dialog', { name: 'Restore progress?' });
+  const dialog = page.getByTestId('dialog-restore');
   await expect(dialog).toBeVisible();
-  return dialog.locator('.kk-dialog-body p').first().innerText();
+  // The message is the summary, a blank line, then the override warning (Java's setMessage).
+  return (await dialog.locator('.kk-alert-message').innerText()).split('\n')[0]!;
 }
 
-/** Restores `path` (confirming) and returns to the dashboard. */
+/** Restores `path` ("Restore and override", then the "Progress restored" message) and returns to the dashboard. */
 export async function restoreFile(page: Page, path: string): Promise<string> {
   const summary = await pickRestoreFile(page, path);
-  await page.getByRole('dialog', { name: 'Restore progress?' }).getByRole('button', { name: 'Restore' }).click();
-  await expect(page.getByTestId('progress-status')).toBeVisible();
-  await expect(page.getByTestId('progress-status')).not.toHaveClass(/kk-error-text/);
+  await page.getByTestId('dialog-restore').getByRole('button', { name: 'Restore and override' }).click();
+  const done = page.getByTestId('alert-message');
+  await expect(done.locator('.kk-alert-message')).toHaveText(/^Progress restored, level \d+\.$/);
+  await done.getByRole('button', { name: 'OK' }).click();
   await tab(page, 'Home');
   return summary;
 }
 
 /** Advanced settings on, special button 1 = Undo (retry now). */
 export async function enableUndoButton(page: Page): Promise<void> {
-  await openApp(page, '/settings/advanced');
-  await page.getByTestId('setting-enable_advanced').getByRole('switch').click();
+  await openApp(page, '/settings');
+  await page.getByTestId('setting-enable_advanced').click();
   const dlg = page.getByRole('dialog', { name: 'Enable advanced settings?' });
   await dlg.getByRole('button', { name: 'Yes' }).click();
-  const select = page.getByTestId('setting-undo_button').locator('select');
-  await select.scrollIntoViewIfNeeded();
-  await select.selectOption('UNDO_AND_RETRY_NOW');
-  await expect(select).toHaveValue('UNDO_AND_RETRY_NOW');
+  await expect(page.getByTestId('setting-enable_advanced')).toHaveAttribute('aria-checked', 'true');
+  await openApp(page, '/settings?screen=advanced_other_settings');
+  await page.getByTestId('setting-undo_button').click();
+  await page.getByTestId('choice-undo_button-UNDO_AND_RETRY_NOW').click();
+  await expect(page.getByTestId('setting-undo_button')).toContainText('Undo and retry immediately');
 }
 
 // ---- layout -------------------------------------------------------------------------------------
@@ -212,7 +255,7 @@ export async function noHorizontalScroll(page: Page, screen: string): Promise<vo
 export async function smallTapTargets(page: Page, min = 40): Promise<string[]> {
   return page.evaluate((min) => {
     const out: string[] = [];
-    const sel = 'button:not([hidden]), [role="button"], [role="switch"], [role="radio"], [role="menuitem"], input:not([type="hidden"]), select, .kk-bottomnav a, a.kk-row, summary';
+    const sel = 'button:not([hidden]), [role="button"], [role="switch"], [role="radio"], [role="menuitem"], input:not([type="hidden"]), select, a.kk-row, summary';
     for (const el of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
       if (el.closest('[aria-hidden="true"], [hidden]')) continue;
       const r = el.getBoundingClientRect();
@@ -223,7 +266,10 @@ export async function smallTapTargets(page: Page, min = 40): Promise<string[]> {
       // (or through its wrapping <label>).
       const target = (el.matches('input[type="checkbox"], input[type="radio"]') && (el.closest('label') ?? el.closest('.kk-row'))) as HTMLElement | null;
       const box = target ? target.getBoundingClientRect() : r;
-      if (box.height < min || box.width < min) {
+      // Browse's level grid copies Java's column rule (round(width / 40), max 10), so on 390–393 px
+      // phones its cells are about 39 px wide, as in the Java app; allow 2 px there.
+      const slack = (el.getAttribute('data-testid') ?? '').startsWith('browse-level-') ? 2 : 0;
+      if (box.height < min - slack || box.width < min - slack) {
         const name = (el.getAttribute('aria-label') ?? el.textContent ?? el.getAttribute('name') ?? '').trim().slice(0, 30);
         const id = el.getAttribute('data-testid') ?? el.className.toString().split(' ')[0] ?? el.tagName;
         out.push(`${el.tagName.toLowerCase()}[${id}] "${name}" ${Math.round(box.width)}x${Math.round(box.height)}`);
@@ -246,7 +292,9 @@ export async function clippedText(page: Page): Promise<string[]> {
       const r = el.getBoundingClientRect();
       if (r.width === 0) continue;
       const clipsX = cs.overflowX !== 'visible' || cs.textOverflow === 'ellipsis';
-      if (clipsX && el.scrollWidth > el.clientWidth + 1) {
+      // The toolbar title ellipsizes long titles, as Java's Toolbar does.
+      const toolbarTitle = el.closest('.kk-toolbar h1') !== null;
+      if (clipsX && !toolbarTitle && el.scrollWidth > el.clientWidth + 1) {
         out.push(`${el.tagName.toLowerCase()}.${el.className.toString().split(' ')[0]} "${text.slice(0, 20)}…" ${el.scrollWidth}>${el.clientWidth}`);
       }
       // Text running past the right edge of the screen.
@@ -263,7 +311,13 @@ export async function clippedText(page: Page): Promise<string[]> {
  * clipped text. In the flow specs the last two are recorded (annotation + screenshots/<project>/findings.txt);
  * `strict` (layout.spec.ts) makes them soft failures.
  */
+/** Waits until the screen transition / menu / toast animations have finished (shell AppShell, toolbar). */
+export async function settle(page: Page): Promise<void> {
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity), undefined, { timeout: 5_000 }).catch(() => undefined);
+}
+
 export async function checkScreen(page: Page, info: TestInfo, screen: string, opts: { strict?: boolean; fullPage?: boolean } = {}): Promise<void> {
+  await settle(page);
   await page.evaluate(() => document.fonts?.ready);
   await shot(page, info, screen, opts.fullPage);
   await noHorizontalScroll(page, screen);
@@ -293,6 +347,7 @@ export async function shot(page: Page, info: TestInfo, screen: string, fullPage 
  * viewport; on short phones inside the space left with the keyboard open (`keyboardTop`).
  */
 export async function checkQuickActions(page: Page, screen: string, keyboardTop?: number): Promise<void> {
+  await settle(page);
   const frame = await page.getByTestId('answer-frame').boundingBox();
   const row = await page.getByTestId('quick-actions').boundingBox();
   const vp = page.viewportSize();
@@ -314,7 +369,12 @@ export async function checkQuickActions(page: Page, screen: string, keyboardTop?
   }
 }
 
-/** The visible height with the on-screen keyboard open, for the phones the owner named (iPhone SE: ≈410). */
+/**
+ * The visible height with the on-screen keyboard open, for the phones the owner named (iPhone SE: ≈410)
+ * and the smallest Android phone (320×568 with a ~260 px keyboard: ≈300).
+ */
 export function keyboardTopFor(info: TestInfo): number | undefined {
-  return info.project.name === 'iphone-se' ? 410 : undefined;
+  if (info.project.name === 'iphone-se') return 410;
+  if (info.project.name === 'android-small-320') return 300;
+  return undefined;
 }

@@ -17,7 +17,7 @@ vi.mock('@capacitor/core', () => ({
   SystemBarsStyle: { Dark: 'DARK', Light: 'LIGHT', Default: 'DEFAULT' },
 }));
 vi.mock('@capacitor/app', () => ({ App: {} }));
-vi.mock('@capacitor/local-notifications', () => ({ LocalNotifications: {} }));
+
 vi.mock('@capacitor/share', () => ({ Share: shareMock }));
 vi.mock('@capacitor/filesystem', () => {
   const key = (dir: string, path: string) => `${dir}:${path}`;

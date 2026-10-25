@@ -1,22 +1,28 @@
 /**
- * The session summary (`fragments/SummarySessionFragment`, shown when the session is FINISHING): correct
- * and incorrect per subject type with the overall percentages, "Show items" (the two subject lists in Java's
- * order), bulk star ratings, and Finish (reports the pending items with delayed results, then
- * `Session.finish`). The plan's additions, not in the Java screen: the level-ups and the new unlocks of the
+ * The session summary (`fragments/SummarySessionFragment`, `fragment_summary.xml`, shown when the session
+ * is FINISHING): "Show items · Finish" right-aligned at the top, the green "correct" and red "incorrect"
+ * tables (labels right-aligned, the value after them), "Resurrect items with incorrect answers", and after
+ * "Show items" the two subject grids in Java's order with the bulk star ratings ("Star ratings updated"
+ * toast). Finish reports the pending items (delayed results) with a progress bar, then `Session.finish`.
+ * The plan's additions, not in the Java screen, at the end: the level-ups and the new unlocks of the
  * session (subjects unlocked since it started).
  */
 import { useEffect, useMemo, useState } from 'react';
 import type { ContentSubject } from '../../../core/content';
-import { num, progressRow, srsSystemOf, tableRow, type LearnerDb } from '../../../core/progression';
+import { isResurrectable, num, progressRow, srsSystemOf, tableRow, type LearnerDb } from '../../../core/progression';
 import { TYPE_ORDER, type Session, type SessionItem } from '../../../core/session';
 import { enableStarRatings } from '../../../core/settings/sessionUi';
-import { useReady } from '../../hooks/useApp';
+import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 import { SessionDialog } from '../../components/session/SessionDialog';
 import { sessionPath } from '../../components/session/SessionScreen';
 import { useSession } from '../../components/session/useSession';
-import { useStarRatings } from '../../components/subject';
+import { SubjectCards, useCardProgress, useStarRatings } from '../../components/subject';
+import { useSessionMenu } from '../../components/session/SessionMenu';
+import { toast } from '../../shell/toast';
+import { useToolbar } from '../../shell/toolbar';
+import { BurnResurrectDialog, runBurnResurrect } from '../subject/BurnResurrectDialog';
 import '../../components/session/session.css';
 
 export interface SummaryCounts {
@@ -87,31 +93,28 @@ export function newUnlocks(learner: LearnerDb, since: number): number[] {
 
 const STAR_NAMES = ['☆ ☆ ☆ ☆ ☆', '★ ☆ ☆ ☆ ☆', '★ ★ ☆ ☆ ☆', '★ ★ ★ ☆ ☆', '★ ★ ★ ★ ☆', '★ ★ ★ ★ ★'];
 
-function SubjectChips({ ids, learner, testId }: { ids: readonly number[]; learner: LearnerDb; testId: string }) {
+function SubjectGrid({ ids, learner, testId }: { ids: readonly number[]; learner: LearnerDb; testId: string }) {
   const navigate = useNavigate();
+  const progressOf = useCardProgress();
+  const subjects = ids.map((id) => learner.content.byId.get(id)).filter((s): s is ContentSubject => s !== undefined);
   return (
-    <div className="kk-summary-grid" data-testid={testId}>
-      {ids.map((id) => {
-        const s = learner.content.byId.get(id)!;
-        return (
-          <button key={id} type="button" className={`kk-summary-chip kk-type--${s.object}`} lang="ja" data-subject-id={id}
-            onClick={() => navigate(paths.subject(id))}>{s.characters ?? s.slug ?? id}</button>
-        );
-      })}
+    <div className="kk-item kk-summary-grid" data-testid={testId}>
+      <SubjectCards subjects={subjects} onOpenSubject={(id) => navigate(paths.subject(id))} progressOf={progressOf} />
     </div>
   );
 }
 
+/** incorrectStarSpinnerRow: the star spinner and "Bulk set star rating", with Java's confirmation and toast. */
 function StarBulk({ ids, onSet }: { ids: readonly number[]; onSet(ids: readonly number[], n: number): void }) {
   const [n, setN] = useState(0);
   const [ask, setAsk] = useState(false);
   const count = ids.length;
   return (
-    <div className="kk-btn-row">
+    <div className="kk-summary-stars">
       <select aria-label="Star rating" value={n} onChange={(e) => setN(Number(e.target.value))}>
         {STAR_NAMES.map((name, i) => <option key={i} value={i}>{name}</option>)}
       </select>
-      <button type="button" className="kk-btn small secondary" onClick={() => setAsk(true)}>Bulk set star rating</button>
+      <button type="button" className="kk-btn small" onClick={() => setAsk(true)}>Bulk set star rating</button>
       <SessionDialog open={ask} title="Set star ratings?"
         message={`Do you want to set the star rating for ${count} subject${count === 1 ? '' : 's'} to ${n} star${n === 1 ? '' : 's'}?`}
         onNo={() => setAsk(false)} onYes={() => { setAsk(false); onSet(ids, n); }} />
@@ -119,16 +122,33 @@ function StarBulk({ ids, onSet }: { ids: readonly number[]; onSet(ids: readonly 
   );
 }
 
+/** A `TableLayout` of the summary: labels right-aligned, the value right after them. */
+function CountTable({ kind, rows }: { kind: 'correct' | 'incorrect'; rows: readonly [string, string | number, string][] }) {
+  return (
+    <table className={`kk-summary-table ${kind}`} data-testid={`summary-${kind}`}>
+      <tbody>
+        {rows.map(([label, value, testId]) => (
+          <tr key={testId}><th scope="row">{label}</th><td data-testid={testId}>{value}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export function SummaryScreen() {
+  const app = useApp();
   const { learner, state } = useReady();
   const { rt, snap } = useSession();
   const navigate = useNavigate();
   const stars = useStarRatings();
   const [showItems, setShowItems] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [resurrect, setResurrect] = useState<readonly ContentSubject[] | null>(null);
   const session = snap.session;
   const st = session?.state ?? 'INACTIVE';
+  const menu = useSessionMenu(rt, session, null);
+  // getToolbarTitle "Session summary" in the default toolbar colour.
+  useToolbar({ title: 'Session summary', color: 'default', actions: menu.actions });
 
   useEffect(() => {
     if (!snap.loaded || session === null) return;
@@ -161,64 +181,73 @@ export function SummaryScreen() {
     setBusy(true);
     void rt.finish().catch(() => setBusy(false));
   };
-  const row = (label: string, value: number | string, testId?: string) => (
-    <tr><td>{label}</td><td data-testid={testId}>{value}</td></tr>
-  );
   const starsOn = enableStarRatings(state.prefs);
-  const allIncorrect = session.items.filter((i) => totalIncorrect(i) > 0).map((i) => i.id);
-  const allCorrect = session.items.filter((i) => totalIncorrect(i) === 0).map((i) => i.id);
-  const setStars = (ids: readonly number[], n: number) => void stars.set(ids, n).then(() => setToast('Star ratings updated'));
+  // updateIncorrectStars / getResurrectableIds: every session item, as Java.
+  const live = session.items;
+  const allIncorrect = live.filter((i) => totalIncorrect(i) > 0).map((i) => i.id);
+  const allCorrect = live.filter((i) => totalIncorrect(i) === 0).map((i) => i.id);
+  const setStars = (ids: readonly number[], n: number) => void stars.set(ids, n).then(() => toast('Star ratings updated'));
+  // hasResurrecttableIncorrect: an item with incorrect answers that can be resurrected (local mode here).
+  const resurrectable = state.mode !== 'server'
+    ? allIncorrect.filter((id) => isResurrectable(learner, id)).map((id) => learner.content.byId.get(id)!).filter(Boolean)
+    : [];
 
   return (
     <div className="kk-summary" data-testid="summary">
-      <div className="kk-btn-row">
+      <div className="kk-summary-buttons">
+        {!showItems && <button type="button" className="kk-btn" onClick={() => setShowItems(true)} data-testid="summary-show">Show items</button>}
         <button type="button" className="kk-btn" disabled={busy} onClick={finish} data-testid="summary-finish">Finish</button>
-        {!showItems && <button type="button" className="kk-btn secondary" onClick={() => setShowItems(true)} data-testid="summary-show">Show items</button>}
       </div>
-      {busy && session.isDelayed() && <p className="kk-muted">Reporting {session.numPending()} items…</p>}
+      {busy && session.isDelayed() && (
+        <progress className="kk-summary-progress" aria-label={`Reporting ${session.numPending()} items`} />
+      )}
+      {!showItems && (
+        <>
+          <CountTable kind="correct" rows={[
+            ['Overall percentage correct:', `${counts.percentage}%`, 'summary-correct-percentage'],
+            ['Radicals correct:', counts.byType.radical[0], 'summary-correct-radical'],
+            ['Kanji correct:', counts.byType.kanji[0], 'summary-correct-kanji'],
+            ['Vocabulary correct:', counts.byType.vocabulary[0], 'summary-correct-vocabulary'],
+            ['Kana Vocabulary correct:', counts.byType.kana_vocabulary[0], 'summary-correct-kana-vocabulary'],
+          ]} />
+          <CountTable kind="incorrect" rows={[
+            ['Overall percentage incorrect:', `${100 - counts.percentage}%`, 'summary-incorrect-percentage'],
+            ['Radicals incorrect:', counts.byType.radical[1] - counts.byType.radical[0], 'summary-incorrect-radical'],
+            ['Kanji incorrect:', counts.byType.kanji[1] - counts.byType.kanji[0], 'summary-incorrect-kanji'],
+            ['Vocabulary incorrect:', counts.byType.vocabulary[1] - counts.byType.vocabulary[0], 'summary-incorrect-vocabulary'],
+            ['Kana Vocabulary incorrect:', counts.byType.kana_vocabulary[1] - counts.byType.kana_vocabulary[0], 'summary-incorrect-kana-vocabulary'],
+          ]} />
+        </>
+      )}
+      {resurrectable.length > 0 && (
+        <button type="button" className="kk-btn kk-summary-resurrect" onClick={() => setResurrect(resurrectable)}>Resurrect items with incorrect answers</button>
+      )}
+      {lists !== null && (
+        <>
+          <h2 className="kk-summary-header">Items with incorrect answers:</h2>
+          {starsOn && <StarBulk ids={allIncorrect} onSet={setStars} />}
+          <SubjectGrid ids={lists.incorrect} learner={learner} testId="summary-incorrect-items" />
+          <h2 className="kk-summary-header">Items with only correct answers:</h2>
+          {starsOn && <StarBulk ids={allCorrect} onSet={setStars} />}
+          <SubjectGrid ids={lists.correct} learner={learner} testId="summary-correct-items" />
+        </>
+      )}
       {(levelUps > 0 || unlocks.length > 0) && (
-        <section className="kk-panel" data-testid="summary-progress">
+        <section className="kk-summary-progress-section" data-testid="summary-progress">
           {levelUps > 0 && <p data-testid="summary-level-up">Level up! You are now on level {levelNow}.</p>}
           {unlocks.length > 0 && (
             <>
-              <h2>New unlocks: {unlocks.length}</h2>
-              <SubjectChips ids={unlocks} learner={learner} testId="summary-unlocks" />
+              <h2 className="kk-summary-header">New unlocks: {unlocks.length}</h2>
+              <SubjectGrid ids={unlocks} learner={learner} testId="summary-unlocks" />
             </>
           )}
         </section>
       )}
-      {!showItems ? (
-        <section className="kk-panel">
-          <table className="kk-summary-table"><tbody>
-            {row('Overall percentage correct:', `${counts.percentage}%`, 'summary-correct-percentage')}
-            {row('Radicals correct:', counts.byType.radical[0], 'summary-correct-radical')}
-            {row('Kanji correct:', counts.byType.kanji[0], 'summary-correct-kanji')}
-            {row('Vocabulary correct:', counts.byType.vocabulary[0], 'summary-correct-vocabulary')}
-            {row('Kana Vocabulary correct:', counts.byType.kana_vocabulary[0], 'summary-correct-kana-vocabulary')}
-          </tbody></table>
-          <table className="kk-summary-table"><tbody>
-            {row('Overall percentage incorrect:', `${100 - counts.percentage}%`, 'summary-incorrect-percentage')}
-            {row('Radicals incorrect:', counts.byType.radical[1] - counts.byType.radical[0], 'summary-incorrect-radical')}
-            {row('Kanji incorrect:', counts.byType.kanji[1] - counts.byType.kanji[0], 'summary-incorrect-kanji')}
-            {row('Vocabulary incorrect:', counts.byType.vocabulary[1] - counts.byType.vocabulary[0], 'summary-incorrect-vocabulary')}
-            {row('Kana Vocabulary incorrect:', counts.byType.kana_vocabulary[1] - counts.byType.kana_vocabulary[0], 'summary-incorrect-kana-vocabulary')}
-          </tbody></table>
-        </section>
-      ) : lists !== null && (
-        <>
-          <section className="kk-panel">
-            <h2>Items with incorrect answers:</h2>
-            {starsOn && <StarBulk ids={allIncorrect} onSet={setStars} />}
-            <SubjectChips ids={lists.incorrect} learner={learner} testId="summary-incorrect-items" />
-          </section>
-          <section className="kk-panel">
-            <h2>Items with only correct answers:</h2>
-            {starsOn && <StarBulk ids={allCorrect} onSet={setStars} />}
-            <SubjectChips ids={lists.correct} learner={learner} testId="summary-correct-items" />
-          </section>
-        </>
+      {resurrect !== null && (
+        <BurnResurrectDialog kind="resurrect" subjects={resurrect} run={(ids) => runBurnResurrect(app, 'resurrect', ids)}
+          onClose={() => setResurrect(null)} />
       )}
-      <SessionDialog open={toast !== null} title="Session summary" message={toast ?? ''} onNo={() => setToast(null)} />
+      {menu.dialogs}
     </div>
   );
 }

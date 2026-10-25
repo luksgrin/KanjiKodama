@@ -2,11 +2,13 @@
  * The quiz (`UnansweredSessionFragment`, `AnsweredSessionFragment`, `AnkiSessionFragment`) for the current
  * question of an active session.
  *
- * Layout (static, owner decision 2026-10-25): question view, question type banner, answer field, and the
- * quick-action row **Don't know | Submit directly under the field; Next takes Submit's place after
- * answering**. They are the first things in the page and sized so that they stay above the keyboard on the
- * smallest supported screen (iPhone SE with the keyboard open: about 375×410 visible); the item info comes
- * after the row and scrolls. No `visualViewport` code.
+ * As the Java layouts: the toolbar in the subject's colour titled with the question type and the session
+ * menu (`useSessionMenu`), the question view, the question type banner, the centred underlined answer field
+ * (after answering: the full-width band in the answer colour) and the quick-action row. Owner decision
+ * (2026-10-25): **Don't know | Submit directly under the field; Next takes Submit's place after
+ * answering**. The question view's height follows the small viewport height so the row stays above the
+ * keyboard on the smallest supported screens (iPhone SE, 320×568 Android); the item info comes after the
+ * row and scrolls. No `visualViewport` code.
  */
 import { useEffect, useRef, useState } from 'react';
 import { QUESTION_TYPE_INFO } from '../../../core/answer/questionType';
@@ -35,7 +37,8 @@ import { useReady } from '../../hooks/useApp';
 import { AnswerField, type AnswerFieldHandle } from './AnswerField';
 import { QuestionView, buttonState, questionHint, titleFor } from './QuestionView';
 import { SessionItemInfo } from './SessionItemInfo';
-import { SessionMenu } from './SessionMenu';
+import { useSessionMenu } from './SessionMenu';
+import { useToolbar } from '../../shell/toolbar';
 import type { SessionRuntime, SessionSnapshot } from './runtime';
 
 /** Renders core `RichText` (bold spans). */
@@ -94,6 +97,10 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
   const questionKey = `${question.item.id}:${question.type}`;
   const frozen = useNextFrozen(floating.lastTypedIncorrectAnswer, nextButtonDelay(prefs));
   const kana = QUESTION_TYPE_INFO[question.type].kana;
+  const title = titleFor(question.type, subject, prefs);
+  const menu = useSessionMenu(rt, session, subject.id);
+  // The toolbar in the subject's colour with the question title (`getToolbarTitle`, `getToolbarBackgroundColor`).
+  useToolbar({ title, color: subject.object, actions: menu.actions });
 
   // The retry shake (`TranslateAnimation` with a 7-cycle interpolator).
   const lastRetry = useRef(floating.retryCount);
@@ -147,12 +154,19 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
       toasts={floating.toasts}
       onToastDone={(id) => rt.dismissToast(id)}
       onSpecial={(n) => void run(() => rt.special(n))}
-      menu={<SessionMenu rt={rt} session={session} />}
+      answerMark={answered && !anki && showAnswerToast(prefs) ? (session.correct ? 'ok' : 'bad') : null}
       anki={anki}
     />
   );
 
-  if (anki) return <AnkiQuiz rt={rt} snap={snap} session={session} question={question} header={header} busy={busy} run={run} />;
+  if (anki) {
+    return (
+      <>
+        <AnkiQuiz rt={rt} snap={snap} session={session} question={question} header={header} busy={busy} run={run} />
+        {menu.dialogs}
+      </>
+    );
+  }
 
   const state2 = buttonState(session);
   const showDontKnow = dontKnowCanShow(prefs, state2);
@@ -168,7 +182,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
           ref={field}
           kana={kana}
           placeholder={questionHint(question.type)}
-          label={titleFor(question.type, subject, prefs)}
+          label={title}
           questionKey={answered ? `${questionKey}:a:${floating.shownAnswer}` : `${questionKey}:u`}
           initial={answered ? floating.shownAnswer : session.currentAnswer}
           readOnly={answered || busy}
@@ -176,22 +190,25 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
           onChange={(t) => rt.setAnswer(t)}
           onSubmit={() => void (answered ? (!frozen && run(() => rt.next())) : submit())}
         />
-        {answered && showAnswerToast(prefs) && (
-          <span className={`kk-quiz-mark ${session.correct ? 'ok' : 'bad'}`} aria-hidden="true">{session.correct ? '✓' : '✗'}</span>
-        )}
       </div>
       <div className="kk-quiz-actions" data-testid="quick-actions">
         {!answered ? (
           <>
-            {showDontKnow && (
-              <button type="button" className="kk-btn secondary" disabled={busy} data-testid="dont-know"
-                onClick={() => void run(() => rt.dontKnow())}>Don&apos;t know</button>
-            )}
+            {showDontKnow
+              ? (
+                <button type="button" className="kk-btn" disabled={busy} data-testid="dont-know"
+                  onClick={() => void run(() => rt.dontKnow())}>Don&apos;t know</button>
+              )
+              : <span className="kk-quiz-actions-space" aria-hidden="true" />}
             <button type="button" className="kk-btn" disabled={busy} data-testid="submit" onClick={() => void submit()}>Submit</button>
           </>
         ) : (
-          <button type="button" className="kk-btn" disabled={busy || frozen} data-testid="next"
-            onClick={() => void run(() => rt.next())}>Next</button>
+          <>
+            {/* Next takes Submit's place (fragment_answered_question.xml: Space | nextButton2). */}
+            <span className="kk-quiz-actions-space" aria-hidden="true" />
+            <button type="button" className="kk-btn" disabled={busy || frozen} data-testid="next"
+              onClick={() => void run(() => rt.next())}>Next</button>
+          </>
         )}
       </div>
       {answered && floating.closeMessage !== null && <p className="kk-quiz-message" data-testid="close-message">{floating.closeMessage}</p>}
@@ -208,10 +225,12 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
             onReveal={() => rt.revealMore()}
           />
           <div className="kk-quiz-actions bottom">
+            <span className="kk-quiz-actions-space" aria-hidden="true" />
             <button type="button" className="kk-btn" disabled={busy || frozen} onClick={() => void run(() => rt.next())}>Next</button>
           </div>
         </>
       )}
+      {menu.dialogs}
     </section>
   );
 }

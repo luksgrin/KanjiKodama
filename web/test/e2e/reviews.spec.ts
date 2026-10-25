@@ -14,7 +14,7 @@ test('review session: correct, wrong, Don\'t know, undo, summary', async ({ page
   await enableUndoButton(page);
 
   await openApp(page, '/');
-  await page.getByRole('button', { name: /Reviews: \d+ available/ }).click();
+  await page.getByTestId('start-reviews').click();
   await expect(quiz(page)).toBeVisible();
   await checkQuickActions(page, 'review quiz', keyboardTopFor(info));
   await checkScreen(page, info, '07-review-quiz');

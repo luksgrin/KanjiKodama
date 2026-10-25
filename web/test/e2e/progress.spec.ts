@@ -19,9 +19,9 @@ test('save progress: download fallback, then restore it', async ({ page }, info)
   const before = await dashboardCounts(page);
 
   await tab(page, 'Settings');
-  await expect(page.getByTestId('last-saved')).toContainText('Never saved to a file.');
+  await expect(page.getByTestId('progress-save')).not.toContainText('Last saved');
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Save progress' }).click();
+  await page.getByTestId('progress-save').click();
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.json$/);
   const path = info.outputPath('saved-progress.json');
@@ -31,16 +31,21 @@ test('save progress: download fallback, then restore it', async ({ page }, info)
   expect(saved.version).toBe(1);
   expect(saved.userLevel).toBe(1);
   expect(saved.subjects.length).toBeGreaterThanOrEqual(seed.items);
-  await expect(page.getByTestId('progress-status')).toContainText(/Saved .+\.json\./);
-  await expect(page.getByTestId('last-saved')).toContainText('Last saved');
+  // Java: "Progress saved." in a message dialog.
+  const saidSaved = page.getByTestId('alert-message');
+  await expect(saidSaved.locator('.kk-alert-message')).toHaveText('Progress saved.');
   await checkScreen(page, info, '60-settings-saved');
+  await saidSaved.getByRole('button', { name: 'OK' }).click();
+  await expect(page.getByTestId('progress-save')).toContainText('Last saved');
 
   // Restore the saved file: summary, Cancel changes nothing, Restore brings the same state back.
   const summary = await pickRestoreFile(page, path);
   expect(summary).toMatch(new RegExp(`^Saved .+, WaniKani order, level 1, ${saved.subjects.length} items with progress\\.$`));
   await checkScreen(page, info, '61-restore-confirm');
-  await page.getByRole('dialog', { name: 'Restore progress?' }).getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.getByRole('dialog', { name: 'Restore progress?' })).toBeHidden();
+  const confirm = page.getByRole('dialog', { name: 'Override local progress?' });
+  await expect(confirm).toContainText('This replaces ALL progress in KanjiKodama');
+  await confirm.getByRole('button', { name: 'Cancel' }).click();
+  await expect(confirm).toBeHidden();
   await restoreFile(page, path);
   expect(await dashboardCounts(page)).toEqual(before);
 });
@@ -58,8 +63,8 @@ test('save progress through the share sheet when the browser has one (iOS Safari
   await openApp(page, '/settings');
   let downloaded = false;
   page.on('download', () => { downloaded = true; });
-  await page.getByRole('button', { name: 'Save progress' }).click();
-  await expect(page.getByTestId('progress-status')).toContainText('Saved');
+  await page.getByTestId('progress-save').click();
+  await expect(page.getByTestId('alert-message')).toContainText('Progress saved.');
   const shared = await page.evaluate(() => (window as unknown as { __shared: { name: string; size: number }[] }).__shared);
   expect(shared).toHaveLength(1);
   expect(shared[0]!.name).toMatch(/\.json$/);
@@ -74,10 +79,11 @@ test('restore rejects a file that is not a progress file', async ({ page }, info
   writeFileSync(path, '{"hello": 1}');
   await openApp(page, '/settings');
   const chooser = page.waitForEvent('filechooser');
-  await page.getByRole('button', { name: 'Restore progress' }).click();
+  await page.getByTestId('progress-restore').click();
   await (await chooser).setFiles(path);
-  await expect(page.getByTestId('progress-status')).toHaveClass(/kk-error-text/);
-  await expect(page.getByRole('dialog', { name: 'Restore progress?' })).toBeHidden();
+  // Busy.run's error dialog.
+  await expect(page.getByRole('dialog', { name: 'Something went wrong' })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Override local progress?' })).toHaveCount(0);
 });
 
 test('restore the owner\'s Android export: level and counts on the dashboard', async ({ page }) => {
@@ -87,10 +93,11 @@ test('restore the owner\'s Android export: level and counts on the dashboard', a
   };
   const summary = await pickRestoreFile(page, ANDROID_EXPORT);
   expect(summary.includes(`level ${exp.userLevel}, ${exp.subjects.length} items with progress.`), 'restore summary names the level and item count').toBe(true);
-  await page.getByRole('dialog', { name: 'Restore progress?' }).getByRole('button', { name: 'Restore' }).click();
-  await expect(page.getByTestId('progress-status')).not.toHaveClass(/kk-error-text/);
+  await page.getByTestId('dialog-restore').getByRole('button', { name: 'Restore and override' }).click();
+  await expect(page.getByTestId('alert-message').locator('.kk-alert-message')).toHaveText(`Progress restored, level ${exp.userLevel}.`);
+  await page.getByTestId('alert-message').getByRole('button', { name: 'OK' }).click();
   await tab(page, 'Home');
-  await expect(page.getByText(`Level ${exp.userLevel} progress`)).toBeVisible();
+  await expect(page.getByTestId("level-duration")).toContainText(`You are level ${exp.userLevel}`);
   const counts = await dashboardCounts(page);
   expect(counts.lessons + counts.reviews).toBeGreaterThanOrEqual(0);
   // The SRS breakdown counts every started item (stage ≥ 1) once, burned included.
@@ -100,7 +107,7 @@ test('restore the owner\'s Android export: level and counts on the dashboard', a
   expect.soft(total, 'SRS breakdown total vs started items in the file').toBe(started);
   // The app keeps working on the real data: the review button opens a session when reviews are due.
   if (counts.reviews > 0) {
-    await page.getByRole('button', { name: /Reviews: \d+ available/ }).click();
+    await page.getByTestId('start-reviews').click();
     await expect(page.getByTestId('question-view')).toBeVisible();
   }
 });

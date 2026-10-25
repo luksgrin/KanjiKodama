@@ -70,7 +70,7 @@ export function buildPath(pattern: string, params: Record<string, string | numbe
 }
 
 export interface HashLocation extends ReadableStore<string> {
-  /** Goes to `path` (`/settings`); `replace` keeps the history length. */
+  /** Goes to `path` (`/settings`); `replace` keeps the history length. `/` is `home()`. */
   navigate(path: string, options?: { replace?: boolean }): void;
   /** Back in the app's own history; false when there is none (at the first screen). */
   back(): boolean;
@@ -100,10 +100,17 @@ export function createHashLocation(): HashLocation {
   const onChange = (): void => store.set(currentPath());
   window.addEventListener('hashchange', onChange);
   window.addEventListener('popstate', onChange);
-  return {
+  const loc: HashLocation = {
     get: store.get,
     subscribe: store.subscribe,
     navigate(path, options = {}) {
+      // The dashboard is the root (Java goToMainActivity: CLEAR_TOP): going there, pushed or
+      // replacing (the summary's Finish), drops the app's history, so the next back leaves the app
+      // instead of landing on a stale dashboard entry.
+      if (path === '/') {
+        loc.home();
+        return;
+      }
       if (path === store.get()) return;
       const url = `#${path}`;
       if (options.replace) window.history.replaceState({ kkDepth: depthOf() }, '', url);
@@ -134,6 +141,7 @@ export function createHashLocation(): HashLocation {
       window.removeEventListener('popstate', onChange);
     },
   };
+  return loc;
 }
 
 /** An in-memory location (tests, previews): same interface, no window. */
@@ -144,6 +152,11 @@ export function createMemoryLocation(initial = '/'): HashLocation {
     get: store.get,
     subscribe: store.subscribe,
     navigate(path, options = {}) {
+      if (path === '/') {
+        stack.splice(0, stack.length, '/');
+        store.set('/');
+        return;
+      }
       if (options.replace) stack[stack.length - 1] = path;
       else stack.push(path);
       store.set(path);

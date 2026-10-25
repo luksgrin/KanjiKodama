@@ -1,7 +1,7 @@
 {
   "name": "kanjikodama-web",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "engines": {
     "node": ">=22.18"
@@ -28,7 +28,6 @@
     "@capacitor/app": "8.1.2",
     "@capacitor/core": "8.5.3",
     "@capacitor/filesystem": "8.1.5",
-    "@capacitor/local-notifications": "8.3.1",
     "@capacitor/share": "8.0.3",
     "dexie": "4.4.6",
     "react": "19.3.1",

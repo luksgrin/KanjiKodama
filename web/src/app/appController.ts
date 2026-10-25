@@ -24,6 +24,7 @@ import { emptyProgress, exportProgress, type ProgressState } from '../core/progr
 import { applyOrdering, updateProgression, type LearnerDb } from '../core/progression';
 import type { Preferences, PreferenceValue } from '../core/settings';
 import type { Platform } from '../platform';
+import { isMuted } from './mute';
 import type { SessionHooks } from '../core/session';
 import type { EngineDeps, SyncEngine, SyncResult } from '../sync/engine';
 import type { TokenStore } from '../sync/store';
@@ -278,6 +279,10 @@ export function createAppController(deps: AppDeps): AppController {
 
   async function run(): Promise<void> {
     patch({ status: { kind: 'loading', step: 'storage' }, lastWriteError: null });
+    // The content (the largest start-up cost: fetch, sql.js, reading the subjects) starts first, in
+    // parallel with the platform and the database.
+    const contentP = deps.loadContent();
+    contentP.catch(() => undefined); // handled below, after the database
     let platform: Platform;
     try {
       platform = await resolvePlatform();
@@ -286,6 +291,12 @@ export function createAppController(deps: AppDeps): AppController {
       return;
     }
     patch({ platform });
+    // The toolbar's Mute (Java AudioUtil.playAudio returns early while muted).
+    if (platform.audio) {
+      const audio = platform.audio;
+      const play = audio.play.bind(audio);
+      audio.play = (id, pref, reading) => (isMuted(store.get().prefs) ? Promise.resolve(true) : play(id, pref, reading));
+    }
 
     const snapP = openDb().then(
       (snap) => {
@@ -293,8 +304,6 @@ export function createAppController(deps: AppDeps): AppController {
         return snap;
       },
     );
-    const contentP = deps.loadContent();
-    contentP.catch(() => undefined); // handled below, after the database
     // Persistent storage: in the background (may wait for a browser prompt).
     void snapP.then(() => ensurePersistence(platform.storage, kk, clock.now()))
       .then((persistence) => patch({ persistence }), () => undefined);
@@ -332,18 +341,23 @@ export function createAppController(deps: AppDeps): AppController {
         updateProgression(learner, clock.now());
         await persist(learner, 'auto', before);
       }
-      // Android audio: which subjects have which recordings (the item page, sessions, the audio screen).
-      if (platform.audio?.supported && content.db) {
-        try {
-          platform.audio.setCatalog(readAudioCatalog(content.db));
-        } catch {
-          // no audio data in this content file
-        }
-      }
       patch({ learner, prefs, lastSavedAt, mode: server ? 'server' : 'local', now: clock.now(), status: { kind: 'ready' } }, true);
     } catch (e) {
       fail(dbError(e));
       return;
+    }
+    // Android audio: which subjects have which recordings (the item page, sessions, the audio
+    // screen). Read right after the first frame instead of before it: ~7 000 JSON columns.
+    const audioDb = store.get().content?.db;
+    if (platform.audio?.supported && audioDb) {
+      const audio = platform.audio;
+      setTimeout(() => {
+        try {
+          audio.setCatalog(readAudioCatalog(audioDb));
+        } catch {
+          // no audio data in this content file
+        }
+      }, 0);
     }
     device.ready(platform);
   }

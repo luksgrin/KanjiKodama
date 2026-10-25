@@ -11,9 +11,11 @@ export {
   Headline,
   KanjiReadings,
   PartsOfSpeech,
+  SubjectCards,
   SubjectLinks,
   type DetailsProgress,
   type HeadlineProps,
+  type SubjectCardsProps,
   type SubjectLinksProps,
 } from './SubjectSections';
 export { StrokeDiagram, type StrokeDiagramProps } from './StrokeDiagram';
@@ -41,3 +43,7 @@ export {
   type StarRatings,
   type UseStarRatings,
 } from './starRatings';
+export { NotesDialog } from './NotesDialog';
+export { infoTitle, subjectTitle, simpleInfoTitle } from './subjectText';
+export { AudioButton } from './AudioButton';
+export { cardProgressText, shortWaitTime, useCardProgress } from './cardProgress';

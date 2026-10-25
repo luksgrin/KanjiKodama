@@ -11,6 +11,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <!-- Start-up: fetch the content manifest right away (src/app/contentLoader.ts); the build adds a
+         preload for the sql.js wasm next to it (vite.config.ts, preloadWasm). -->
+    <link rel="preload" href="./content/content-manifest.json" as="fetch" crossorigin="anonymous" />
     <title>KanjiKodama</title>
   </head>
   <body>

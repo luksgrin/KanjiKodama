@@ -21,10 +21,11 @@ import {
 } from '../../../core/levelTest';
 import { JavaRandom } from '../../../core/rng';
 import { useApp, useReady } from '../../hooks/useApp';
-import { useNavigate } from '../../hooks/useRoute';
+import { useLocation, useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 import { useSession } from '../../components/session/useSession';
-import { sessionPath } from '../../components/session/SessionScreen';
+import { SessionDialog } from '../../components/session/SessionDialog';
+import { DashboardScreen } from '../dashboard/DashboardScreen';
 import '../../components/session/session.css';
 
 export const SESSION_RUNNING = 'Finish or abandon your current lesson or review session first.';
@@ -37,12 +38,6 @@ export const TEST_INTRO = 'This test estimates how far your kanji knowledge reac
   + 'Nothing changes until you decide at the end.';
 
 export const UNFINISHED_ROUND = 'A round of the test was not finished. Start the test again?';
-
-interface Button {
-  label: string;
-  run(): void;
-  primary?: boolean;
-}
 
 /** `offerRound2`'s message. */
 export function round1Message(scores: ReturnType<typeof levelTestBlockScores>, boundary: number): string {
@@ -74,11 +69,21 @@ export function outcomeMessage(o: LevelTestOutcome, here: string | null): string
     + `${o.proven} kanji moved to Guru${o.moved ? `, and ${o.probation} items are on probation in your reviews.` : '.'}`;
 }
 
+interface Step {
+  title?: string;
+  message: string;
+  /** Java's negative, neutral and positive buttons. */
+  negative?: { label: string; run(): void };
+  neutral?: { label: string; run(): void };
+  positive?: { label: string; run(): void };
+}
+
 export function LevelTestScreen() {
   const app = useApp();
   const { learner, state } = useReady();
   const { rt, snap } = useSession();
   const navigate = useNavigate();
+  const location = useLocation();
   const [busy, setBusy] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const session = snap.session;
@@ -103,46 +108,39 @@ export function LevelTestScreen() {
   const discard = () => work('Discarding…', async () => {
     await app.write((db) => discardLevelTest(db));
   });
-  const later = () => navigate.back();
+  // The dialog closes over the dashboard (Java shows it there): back to it.
+  const close = () => location.home();
 
-  let title = 'Kanji level test';
-  let message: string;
-  let buttons: Button[];
-
+  let step: Step;
   if (state.mode === 'server') {
-    message = 'The level test is not available in server mode.';
-    buttons = [{ label: 'OK', run: later }];
+    step = { message: 'The level test is not available in server mode.', positive: { label: 'OK', run: close } };
   } else if (done !== null) {
-    message = done;
-    buttons = [{ label: 'OK', run: () => navigate(paths.dashboard(), { replace: true }), primary: true }];
+    step = { message: done, positive: { label: 'OK', run: close } };
   } else if (!snap.loaded || session === null) {
-    message = 'Checking…';
-    buttons = [];
+    step = { message: 'Checking…' };
   } else if (session.state !== 'INACTIVE') {
-    message = SESSION_RUNNING;
-    buttons = [{ label: 'OK', run: later }, { label: 'Resume', run: () => navigate(sessionPath(session.type)), primary: true }];
+    // sessionRunning: Busy.message(activity, null, SESSION_RUNNING).
+    step = { message: SESSION_RUNNING, positive: { label: 'OK', run: close } };
   } else {
     const status = levelTestStatus(learner);
     switch (status) {
-      case 'ROUND1_DONE': {
-        const scores = levelTestBlockScores(learner);
-        message = round1Message(scores, levelTestBoundaryBlock(learner));
-        buttons = [
-          { label: 'Later', run: () => { void app.write((db) => setLevelTestPrompted(db)); later(); } },
-          { label: 'Start over', run: () => void startRound(1) },
-          { label: 'Continue', run: () => void startRound(2), primary: true },
-        ];
+      case 'ROUND1_DONE':
+        step = {
+          title: 'Kanji level test',
+          message: round1Message(levelTestBlockScores(learner), levelTestBoundaryBlock(learner)),
+          negative: { label: 'Later', run: () => { void app.write((db) => setLevelTestPrompted(db)); close(); } },
+          neutral: { label: 'Start over', run: () => void startRound(1) },
+          positive: { label: 'Continue', run: () => void startRound(2) },
+        };
         break;
-      }
-      case 'ROUND2_DONE': {
-        title = 'Kanji level test result';
-        message = resultMessage(levelTestResult(learner), learner.progress.curriculum === 'JLPT');
-        buttons = [
-          { label: 'Later', run: () => { void app.write((db) => setLevelTestPrompted(db)); later(); } },
-          { label: 'Discard', run: () => void discard() },
-          {
+      case 'ROUND2_DONE':
+        step = {
+          title: 'Kanji level test result',
+          message: resultMessage(levelTestResult(learner), learner.progress.curriculum === 'JLPT'),
+          negative: { label: 'Later', run: () => { void app.write((db) => setLevelTestPrompted(db)); close(); } },
+          neutral: { label: 'Discard', run: () => void discard() },
+          positive: {
             label: 'Start there',
-            primary: true,
             run: () => void work('Setting things up…', async () => {
               if (rt.get().session?.state !== 'INACTIVE') return;
               const outcome = await app.write((db, now) => startAtResult(db, now));
@@ -150,37 +148,49 @@ export function LevelTestScreen() {
               setDone(outcomeMessage(outcome, describeLevel(l.ordering, l.blocks, outcome.level)));
             }),
           },
-        ];
+        };
         break;
-      }
       case 'ROUND1':
       case 'ROUND2':
-        message = UNFINISHED_ROUND;
-        buttons = [
-          { label: 'Cancel', run: later },
-          { label: 'Discard test', run: () => void discard() },
-          { label: 'Start again', run: () => void startRound(1), primary: true },
-        ];
+        step = {
+          title: 'Kanji level test',
+          message: UNFINISHED_ROUND,
+          negative: { label: 'Cancel', run: close },
+          neutral: { label: 'Discard test', run: () => void discard() },
+          positive: { label: 'Start again', run: () => void startRound(1) },
+        };
         break;
       default:
-        message = TEST_INTRO;
-        buttons = [
-          { label: 'Cancel', run: later },
-          { label: 'Start round 1', run: () => void startRound(1), primary: true },
-        ];
+        step = {
+          title: 'Kanji level test',
+          message: TEST_INTRO,
+          negative: { label: 'Cancel', run: close },
+          positive: { label: 'Start round 1', run: () => void startRound(1) },
+        };
     }
   }
 
+  // Busy.run: a message-only box that can't be cancelled while the work runs.
+  const shown: Step = busy !== null ? { message: busy } : step;
+  const noButtons = shown.negative === undefined && shown.positive === undefined;
   return (
-    <section className="kk-panel" data-testid="level-test">
-      <h2>{title}</h2>
-      <p className="kk-pre-line" data-testid="level-test-message">{busy ?? message}</p>
-      <div className="kk-btn-row">
-        {buttons.map((b) => (
-          <button key={b.label} type="button" className={`kk-btn small${b.primary ? '' : ' secondary'}`} disabled={busy !== null}
-            onClick={b.run}>{b.label}</button>
-        ))}
-      </div>
-    </section>
+    <div className="kk-level-test" data-testid="level-test">
+      <DashboardScreen />
+      <SessionDialog
+        open
+        title={shown.title}
+        message={shown.message}
+        testId="level-test-dialog"
+        noButtons={noButtons}
+        noLabel={shown.negative?.label ?? shown.positive?.label}
+        onNo={shown.negative?.run ?? shown.positive?.run ?? close}
+        neutralLabel={shown.neutral?.label}
+        onYesDontAsk={shown.neutral?.run}
+        yesLabel={shown.positive?.label}
+        onYes={shown.negative !== undefined ? shown.positive?.run : undefined}
+      >
+        <span hidden data-testid="level-test-message">{shown.message}</span>
+      </SessionDialog>
+    </div>
   );
 }

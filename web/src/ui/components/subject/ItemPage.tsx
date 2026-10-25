@@ -14,7 +14,7 @@
  * the `extras` slot (the subject screen fills it). Not ported: legacy radical names (no data), the image
  * titles of the 19 image-only radicals (the slug is shown).
  */
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import type { Database } from 'sql.js';
 import type { Content, ContentSubject } from '../../../core/content';
 import { parseMeaningSynonyms } from '../../../core/answer/synonyms';
@@ -36,7 +36,7 @@ import { findSrsSystem, srsSystemFromData } from '../../../core/srs';
 import { hasPitchInfo } from './pitchInfo';
 import { dbSoundLookup, soundComponentsHtml } from './soundComponents';
 import { StrokeDiagram } from './StrokeDiagram';
-import { StudyMaterialsEditor, SynonymsLine, type SaveStudyMaterial } from './StudyMaterials';
+import { SynonymsLine, type SaveStudyMaterial } from './StudyMaterials';
 import { readPitchInfo, readStrokeData, readSubjectTexts } from './subjectContent';
 import {
   ContextSentences,
@@ -89,8 +89,10 @@ export interface ItemPageProps {
   audio?: ReactNode;
   /** Open a linked subject (components, visually similar, used in). Without it the links are plain. */
   onOpenSubject?: (id: number) => void;
-  /** Save synonyms and notes; without it the page is read-only (no "+", no notes editor). */
+  /** Save synonyms ("+"); without it the page is read-only. Notes: `NotesDialog` from the "My notes..." menu item. */
   onSaveStudyMaterial?: SaveStudyMaterial;
+  /** The subject cards' progress line ("Guru I - 3h"; `useCardProgress`). */
+  cardProgress?: (subject: ContentSubject) => string | null;
   /** Below the details table (Java's Resurrect / Burn buttons): the subject screen's extras. */
   extras?: ReactNode;
 }
@@ -120,6 +122,7 @@ export function ItemPage({
   audio,
   onOpenSubject,
   onSaveStudyMaterial,
+  cardProgress,
   extras,
 }: ItemPageProps) {
   const { db } = content;
@@ -127,7 +130,6 @@ export function ItemPage({
   const highlight = highlightSubjectTags(settings);
   const katakana = showOnInKatakanaSetting(settings);
   const fontSize = fontSizeSubjectInfo(settings);
-  const [editing, setEditing] = useState(false);
 
   const texts = useMemo(() => readSubjectTexts(db, subject.id), [db, subject.id]);
   const strokes = useMemo(
@@ -167,6 +169,7 @@ export function ItemPage({
         showReading={v.readingRelated}
         showOnInKatakana={katakana}
         onOpenSubject={onOpenSubject}
+        progressOf={cardProgress}
       />
     ) : null;
   const similar = links('Visually similar:', subject.visuallySimilarSubjectIds);
@@ -262,24 +265,6 @@ export function ItemPage({
 
       {extras}
 
-      {onSaveStudyMaterial !== undefined && (
-        <section className="kk-subject-section kk-notes-editor">
-          {editing ? (
-            <StudyMaterialsEditor
-              subjectId={subject.id}
-              synonyms={synonyms}
-              meaningNote={meaningNote}
-              readingNote={readingNote}
-              onSave={onSaveStudyMaterial}
-              onDone={() => setEditing(false)}
-            />
-          ) : (
-            <button type="button" className="kk-btn small secondary" onClick={() => setEditing(true)}>
-              Edit notes and synonyms
-            </button>
-          )}
-        </section>
-      )}
     </article>
   );
 }

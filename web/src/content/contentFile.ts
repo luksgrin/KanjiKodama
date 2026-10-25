@@ -137,6 +137,8 @@ export interface LoadContentOptions {
   /** sql.js, initialised (the browser build needs its wasm URL; Node tests pass their own). */
   sql: () => Promise<SqlJsStatic>;
   fetch?: (url: string) => Promise<Response>;
+  /** Check the SHA-256 of the file (default true). The Android build skips it: the file comes from the APK, and hashing ~33 MB costs start-up time; the size is still checked. */
+  verifyHash?: boolean;
 }
 
 /** Fetches the manifest, then the hashed content file, checks size (and hash where possible), and reads it. */
@@ -144,6 +146,9 @@ export async function loadContentFile(options: LoadContentOptions): Promise<Load
   const doFetch = options.fetch ?? ((url: string) => fetch(url));
   const base = new URL(options.baseUrl);
   const manifestUrl = new URL(CONTENT_MANIFEST_FILE, base).href;
+  // sql.js (wasm compile) in parallel with the manifest and content downloads.
+  const sqlP = options.sql();
+  sqlP.catch(() => undefined);
   const res = await doFetch(manifestUrl);
   if (!res.ok) throw new Error(`content manifest fetch failed: HTTP ${res.status} at ${manifestUrl} (run "npm run content")`);
   const manifest = (await res.json()) as ContentManifest;
@@ -151,13 +156,13 @@ export async function loadContentFile(options: LoadContentOptions): Promise<Load
     throw new Error(`content schema ${manifest.schemaVersion} is not supported (expected ${CONTENT_SCHEMA_VERSION})`);
   }
   if (!/^content-[0-9a-f]+\.db$/.test(manifest.file)) throw new Error(`bad content file name in manifest: ${manifest.file}`);
-  const [SQL, dbRes] = await Promise.all([options.sql(), doFetch(new URL(manifest.file, base).href)]);
+  const [SQL, dbRes] = await Promise.all([sqlP, doFetch(new URL(manifest.file, base).href)]);
   if (!dbRes.ok) throw new Error(`content file fetch failed: HTTP ${dbRes.status} for ${manifest.file}`);
   const bytes = new Uint8Array(await dbRes.arrayBuffer());
   if (bytes.byteLength !== manifest.bytes) {
     throw new Error(`content file ${manifest.file} has ${bytes.byteLength} bytes, manifest says ${manifest.bytes}`);
   }
-  const hash = await sha256Hex(bytes);
+  const hash = options.verifyHash === false ? null : await sha256Hex(bytes);
   if (hash !== null && hash !== manifest.sha256) throw new Error(`content file ${manifest.file} does not match its manifest hash`);
   const db = new SQL.Database(bytes);
   try {

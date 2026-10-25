@@ -1,87 +1,109 @@
-/* Settings rows and the settings-area screens (curriculum, fast travel, import, about). Tokens only. */
+/*
+ * AndroidX preference rows (PreferenceFragmentCompat, KanjiKodama theme): full-width rows, 72 dp
+ * reserved icon space at the left, title 16 sp, summary 14 sp, category titles in the accent colour
+ * with a divider above, Material switches, the seek bar. Tokens only.
+ */
+.kk-settings { margin: calc(-1 * var(--main-gutter, var(--space-4))) calc(-1 * var(--main-gutter, var(--space-4))) 0; }
+.kk-settings > .kk-banner { margin: var(--space-2) var(--space-4); }
+.kk-prefs { list-style: none; margin: 0; padding: 0; }
 
-.kk-setting { flex-wrap: wrap; }
-.kk-setting.is-disabled .kk-row-title,
-.kk-setting.is-disabled .kk-row-sub { opacity: 0.55; }
-.kk-setting-heading {
-  font-size: var(--text-sm);
-  color: var(--color-text-toned);
-  margin: var(--space-3) 0 0;
-  padding-top: var(--space-2);
-  border-top: 2px solid var(--color-divider);
-}
-.kk-rows > li:first-child > .kk-setting-heading { border-top: 0; margin-top: 0; padding-top: 0; }
-.kk-setting-info { margin: var(--space-2) 0; }
-
-.kk-switch {
-  appearance: none;
-  flex: none;
-  width: 48px;
-  height: 28px;
-  margin: 0;
-  border: var(--border-pixel) solid var(--btn-outline);
-  border-radius: var(--radius-pill);
-  background: var(--color-divider);
-  position: relative;
-  cursor: pointer;
-}
-.kk-switch::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-surface);
-  transition: transform 120ms ease;
-}
-.kk-switch:checked { background: var(--color-accent); }
-.kk-switch:checked::after { transform: translateX(20px); }
-.kk-switch:disabled { cursor: default; opacity: 0.5; }
-.kk-switch:focus-visible, .kk-select:focus-visible, .kk-input:focus-visible, .kk-slider:focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.kk-select, .kk-input {
-  font: inherit;
-  font-size: var(--text-md);
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 2px solid var(--color-divider);
-  border-radius: var(--radius-sm);
-  padding: var(--space-1) var(--space-2);
-  min-height: 40px;
-  max-width: 100%;
-}
-.kk-select { flex: 1 1 100%; }
-.kk-select:disabled, .kk-input:disabled { opacity: 0.55; }
-.kk-input-number { width: 5.5em; text-align: right; }
-.kk-input-block { width: 100%; }
-.kk-slider { flex: 1 1 100%; accent-color: var(--color-accent); }
-.kk-range { display: inline-flex; align-items: center; gap: var(--space-2); }
-
-.kk-choice-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
-.kk-choice {
-  display: block;
+.kk-pref {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   width: 100%;
-  text-align: left;
+  min-height: 48px;
+  margin: 0;
+  padding: 16px 16px 16px 72px;
   font: inherit;
+  text-align: left;
   color: var(--color-text);
-  background: var(--color-bg);
-  border: var(--border-pixel) solid var(--color-divider);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   cursor: pointer;
 }
-.kk-choice[aria-checked="true"] { border-color: var(--color-accent); }
-.kk-choice:disabled { cursor: default; opacity: 0.6; }
-.kk-choice-title { display: block; font-family: var(--font-display); font-size: var(--text-sm); }
-.kk-choice-sub { display: block; font-size: var(--text-sm); color: var(--color-text-muted); }
+button.kk-pref:active { background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+button.kk-pref:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.kk-pref:disabled, .kk-pref.is-disabled { cursor: default; }
+.kk-pref:disabled .kk-pref-text, .kk-pref:disabled .kk-switch, .kk-pref.is-disabled .kk-pref-text { opacity: 0.38; }
+.kk-pref-text { flex: 1; min-width: 0; display: block; }
+.kk-pref-title { display: block; font-size: var(--text-md); line-height: 1.3; overflow-wrap: anywhere; }
+.kk-pref-summary { display: block; font-size: var(--text-sm); line-height: 1.35; color: var(--color-text-muted); overflow-wrap: anywhere; margin-top: 2px; }
+.kk-pref-info { cursor: default; }
+.kk-pref-page { padding: var(--space-4) 16px var(--space-4) 72px; }
 
-.kk-pre-line { white-space: pre-line; }
-.kk-about a { color: inherit; }
-.kk-about ul { margin: 0 0 var(--space-2); padding-left: 1.4em; }
-.kk-license { white-space: pre-wrap; font-size: var(--text-xs); max-height: 40vh; overflow: auto; background: var(--color-bg); padding: var(--space-2); border-radius: var(--radius-sm); }
+.kk-pref-category { border-top: 1px solid var(--color-divider); }
+.kk-pref-category-title {
+  margin: 0;
+  padding: 16px 16px 0 72px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-sm);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-accent);
+}
+
+/* Material switch (SwitchPreferenceCompat): 36×14 track, 20 dp thumb. */
+.kk-switch {
+  flex: none;
+  position: relative;
+  width: 36px;
+  height: 14px;
+  margin: 0 4px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--color-text) 30%, transparent);
+}
+.kk-switch-thumb {
+  position: absolute;
+  top: -3px;
+  left: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+.kk-switch.on { background: color-mix(in srgb, var(--color-accent) 50%, transparent); }
+.kk-switch.on .kk-switch-thumb { transform: translateX(24px); background: var(--color-accent); }
+
+/* SeekBarPreference: the bar under the title, the value at its right. */
+.kk-pref-seekbar { cursor: default; padding-bottom: 8px; }
+.kk-seekbar-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.kk-seekbar-value { flex: none; min-width: 3ch; text-align: right; font-size: var(--text-md); }
+.kk-seekbar {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.kk-seekbar::-webkit-slider-runnable-track { height: 2px; background: color-mix(in srgb, var(--color-accent) 40%, transparent); border-radius: 1px; }
+.kk-seekbar::-moz-range-track { height: 2px; background: color-mix(in srgb, var(--color-accent) 40%, transparent); border-radius: 1px; }
+.kk-seekbar::-moz-range-progress { height: 2px; background: var(--color-accent); }
+.kk-seekbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -9px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.kk-seekbar::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--color-accent); }
+.kk-seekbar:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.kk-seekbar:disabled { cursor: default; }
+
 .kk-install-steps { margin: 0 0 var(--space-2); padding-left: 1.4em; }
+.kk-limitations { margin: 0; padding-left: 1.4em; }
+.kk-limitations > li { margin-bottom: var(--space-2); }
+
+@media (max-width: 359px) {
+  .kk-pref, .kk-pref-category-title, .kk-pref-page { padding-left: 56px; }
+}

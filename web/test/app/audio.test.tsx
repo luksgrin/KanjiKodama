@@ -64,7 +64,7 @@ describe('audio screen', () => {
     expect(bracketLabel(b[1]!)).toBe('1/2 available');
   });
 
-  it('downloads a bracket with progress, aborts, deletes all, sets the voice', async () => {
+  it('downloads a bracket with progress, aborts, deletes all', async () => {
     const { api, finish } = fakeAudio();
     const { el, app } = await render({ audioDownload: true, audioPlayback: true, audio: true }, api);
     expect(el.textContent).toContain('You can download vocabulary audio here');
@@ -84,9 +84,8 @@ describe('audio screen', () => {
     await act(async () => [...el.querySelectorAll('button')].find((b) => b.textContent === 'Yes')!.click());
     await flush();
     expect(api.deleteAll).toHaveBeenCalled();
-    await act(async () => [...el.querySelectorAll('button')].find((b) => b.textContent === 'Masculine')!.click());
-    await flush();
-    expect(app.get().prefs.voice_preference).toBe('MALE');
+    // The voice preference is in Settings → Audio settings, as in Java.
+    expect(el.textContent).not.toContain('Masculine');
     finish();
     app.dispose();
   });

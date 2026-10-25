@@ -114,7 +114,7 @@ describe('server screen, local mode', () => {
     await type(el, 'server-url', `${BASE}/v2/`);
     await type(el, 'server-token', 'tok');
     await click($(el, 'server-connect'));
-    expect(el.querySelector('[data-testid="dialog-confirm-server"] .kk-dialog-body')?.textContent)
+    expect(el.querySelector('[data-testid="dialog-confirm-server"] .kk-alert-body')?.textContent)
       .toContain('Connected to kk.example.test as kodama, level 2.');
     await click(button(el, 'Save first'));
     expect(platform.files.saveText).toHaveBeenCalled();

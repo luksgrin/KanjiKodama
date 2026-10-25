@@ -26,6 +26,7 @@ import { downloadForLocal, switchToLocal, switchToServer } from '../../../sync/m
 import { ServerStore } from '../../../sync/store';
 import { Panel } from '../../components/Panel';
 import { useApp, useReady } from '../../hooks/useApp';
+import { useToolbar } from '../../shell/toolbar';
 import { ChoiceDialog } from './ChoiceDialog';
 import './server.css';
 
@@ -75,6 +76,7 @@ export function ServerScreen() {
   const { state } = useReady();
   // Kept across the switch: the message of a mode switch shows in the other mode's view (Java's toast).
   const [note, setNote] = useState<Note>(null);
+  useToolbar({ title: 'Server connection' });
   return state.mode === 'server' ? <ServerModeView note={note} setNote={setNote} /> : <ConnectView note={note} setNote={setNote} />;
 }
 

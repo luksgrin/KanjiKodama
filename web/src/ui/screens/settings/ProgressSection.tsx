@@ -1,89 +1,99 @@
 /**
- * Settings → Progress: save the progress file (picker / share sheet) and restore one (pick, show the
- * summary, confirm, replace), like `ProgressPreferences`. Restore is local mode only (`LocalMode.LOCAL_PREFERENCES`).
+ * Settings → the "Progress" category (`preferences.xml` + `local/ProgressPreferences`): Server
+ * connection, Curriculum order, Kanji level test, Fast travel, Save progress to a file, Restore
+ * progress from a file, Import progress from WaniKani, with the Java summaries; the local-only rows
+ * are hidden in server mode (`LocalMode.LOCAL_PREFERENCES`).
+ *
+ * Save: the picker / share sheet, then "Progress saved.". Restore: pick, "Override local progress?"
+ * with the file's summary and the override warning (Cancel / Restore and override), "Restoring
+ * progress…", then "Progress restored, level N.".
  */
-import { useState } from 'react';
-import type { OpenedProgressFile } from '../../../app/appController';
+import { useEffect, useState } from 'react';
 import { dateTime } from '../../../app/format';
-import { ProgressImportError } from '../../../progress/importFile';
-import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { Panel } from '../../components/Panel';
+import { serverPreferenceSummary } from '../../../core/server';
+import { ServerStore } from '../../../sync/store';
 import { useApp, useReady } from '../../hooks/useApp';
+import { useNavigate } from '../../hooks/useRoute';
+import { paths } from '../../routes';
+import { curriculumSummary } from '../curriculum/curriculumFlow';
+import { OVERRIDE_WARNING } from '../import/importFlow';
+import { errorMessage } from './progressFlow';
+import { PrefCategory, PrefRow } from './SettingRows';
+import type { Alerts } from './useAlerts';
 
-type Status = { kind: 'ok' | 'error'; text: string } | null;
+export type Flow = (onDone?: () => void) => void;
 
-const message = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+export const SAVE_SUMMARY = 'Save a copy of your progress, for example to Google Drive (choose Drive in the file picker)';
+export const RESTORE_SUMMARY = 'Replace local progress with a saved copy';
 
-export function ProgressSection() {
+export function ProgressCategory({ alerts, flows }: { alerts: Alerts; flows: { curriculum: Flow; fastTravel: Flow; import: Flow } }) {
   const app = useApp();
-  const { state, platform } = useReady();
-  const [status, setStatus] = useState<Status>(null);
-  const [pending, setPending] = useState<OpenedProgressFile | null>(null);
-  const [busy, setBusy] = useState(false);
+  const nav = useNavigate();
+  const { state, learner } = useReady();
+  const local = state.mode !== 'server';
+  const [baseUrl, setBaseUrl] = useState('');
+  useEffect(() => {
+    if (local) return;
+    let live = true;
+    new ServerStore(app.db).baseUrl().then((b) => { if (live) setBaseUrl(b ?? ''); }, () => undefined);
+    return () => { live = false; };
+  }, [app, local]);
 
   // Called straight from the tap: saveProgress builds the text synchronously (iOS user activation).
   const save = () => {
-    setStatus(null);
     app.saveProgress().then(
-      (r) => setStatus(r.result === 'saved' ? { kind: 'ok', text: `Saved ${r.name}.` } : null),
-      (e: unknown) => setStatus({ kind: 'error', text: `Save failed: ${message(e)}` }),
+      (r) => { if (r.result === 'saved') alerts.message(null, 'Progress saved.'); },
+      (e: unknown) => alerts.message('Something went wrong', errorMessage(e)),
     );
   };
 
-  const pick = async () => {
-    setStatus(null);
-    try {
-      const opened = await app.openProgressFile();
-      if (opened) setPending(opened);
-    } catch (e) {
-      setStatus({ kind: 'error', text: e instanceof ProgressImportError ? e.message : `Could not open the file: ${message(e)}` });
-    }
-  };
-
   const restore = async () => {
-    if (!pending) return;
-    setBusy(true);
+    let opened;
     try {
-      const msg = await app.restoreProgress(pending.text);
-      setStatus({ kind: 'ok', text: msg });
+      opened = await app.openProgressFile();
     } catch (e) {
-      setStatus({ kind: 'error', text: `Restore failed, nothing changed: ${message(e)}` });
-    } finally {
-      setBusy(false);
-      setPending(null);
+      alerts.message('Something went wrong', errorMessage(e));
+      return;
     }
+    if (!opened) return;
+    const text = opened.text;
+    alerts.show({
+      title: 'Override local progress?',
+      message: `${opened.summary}\n\n${OVERRIDE_WARNING}`,
+      testId: 'dialog-restore',
+      onCancel: alerts.close,
+      negative: { label: 'Cancel', onClick: alerts.close },
+      positive: {
+        label: 'Restore and override',
+        onClick: () => void (async () => {
+          const msg = await alerts.run('Restoring progress…', () => app.restoreProgress(text));
+          if (msg !== undefined) alerts.message(null, msg);
+        })(),
+      },
+    });
   };
 
-  const lastSaved = state.lastSavedAt === null ? 'Never saved to a file.' : `Last saved ${dateTime(state.lastSavedAt)}.`;
+  const saveSummary = `${SAVE_SUMMARY}${state.lastSavedAt === null ? '' : `. Last saved ${dateTime(state.lastSavedAt)}.`}`;
   return (
-    <Panel title="Progress" labelledBy="settings-progress">
-      <p className="kk-small kk-muted" data-testid="last-saved">
-        {lastSaved}
-        {platform.capabilities.autoBackup && ' An automatic backup is also kept after each session.'}
-      </p>
-      <div className="kk-btn-row">
-        <button type="button" className="kk-btn" onClick={save}>Save progress</button>
-        {state.mode !== 'server' && (
-          <button type="button" className="kk-btn secondary" onClick={() => void pick()}>Restore progress</button>
-        )}
-      </div>
-      {status && (
-        <p role="status" className={`kk-small ${status.kind === 'error' ? 'kk-error-text' : ''}`} data-testid="progress-status">
-          {status.text}
-        </p>
+    <PrefCategory title="Progress" testId="category-progress">
+      <PrefRow title="Server connection" summary={serverPreferenceSummary(!local, baseUrl)} testId="link-server" onClick={() => nav(paths.server())} />
+      {local && (
+        <>
+          <PrefRow title="Curriculum order" summary={curriculumSummary(learner.progress.curriculum)} testId="link-curriculum" onClick={() => flows.curriculum()} />
+          <PrefRow title="Kanji level test" summary="Two short quizzes estimate your JLPT kanji level; then you can start there" testId="link-level-test"
+            onClick={() => nav(paths.levelTest())} />
+          <PrefRow title="Fast travel" summary="JLPT order only: jump up to 5 levels ahead and prove what you already know" testId="link-fast-travel"
+            onClick={() => flows.fastTravel()} />
+        </>
       )}
-      <ConfirmDialog
-        open={pending !== null}
-        title="Restore progress?"
-        confirmLabel="Restore"
-        danger
-        busy={busy}
-        onConfirm={() => void restore()}
-        onCancel={() => setPending(null)}
-      >
-        <p>{pending?.summary}</p>
-        <p className="kk-small">This replaces all progress on this device. Save your current progress first if you may want it back.</p>
-      </ConfirmDialog>
-    </Panel>
+      <PrefRow title="Save progress to a file" summary={saveSummary} testId="progress-save" onClick={save} />
+      {local && (
+        <>
+          <PrefRow title="Restore progress from a file" summary={RESTORE_SUMMARY} testId="progress-restore" onClick={() => void restore()} />
+          <PrefRow title="Import progress from WaniKani" summary="Replace local progress with your WaniKani account's progress, using an API token"
+            testId="link-import" onClick={() => flows.import()} />
+        </>
+      )}
+    </PrefCategory>
   );
 }

@@ -574,10 +574,8 @@ export class SessionRuntime {
   // --- ending ----------------------------------------------------------------------------------
 
   wrapUp(): Promise<void> {
-    return this.act((s) => {
-      s.wrapup();
-      this.toast('info', 'Session wrapping up...');
-    });
+    // The "Session wrapping up..." toast is the menu's (an Android toast, `AbstractActivity`).
+    return this.act((s) => s.wrapup());
   }
 
   /** Abandon (`Session.finish` from the menu). */

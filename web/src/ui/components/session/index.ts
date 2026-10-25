@@ -15,5 +15,6 @@ export { QuestionView, questionHint, questionTitle, titleFor } from './QuestionV
 export { Quiz, RichTextView } from './Quiz';
 export { SessionDialog, type SessionDialogProps } from './SessionDialog';
 export { SessionItemInfo } from './SessionItemInfo';
-export { SessionMenu, abandonMessage, wrapupMessage } from './SessionMenu';
+export { useSessionMenu, abandonMessage, wrapupMessage, type SessionMenu } from './SessionMenu';
+export { SessionLog, sessionLogGroups, questionStatus, setSessionLogOpen, useSessionLogOpen, SESSION_LOG_TUTORIAL } from './SessionLog';
 export { SESSION_PROPERTIES_KEY, fromSessionRecords, loadSession, saveSession, sessionRecords, type SessionMeta } from './sessionStorage';

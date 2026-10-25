@@ -1,103 +1,169 @@
-/* Dashboard panels. Tokens only (ui/theme/README.md). */
+/* Dashboard (activity_main.xml). dp = CSS px; tokens from ui/theme. */
 
-.kk-sessions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
+.kk-dashboard { display: flex; flex-direction: column; }
+.kk-dashboard > * + * { margin-top: 8px; }
+
+/* LevelDurationView / UpcomingReviewsView: WK.TextView.Normal, centred. */
+.kk-level-duration,
+.kk-upcoming p {
+  margin: 0;
+  font-size: 16px;
+  text-align: center;
+  color: var(--color-text);
 }
-.kk-session {
-  appearance: none;
+.kk-dashboard > .kk-upcoming { margin-top: 2px; }
+
+/* AvailableSessionsView: labels Large (20sp), counts XLarge (34sp), baselines aligned, spread evenly. */
+.kk-available {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 112px;
-  border: var(--border-pixel) solid var(--btn-outline);
-  border-radius: var(--radius-md);
-  box-shadow: inset 0 -6px 0 var(--seg-shade), 0 4px 0 var(--btn-outline);
-  margin-bottom: 4px;
-  color: var(--color-on-subject);
-  cursor: pointer;
+  justify-content: space-evenly;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  color: var(--color-text);
 }
-.kk-session.lessons { background: var(--color-radical); --seg-shade: var(--color-radical-strong); }
-.kk-session.reviews { background: var(--color-kanji); --seg-shade: var(--color-kanji-strong); }
-.kk-session:active:not(:disabled) { transform: translateY(3px); box-shadow: inset 0 -3px 0 var(--seg-shade), 0 1px 0 var(--btn-outline); }
-.kk-session:disabled { opacity: 0.6; cursor: default; filter: saturate(0.5); }
-.kk-session-count { font-family: var(--font-display); font-weight: 700; font-size: var(--text-xxl); line-height: 1.1; }
-.kk-session-label { font-family: var(--font-display); font-size: var(--text-sm); letter-spacing: 0.08em; text-transform: uppercase; }
+.kk-dashboard > .kk-available { margin-top: 4px; }
+.kk-available-item { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.kk-available-label { font-size: 20px; }
+.kk-available-count { font-size: 34px; line-height: 1.1; }
+.kk-available-count.small { font-size: 30px; }
 
-.kk-upcoming { margin: 0 0 var(--space-4); text-align: center; }
-.kk-upcoming p { margin: 0 0 var(--space-1); }
+/* SessionButtonsView: one centred row, 10dp side margins, 8dp above/below. */
+.kk-session-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 12px; margin: 8px 0; }
+/* Both buttons on one row as in Java's LinearLayout, down to ~360px; narrower phones wrap. */
+.kk-session-buttons > .kk-btn { padding-left: 14px; padding-right: 14px; white-space: nowrap; }
+.kk-dashboard > .kk-session-buttons { margin-top: 12px; }
+
+/* main_activity_view_background: window fill, 3dp ink outline, 14dp corners, hard 4/6dp shadow. */
+.kk-dash-panel {
+  background: var(--color-surface);
+  border: var(--border-pixel) solid var(--btn-outline);
+  border-radius: 14px;
+  box-shadow: 4px 6px 0 var(--color-shadow);
+  padding: 5px 6px 6px;
+  margin-right: 4px;
+  margin-bottom: 6px;
+  color: var(--color-text);
+}
 
 /* Timeline */
-.kk-timeline-scroll { overflow-x: auto; margin: 0 calc(-1 * var(--space-2)); padding: 0 var(--space-2); }
-.kk-timeline-bars { display: flex; align-items: stretch; gap: 2px; height: 150px; }
-.kk-timeline-col { flex: 1 1 0; min-width: 10px; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; position: relative; }
-.kk-timeline-levelup { height: 14px; font-size: 10px; line-height: 14px; text-align: center; color: var(--color-level-up); font-family: var(--font-display); }
-.kk-timeline-bar { display: flex; flex-direction: column-reverse; min-height: 0; border-radius: 2px 2px 0 0; overflow: hidden; }
-.kk-timeline-col::after { content: ''; display: block; height: 2px; background: var(--color-divider); }
-.kk-timeline-label {
-  order: 3;
-  height: 16px;
-  font-size: 10px;
-  line-height: 16px;
-  white-space: nowrap;
-  color: var(--color-text-toned);
-  overflow: visible;
-}
-.kk-timeline .seg, .kk-timeline .swatch { display: block; }
-.kk-timeline .seg { min-height: 2px; }
-.seg.radical, .swatch.radical { background: var(--color-radical-strong); }
-.seg.kanji, .swatch.kanji { background: var(--color-kanji-strong); }
-.seg.vocabulary, .swatch.vocabulary { background: var(--color-vocab-strong); }
-.kk-legend { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); align-items: center; }
-.kk-legend span { display: inline-flex; align-items: center; gap: var(--space-1); }
-.kk-legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
+.kk-dash-panel.kk-timeline { padding: 0; overflow: hidden; }
+.kk-timeline svg { display: block; font-family: var(--font-body); }
+.kk-timeline svg.scrollable { touch-action: pan-y; cursor: grab; }
+.kk-tl-line { stroke: var(--color-text); stroke-width: 1; shape-rendering: crispEdges; }
+.kk-tl-text { fill: var(--color-text); }
+.kk-tl-levelup { fill: var(--color-level-up); }
+.kk-tl-waterfall { stroke: #D80088; stroke-width: 1; fill: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .kk-tl-waterfall { stroke: #1D99F3; } }
+:root[data-theme='dark'] .kk-tl-waterfall { stroke: #1D99F3; }
 
-/* Level progress */
-.kk-level + .kk-level { margin-top: var(--space-3); }
-.kk-level-title { font-size: var(--text-sm); display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-2); }
-.kk-level-block {
-  font-family: var(--font-body);
-  font-weight: 400;
-  font-size: var(--text-xs);
-  letter-spacing: 0;
-  background: var(--color-chip);
-  color: var(--color-text);
-  border-radius: var(--radius-pill);
-  padding: 0 var(--space-2);
+/* SRS breakdown: 3 + 2 tiles of 84dp. */
+.kk-dash-panel.kk-srs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 5px 5px 5px;
 }
-.kk-lp-row { display: grid; grid-template-columns: 8.5em 1fr auto; gap: var(--space-2); align-items: center; margin-bottom: var(--space-1); font-size: var(--text-sm); }
-.kk-lp-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kk-lp-count { font-size: var(--text-xs); color: var(--color-text-muted); min-width: 3.5em; text-align: right; }
-.kk-lp-bar { position: relative; display: flex; height: 16px; border: 2px solid var(--btn-outline); border-radius: var(--radius-sm); overflow: hidden; background: var(--color-lp-9); }
-.kk-lp-bar > span { display: block; min-width: 2px; }
-.kk-lp-target { position: absolute; top: -2px; bottom: -2px; width: 3px; margin-left: -1px; background: var(--color-target); }
-.lp-0 { background: var(--color-lp-0); } .lp-1 { background: var(--color-lp-1); } .lp-2 { background: var(--color-lp-2); }
-.lp-3 { background: var(--color-lp-3); } .lp-4 { background: var(--color-lp-4); } .lp-5 { background: var(--color-lp-5); }
-.lp-6 { background: var(--color-lp-6); } .lp-7 { background: var(--color-lp-7); } .lp-8 { background: var(--color-lp-8); }
-.lp-9 { background: var(--color-lp-9); }
-
-/* SRS breakdown */
-.kk-srs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-2); }
 .kk-srs-tile {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 64px; padding: var(--space-1);
-  border: 2px solid var(--btn-outline); border-radius: var(--radius-sm);
+  appearance: none;
+  position: relative;
+  height: 84px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--color-on-pastel);
+  font: inherit;
+  cursor: pointer;
+  min-width: 0;
+}
+.kk-srs-name {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.kk-srs-count {
+  display: block;
+  font-size: 34px;
+  line-height: 84px;
+  text-align: center;
+  text-shadow: 1px 1px 3px #000;
   color: var(--color-on-pastel);
 }
-.kk-srs-count { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); line-height: 1.1; }
-.kk-srs-name { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .kk-srs-tile.apprentice { background: var(--color-stage-apprentice); }
 .kk-srs-tile.guru { background: var(--color-stage-guru); }
 .kk-srs-tile.master { background: var(--color-stage-master); }
 .kk-srs-tile.enlightened { background: var(--color-stage-enlightened); }
 .kk-srs-tile.burned { background: var(--color-stage-burned); }
-@media (max-width: 360px) {
-  .kk-srs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .kk-lp-row { grid-template-columns: 7em 1fr auto; }
-}
+/* Below ~300px a tile can't hold "Enlightened" at 13px beside the 12dp margin: shrink the margin. */
+@media (max-width: 340px) { .kk-srs-name { left: 6px; font-size: 12px; } }
 
-/* SessionButtonsView's resume row */
-.kk-resume-row { display: flex; justify-content: center; margin: 0 0 var(--space-4); }
+/* Level progression: tile background, bar left (24dp), label right (Small 14sp). */
+.kk-lp { background: var(--color-surface); padding: 2px 0 4px; color: var(--color-text); }
+.kk-lp-title { font-weight: 700; font-size: 16px; text-align: center; padding: 2px; }
+.kk-lp-row {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  /* 24dp bar rows 4dp apart as in Java; the tap area reaches 8px above and below (rows overlap). */
+  margin-top: -12px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.kk-lp-bar { position: relative; flex: 1 1 auto; display: flex; height: 24px; margin-left: 8px; min-width: 0; }
+.kk-lp-bar > span { display: block; min-width: 1px; }
+.kk-lp-target { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--color-target); }
+.kk-lp-label { flex: 0 0 auto; margin: 0 8px 0 6px; font-size: 14px; white-space: nowrap; }
+.kk-lp-title + .kk-lp-row { margin-top: -4px; }
+.kk-lp-row + .kk-lp-legend { margin-top: -4px; }
+.kk-lp-legend { display: flex; flex-wrap: wrap; align-items: center; font-size: 13px; row-gap: 2px; }
+.kk-lp-legend i { display: inline-block; width: 8px; height: 8px; }
+.kk-lp-legend i.first { margin: 0 4px 0 8px; }
+.kk-lp-legend i.gap { margin-left: 4px; }
+.kk-lp-legend i.end { margin-right: 4px; }
+.lp-0 { background: var(--color-lp-0); } .lp-1 { background: var(--color-lp-1); } .lp-2 { background: var(--color-lp-2); }
+.lp-3 { background: var(--color-lp-3); } .lp-4 { background: var(--color-lp-4); } .lp-5 { background: var(--color-lp-5); }
+.lp-6 { background: var(--color-lp-6); } .lp-7 { background: var(--color-lp-7); } .lp-8 { background: var(--color-lp-8); }
+.lp-9 { background: var(--color-lp-9); }
+
+/* Live subject tables (recent unlocks, critical, burned). */
+.kk-subject-table-title { margin: 0; padding: 4px; text-align: center; font-weight: 700; font-family: var(--font-body); text-transform: none; color: var(--color-text); }
+.kk-subject-row {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 4px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--color-on-subject);
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-shadow: 1px 1px 3px #000;
+  min-height: 40px;
+}
+.kk-subject-row.radical { background: var(--color-radical); }
+.kk-subject-row.kanji { background: var(--color-kanji); }
+.kk-subject-row.vocabulary, .kk-subject-row.kana_vocabulary { background: var(--color-vocab); }
+.kk-subject-row-text { flex: 1 1 auto; text-align: left; font-family: var(--font-ja); min-width: 0; overflow-wrap: anywhere; }
+.kk-subject-row-extra { flex: 0 0 auto; margin-left: 8px; text-align: right; }
+
+/* JLPT / Joyo / lesson-review breakdown tables. */
+.kk-stage-table { display: table; width: calc(100% - 4px); border-collapse: separate; border-spacing: 0 2px; font-size: 16px; }
+.kk-stage-table caption { font-weight: 700; text-align: center; padding: 4px; caption-side: top; }
+.kk-stage-table th { font-weight: 700; padding: 0 4px; text-align: center; }
+.kk-stage-table td { padding: 0 4px; text-align: center; }
+.kk-stage-table td:first-child { text-align: left; width: 100%; }
+.kk-lr-breakdown .radical { background: var(--color-radical); color: var(--color-on-subject); }
+.kk-lr-breakdown .kanji { background: var(--color-kanji); color: var(--color-on-subject); }
+.kk-lr-breakdown .vocabulary { background: var(--color-vocab); color: var(--color-on-subject); }
+
+/* PWA banners after the session buttons. */
+.kk-dashboard > .kk-banner { margin-bottom: 0; }

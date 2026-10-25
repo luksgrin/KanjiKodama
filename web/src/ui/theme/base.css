@@ -14,8 +14,8 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: var(--text-md);
-  line-height: 1.4;
+  font-size: var(--text-md); /* WK.TextView.Normal 16sp */
+  line-height: 1.2; /* TextView default spacing for Pixelify Sans */
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
 }
@@ -25,14 +25,16 @@ body {
   font-weight: 500;
 }
 
+/* Java headings are the body font in bold (WK.TextView.*.Bold); Silkscreen is only on the
+   toolbar, buttons and the quiz header. */
 h1, h2, h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 700;
-  letter-spacing: 0.04em;
   margin: 0;
 }
 
-a { color: var(--color-text-muted); }
+/* textColorLink = colorAccent */
+a { color: var(--color-accent); }
 
 button { font: inherit; color: inherit; }
 
@@ -56,34 +58,137 @@ button { font: inherit; color: inherit; }
   flex-direction: column;
 }
 
-.kk-topbar {
+/* Toolbar: androidx Toolbar, ?attr/actionBarSize 56dp, WKToolbarTheme (Silkscreen, white on
+   toolbarColorBackground; the subject colour with its text colour in sessions / item pages),
+   elevation 4dp; white title and icons also on the subject colours. The status bar above it has
+   the same colour (padding-top = the inset). */
+.kk-toolbar {
+  --tb-bg: var(--color-toolbar-bg);
+  --tb-fg: var(--color-toolbar-fg);
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--color-toolbar-bg);
-  color: var(--color-toolbar-fg);
-  padding: var(--safe-top) calc(var(--safe-right) + var(--space-2)) 0 calc(var(--safe-left) + var(--space-2));
+  background: var(--tb-bg);
+  color: var(--tb-fg);
+  padding: var(--safe-top) var(--safe-right) 0 var(--safe-left);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
 }
-
-.kk-topbar-inner {
-  height: var(--topbar-height);
-  max-width: var(--content-max-width);
-  margin: 0 auto;
+.kk-toolbar-inner {
+  height: var(--toolbar-height);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  position: relative;
 }
-
-.kk-topbar h1 {
-  font-size: var(--text-lg);
+.kk-toolbar-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+.kk-toolbar-btn:active:not(:disabled) { background: color-mix(in srgb, currentColor 20%, transparent); }
+.kk-toolbar-btn:disabled { opacity: 0.4; cursor: default; }
+.kk-toolbar-btn svg { width: 24px; height: 24px; }
+.kk-toolbar-inner > .kk-toolbar-btn:first-child { width: 56px; height: 56px; }
+.kk-toolbar-title {
   flex: 1;
   min-width: 0;
+  padding-left: 16px; /* contentInsetStartWithNavigation 72dp = 56dp button + 16dp */
+}
+.kk-toolbar-title.no-back { padding-left: 16px; }
+.kk-toolbar-title h1 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-left: var(--space-2);
 }
+.kk-toolbar-subtitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kk-toolbar-overflow { flex: none; position: relative; }
+.kk-toolbar-overflow > .kk-toolbar-btn { width: 40px; }
+.kk-toolbar-search { flex: 1; min-width: 0; display: flex; align-items: center; padding-right: 4px; }
+.kk-toolbar-search input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  border-bottom: 2px solid color-mix(in srgb, currentColor 60%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  padding: 0 4px;
+  outline: none;
+}
+.kk-toolbar-search input::placeholder { color: inherit; opacity: 0.6; }
+.kk-toolbar-search input::-webkit-search-cancel-button { display: none; }
 
+/* Overflow popup: ThemeOverlay.AppCompat.Dark popup as the Java app draws it (#303030, 48dp rows,
+   16sp white Silkscreen from WKToolbarTheme, 8dp elevation), overlapping its anchor 4dp from the
+   top right. */
+.kk-toolbar-menu {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 20;
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  min-width: 168px;
+  max-width: calc(100vw - 8px);
+  max-height: calc(100dvh - var(--safe-top) - 16px);
+  overflow-y: auto;
+  background: #303030;
+  color: #FFFFFF;
+  border-radius: 2px;
+  box-shadow: 0 5px 5px -3px rgb(0 0 0 / 0.2), 0 8px 10px 1px rgb(0 0 0 / 0.14), 0 3px 14px 2px rgb(0 0 0 / 0.12);
+  transform-origin: top right;
+  animation: kk-menu-in 120ms ease-out;
+}
+.kk-toolbar-menu button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.kk-toolbar-menu button > span:first-child { flex: 1; }
+.kk-toolbar-menu button:active:not(:disabled) { background: rgb(255 255 255 / 0.12); }
+.kk-toolbar-menu button:disabled { opacity: 0.4; cursor: default; }
+.kk-menu-check { width: 18px; height: 18px; border: 2px solid #FFFFFF; border-radius: 2px; }
+.kk-menu-check.on { background: #FFFFFF; box-shadow: inset 0 0 0 3px #303030; }
+@keyframes kk-menu-in { from { opacity: 0; transform: scale(0.9); } }
+
+/* Generic round icon button (dialogs, banners). */
 .kk-icon-btn {
   appearance: none;
   border: 0;
@@ -104,50 +209,46 @@ button { font: inherit; color: inherit; }
   width: 100%;
   max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: var(--space-4) calc(var(--safe-right) + var(--space-4)) calc(var(--bottomnav-height) + var(--safe-bottom) + var(--space-5)) calc(var(--safe-left) + var(--space-4));
+  /* The Java layouts' 8dp margins. */
+  padding: var(--main-gutter) calc(var(--safe-right) + var(--main-gutter)) calc(var(--safe-bottom) + var(--space-4)) calc(var(--safe-left) + var(--main-gutter));
 }
-.kk-shell.no-nav .kk-main { padding-bottom: calc(var(--safe-bottom) + var(--space-5)); }
 
-.kk-bottomnav {
+/* Screen transitions (a short Android activity open/close slide). */
+.kk-main.kk-enter-forward { animation: kk-enter-forward 160ms cubic-bezier(0, 0, 0.2, 1); }
+.kk-main.kk-enter-back { animation: kk-enter-back 160ms cubic-bezier(0, 0, 0.2, 1); }
+@keyframes kk-enter-forward { from { opacity: 0; transform: translateX(32px); } }
+@keyframes kk-enter-back { from { opacity: 0; transform: translateX(-32px); } }
+
+/* Session fragment transitions (enums/FragmentTransitionAnimation, res/anim/{rtl,ltr}_enter.xml:
+   full-width slide, 150 ms, decelerate). Put the class on the entering element. */
+.kk-slide-rtl { animation: kk-slide-rtl 150ms cubic-bezier(0, 0, 0.2, 1); }
+.kk-slide-ltr { animation: kk-slide-ltr 150ms cubic-bezier(0, 0, 0.2, 1); }
+@keyframes kk-slide-rtl { from { transform: translateX(100%); } }
+@keyframes kk-slide-ltr { from { transform: translateX(-100%); } }
+
+/* Toast (shell/toast.ts): the Android 12+ text toast, a rounded box 64dp above the bottom. */
+.kk-toast {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 10;
-  background: var(--color-surface);
-  border-top: var(--border-pixel) solid var(--color-divider);
-  padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 64px);
+  z-index: 1000;
+  transform: translateX(-50%);
+  max-width: min(360px, calc(100vw - 48px));
+  width: max-content;
+  padding: 12px 16px;
+  border-radius: 24px;
+  background: var(--color-toast-bg);
+  color: var(--color-toast-fg);
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  pointer-events: none;
+  animation: kk-toast-in 150ms ease-out;
 }
-.kk-bottomnav ul {
-  list-style: none;
-  margin: 0 auto;
-  padding: 0;
-  max-width: var(--content-max-width);
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  height: var(--bottomnav-height);
-}
-.kk-bottomnav a {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  text-decoration: none;
-  color: var(--color-text-toned);
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-.kk-bottomnav a svg { width: 24px; height: 24px; }
-.kk-bottomnav a[aria-current="page"] { color: var(--color-text); }
-.kk-bottomnav a[aria-current="page"] svg {
-  background: var(--btn-fill);
-  border-radius: var(--radius-pill);
-  padding: 2px 10px;
-  width: 44px;
-  color: var(--btn-text);
-}
+.kk-toast.kk-toast-out { opacity: 0; transition: opacity 250ms ease-in; }
+@keyframes kk-toast-in { from { opacity: 0; } }
 
 /* ---- Buttons: the Java app's mm_btn pixel pill ---- */
 
@@ -192,7 +293,8 @@ button { font: inherit; color: inherit; }
 .kk-btn:disabled { cursor: default; opacity: 0.55; }
 .kk-btn.small { min-height: 40px; padding: 2px 16px 7px; font-size: 13px; }
 .kk-btn.block { display: flex; width: 100%; }
-.kk-btn.secondary { --btn-text: var(--btn-secondary-text); --btn-fill: var(--color-surface); --btn-light: var(--kk-mint-hi); --btn-shade: var(--color-divider); }
+/* Java has one button style (res/drawable/mm_btn.xml): secondary looks the same. */
+.kk-btn.secondary { --btn-text: var(--btn-secondary-text); }
 .kk-btn.danger { --btn-text: var(--color-on-subject); --btn-fill: var(--color-kanji); --btn-light: #FADDE6; --btn-shade: var(--color-kanji-strong); }
 .kk-btn.radical { --btn-text: var(--color-on-subject); --btn-fill: var(--color-radical); --btn-light: #D6E8F8; --btn-shade: var(--color-radical-strong); }
 .kk-btn.kanji { --btn-text: var(--color-on-subject); --btn-fill: var(--color-kanji); --btn-light: #FADDE6; --btn-shade: var(--color-kanji-strong); }
@@ -214,10 +316,9 @@ button { font: inherit; color: inherit; }
   margin-bottom: var(--space-4);
 }
 .kk-panel > h2 {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  margin-bottom: var(--space-3);
+  font-size: var(--text-md);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
 }
 .kk-panel p { margin: 0 0 var(--space-2); }
 .kk-panel p:last-child { margin-bottom: 0; }
@@ -304,3 +405,18 @@ a.kk-row { color: inherit; text-decoration: none; }
 .kk-error-text { color: var(--color-bad-text); }
 .kk-limitations { margin: 0; padding-left: 1.4em; }
 .kk-limitations li + li { margin-top: var(--space-2); }
+
+/* Shared form helpers (settings, self-study presets, session dialogs). */
+.kk-pre-line { white-space: pre-line; }
+.kk-select, .kk-input {
+  font: inherit;
+  font-size: var(--text-md);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 2px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  min-height: 40px;
+  max-width: 100%;
+}
+.kk-input-block { width: 100%; }

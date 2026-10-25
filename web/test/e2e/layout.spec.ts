@@ -14,8 +14,12 @@ test('main screens', async ({ page }, info) => {
 
   await checkScreen(page, info, 'L01-dashboard', { strict: true });
   await checkScreen(page, info, 'L01-dashboard-full', { strict: true, fullPage: true });
+  // START sits above the fold on every phone, banners (install hint, backup reminder) come after it.
+  const start = await page.getByTestId('start-reviews').boundingBox();
+  expect(start, 'START REVIEWS').not.toBeNull();
+  expect(start!.y + start!.height, 'START REVIEWS above the fold').toBeLessThanOrEqual(page.viewportSize()!.height);
 
-  await page.getByRole('button', { name: /Reviews: \d+ available/ }).click();
+  await page.getByTestId('start-reviews').click();
   await expect(quiz(page)).toHaveAttribute('data-answered', 'false');
   await checkQuickActions(page, 'review quiz', keyboardTopFor(info));
   const row = await page.getByTestId('quick-actions').boundingBox();
@@ -25,10 +29,18 @@ test('main screens', async ({ page }, info) => {
   await checkQuickActions(page, 'review quiz answered', keyboardTopFor(info));
   await checkScreen(page, info, 'L03-quiz-answered', { strict: true });
   await checkScreen(page, info, 'L03-quiz-answered-full', { strict: true, fullPage: true });
-  await page.getByTestId('session-menu').click();
+  await page.getByTestId('toolbar-overflow').click();
+  await expect(page.getByTestId('menu-session_log')).toBeVisible();
   await checkScreen(page, info, 'L04-session-menu', { strict: true });
-  await page.getByTestId('menu-wrapup').click();
-  await page.getByRole('dialog').getByRole('button', { name: /^Yes$/ }).click().catch(() => undefined);
+  await page.getByTestId('menu-session_log').click();
+  await expect(page.getByTestId('session-log')).toBeVisible();
+  await checkScreen(page, info, 'L04-session-log', { strict: true });
+  await page.getByTestId('toolbar-back').click();
+  await expect(quiz(page)).toBeVisible();
+  await page.getByTestId('toolbar-overflow').click();
+  await page.getByTestId('menu-wrapup_session').click();
+  await checkScreen(page, info, 'L04-wrapup-dialog', { strict: true });
+  await page.getByTestId('wrapup-dialog').getByRole('button', { name: /^Yes$/ }).click().catch(() => undefined);
 
   await openApp(page, '/');
   await tab(page, 'Browse');
@@ -48,11 +60,13 @@ test('main screens', async ({ page }, info) => {
   await tab(page, 'Settings');
   await checkScreen(page, info, 'L09-settings', { strict: true });
   await checkScreen(page, info, 'L09-settings-full', { strict: true, fullPage: true });
-  await openApp(page, '/settings/advanced');
-  await checkScreen(page, info, 'L10-advanced', { strict: true });
+  await openApp(page, '/settings?screen=subject_info_settings');
+  await checkScreen(page, info, 'L10-settings-subject-info-full', { strict: true, fullPage: true });
   await openApp(page, '/settings/about');
   await checkScreen(page, info, 'L11-about-full', { strict: true, fullPage: true });
   await openApp(page, '/settings/level-test');
+  // Java: an AlertDialog over the dashboard (the wrapped-up session above still runs: "Finish or abandon…").
+  await expect(page.getByTestId('level-test-dialog')).toBeVisible();
   await checkScreen(page, info, 'L12-level-test', { strict: true });
   await openApp(page, '/settings/fast-travel');
   await checkScreen(page, info, 'L13-fast-travel', { strict: true });

@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
  *
  * Skipped while the app is in the foreground (it syncs itself on resume) and more than once in the
  * same hour (Java's lastBackgroundSync top-of-hour check). Notifications are rescheduled by the app
- * on its next resume/pause (the local-notifications plugin needs the bridge).
+ * on its next resume/pause (ReviewNotifications takes the plan from the app's JS).
  */
 public final class BackgroundSyncWorker extends Worker {
     private static final String TAG = "KKBackgroundSync";

@@ -7,15 +7,26 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '../../../core/session';
 import { autoplayLessonPresentation, infoDumpFlags, infoDumpNextStage, infoDumpRevealLabel, infoDumpShowReveal, lessonInfoDump } from '../../../core/settings/sessionUi';
+import { contentSubject, tableRow } from '../../../core/progression';
 import { useReady } from '../../hooks/useApp';
+import { useToolbar } from '../../shell/toolbar';
 import { SessionItemInfo } from '../../components/session/SessionItemInfo';
-import { SessionMenu } from '../../components/session/SessionMenu';
+import { useSessionMenu } from '../../components/session/SessionMenu';
+import { infoTitle } from '../../components/subject/subjectText';
 import { SessionScreen } from '../../components/session/SessionScreen';
 import type { SessionRuntime } from '../../components/session/runtime';
 
 function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Session }) {
-  const { state } = useReady();
+  const { learner, state } = useReady();
   const item = session.currentItem;
+  const subject = item === null ? null : contentSubject(learner, item.id);
+  const menu = useSessionMenu(rt, session, item?.id ?? null);
+  // Toolbar: "一 (level 1 radical)" in the subject's colour (LessonSessionFragment.getToolbarTitle).
+  useToolbar({
+    title: subject === null ? '' : infoTitle(subject, tableRow(learner, subject.id).level),
+    color: subject?.object ?? 'default',
+    actions: menu.actions,
+  });
   const [dump, setDump] = useState(() => lessonInfoDump(state.prefs));
   const [busy, setBusy] = useState(false);
   const itemId = item?.id ?? 0;
@@ -34,15 +45,17 @@ function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Sess
   };
   return (
     <section className="kk-lesson" aria-label="Lesson">
+      {/* fragment_lesson.xml: Previous (gone on the first item) | space | n/m | space | Next. */}
       <div className="kk-lesson-nav">
-        {index > 0
-          ? <button type="button" className="kk-btn secondary" disabled={busy} data-testid="lesson-previous" onClick={() => run(() => rt.presentationPrevious())}>Previous</button>
-          : <span className="kk-btn-placeholder" style={{ flex: '1 1 0' }} />}
+        {index > 0 && (
+          <button type="button" className="kk-btn" disabled={busy} data-testid="lesson-previous" onClick={() => run(() => rt.presentationPrevious())}>Previous</button>
+        )}
+        <span className="kk-lesson-space" />
         <span className="kk-lesson-progress" data-testid="session-progress">{`${index + 1}/${session.items.length}`}</span>
+        <span className="kk-lesson-space" />
         <button type="button" className="kk-btn" disabled={busy} data-testid="lesson-next" onClick={() => run(() => rt.presentationNext())}>
           {last ? 'Start quiz' : 'Next'}
         </button>
-        <SessionMenu rt={rt} session={session} />
       </div>
       <SessionItemInfo
         key={item.id}
@@ -51,6 +64,7 @@ function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Sess
         revealLabel={infoDumpShowReveal(dump) ? infoDumpRevealLabel(dump) : null}
         onReveal={() => setDump(infoDumpNextStage(dump))}
       />
+      {menu.dialogs}
     </section>
   );
 }

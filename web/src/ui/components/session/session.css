@@ -1,22 +1,24 @@
 /*
- * Session screens. Static layout (no visualViewport code): question view, type banner, answer field and
- * the quick-action row come first, in normal flow, with heights that keep the row above the keyboard on
- * the smallest target (iPhone SE with the keyboard open, about 375×410 visible; small Android phones from
- * 320 px wide). The question view shrinks with the small viewport height (svh: the keyboard never changes
- * it, so the layout doesn't jump) and the glyph shrinks with the width and the length of the text.
+ * Session screens (fragment_unanswered_question.xml, fragment_answered_question.xml). Static layout (no
+ * visualViewport code): question view, type banner, answer field and the quick-action row come first, in
+ * normal flow. Java gives the question view layout_weight 1, so it shrinks when the keyboard opens; here
+ * its height comes from the small viewport height (svh: the keyboard never changes it, so nothing jumps):
+ * 100svh minus the toolbar (56), banner (~34), field (~48) and row (~60) and a keyboard allowance, so the
+ * row's bottom stays at ≤ 300 px on a 320×568 phone (keyboard ~260 px) and ≤ 410 px on the iPhone SE.
  * Tokens only (theme/README.md).
  */
 
 .kk-quiz {
   /* Edge to edge inside .kk-main, like the Java fragments. */
-  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) 0;
+  margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) 0;
   display: flex;
   flex-direction: column;
+  --kk-qv-height: clamp(88px, min(calc(100svh - 474px), 34svh), 260px);
 }
 
 .kk-quiz-question {
   position: relative;
-  height: clamp(96px, 22svh, 220px);
+  height: var(--kk-qv-height);
   display: grid;
   grid-template-rows: auto 1fr auto;
   background: var(--color-kanji);
@@ -28,97 +30,116 @@
 .kk-quiz-question.kk-type--vocabulary,
 .kk-quiz-question.kk-type--kana_vocabulary { background: var(--color-vocab); }
 
+/* progress / srsIndicator: 20 sp WK.TextView.Normal.Light (Silkscreen), 8 dp from the left, 4 dp from the top. */
 .kk-quiz-top,
 .kk-quiz-bottom {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
-  min-height: 32px;
-  padding: 0 var(--space-2);
-  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-2) 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.2;
 }
-.kk-quiz-progress { font-family: var(--font-display); }
-.kk-quiz-srs { flex: 1; text-align: center; }
-.kk-quiz-spacer { flex: 1; }
+.kk-quiz-bottom { align-items: flex-end; padding: 0 0 0; min-height: 0; }
+.kk-quiz-progress { flex: none; }
+.kk-quiz-srs {
+  position: absolute;
+  left: 50%;
+  top: var(--space-1);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.kk-quiz-top .kk-quiz-special.s1 { margin-left: auto; }
 
 .kk-quiz-glyph {
   align-self: center;
   justify-self: center;
   max-width: 100%;
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-1);
   font-family: var(--font-ja);
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
-  /* max_font_size_quiz_text 104 sp; fits the width for long words and the height on short screens. */
-  font-size: min(104px, calc((100vw - 32px) / var(--len, 1)), 12svh, calc((var(--content-max-width) - 32px) / var(--len, 1)));
+  /* max_font_size_quiz_text 104; fits the width (Java: screen width - 10 dp, - 140 dp with the answer
+     toast) for long words and the question view's height on short screens. */
+  font-size: min(104px, calc((100vw - 16px) / var(--len, 1)), calc((var(--content-max-width) - 16px) / var(--len, 1)), calc(var(--kk-qv-height) - 48px));
+}
+.kk-quiz-question.with-mark .kk-quiz-glyph {
+  font-size: min(104px, calc((100vw - 140px) / var(--len, 1)), calc((var(--content-max-width) - 140px) / var(--len, 1)), calc(var(--kk-qv-height) - 48px));
 }
 
-.kk-quiz-special,
-.kk-quiz-menu-btn {
+/* Special buttons: WK.Button.Borderless.Light (Silkscreen, transparent), 8 dp margin; ≥ 40 px tap target. */
+.kk-quiz-special {
   appearance: none;
   border: 0;
-  background: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  background: transparent;
   color: inherit;
   border-radius: var(--radius-sm);
-  min-height: 32px;
-  min-width: 44px;
+  min-height: 40px;
+  min-width: 48px;
+  margin: 0;
   padding: 0 var(--space-2);
   font-family: var(--font-display);
-  font-size: var(--text-xs);
+  font-size: 18px;
+  text-transform: uppercase;
   cursor: pointer;
 }
-.kk-quiz-menu { position: relative; }
-.kk-quiz-menu-list {
+.kk-quiz-special:active { background: color-mix(in srgb, currentColor 14%, transparent); }
+.kk-quiz-top .kk-quiz-special { margin-top: calc(-1 * var(--space-1)); }
+.kk-quiz-bottom .kk-quiz-special { margin: 0 0 var(--space-1) var(--space-1); }
+
+/* The answered screen's check mark / cross (toastAnimation: 64 dp, 12 dp from the right, centred). */
+.kk-quiz-mark {
   position: absolute;
-  right: 0;
-  bottom: 36px;
-  z-index: 5;
-  margin: 0;
-  padding: var(--space-1) 0;
-  list-style: none;
-  min-width: 220px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: var(--border-pixel) solid var(--btn-outline);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 0 var(--color-shadow);
+  right: 12px;
+  top: 50%;
+  width: 64px;
+  height: 64px;
+  margin-top: -32px;
+  display: grid;
+  place-items: center;
+  font-size: 48px;
+  line-height: 1;
+  pointer-events: none;
+  animation: kk-mark 1.4s ease-out forwards;
 }
-.kk-quiz-menu-list button {
-  appearance: none;
-  border: 0;
-  background: none;
-  color: inherit;
-  width: 100%;
-  text-align: left;
-  padding: var(--space-2) var(--space-3);
-  min-height: 44px;
-  font: inherit;
-  cursor: pointer;
+.kk-quiz-mark.ok { color: var(--color-ok); }
+.kk-quiz-mark.bad { color: var(--color-bad); }
+@keyframes kk-mark {
+  0% { transform: scale(0.3); opacity: 0; }
+  25% { transform: scale(1.15); opacity: 1; }
+  40% { transform: scale(1); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
 }
 
+/* levelUpToastText / closeToastText / alternativesToastText (WK.TextView.CustomToast, 20 sp). */
 .kk-quiz-toasts {
   position: absolute;
-  top: 34px;
-  left: var(--space-2);
-  right: var(--space-2);
+  top: 1px;
+  left: var(--space-1);
+  right: var(--space-1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
+  gap: 1px;
   pointer-events: none;
 }
 .kk-quiz-toast {
   max-width: 100%;
-  padding: 2px var(--space-3);
-  border-radius: var(--radius-pill);
+  padding: 2px var(--space-4) var(--space-1);
+  border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: 0 2px 0 var(--color-shadow);
-  font-size: var(--text-sm);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  font-size: 20px;
   animation: kk-toast-fade 2.75s ease-in forwards;
 }
+.kk-quiz-toast.alternatives { margin-top: 74px; }
 .kk-quiz-toast.close { animation-duration: 5s; }
 @keyframes kk-toast-fade {
   0% { opacity: 0; }
@@ -127,54 +148,66 @@
   100% { opacity: 0; }
 }
 
+/* questionType: 22 sp, 4 dp vertical padding, centred, elevation 4 dp; hint colours. */
 .kk-quiz-type {
+  position: relative;
   padding: 4px var(--space-2);
   text-align: center;
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  letter-spacing: 0.06em;
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 1.2;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .kk-quiz-type.meaning { background: var(--color-q-meaning-bg); color: var(--color-q-meaning-fg); }
 .kk-quiz-type.reading { background: var(--color-q-reading-bg); color: var(--color-q-reading-fg); }
 
+/* questionEdit: a centred, underlined EditText (22 sp, minEms 10); after answering a full-width band in
+   the answer colour with the centred answer (the answered fragment's TextView). */
 .kk-quiz-answer {
   position: relative;
-  padding: var(--space-2) var(--space-4) 0;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-1) var(--space-2) 0;
 }
-.kk-answer-form { margin: 0; }
+.kk-answer-form { margin: 0; width: min(100%, 264px); }
 .kk-answer {
+  display: block;
   width: 100%;
-  min-height: 48px;
-  padding: var(--space-2) var(--space-3);
-  border: var(--border-pixel) solid var(--btn-outline);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  min-height: 44px;
+  padding: 6px 4px 6px;
+  border: 0;
+  border-bottom: 2px solid var(--color-accent);
+  border-radius: 0;
+  background: transparent;
   color: var(--color-text);
-  /* 22 sp (font_size_question_edit); 16 px minimum keeps iOS from zooming into the field. */
+  /* 22 sp (font_size_question_edit); ≥ 16 px keeps iOS from zooming into the field. */
   font-size: 22px;
+  line-height: 1.25;
   font-family: var(--font-body);
 }
+.kk-answer::placeholder { color: var(--color-text-muted); opacity: 0.75; }
 .kk-answer.kana { font-family: var(--font-ja); }
 .kk-answer.centered { text-align: center; }
-.kk-answer:focus { outline: 3px solid var(--color-accent); outline-offset: 1px; }
-.kk-quiz-answer.correct .kk-answer { background: var(--color-answer-correct); }
-.kk-quiz-answer.incorrect .kk-answer { background: var(--color-answer-incorrect); }
-.kk-quiz-mark {
-  position: absolute;
-  right: calc(var(--space-4) + var(--space-3));
-  top: calc(var(--space-2) + 8px);
-  font-size: 24px;
-  animation: kk-mark 1.2s ease-out forwards;
+.kk-answer:focus { outline: none; border-bottom-color: var(--color-accent); border-bottom-width: 3px; padding-bottom: 5px; }
+.kk-answer:focus-visible { outline: none; }
+.kk-quiz-answer.correct,
+.kk-quiz-answer.incorrect { padding: 0; }
+.kk-quiz-answer.correct { background: var(--color-answer-correct); }
+.kk-quiz-answer.incorrect { background: var(--color-answer-incorrect); }
+.kk-quiz-answer.correct .kk-answer-form,
+.kk-quiz-answer.incorrect .kk-answer-form { width: 100%; }
+.kk-quiz-answer.correct .kk-answer,
+.kk-quiz-answer.incorrect .kk-answer {
+  border: 0;
+  padding: 4px var(--space-2);
+  min-height: 40px;
+  text-align: center;
 }
-.kk-quiz-mark.ok { color: var(--color-ok); }
-.kk-quiz-mark.bad { color: var(--color-bad); }
-@keyframes kk-mark {
-  0% { transform: scale(0.4); opacity: 0; }
-  30% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.kk-quiz-answer.shake-0 .kk-answer { animation: kk-shake-a 1s linear; }
-.kk-quiz-answer.shake-1 .kk-answer { animation: kk-shake-b 1s linear; }
+.kk-quiz-answer.shake-0 .kk-answer-form { animation: kk-shake-a 1s linear; }
+.kk-quiz-answer.shake-1 .kk-answer-form { animation: kk-shake-b 1s linear; }
 @keyframes kk-shake-a {
   0%, 14%, 28%, 42%, 57%, 71%, 85%, 100% { transform: translateX(0); }
   7%, 35%, 64%, 92% { transform: translateX(10px); }
@@ -186,35 +219,44 @@
   21%, 50%, 78% { transform: translateX(-10px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kk-quiz-answer.shake-0 .kk-answer, .kk-quiz-answer.shake-1 .kk-answer { animation-duration: 0.3s; }
+  .kk-quiz-answer.shake-0 .kk-answer-form, .kk-quiz-answer.shake-1 .kk-answer-form { animation-duration: 0.3s; }
 }
 
-/* The quick-action row: Don't know | Submit (or Next), directly under the field. */
+/* The quick-action row (quickActionRow: 8 dp sides, 4 dp vertical, two equal halves 8 dp apart):
+   Don't know | Submit directly under the field, Next in Submit's half after answering. */
 .kk-quiz-actions {
   display: flex;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4) 0;
+  padding: var(--space-1) var(--space-2);
 }
-.kk-quiz-actions > .kk-btn {
+.kk-quiz-actions > .kk-btn,
+.kk-quiz-actions > .kk-quiz-actions-space {
   flex: 1 1 0;
   min-width: 0;
+}
+.kk-quiz-actions > .kk-btn {
   min-height: 48px;
   padding-left: 8px;
   padding-right: 8px;
   white-space: nowrap;
-  /* One line from 320 px wide. */
-  font-size: clamp(12px, 3.6vw, 15px);
+  /* 18 sp, one line from 320 px wide. */
+  font-size: clamp(13px, 4.2vw, 18px);
   letter-spacing: 0.04em;
 }
-.kk-quiz-actions.bottom { padding-top: var(--space-4); }
+.kk-quiz-actions.bottom { padding-top: var(--space-2); }
 
+/* closeMessageText / digraphMatchText: WK.TextView.CustomToast in a rounded box, 20 sp. */
 .kk-quiz-message {
-  margin: var(--space-2) var(--space-4) 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  align-self: center;
+  margin: var(--space-1) var(--space-2) 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  font-size: 20px;
+  color: var(--color-text);
 }
-.kk-quiz-info { padding: var(--space-3) var(--space-4) 0; }
-.kk-quiz-reveal { display: flex; justify-content: flex-end; margin-bottom: var(--space-2); }
+.kk-quiz-info { padding: var(--space-2) var(--space-2) 0; }
 
 /* Anki mode (ActiveTheme ankiColors). */
 .kk-btn.kk-anki { --btn-text: var(--color-anki-text); --btn-light: color-mix(in srgb, white 35%, var(--btn-fill)); --btn-shade: color-mix(in srgb, black 25%, var(--btn-fill)); }
@@ -232,36 +274,128 @@
   white-space: pre-line;
 }
 
-/* Lesson presentation (fragment_lesson.xml): Previous | n/m | Next on top, the item below. */
+/* Lesson presentation (fragment_lesson.xml): Previous | space | n/m | space | Next at the top (4 dp
+   margins), the subject info below with 8 dp padding. */
+.kk-lesson { margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) 0; }
 .kk-lesson-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin: var(--space-1) var(--space-1) 0;
 }
-.kk-lesson-nav > .kk-btn { flex: 1 1 0; min-width: 0; }
-.kk-lesson-nav .kk-lesson-progress { font-family: var(--font-display); min-width: 3.5em; text-align: center; }
+.kk-lesson-nav > .kk-btn { flex: none; min-height: 48px; }
+.kk-lesson-space { flex: 1 1 0; }
+.kk-lesson-nav .kk-lesson-progress { font-family: var(--font-body); font-size: 16px; text-align: center; }
+.kk-lesson .kk-quiz-info { padding: var(--space-2); }
 
-/* Summary */
-.kk-summary-table { width: 100%; border-collapse: collapse; }
-.kk-summary-table td { padding: 2px 0; }
-.kk-summary-table td:last-child { text-align: right; font-family: var(--font-display); }
-.kk-summary-grid { display: flex; flex-wrap: wrap; gap: var(--space-1); }
-.kk-summary-chip {
+/* Session log (fragment_session_log.xml, session_log_header.xml, session_log_item.xml). */
+.kk-session-log { margin: 0; }
+.kk-tutorial {
+  margin-bottom: 12px;
+  padding: var(--space-2) var(--space-2) 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-warn-bg);
+  color: var(--color-text);
+}
+.kk-tutorial p { margin: 0; }
+.kk-tutorial-dismiss {
   appearance: none;
   border: 0;
-  border-radius: var(--radius-sm);
-  min-width: 40px;
-  min-height: 40px;
-  padding: 2px var(--space-2);
-  font-family: var(--font-ja);
-  font-size: var(--text-lg);
-  color: var(--color-on-subject);
+  background: transparent;
+  color: inherit;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: 16px;
+  text-transform: uppercase;
   cursor: pointer;
 }
-.kk-summary-chip.kk-type--radical { background: var(--color-radical); }
-.kk-summary-chip.kk-type--kanji { background: var(--color-kanji); }
-.kk-summary-chip.kk-type--vocabulary, .kk-summary-chip.kk-type--kana_vocabulary { background: var(--color-vocab); }
+.kk-log-header {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  margin: 2px 0;
+  padding: 6px var(--space-2) 6px var(--space-2);
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.kk-log-arrow {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid var(--color-text);
+}
+.kk-log-arrow.collapsed { border-top: 0; border-bottom: 7px solid var(--color-text); }
+.kk-log-title { margin-left: var(--space-4); font-size: clamp(19px, 6.5vw, 26px); line-height: 1.15; min-width: 0; }
+.kk-log-details { flex: 1 0 auto; margin: 0 var(--space-2) 0 var(--space-4); text-align: end; white-space: nowrap; }
+.kk-log-list { list-style: none; margin: 0; padding: 0; }
+.kk-log-item {
+  margin: 2px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  color: var(--color-on-subject);
+}
+.kk-log-row {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 44px;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+button.kk-log-row { cursor: pointer; }
+.kk-log-chars { flex: none; margin-left: 4px; font-family: var(--font-ja); font-size: 24px; }
+.kk-log-unknown { margin-left: 12px; font-family: var(--font-body); font-weight: 700; font-size: 26px; }
+.kk-log-status { flex: 1; display: flex; flex-direction: column; align-items: flex-end; text-align: end; font-size: 14px; }
+
+/* Java AlertDialog look (SessionDialog, NotesDialog): title in the body font with the warning icon,
+   flat text buttons in one row (neutral left, negative and positive right). */
+.kk-sdialog { padding: 20px 24px 8px; border: 0; border-radius: 2px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.32); }
+.kk-sdialog-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.kk-sdialog-icon { flex: none; }
+.kk-sdialog-message { margin: 0 0 var(--space-4); font-size: 16px; }
+.kk-sdialog-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 var(--space-2); margin: 0 -16px; }
+.kk-sdialog-spacer { display: none; }
+.kk-sdialog-btn.neutral { margin-right: auto; }
+.kk-sdialog-btn {
+  min-width: 64px;
+  appearance: none;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--color-ok);
+  font-family: var(--font-display);
+  font-size: 15px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kk-sdialog-btn:disabled { opacity: 0.5; cursor: default; }
+.kk-sdialog-btn:active { background: color-mix(in srgb, currentColor 12%, transparent); }
 
 .kk-pre-line { white-space: pre-line; }
 .kk-dialog-actions-3 { flex-wrap: wrap; }
@@ -272,3 +406,26 @@
 .kk-num-pair { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
 .kk-num-pair input { width: 6em; min-height: 40px; font-size: 16px; padding: 0 var(--space-2); border: 2px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); }
 
+
+/* Summary (fragment_summary.xml): 8 dp padding; Show items · Finish at the top right; the correct /
+   incorrect TableLayouts in correctColorBackground / incorrectColorBackground, 16 dp apart. */
+.kk-summary { margin: 0; }
+.kk-summary-buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0 var(--space-1); }
+.kk-summary-buttons > .kk-btn { min-height: 48px; padding-left: 16px; padding-right: 16px; }
+.kk-summary-progress { display: block; width: 100%; margin-top: var(--space-1); }
+.kk-summary-table { width: 100%; margin-top: var(--space-4); border-collapse: collapse; font-size: 16px; }
+.kk-summary-table.correct { background: var(--color-answer-correct); }
+.kk-summary-table.incorrect { background: var(--color-answer-incorrect); }
+.kk-summary-table th { width: 1%; padding: 2px 0 2px 4px; font-weight: 400; text-align: right; white-space: nowrap; }
+.kk-summary-table td { padding: 2px 4px 2px 2px; text-align: left; }
+.kk-summary-resurrect { margin-top: var(--space-4); }
+.kk-summary-header { margin: var(--space-4) 0 var(--space-1); font-family: var(--font-body); font-size: 16px; font-weight: 700; letter-spacing: normal; text-transform: none; color: var(--color-text); }
+.kk-summary-stars { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
+.kk-summary-stars select { min-height: 40px; font-size: 16px; }
+.kk-summary-progress-section { margin-top: var(--space-4); }
+
+/* Self-study start (activity_self_study_start.xml). */
+.kk-self-study-header { margin: var(--space-2) 0 var(--space-1); font-family: var(--font-body); font-size: 20px; font-weight: 400; letter-spacing: normal; text-transform: none; color: var(--color-text); }
+.kk-self-study-presets { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-1); }
+.kk-self-study-presets > .kk-btn { min-height: 48px; }
+.kk-self-study-divider { border: 0; border-top: 1px solid var(--color-divider); margin: var(--space-2) 0; }

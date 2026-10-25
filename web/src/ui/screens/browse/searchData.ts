@@ -206,15 +206,13 @@ export function searchDescription(type: SearchType, data: string): string {
   return 'Advanced search';
 }
 
-/** `Subject.getSrsStage` as the cards and headers show it (`SearchSortOrder.searchStage`: Locked when not unlocked). */
-export function stageOfSearchSubject(s: SearchSubject, systems: readonly SrsSystem[]): SrsStage {
-  const system = findSrsSystem(systems, s.srsSystemId);
-  return s.unlockedAt === 0 ? system.lockedStage : system.getStage(s.srsStage);
-}
-
-/** Theme token suffix for a stage (`--color-stage-*`), by `findGeneralStageBucket`. */
-export function stageColorName(stage: SrsStage): string {
-  return ['locked', 'initial', 'apprentice', 'guru', 'master', 'enlightened', 'burned'][stage.findGeneralStageBucket()] ?? 'locked';
+/**
+ * The stage a result card shows: `Subject.getSrsStage`, the stored stage (`SubjectCardBinder.bindNormal`).
+ * In local mode a subject that isn't unlocked yet keeps stage 0, so it shows "Initiate" as in Java;
+ * only the WaniKani sync's -999 is Locked (no progress line).
+ */
+export function cardStage(s: SearchSubject, systems: readonly SrsSystem[]): SrsStage {
+  return findSrsSystem(systems, s.srsSystemId).getStage(s.srsStage);
 }
 
 /** `ObjectSupport.getShortWaitTimeAsInformalString`: now, 12m, 5h, 3d (rounded). */

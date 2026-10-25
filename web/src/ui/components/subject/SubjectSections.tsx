@@ -137,51 +137,86 @@ export interface SubjectLinksProps {
   content: Content;
   /** `SubjectGridView` shows readings only with the reading-related info. */
   showReading?: boolean;
+  /** Meanings only with the meaning-related info (default true). */
+  showMeaning?: boolean;
   showOnInKatakana?: boolean;
   onOpenSubject?: (id: number) => void;
   /** The level to show per subject (current curriculum); omitted: no level. */
   levelOf?: (subject: ContentSubject) => number;
+  /** The card's progress line ("Guru I - 3h", `useCardProgress`); omitted or null: none. */
+  progressOf?: (subject: ContentSubject) => string | null;
+  testId?: string;
 }
 
-/** A header and a grid of linked subjects (characters, meaning, reading), in the given id order; unknown ids are skipped. */
-export function SubjectLinks({ header, ids, content, showReading = true, showOnInKatakana = false, onOpenSubject, levelOf }: SubjectLinksProps) {
+/**
+ * A header and a grid of subject cards (`SubjectGridView` with `subject_card_*.xml`): radicals and kanji
+ * one column each (floor((width + 10) / 90) columns), vocabulary a full-width row (three columns from six);
+ * each card in the subject's colour with the characters, one meaning (shrunk to fit one line, 9–14 sp), one
+ * reading and the progress line. In the given id order; unknown ids are skipped.
+ */
+export function SubjectLinks({
+  header, ids, content, showReading = true, showMeaning = true, showOnInKatakana = false, onOpenSubject, levelOf, progressOf, testId,
+}: SubjectLinksProps) {
   const subjects = ids.map((id) => content.byId.get(id)).filter((s): s is ContentSubject => s !== undefined);
   if (subjects.length === 0) return null;
   return (
-    <section className="kk-subject-section kk-links">
-      <h3 className="kk-subject-section-header">{header}</h3>
-      <ul className="kk-link-grid">
-        {subjects.map((s) => {
-          const body = (
-            <>
-              <span className="kk-link-chars kk-ja" lang="ja">
-                {subjectTitle(s)}
-              </span>
-              <span className="kk-link-meaning">{oneMeaning(s)}</span>
-              {showReading && s.readings.length > 0 && (
-                <span className="kk-link-reading kk-ja" lang="ja">
-                  {oneReading(s, showOnInKatakana)}
-                </span>
-              )}
-              {levelOf !== undefined && <span className="kk-link-level">{levelOf(s)}</span>}
-            </>
-          );
-          return (
-            <li key={s.id} className={`kk-link kk-type--${s.object}${s.object === 'vocabulary' || s.object === 'kana_vocabulary' ? ' kk-link--wide' : ''}`}>
-              {onOpenSubject !== undefined ? (
-                <button type="button" className="kk-link-button" onClick={() => onOpenSubject(s.id)} data-subject-id={s.id}>
-                  {body}
-                </button>
-              ) : (
-                <span className="kk-link-button" data-subject-id={s.id}>
-                  {body}
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+    <section className="kk-subject-section kk-links" data-testid={testId}>
+      {header !== '' && <h3 className="kk-subject-section-header">{header}</h3>}
+      <SubjectCards subjects={subjects} showReading={showReading} showMeaning={showMeaning} showOnInKatakana={showOnInKatakana}
+        onOpenSubject={onOpenSubject} levelOf={levelOf} progressOf={progressOf} />
     </section>
+  );
+}
+
+export interface SubjectCardsProps {
+  subjects: readonly ContentSubject[];
+  showReading?: boolean;
+  showMeaning?: boolean;
+  showOnInKatakana?: boolean;
+  onOpenSubject?: (id: number) => void;
+  levelOf?: (subject: ContentSubject) => number;
+  progressOf?: (subject: ContentSubject) => string | null;
+}
+
+/** The card grid itself (`SubjectGridView`). */
+export function SubjectCards({ subjects, showReading = true, showMeaning = true, showOnInKatakana = false, onOpenSubject, levelOf, progressOf }: SubjectCardsProps) {
+  return (
+    <ul className="kk-link-grid">
+      {subjects.map((s) => {
+        const wide = s.object === 'vocabulary' || s.object === 'kana_vocabulary';
+        const meaning = showMeaning && s.meanings.length > 0 ? oneMeaning(s) : null;
+        // bindCommon: the reading, or a kana vocabulary's characters.
+        const reading = showReading && s.readings.length > 0 ? oneReading(s, showOnInKatakana)
+          : s.object === 'kana_vocabulary' ? s.characters : null;
+        const progress = progressOf?.(s) ?? null;
+        const body = (
+          <>
+            <span className="kk-link-chars kk-ja" lang="ja">{subjectTitle(s)}</span>
+            <span className="kk-link-text">
+              {meaning !== null && (
+                <span className="kk-link-meaning" style={{ ['--mlen' as string]: Math.max(4, [...meaning].length) }}>{meaning}</span>
+              )}
+              {reading !== null && <span className="kk-link-reading kk-ja" lang="ja">{reading}</span>}
+              {progress !== null && <span className="kk-link-progress">{progress}</span>}
+              {levelOf !== undefined && <span className="kk-link-level">{levelOf(s)}</span>}
+            </span>
+          </>
+        );
+        return (
+          <li key={s.id} className={`kk-link kk-type--${s.object}${wide ? ' kk-link--wide' : ''}`}>
+            {onOpenSubject !== undefined ? (
+              <button type="button" className="kk-link-button" onClick={() => onOpenSubject(s.id)} data-subject-id={s.id}>
+                {body}
+              </button>
+            ) : (
+              <span className="kk-link-button" data-subject-id={s.id}>
+                {body}
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

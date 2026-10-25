@@ -1,22 +1,55 @@
-/** Lessons and reviews available now, as the two big session buttons (`AvailableSessionsView`). */
-import { paths } from '../../routes';
+/**
+ * `AvailableSessionsView` (`available_sessions.xml`): "Lessons: N    Reviews: N" centred, the labels
+ * in WK.TextView.Large (20 sp), the counts in XLarge (34 sp; 30 sp at 1000+ on screens under 480 dp).
+ * `SessionButtonsView` (`session_buttons.xml`): one centred row with "Start lessons" / "Start reviews"
+ * for what is available while no session runs, else the "Resume session" button.
+ */
+import { paths, sessionRoutePath as sessionPath } from '../../routes';
 import { useNavigate } from '../../hooks/useRoute';
+import { useActiveSession } from '../../components/session/useSession';
 
-/** `disabled`: a session runs (Java's `SessionButtonsView` hides the start buttons then; Resume shows instead). */
-export function AvailableSessions({ lessons, reviews, disabled = false }: { lessons: number; reviews: number; disabled?: boolean }) {
-  const navigate = useNavigate();
+export function AvailableSessions({ lessons, reviews }: { lessons: number; reviews: number }) {
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 480;
+  const size = (n: number) => (narrow && n >= 1000 ? 'small' : undefined);
   return (
-    <div className="kk-sessions">
-      <button type="button" className="kk-session lessons" disabled={disabled || lessons === 0} onClick={() => navigate(paths.lessons())}
-        aria-label={`Lessons: ${lessons} available`}>
-        <span className="kk-session-count" data-testid="lessons-count">{lessons}</span>
-        <span className="kk-session-label">Lessons</span>
-      </button>
-      <button type="button" className="kk-session reviews" disabled={disabled || reviews === 0} onClick={() => navigate(paths.reviews())}
-        aria-label={`Reviews: ${reviews} available`}>
-        <span className="kk-session-count" data-testid="reviews-count">{reviews}</span>
-        <span className="kk-session-label">Reviews</span>
-      </button>
+    <div className="kk-available" data-testid="available-sessions">
+      <span className="kk-available-item">
+        <span className="kk-available-label">Lessons:</span>
+        <span className={`kk-available-count ${size(lessons) ?? ''}`} data-testid="lessons-count">{lessons}</span>
+      </span>
+      <span className="kk-available-item">
+        <span className="kk-available-label">Reviews:</span>
+        <span className={`kk-available-count ${size(reviews) ?? ''}`} data-testid="reviews-count">{reviews}</span>
+      </span>
+    </div>
+  );
+}
+
+export function SessionButtons({ lessons, reviews }: { lessons: number; reviews: number }) {
+  const navigate = useNavigate();
+  const session = useActiveSession();
+  if (session.active) {
+    return (
+      <div className="kk-session-buttons">
+        <button type="button" className="kk-btn" data-testid="resume-session" onClick={() => navigate(sessionPath(session.type))}>
+          Resume session
+        </button>
+      </div>
+    );
+  }
+  if (lessons === 0 && reviews === 0) return null;
+  return (
+    <div className="kk-session-buttons">
+      {lessons > 0 && (
+        <button type="button" className="kk-btn" data-testid="start-lessons" onClick={() => navigate(paths.lessons())}>
+          Start lessons
+        </button>
+      )}
+      {reviews > 0 && (
+        <button type="button" className="kk-btn" data-testid="start-reviews" onClick={() => navigate(paths.reviews())}>
+          Start reviews
+        </button>
+      )}
     </div>
   );
 }

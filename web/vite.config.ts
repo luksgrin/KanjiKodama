@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
@@ -11,11 +11,31 @@ const key = process.env.KK_HTTPS_KEY;
 const https = cert && key ? { cert: readFileSync(cert), key: readFileSync(key) } : undefined;
 const appVersion = (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }).version;
 
+/**
+ * Start-up: a <link rel=preload> for the hashed sql.js wasm, so its download starts with the HTML
+ * instead of after the JS bundle has run (src/app/contentLoader.ts imports it with `?url`).
+ */
+function preloadWasm(): Plugin {
+  return {
+    name: 'kk-preload-wasm',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        const wasm = Object.keys(ctx.bundle ?? {}).find((f) => /sql-wasm-browser[^/]*\.wasm$/.test(f));
+        if (wasm === undefined) return [];
+        return [{ tag: 'link', attrs: { rel: 'preload', href: `./${wasm}`, as: 'fetch', type: 'application/wasm', crossorigin: 'anonymous' }, injectTo: 'head' }];
+      },
+    },
+  };
+}
+
 // Relative base: works under any subpath (e.g. GitHub Pages) and inside the Capacitor WebView.
 export default defineConfig({
   base: './',
   plugins: [
     react(),
+    preloadWasm(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false, // registered from src/main.tsx (skipped inside Capacitor)
@@ -80,5 +100,6 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'test/**/*.test.ts', 'test/**/*.test.tsx'],
+    setupFiles: ['test/setup/screens.ts'],
   },
 });

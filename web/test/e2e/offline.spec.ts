@@ -31,7 +31,7 @@ test('offline launch: the app starts from the cache and a review works', async (
     await page.reload();
     await waitReady(page);
     expect((await dashboardCounts(page)).reviews).toBe(seed.due);
-    await page.getByRole('button', { name: /Reviews: \d+ available/ }).click();
+    await page.getByTestId('start-reviews').click();
     await answerAllCorrect(page);
     await expect(page.getByTestId('summary-correct-percentage')).toHaveText('100%');
     await page.getByTestId('summary-finish').click();

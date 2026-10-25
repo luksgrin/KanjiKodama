@@ -165,16 +165,18 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
         {leech && (
           <>
             <span>Only leeches:</span>
-            <input
-              type="checkbox"
-              aria-label="Only leeches"
-              checked={form.checked.has('limitToLeeches')}
-              onChange={(e) => {
-                if (e.target.checked) form.checked.add('limitToLeeches');
-                else form.checked.delete('limitToLeeches');
-                changed();
-              }}
-            />
+            <label className="kk-search-check">
+              <input
+                type="checkbox"
+                aria-label="Only leeches"
+                checked={form.checked.has('limitToLeeches')}
+                onChange={(e) => {
+                  if (e.target.checked) form.checked.add('limitToLeeches');
+                  else form.checked.delete('limitToLeeches');
+                  changed();
+                }}
+              />
+            </label>
           </>
         )}
         <span>Next review in less than:</span>

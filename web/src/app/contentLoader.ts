@@ -3,6 +3,7 @@
  * `content/content-manifest.json` next to the app (PWA: same origin, cached by the service worker;
  * Android: the bundled web assets). See `content/contentFile.ts` for the format.
  */
+import { Capacitor } from '@capacitor/core';
 import initSqlJs, { type SqlJsStatic } from 'sql.js';
 import wasmUrl from 'sql.js/dist/sql-wasm-browser.wasm?url';
 import { CONTENT_MANIFEST_FILE, loadContentFile, type LoadedContent } from '../content/contentFile';
@@ -33,5 +34,6 @@ async function contentFetch(url: string): Promise<Response> {
 }
 
 export function loadBrowserContent(): Promise<LoadedContent> {
-  return loadContentFile({ baseUrl: new URL(CONTENT_DIR, document.baseURI), sql: sqlJs, fetch: contentFetch });
+  return loadContentFile({ baseUrl: new URL(CONTENT_DIR, document.baseURI), sql: sqlJs, fetch: contentFetch,
+    verifyHash: !Capacitor.isNativePlatform() });
 }

@@ -55,7 +55,8 @@ Java colours were nudged for that: light `--color-text-muted` (#3E7F6B → #3673
 | `--space-1` … `--space-6` | 4/8/12/16/24/32 px |
 | `--radius-sm/md/pill`, `--border-pixel` | 6/12/999 px, 3 px outlines |
 | `--safe-top/right/bottom/left` | safe-area insets (iOS `env()`, Android SystemBars `--safe-area-inset-*`) |
-| `--topbar-height` `--bottomnav-height` `--content-max-width` | shell layout |
+| `--toolbar-height` `--main-gutter` `--content-max-width` | shell layout: 56px toolbar, 8px `.kk-main` padding (bleed with `calc(-1 * var(--main-gutter))`) |
+| `--color-toast-{bg,fg}` | `toast()` (ui/shell/toast.ts) |
 
 ## Shared classes (`base.css`)
 
@@ -64,5 +65,15 @@ Java colours were nudged for that: light `--color-text-muted` (#3E7F6B → #3673
 `.kk-rows`/`.kk-row` (settings lists, `.kk-row-title`/`.kk-row-sub`), `.kk-dl` (key/value),
 `.kk-dialog` (use `ui/components/ConfirmDialog`), `.kk-segmented`, `.kk-muted`, `.kk-small`,
 `.kk-xsmall`, `.kk-error-text`, `.kk-visually-hidden`, `.ja`.
+
+Colours are the Java app's exactly (no contrast tweaks, test/app/themeColors.test.ts). Headings use the
+body font in bold as Java; Silkscreen (`--font-display`) is for the toolbar, buttons and the quiz header.
+`.kk-btn.secondary` looks like `.kk-btn` (Java has one button style). Transitions: `.kk-slide-rtl` /
+`.kk-slide-ltr` (session fragment slides, 150 ms); screens slide in by themselves (AppShell).
+
+## Toolbar and toasts (`ui/shell/`)
+
+`useToolbar({title, subtitle, color, actions, back, searchPrefill})` from `ui/shell/toolbar` (see the
+file header for the Java menu ids), `toast(text, {long})` from `ui/shell/toast`.
 
 Screen-specific styles go next to the screen (`screens/dashboard/dashboard.css`), using tokens only.

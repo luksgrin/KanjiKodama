@@ -7,24 +7,17 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session, SessionKind } from '../../../core/session';
 import { useNavigate } from '../../hooks/useRoute';
-import { paths } from '../../routes';
+import { paths, sessionRoutePath } from '../../routes';
 import { Quiz } from './Quiz';
+import { SessionLog } from './SessionLog';
+import { setSessionLogOpen, useSessionLogOpen } from './sessionLogStore';
 import type { SessionRuntime, SessionSnapshot } from './runtime';
 import { useSession } from './useSession';
 import './session.css';
 
 /** The route that shows a running session of this kind. */
 export function sessionPath(type: Session['type']): string {
-  switch (type) {
-    case 'LESSON':
-      return paths.lessons();
-    case 'REVIEW':
-      return paths.reviews();
-    case 'SELF_STUDY':
-      return paths.selfStudyQuiz();
-    default:
-      return paths.dashboard();
-  }
+  return sessionRoutePath(type);
 }
 
 export interface SessionScreenProps {
@@ -43,9 +36,15 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
   const session = snap.session;
   const [empty, setEmpty] = useState(false);
   const started = useRef(false);
+  const logOpen = useSessionLogOpen();
 
   const state = session?.state ?? 'INACTIVE';
   const type = session?.type ?? 'NONE';
+
+  // The log belongs to the running session: it closes when the session ends.
+  useEffect(() => {
+    if (state === 'INACTIVE' || state === 'FINISHING') setSessionLogOpen(false);
+  }, [state]);
 
   useEffect(() => {
     if (!snap.loaded || session === null) return;
@@ -81,6 +80,7 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
     ) : <p className="kk-muted" data-testid="session-loading">Loading…</p>;
   }
   if (type !== kind || state === 'FINISHING') return <p className="kk-muted">Loading…</p>;
+  if (logOpen) return <SessionLog rt={rt} session={session} />;
   if (state === 'IN_LESSON_PRESENTATION') return <>{presentation?.(rt, snap, session)}</>;
   const q = session.currentQuestion;
   if (q === null) return <p className="kk-muted">Loading…</p>;

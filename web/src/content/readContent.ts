@@ -66,10 +66,23 @@ export function srsSystemRow(row: Record<string, unknown>): SrsSystemData {
   };
 }
 
+/**
+ * The `subject` columns `subjectRow` maps: all start-up reads. The heavy text columns (mnemonics,
+ * hints, context sentences, pronunciation audio, search targets) stay in the open database and are
+ * read on demand: per item with `readSubjectTexts` (ui/components/subject/subjectContent.ts), for
+ * search once with `readSearchTexts` (ui/screens/browse/searchData.ts), audio with
+ * `readAudioCatalog` (content/audio.ts).
+ */
+export const SUBJECT_ROW_COLUMNS = [
+  'id', 'object', 'hiddenAt', 'lessonPosition', 'srsSystemId', 'level', 'characters', 'slug', 'meanings',
+  'auxiliaryMeanings', 'readings', 'componentSubjectIds', 'amalgamationSubjectIds', 'visuallySimilarSubjectIds',
+  'partsOfSpeech', 'frequency', 'joyoGrade', 'jlptLevel',
+] as const;
+
 /** Reads all subjects and SRS systems of an open content DB. */
 export function readContent(db: Database): Content {
   return makeContent(
-    rows(db, 'SELECT * FROM subject ORDER BY id').map(subjectRow),
+    rows(db, `SELECT ${SUBJECT_ROW_COLUMNS.join(', ')} FROM subject ORDER BY id`).map(subjectRow),
     rows(db, 'SELECT * FROM srs_system ORDER BY id').map(srsSystemRow),
   );
 }

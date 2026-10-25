@@ -14,6 +14,15 @@ import {
 
 afterEach(cleanup);
 
+/** Opens the toolbar's overflow menu and returns the item `menu-<id>` (null when hidden). */
+async function menuItem(el: HTMLElement, id: string): Promise<HTMLElement | null> {
+  if (q(el, 'toolbar-menu') === null) await click(q(el, 'toolbar-overflow'));
+  return q(el, `menu-${id}`);
+}
+
+const toolbarTitle = (el: HTMLElement): string | null | undefined => el.querySelector('[data-testid="toolbar"] h1')?.textContent;
+const ids = (el: HTMLElement | null): string[] => [...(el?.querySelectorAll('[data-subject-id]') ?? [])].map((e) => (e as HTMLElement).dataset.subjectId!);
+
 async function answer(el: HTMLElement, text: string): Promise<void> {
   await typeText(el, text);
   await click(q(el, 'submit'));
@@ -108,8 +117,10 @@ describe('reviews', () => {
     expect(q(el, 'summary-correct-kanji')?.textContent).toBe('1');
     expect(q(el, 'summary-incorrect-radical')?.textContent).toBe('2');
     await click(q(el, 'summary-show'));
-    expect(q(el, 'summary-incorrect-items')?.textContent).toBe('一丨');
-    expect(q(el, 'summary-correct-items')?.textContent).toBe('二');
+    expect(ids(q(el, 'summary-incorrect-items'))).toEqual(['1', '2']);
+    expect(ids(q(el, 'summary-correct-items'))).toEqual(['10']);
+    // Java's card: characters, one meaning, the progress line.
+    expect(q(el, 'summary-correct-items')?.querySelector('.kk-link-chars')?.textContent).toBe('二');
     const learner = app.requireLearner();
     // Reported at once (no delayed results): the kanji moved up, the radicals didn't.
     expect(num(progressRow(learner, 10), 'srsStage')).toBe(2);
@@ -259,7 +270,8 @@ describe('reviews', () => {
     await act(async () => location.navigate('/'));
     const resume = await waitFor(() => q(el, 'resume-session'), 'resume button');
     expect(resume.textContent).toBe('Resume session');
-    expect(el.querySelector<HTMLButtonElement>('.kk-session.reviews')?.disabled).toBe(true);
+    // SessionButtonsView: only Resume while a session runs.
+    expect([...el.querySelectorAll('button')].some((b) => /^Start (reviews|lessons)$/i.test(b.textContent ?? ''))).toBe(false);
     await click(resume);
     expect(location.get()).toBe('/reviews');
     await waitFor(() => q(el, 'submit'), 'resumed question');
@@ -272,7 +284,10 @@ describe('reviews', () => {
     const id = currentQuestion(el).chars === '一' ? 1 : 2;
     await answer(el, 'zzz');
     const add = await waitFor(() => el.querySelector<HTMLButtonElement>('.kk-quiz-info button[aria-label="Add synonym"]'), 'add synonym');
-    expect(el.querySelector('.kk-quiz-info')?.textContent).toContain('Edit notes and synonyms');
+    // Notes are edited from the toolbar menu's "My notes..." (StudyMaterialsActivity), not on the page.
+    expect(el.querySelector('.kk-quiz-info')?.textContent).not.toContain('Edit notes');
+    expect((await menuItem(el, 'study_materials'))?.textContent).toBe('My notes...');
+    await click(q(el, 'toolbar-overflow'));
     await click(add);
     const dialog = await waitFor(() => document.querySelector<HTMLElement>('dialog[open]'), 'dialog');
     const input = dialog.querySelector<HTMLInputElement>('input')!;
@@ -290,13 +305,27 @@ describe('reviews', () => {
   it('wrap up and abandon from the session menu, with Java\'s confirmation', async () => {
     const { el, app } = await renderApp('/reviews', { setup: dueReviews([1, 2, 10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
-    await click(q(el, 'session-menu'));
-    expect(q(el, 'menu-wrapup')).not.toBeNull();
-    await click(q(el, 'menu-abandon'));
-    expect(el.querySelector('dialog .kk-dialog-body')?.textContent)
+    // The toolbar in the subject colour with the question title; the session menu has Java's entries.
+    expect(toolbarTitle(el)).toBe(q(el, 'question-type')?.textContent);
+    await click(q(el, 'toolbar-overflow'));
+    const labels = [...q(el, 'toolbar-menu')!.querySelectorAll('[role^="menuitem"]')].map((b) => b.textContent);
+    for (const l of ['Settings', 'Download audio', 'Browse/search...', 'Session log...', 'Abandon session', 'Wrap up session', 'My notes...', 'About...']) {
+      expect(labels).toContain(l);
+    }
+    expect(labels).not.toContain('Self-study quiz');
+    expect(labels.indexOf('Session log...')).toBeLessThan(labels.indexOf('Abandon session'));
+    expect(labels.indexOf('Wrap up session')).toBeLessThan(labels.indexOf('My notes...'));
+    expect(q(el, 'menu-wrapup_session')).not.toBeNull();
+    await click(q(el, 'menu-abandon_session'));
+    const dialog = q(el, 'abandon-dialog')!;
+    expect(dialog.querySelector('.kk-sdialog-title')?.textContent).toBe('Abandon session?');
+    expect(dialog.querySelector('.kk-sdialog-message')?.textContent)
       .toBe('Are you sure you want to abandon this session? If you do:\n- 3 unquizzed items will not be reported');
-    const yes = [...el.querySelectorAll('dialog button')].find((b) => b.textContent === 'Yes') as HTMLElement;
+    // Java's button row: neutral, then negative and positive.
+    expect([...dialog.querySelectorAll('button')].map((b) => b.textContent)).toEqual(["Yes and don't ask again", 'No', 'Yes']);
+    const yes = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Yes') as HTMLElement;
     await click(yes);
+    expect(document.querySelector('[data-testid="toast"]')?.textContent).toBe('Session abandoned');
     await waitFor(() => q(el, 'reviews-count'), 'dashboard');
     expect(sessionRuntime(app).get().session!.state).toBe('INACTIVE');
     expect(await app.db.session.count()).toBe(0);
@@ -331,20 +360,25 @@ describe('layout', () => {
     const after = [...quiz.children].map((c) => (c as HTMLElement).dataset.testid ?? c.className);
     expect(after.slice(0, 4)).toEqual(['question-view', 'question-type', 'answer-frame', 'quick-actions']);
     expect(after.indexOf('kk-quiz-info')).toBeGreaterThan(3);
-    expect([...q(el, 'quick-actions')!.children].map((b) => b.textContent)).toEqual(['Next']);
+    expect([...q(el, 'quick-actions')!.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Next']);
+    // Next sits in Submit's half (the left half is a spacer).
+    expect(q(el, 'quick-actions')!.firstElementChild?.classList.contains('kk-quiz-actions-space')).toBe(true);
   });
 
   it('uses a static layout sized by the small viewport height (no visualViewport)', async () => {
     const { readFileSync, readdirSync } = await import('node:fs');
     const dir = `${process.cwd()}/src/ui/components/session/`;
     const css = readFileSync(`${dir}session.css`, 'utf8');
-    expect(css).toMatch(/\.kk-quiz-question \{[^}]*height: clamp\(96px, 22svh, 220px\)/);
+    expect(css).toMatch(/--kk-qv-height: clamp\(88px, min\(calc\(100svh - 474px\), 34svh\), 260px\)/);
+    expect(css).toMatch(/\.kk-quiz-question \{[^}]*height: var\(--kk-qv-height\)/);
     expect(css).toMatch(/\.kk-quiz-actions \{[^}]*display: flex/);
     expect(css).not.toMatch(/position: (fixed|sticky)/);
     for (const f of readdirSync(dir)) expect(readFileSync(`${dir}${f}`, 'utf8')).not.toMatch(/visualViewport\s*[.?]/);
-    // 375×410 budget: top bar 52 + question view ≤ 22% of 667 + banner + field + row stays under 410.
-    const budget = 52 + Math.min(220, 0.22 * 667) + 28 + 8 + 48 + 8 + 56;
-    expect(budget).toBeLessThan(410);
+    // Budgets: toolbar 56 + question view + banner 34 + field 52 + row 56; 320×568 (keyboard ~260 px):
+    // the row ends by 300 px; iPhone SE 375×667 (≈ 410 px visible): by 410 px.
+    const qv = (h: number) => Math.min(Math.max(88, Math.min(h - 474, 0.34 * h)), 260);
+    expect(56 + qv(568) + 34 + 48 + 60).toBeLessThanOrEqual(300);
+    expect(56 + qv(667) + 34 + 48 + 60).toBeLessThanOrEqual(410);
   });
 });
 
@@ -356,8 +390,7 @@ describe('self-study and the level test', () => {
     const search = [...el.querySelectorAll('button')].find((b) => b.textContent === 'Start') as HTMLElement;
     await click(search);
     await waitFor(() => q(el, 'submit'), 'self-study question');
-    expect(el.querySelector('.kk-topbar h1')?.textContent).toBe('Self-study');
-    expect(el.querySelector('.kk-bottomnav')).toBeNull();
+    expect(toolbarTitle(el)).toBe(q(el, 'question-type')?.textContent);
     for (let guard = 0; guard < 20 && !q(el, 'summary'); guard++) {
       await answer(el, rightAnswer(el));
       await waitFor(() => q(el, 'next'), 'answered');
@@ -376,7 +409,7 @@ describe('self-study and the level test', () => {
     await waitFor(() => q(el, 'level-test-message')?.textContent?.startsWith('This test estimates'), 'intro');
     await click([...el.querySelectorAll('button')].find((b) => b.textContent === 'Start round 1') as HTMLElement);
     await waitFor(() => q(el, 'submit'), 'round 1 question');
-    expect(el.querySelector('.kk-topbar h1')?.textContent).toBe('Self-study');
+    expect(toolbarTitle(el)).toBe(q(el, 'question-type')?.textContent);
     for (let guard = 0; guard < 10 && !q(el, 'summary'); guard++) {
       await answer(el, rightAnswer(el));
       await waitFor(() => q(el, 'next'), 'answered');

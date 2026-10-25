@@ -7,6 +7,8 @@
  * - notes and synonyms: the subject columns `SaveStudyMaterialJob.runLocal` writes, persisted, and in
  *   server mode also the study-material upload (`db.assertSubmitStudyMaterialTask`);
  * - the audio button (`SubjectInfoHeadlineView`: vocabulary and kana vocabulary, Android only);
+ * - the toolbar: "力 (level 3 kanji)" in the subject's colour, Java's menu (My notes..., and the session
+ *   items while a session runs);
  * - the Resurrect / Burn buttons (`SubjectInfoView.java:731-745`, `ResurrectActivity`, `BurnActivity`)
  *   in local mode, and the star rating (`StarRatingView`, `enable_star_ratings`).
  */
@@ -15,7 +17,12 @@ import { voicePreference } from '../../../core/audio';
 import type { ContentSubject } from '../../../core/content';
 import { isBurnable, isResurrectable } from '../../../core/progression';
 import { enableStarRatings } from '../../../core/settings/subjectInfo';
-import { ItemPage, StarRating, useSaveStudyMaterial, useStarRatings, type ItemProgress } from '../../components/subject';
+import {
+  AudioButton, ItemPage, StarRating, infoTitle, useCardProgress, useSaveStudyMaterial, useStarRatings, type ItemProgress,
+} from '../../components/subject';
+import { useSessionMenu } from '../../components/session/SessionMenu';
+import { useSession } from '../../components/session/useSession';
+import { useToolbar } from '../../shell/toolbar';
 import { NUMERIC_COLUMNS, TEXT_COLUMNS, numberOf, type SubjectProgressRow } from '../../../core/progressFile/format';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate, useRoute } from '../../hooks/useRoute';
@@ -45,11 +52,20 @@ export function SubjectScreen() {
   const navigate = useNavigate();
   const stars = useStarRatings();
   const [dialog, setDialog] = useState<BurnResurrectKind | null>(null);
+  const { rt, snap } = useSession();
+  const cardProgress = useCardProgress();
 
   const subject = Number.isInteger(id) ? learner.content.byId.get(id) : undefined;
   const progress = useMemo(() => (subject ? itemProgress(learner.progress.subjects.get(subject.id)) : null), [learner, subject, state.revision]);
-  const [audioHint, setAudioHint] = useState<string | null>(null);
   const level = subject ? learner.table.get(subject.id)?.level : undefined;
+  // The session's menu items while one runs (the Java menu is the same in every activity), My notes...
+  const menu = useSessionMenu(rt, snap.session, subject?.id ?? null, { onSessionScreen: false });
+  // Toolbar: "力 (level 3 kanji)" in the subject's colour (SubjectInfoHeadlineView.layoutSubject).
+  useToolbar({
+    title: subject ? infoTitle(subject, level ?? subject.level) : undefined,
+    color: subject?.object,
+    actions: menu.actions,
+  });
   const levelOf = useCallback((s: ContentSubject) => learner.table.get(s.id)?.level ?? s.level, [learner, state.revision]);
   const onOpenSubject = useCallback((target: number) => navigate(paths.subject(target)), [navigate]);
 
@@ -66,24 +82,8 @@ export function SubjectScreen() {
   }
 
   // AudioUtil.playAudio(subject, null). The web build streams (online only): play() is false offline.
-  const playAudio = async (): Promise<void> => {
-    setAudioHint(null);
-    let played = false;
-    try {
-      played = await platform.audio.play(subject.id, voicePreference(state.prefs), null);
-    } catch {
-      played = false;
-    }
-    if (!played) setAudioHint(typeof navigator !== 'undefined' && navigator.onLine === false ? 'Offline' : 'No audio');
-  };
   const audio = platform.capabilities.audioPlayback && hasAudioButton(subject) ? (
-    <>
-      <button type="button" className="kk-btn small secondary kk-audio-btn" aria-label="Play audio" onClick={() => void playAudio()}>
-        <span aria-hidden="true">▶ </span>
-        <span lang="ja">{subject.characters}</span>
-      </button>
-      {audioHint !== null && <span className="kk-xsmall kk-muted" role="status">{audioHint}</span>}
-    </>
+    <AudioButton label={subject.characters ?? ''} onPlay={() => platform.audio.play(subject.id, voicePreference(state.prefs), null)} />
   ) : undefined;
 
   const showStars = enableStarRatings(state.prefs);
@@ -126,8 +126,10 @@ export function SubjectScreen() {
         audio={audio}
         onOpenSubject={onOpenSubject}
         onSaveStudyMaterial={onSave}
+        cardProgress={cardProgress}
         extras={extras}
       />
+      {menu.dialogs}
       {dialog !== null && (
         <BurnResurrectDialog
           kind={dialog}

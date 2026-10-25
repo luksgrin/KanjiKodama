@@ -1,7 +1,9 @@
 /**
  * The settings rows as data: keys, types, defaults, titles, summaries and choices exactly as
  * `durtles/app/src/main/res/xml/preferences.xml` and `res/values/array.xml` have them, so a value
- * stored here means the same as in the Java app's `SharedPreferences`. `SettingRow` renders them.
+ * stored here means the same as in the Java app's `SharedPreferences`. `SettingRows.tsx` renders them
+ * as AndroidX rows: `SETTINGS_SCREENS` are the root's sub-screens, `ADVANCED_GROUPS` the four
+ * advanced sub-screens shown while `enable_advanced` is on.
  *
  * Storage types follow AndroidX: SwitchPreference → boolean, ListPreference and EditTextPreference
  * (also the numeric ones) → string, SeekBarPreference → number, NumberRangePreference →
@@ -16,29 +18,28 @@
  * - API/audio plumbing: api_key_help, api_key (asked by the import / server screens instead),
  *   network_rule, audio_location, use_audio_focus, web_password (resurrect via the WaniKani web
  *   site is not ported).
- * - Display: theme, nightTheme, theme_customization (the KanjiKodama themes only: Appearance below),
+ * - Display: theme, nightTheme, theme_customization (the KanjiKodama themes only: `kk_theme` instead),
  *   center_caret, anki_buttons_height, quiz_question_view_height, slide_animations,
  *   stretch_quiz_question_view.
- * - Dashboard panels the TS dashboard does not have: show_lesson_review_breakdown,
- *   timeline_chart_style, show_waterfall_line, timeline_chart_grid_style, timeline_chart_size_shown,
- *   show_post60_progression, show_post60_subsections, show_post60_reverse, show_joyo_progress,
- *   show_jlpt_progress, show_recent_unlocks, show_critical_condition, show_burned_items.
+ * - Dashboard panels the TS dashboard does not have: show_post60_progression, show_post60_subsections,
+ *   show_post60_reverse.
  * - Keyboard/IME: keyboard_help, enable_auto_correct_meaning, enable_auto_correct_reading,
  *   force_ascii_meaning, force_ascii_reading, force_visible_password_meaning,
  *   force_visible_password_reading, ime_hint_meaning, ime_hint_reading, enable_no_learning,
  *   next_button_delay.
- * - Fonts: font_selection, font_import, max_font_size_lesson, max_font_size_quiz,
- *   max_font_size_browse, max_font_size_quiz_text, font_size_question_edit, font_size_subject_info,
- *   font_size_live_subject_table, font_size_anki_answer.
+ * - Fonts (only font_size_live_subject_table is kept, the dashboard tables read it): font_selection,
+ *   font_import, max_font_size_lesson, max_font_size_quiz, max_font_size_browse,
+ *   max_font_size_quiz_text, font_size_question_edit, font_size_subject_info, font_size_anki_answer.
  * - Notification details (Android plumbing): notification_update_frequency, notification_priority,
  *   notification_category.
  * - search_engine_1 … search_engine_5 (inventory "Ask"; the tagged-URL editor and the item page's
  *   search links are not ported).
  * - Hidden experimental screen: experimental_status, exp_subject_card_layout_search,
  *   exp_subject_card_layout_grid. Hidden helper: not_always_hide_wk_mnemonic (enabledWhen below).
- * - Other actions: support_and_feedback (hidden in Java too), data_import_export, reset_tutorials,
- *   reset_database, backup_settings, restore_settings.
+ * - Other actions: support_and_feedback (hidden in Java too), data_import_export, reset_database,
+ *   backup_settings, restore_settings. (reset_tutorials is an action on the root screen.)
  */
+import { THEME_PREF_KEY } from '../../../app/theme';
 import type { Capabilities } from '../../../platform';
 import type { Preferences, PreferenceValue } from '../../../core/settings';
 
@@ -67,16 +68,18 @@ export interface SliderSetting extends Base { type: 'slider'; default: number; m
 export interface RangeSetting extends Base { type: 'range' }
 /** InfoPreference: a text row. */
 export interface InfoRow { type: 'info'; key: string; text: string; advanced?: boolean }
-/** A sub-heading inside a group (the Java sub-screen a row comes from). */
-export interface HeadingRow { type: 'heading'; key: string; text: string }
+/** A plain `Preference` that runs an action (the screen supplies the handler by key). */
+export interface ActionRow { type: 'action'; key: string; title: string; summary?: string; mode?: 'local' | 'server'; requires?: keyof Capabilities }
 
 export type SettingDef = BoolSetting | ListSetting | TextSetting | SliderSetting | RangeSetting;
-export type Row = SettingDef | InfoRow | HeadingRow;
+export type Row = SettingDef | InfoRow | ActionRow;
 
+/** A Java sub-`PreferenceScreen`: `id` is its key, `note` its summary on the parent screen. */
 export interface SettingGroup {
   id: string;
   title: string;
-  /** Shown above the rows. */
+  /** Title in server mode, when it differs (`LocalMode.applyToPreferences`). */
+  serverTitle?: string;
   note?: string;
   rows: readonly Row[];
 }
@@ -122,6 +125,8 @@ const CLOSE_ENOUGH_ACTIONS: Options = [
   ['ACCEPT_WITH_TOAST_NO_LM', 'Accept, show a toast, disable lightning mode for this question'],
   ['SHAKE_AND_RETRY', 'Shake and retry'], ['REJECT', 'Reject'],
 ];
+const TIME_LINE_CHART_STYLES: Options = [['SRS_STAGE', 'SRS Stage'], ['NEXT_SRS_STAGE', 'Next SRS Stage'], ['ITEM_TYPE', 'Item type']];
+const TIME_LINE_CHART_GRID_STYLES: Options = [['OFF', 'Off'], ['FOR_BARS', 'Scaled for bars'], ['FOR_WATERFALL', 'Scaled for cumulative review count']];
 const TIME_LINE_CHART_SIZES: Options = [
   ['12', '12 hours'], ['24', '24 hours'], ['36', '36 hours'], ['48', '48 hours'], ['72', '3 days'], ['120', '5 days'],
   ['168', '7 days'], ['240', '10 days'], ['336', '14 days'],
@@ -227,79 +232,29 @@ export const ADVANCED_GROUPS: readonly SettingGroup[] = [
   },
 ];
 
-// ---- The main screen ---------------------------------------------------------------------------
+// ---- The sub-screens of the root screen ---------------------------------------------------------
 
 const notAlwaysHideWkMnemonic = (p: Preferences): boolean => p.always_hide_wk_mnemonic !== true;
 
-export const MAIN_GROUPS: readonly SettingGroup[] = [
+/** The KanjiKodama light/dark themes (Java's `theme` / `nightTheme` lists hold only upstream themes here). */
+const THEMES: Options = [['system', 'Follow the system setting'], ['light', 'Light'], ['dark', 'Dark']];
+
+/**
+ * Java's root `PreferenceScreen` children before the "Advanced settings" category, in XML order. A
+ * sub-screen without a visible value row is hidden (e.g. "Audio download settings" on the web build).
+ * Keyboard input settings is not here: its keys are the inventory's "Drop" (the Android keyboard
+ * flags use the Java defaults, set by `KkWebView`). Font settings has only the dashboard table size.
+ */
+export const SETTINGS_SCREENS: readonly SettingGroup[] = [
   {
-    id: 'review_settings',
-    title: 'Lesson/review settings',
+    id: 'api_settings',
+    // `LocalMode.applyToPreferences` retitles it.
+    title: 'Audio download settings',
+    serverTitle: 'API and audio download settings',
     rows: [
-      { type: 'text', key: 'max_lesson_session_size', title: 'Max. # of lessons per session', default: '5' },
-      { type: 'text', key: 'max_review_session_size', title: 'Max. # of reviews per session', default: '100' },
-      { type: 'text', key: 'max_self_study_session_size', title: 'Max. # of self-study items per session', default: '100' },
-      bool('delay_result_upload', 'Delay processing quiz results', false, {
-        mode: 'server', summary: "Doesn't process results until the session is finished. Allows unlimited undo during sessions.",
+      bool('auto_download_audio', 'Auto-download audio for upcoming reviews', true, {
+        requires: 'audioDownload',
       }),
-      bool('enable_lightning_mode', 'Enable lightning mode', true, { summary: 'Auto-advance to next question on a correct answer' }),
-      bool('show_answer_toast', 'Enable a check mark / X animation for a correct / incorrect answer', true),
-      bool('enable_srs_indicator', 'Enable SRS indicator', false, { summary: 'Show current SRS stage during reviews' }),
-      bool('enable_srs_toast', 'Enable SRS up/downgrade toast', true, {
-        summary: 'Show a brief notification when an item goes up or down in SRS stage during reviews',
-      }),
-      bool('enable_alternatives_toast', 'Enable alternative readings/meanings toast', false, {
-        summary: 'Show a toast with alternative readings or meanings upon correct answer',
-      }),
-      bool('enable_haptic_feedback_success', 'Enable haptic feedback on correct answer', false, {
-        requires: 'haptics', summary: 'The device will give a short buzz to indicate a correct answer',
-      }),
-      bool('enable_haptic_feedback_failure', 'Enable haptic feedback on incorrect answer', false, {
-        requires: 'haptics', summary: 'The device will give a long buzz to indicate an incorrect answer',
-      }),
-      list('close_enough_action', 'Action for "close enough" answer', CLOSE_ENOUGH_ACTIONS, 'SILENTLY_ACCEPT'),
-      bool('show_onyomi_in_katakana', "Show on'yomi readings in Katakana", false),
-      bool('require_onyomi_in_katakana', "Require on'yomi answers in Katakana", false),
-      bool('enable_star_ratings', 'Enable star ratings for subjects', false, {
-        summary: 'If enabled you can give star ratings to subjects and use those ratings as search filters',
-      }),
-    ],
-  },
-  {
-    id: 'quiz_advanced',
-    title: 'Order, buttons and Anki mode',
-    note: 'These are advanced settings: they apply only while "Enable advanced settings" is on. More on the Advanced page.',
-    rows: [
-      ENABLE_ADVANCED,
-      { type: 'heading', key: 'quiz_advanced_lessons', text: 'Lessons' },
-      ...[orderRows('lesson')[0]!, ...ankiRows('lesson')],
-      { type: 'heading', key: 'quiz_advanced_reviews', text: 'Reviews' },
-      ...[orderRows('review')[0]!, ...ankiRows('review')],
-      { type: 'heading', key: 'quiz_advanced_self_study', text: 'Self-study' },
-      ...[orderRows('self_study')[0]!, ...ankiRows('self_study')],
-      { type: 'heading', key: 'quiz_advanced_buttons', text: 'Buttons' },
-      DONT_KNOW_BUTTON,
-      UNDO_BUTTON,
-      IGNORE_BUTTON,
-      bool('swap_anki_buttons', 'Swap the correct/incorrect Anki mode buttons', false),
-    ],
-  },
-  {
-    id: 'audio_settings',
-    title: 'Audio settings',
-    rows: [
-      bool('autoplay_lesson_presentation', 'Autoplay audio during lesson presentation', true, { requires: 'audioPlayback' }),
-      bool('autoplay_lessons', 'Autoplay audio during lessons', true, { requires: 'audioPlayback', summary: 'When answering a question correctly in a lesson session' }),
-      bool('autoplay_reviews', 'Autoplay audio during reviews', true, { requires: 'audioPlayback', summary: 'When answering a question correctly in a review/self-study session' }),
-      bool('autoplay_anki_reveal', 'Autoplay audio when revealing in Anki mode', true, { requires: 'audioPlayback', summary: "When clicking the 'Show answer' button in Anki mode" }),
-      list('voice_preference', 'Voice preference', VOICE_PREFERENCES, 'RANDOM', { requires: 'audioPlayback' }),
-      bool('auto_download_audio', 'Auto-download audio for upcoming reviews', true, { requires: 'audioDownload' }),
-    ],
-  },
-  {
-    id: 'sync_settings',
-    title: 'Sync settings',
-    rows: [
       bool('enable_background_sync', 'Allow background sync', false, {
         mode: 'server', requires: 'backgroundSync', summary: 'Caution - this may drain your battery faster than normal',
       }),
@@ -307,18 +262,24 @@ export const MAIN_GROUPS: readonly SettingGroup[] = [
     ],
   },
   {
-    id: 'other_settings',
-    title: 'Notifications',
+    id: 'display_settings',
+    title: 'Display settings',
     rows: [
-      bool('enable_notifications', 'Enable notifications for new reviews', true, { requires: 'notifications' }),
+      list(THEME_PREF_KEY, 'Theme', THEMES, 'system'),
+      bool('swap_anki_buttons', 'Swap the correct/incorrect Anki mode buttons', false),
     ],
   },
   {
     id: 'dashboard_settings',
     title: 'Dashboard settings',
     rows: [
+      bool('show_lesson_review_breakdown', 'Show lesson/review breakdown', false),
       bool('show_timeline', 'Show 24h review timeline', true),
+      list('timeline_chart_style', 'Timeline chart style', TIME_LINE_CHART_STYLES, 'SRS_STAGE'),
+      bool('show_waterfall_line', 'Show timeline waterfall line', false, { summary: 'Show cumulative amount of reviews over time in the timeline chart' }),
+      list('timeline_chart_grid_style', 'Timeline chart Y-axis grid style', TIME_LINE_CHART_GRID_STYLES, 'FOR_BARS'),
       list('timeline_chart_size', 'Timeline chart size', TIME_LINE_CHART_SIZES, '24'),
+      list('timeline_chart_size_shown', 'Part of timeline chart shown at once', TIME_LINE_CHART_SIZES, '24'),
       bool('show_srs_breakdown', 'Show SRS breakdown', true),
       bool('show_level_progression', 'Show level progression bars', true),
       bool('show_over_level_progression', 'Show level progression bars for levels higher than your own', false, {
@@ -331,6 +292,11 @@ export const MAIN_GROUPS: readonly SettingGroup[] = [
         type: 'text', key: 'previous_level_progression_limit_amount', title: 'Number of previous levels to show progression bars for',
         default: '1', min: 0, max: 60, enabledWhen: (p) => p.previous_level_progression_limit === true,
       },
+      bool('show_joyo_progress', 'Show Jōyō progress', false),
+      bool('show_jlpt_progress', 'Show JLPT progress', false),
+      bool('show_recent_unlocks', 'Show recently unlocked items', true),
+      bool('show_critical_condition', 'Show critical condition items', true),
+      bool('show_burned_items', 'Show recently burned items', true),
     ],
   },
   {
@@ -358,7 +324,75 @@ export const MAIN_GROUPS: readonly SettingGroup[] = [
       { type: 'slider', key: 'stroke_order_size', title: 'Size of the stroke order diagrams', default: 250, min: 20, max: 500 },
     ],
   },
+  {
+    id: 'audio_settings',
+    title: 'Audio settings',
+    rows: [
+      bool('autoplay_lesson_presentation', 'Autoplay audio during lesson presentation', true, { requires: 'audioPlayback' }),
+      bool('autoplay_lessons', 'Autoplay audio during lessons', true, { requires: 'audioPlayback', summary: 'When answering a question correctly in a lesson session' }),
+      bool('autoplay_reviews', 'Autoplay audio during reviews', true, { requires: 'audioPlayback', summary: 'When answering a question correctly in a review/self-study session' }),
+      bool('autoplay_anki_reveal', 'Autoplay audio when revealing in Anki mode', true, { requires: 'audioPlayback', summary: "When clicking the 'Show answer' button in Anki mode" }),
+      list('voice_preference', 'Voice preference', VOICE_PREFERENCES, 'RANDOM', { requires: 'audioPlayback' }),
+    ],
+  },
+  {
+    id: 'review_settings',
+    title: 'Lesson/review settings',
+    rows: [
+      { type: 'text', key: 'max_lesson_session_size', title: 'Max. # of lessons per session', default: '5' },
+      { type: 'text', key: 'max_review_session_size', title: 'Max. # of reviews per session', default: '100' },
+      { type: 'text', key: 'max_self_study_session_size', title: 'Max. # of self-study items per session', default: '100' },
+      bool('delay_result_upload', 'Delay processing quiz results', false, {
+        mode: 'server', summary: "Doesn't process results until the session is finished. Allows unlimited undo during sessions.",
+      }),
+      bool('enable_lightning_mode', 'Enable lightning mode', true, { summary: 'Auto-advance to next question on a correct answer' }),
+      bool('show_answer_toast', 'Enable a check mark / X animation for a correct / incorrect answer', true),
+      bool('enable_srs_indicator', 'Enable SRS indicator', false, { summary: 'Show current SRS stage during reviews' }),
+      bool('enable_srs_toast', 'Enable SRS up/downgrade toast', true, {
+        summary: 'Show a brief notification when an item goes up or down in SRS stage during reviews',
+      }),
+      bool('enable_alternatives_toast', 'Enable alternative readings/meanings toast', false, {
+        summary: 'Show a toast with alternative readings or meanings upon correct answer',
+      }),
+      bool('enable_haptic_feedback_success', 'Enable haptic feedback on correct answer', false, {
+        requires: 'haptics', summary: 'The device will give a short buzz to indicate a correct answer',
+      }),
+      bool('enable_haptic_feedback_failure', 'Enable haptic feedback on incorrect answer', false, {
+        requires: 'haptics', summary: 'The device will give a long buzz to indicate an incorrect answer',
+      }),
+      list('close_enough_action', 'Action for "close enough" answer', CLOSE_ENOUGH_ACTIONS, 'SILENTLY_ACCEPT'),
+    ],
+  },
+  {
+    id: 'font_settings',
+    title: 'Font settings',
+    rows: [
+      {
+        type: 'slider', key: 'font_size_live_subject_table', title: 'Font size of dashboard subject tables', default: 16, min: 10, max: 32,
+        summary: 'Critical condition items, recent unlocks, and recently burned',
+      },
+    ],
+  },
+  {
+    id: 'other_settings',
+    title: 'Notifications and other settings',
+    rows: [
+      {
+        type: 'action', key: 'grant_notification_permission', title: 'Grant notification permission',
+        summary: 'Open system settings to allow this app to send notifications', requires: 'notifications',
+      },
+      bool('enable_notifications', 'Enable notifications for new reviews', true, { requires: 'notifications' }),
+      bool('enable_star_ratings', 'Enable star ratings for subjects', false, {
+        summary: 'If enabled you can give star ratings to subjects and use those ratings as search filters',
+      }),
+      bool('show_onyomi_in_katakana', "Show on'yomi readings in Katakana", false),
+      bool('require_onyomi_in_katakana', "Require on'yomi answers in Katakana", false),
+    ],
+  },
 ];
+
+/** The root's "Advanced settings" category: the switch, then (while it is on) the four sub-screens. */
+export const ADVANCED_CATEGORY_TITLE = 'Advanced settings';
 
 /**
  * Keys whose XML default differs from the `GlobalSettings` getter's default. AndroidX writes the XML
@@ -376,7 +410,7 @@ export interface RowContext {
 }
 
 export function rowVisible(r: Row, c: RowContext): boolean {
-  if (r.type === 'info' || r.type === 'heading') return true;
+  if (r.type === 'info') return true;
   if (r.mode !== undefined && r.mode !== c.mode) return false;
   if (r.requires !== undefined && !c.capabilities[r.requires]) return false;
   return true;
@@ -384,6 +418,20 @@ export function rowVisible(r: Row, c: RowContext): boolean {
 
 export function visibleRows(g: SettingGroup, c: RowContext): Row[] {
   return g.rows.filter((r) => rowVisible(r, c));
+}
+
+/** A sub-screen is listed when it has a visible row other than info text. */
+export function groupVisible(g: SettingGroup, c: RowContext): boolean {
+  return visibleRows(g, c).some((r) => r.type !== 'info');
+}
+
+export function groupTitle(g: SettingGroup, mode: 'local' | 'server'): string {
+  return mode === 'server' && g.serverTitle !== undefined ? g.serverTitle : g.title;
+}
+
+/** Every sub-screen by id (root and advanced). */
+export function findGroup(id: string): SettingGroup | undefined {
+  return [...SETTINGS_SCREENS, ...ADVANCED_GROUPS].find((g) => g.id === id);
 }
 
 /** The value a row shows: the stored one, else the XML default (what AndroidX shows). */
@@ -416,7 +464,7 @@ export function storedKeys(groups: readonly SettingGroup[]): string[] {
   const out = new Set<string>();
   for (const g of groups) {
     for (const r of g.rows) {
-      if (r.type === 'info' || r.type === 'heading') continue;
+      if (r.type === 'info' || r.type === 'action') continue;
       if (r.type === 'range') { out.add(`${r.key}_min`); out.add(`${r.key}_max`); } else out.add(r.key);
     }
   }

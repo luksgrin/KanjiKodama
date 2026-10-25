@@ -5,3 +5,15 @@
 .kk-server .kk-btn-row { margin-top: var(--space-3); }
 .kk-server .kk-banner { margin-top: var(--space-3); }
 .kk-server-actions { justify-content: flex-end; }
+.kk-server .kk-input {
+  font: inherit;
+  font-size: var(--text-md);
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--color-accent);
+  border-radius: 0;
+  padding: var(--space-1) 2px;
+  min-height: 44px;
+  width: 100%;
+}

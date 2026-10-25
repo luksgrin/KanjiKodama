@@ -36,6 +36,12 @@ export type NotificationPermission = 'granted' | 'denied' | 'prompt';
  * Review notifications (Android). Plan them with `planReviewNotifications` (core/notifications) or
  * let `rescheduleReviewNotifications` (./reviewNotifications.ts) do it all.
  */
+export interface ReviewScheduleOptions {
+  now?: number;
+  /** Available lessons and reviews now. */
+  current?: { lessons: number; reviews: number };
+}
+
 export interface NotificationsApi {
   /** False on the web build (known limitation): scheduleReviews() is then a no-op. */
   readonly supported: boolean;
@@ -44,11 +50,12 @@ export interface NotificationsApi {
   /** Shows the Android 13+ system prompt when the answer is still open; true when granted. */
   requestPermission(): Promise<boolean>;
   /**
-   * Replace everything scheduled with one notification per entry (past entries dropped, at most
-   * 64), and clear review notifications already in the shade. Never prompts: without permission it
-   * only cancels. Resolves with the number scheduled.
+   * Replace the plan of the single review notification (Android: posted or updated in place at each
+   * entry's time; past entries dropped, at most 64). `current` (the counts now) updates a shown
+   * notification, or clears it when both are 0. Never prompts: without permission it only cancels.
+   * Resolves with the number of planned entries.
    */
-  scheduleReviews(times: readonly ReviewTime[]): Promise<number>;
+  scheduleReviews(times: readonly ReviewTime[], options?: ReviewScheduleOptions): Promise<number>;
   /** Cancel every scheduled review notification and clear the shown ones. */
   cancelAll(): Promise<void>;
   /** @deprecated Spike test button only (App.tsx); use scheduleReviews. Rejects on the web build. */

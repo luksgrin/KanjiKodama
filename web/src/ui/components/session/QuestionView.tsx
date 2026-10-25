@@ -2,11 +2,13 @@
  * The top of every quiz screen (`AbstractSessionFragment.onViewCreatedCommon`, layouts
  * `fragment_*_question.xml`): the question view in the subject type's colour with the progress counter
  * (top left), special button 3 (top left, after the counter), the SRS indicator (top centre), special
- * button 1 (top right), special button 2 (bottom left), the session menu (bottom right), the toasts, the
- * subject's characters (inflected when the question has an inflection); below it the question type banner
- * (meaning: light, reading: dark, as Java's hint colours) with `Question.getTitle()`.
+ * button 1 (top right), special button 2 (bottom left), the custom toasts (SRS change, close enough,
+ * alternatives), the answered screen's check mark / cross at the right, the subject's characters
+ * (inflected when the question has an inflection); below it the question type banner (meaning: white,
+ * reading: black, Java's hint colours, 22 sp) with `Question.getTitle()`. The session menu is in the
+ * toolbar (`useSessionMenu`).
  */
-import { useEffect, type ReactNode } from 'react';
+import { useEffect } from 'react';
 import { QUESTION_TYPE_INFO, type QuestionType } from '../../../core/answer/questionType';
 import type { ContentSubject } from '../../../core/content';
 import type { Session } from '../../../core/session';
@@ -78,8 +80,8 @@ export interface QuestionViewProps {
   toasts: readonly SessionToast[];
   onToastDone(id: number): void;
   onSpecial(button: 1 | 2 | 3): void;
-  /** The session menu button (bottom right). */
-  menu?: ReactNode;
+  /** The answered screen's check mark / cross (`toastAnimation`, `show_answer_toast`); null: none. */
+  answerMark?: 'ok' | 'bad' | null;
   /** Anki mode keeps a smaller glyph margin (`setQuizMargins` only without Anki). */
   anki?: boolean;
 }
@@ -94,7 +96,7 @@ function Toast({ toast, onDone }: { toast: SessionToast; onDone(id: number): voi
 }
 
 export function QuestionView({
-  session, subject, characters, questionType, prefs, srsStageName, toasts, onToastDone, onSpecial, menu, anki = false,
+  session, subject, characters, questionType, prefs, srsStageName, toasts, onToastDone, onSpecial, answerMark = null, anki = false,
 }: QuestionViewProps) {
   const state = buttonState(session);
   const special = (n: 1 | 2 | 3) => {
@@ -110,7 +112,7 @@ export function QuestionView({
   const len = Math.max(1, [...text].length);
   return (
     <>
-      <div className={`kk-quiz-question kk-type--${subject.object}${anki ? ' anki' : ''}`} data-testid="question-view">
+      <div className={`kk-quiz-question kk-type--${subject.object}${anki ? ' anki' : ''}${answerMark !== null ? ' with-mark' : ''}`} data-testid="question-view">
         <div className="kk-quiz-top">
           <span className="kk-quiz-progress" data-testid="session-progress">{session.progressText()}</span>
           {special(3)}
@@ -120,9 +122,10 @@ export function QuestionView({
         <div className="kk-quiz-glyph" lang="ja" style={{ ['--len' as string]: len }} data-testid="question-text">{text}</div>
         <div className="kk-quiz-bottom">
           {special(2)}
-          <span className="kk-quiz-spacer" />
-          {menu}
         </div>
+        {answerMark !== null && (
+          <span className={`kk-quiz-mark ${answerMark}`} aria-hidden="true" data-testid="answer-mark">{answerMark === 'ok' ? '✓' : '✗'}</span>
+        )}
         <div className="kk-quiz-toasts">
           {toasts.map((t) => <Toast key={t.id} toast={t} onDone={onToastDone} />)}
         </div>

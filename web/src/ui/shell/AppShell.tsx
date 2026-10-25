@@ -1,25 +1,30 @@
 /**
- * The app frame: start-up screen until ready, then top bar (title, back on non-tab screens), the
- * current screen, and the bottom nav on tab screens. Session screens (lessons, reviews) hide the nav.
+ * The app frame, as the Java activities: start-up screen until ready, then the toolbar (title, up
+ * arrow on every screen but the dashboard, actions and overflow menu; screens configure it with
+ * `useToolbar`) and the current screen. Navigation is through the dashboard's buttons, the toolbar's
+ * Search / Dashboard actions and the overflow menu (Settings, Browse/search..., Self-study quiz,
+ * About...), as in Java: there is no bottom tab bar.
+ *
+ * Screen changes slide in briefly (forward from the right, back from the left: a short version of
+ * the Android activity transition); none with `prefers-reduced-motion`.
  */
-import { useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { handleBack } from '../../app/back';
 import { useApp, useAppState } from '../hooks/useApp';
-import { useLocation, useNavigate, useRoute } from '../hooks/useRoute';
-import { ROUTE_BY_NAME, type RouteName } from '../routes';
-import { SCREENS } from '../screens';
-import { BottomNav } from './BottomNav';
+import { useLocation, useRoute } from '../hooks/useRoute';
+import { preloadScreen, SCREENS } from '../screens';
 import { StartupScreen } from './StartupScreen';
-import { TopBar } from './TopBar';
+import { ToolbarView } from './ToolbarView';
 
-const NO_NAV: ReadonlySet<RouteName> = new Set(['lessons', 'reviews', 'summary', 'selfStudyQuiz']);
+/** Screens likely next from the dashboard: their chunks are fetched when the browser is idle. */
+const PRELOAD_AFTER_START = ['reviews', 'lessons', 'summary', 'subject', 'settings', 'browse', 'searchResults'] as const;
 
 export function AppShell() {
   const app = useApp();
   const state = useAppState();
   const route = useRoute();
-  const navigate = useNavigate();
   const location = useLocation();
+  const ready = state.status.kind === 'ready';
 
   // Escape = back (desktop browsers); the Android back button calls handleBack the same way.
   useEffect(() => {
@@ -32,30 +37,47 @@ export function AppShell() {
     return () => window.removeEventListener('keydown', onKey);
   }, [location]);
 
+  // Fetch the current screen's chunk while the app starts; the likely next ones once idle.
+  useEffect(() => {
+    void preloadScreen(route.name).catch(() => undefined);
+  }, [route.name]);
+  useEffect(() => {
+    if (!ready) return;
+    const run = () => { for (const n of PRELOAD_AFTER_START) void preloadScreen(n).catch(() => undefined); };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(run, { timeout: 3000 });
+    else setTimeout(run, 1500);
+  }, [ready]);
+
+  // Direction of the transition: deeper in the history = forward.
+  const depthRef = useRef(location.depth());
+  const pathRef = useRef(route.path);
+  const dirRef = useRef<'none' | 'forward' | 'back'>('none');
+  if (pathRef.current !== route.path) {
+    const d = location.depth();
+    dirRef.current = d < depthRef.current || route.name === 'dashboard' ? 'back' : 'forward';
+    depthRef.current = d;
+    pathRef.current = route.path;
+  }
+
   useEffect(() => {
     if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
   }, [route.path]);
 
-  if (state.status.kind !== 'ready') return <StartupScreen status={state.status} onRetry={() => void app.start()} />;
+  if (!ready) return <StartupScreen status={state.status} onRetry={() => void app.start()} />;
 
-  const def = ROUTE_BY_NAME[route.name];
   const Screen = SCREENS[route.name];
-  const showNav = !NO_NAV.has(route.name);
-  // Tabs don't stack: Home resets the history; from Home a tab is pushed (back returns Home); tab to tab replaces.
-  const goTab = (path: string) => {
-    if (path === '/') location.home();
-    else navigate(path, { replace: route.name !== 'dashboard' });
-  };
   return (
-    <div className={`kk-shell${showNav ? '' : ' no-nav'}`}>
-      <TopBar title={def.title} onBack={def.tab ? undefined : () => handleBack(() => { navigate.back(); return true; })} />
-      <main className="kk-main" id="main">
+    <div className="kk-shell" data-route={route.name}>
+      <ToolbarView />
+      <main key={route.path} className={`kk-main kk-enter-${dirRef.current}`} id="main">
         {state.lastWriteError !== null && (
           <div className="kk-banner error" role="alert">Saving failed: {state.lastWriteError}</div>
         )}
-        <Screen key={route.path} />
+        <Suspense fallback={null}>
+          <Screen />
+        </Suspense>
       </main>
-      {showNav && <BottomNav current={route.name} onNavigate={goTab} />}
     </div>
   );
 }

@@ -4,57 +4,55 @@ import { createLearnerDb, updateProgress } from '../core/progression';
 import { HOUR } from '../core/time';
 import type { ReviewTime } from './index';
 
-const ln = vi.hoisted(() => ({
-  checkPermissions: vi.fn(),
-  requestPermissions: vi.fn(),
-  createChannel: vi.fn(),
-  schedule: vi.fn(),
-  cancel: vi.fn(),
-  cancelAll: vi.fn(),
-  removeAllDeliveredNotifications: vi.fn(),
-}));
-vi.mock('@capacitor/local-notifications', () => ({ LocalNotifications: ln }));
+vi.mock('@capacitor/core', () => ({ registerPlugin: () => ({}) }));
 
-const { androidNotifications, resetChannelForTests, REVIEW_ID_BASE } = await import('./androidNotifications');
+const { createAndroidNotifications, androidNotifications } = await import('./androidNotifications');
 const { rescheduleReviewNotifications } = await import('./reviewNotifications');
 const { webPlatform } = await import('./web');
 
 const NOW = Date.UTC(2026, 9, 24, 9, 20);
 const H10 = Date.UTC(2026, 9, 24, 10);
 
+const plugin = {
+  permission: vi.fn(),
+  request: vi.fn(),
+  schedule: vi.fn(),
+  cancelAll: vi.fn(),
+};
+const api = createAndroidNotifications(plugin);
+
 function granted(display: string = 'granted') {
-  ln.checkPermissions.mockResolvedValue({ display });
+  plugin.permission.mockResolvedValue({ display });
 }
 
 beforeEach(() => {
-  for (const f of Object.values(ln)) f.mockReset();
-  ln.createChannel.mockResolvedValue(undefined);
-  ln.schedule.mockResolvedValue({ notifications: [] });
-  resetChannelForTests();
+  for (const f of Object.values(plugin)) f.mockReset();
+  plugin.schedule.mockImplementation(async (o: { entries: unknown[] }) => ({ scheduled: o.entries.length }));
+  plugin.cancelAll.mockResolvedValue(undefined);
 });
 
 describe('permission', () => {
   it('maps the plugin states', async () => {
     granted('prompt-with-rationale');
-    await expect(androidNotifications.permission()).resolves.toBe('prompt');
+    await expect(api.permission()).resolves.toBe('prompt');
     granted('denied');
-    await expect(androidNotifications.permission()).resolves.toBe('denied');
+    await expect(api.permission()).resolves.toBe('denied');
     granted();
-    await expect(androidNotifications.permission()).resolves.toBe('granted');
+    await expect(api.permission()).resolves.toBe('granted');
   });
 
   it('asks only while the answer is open (Android 13+ prompt)', async () => {
     granted('prompt');
-    ln.requestPermissions.mockResolvedValue({ display: 'granted' });
-    await expect(androidNotifications.requestPermission()).resolves.toBe(true);
-    expect(ln.requestPermissions).toHaveBeenCalledTimes(1);
+    plugin.request.mockResolvedValue({ display: 'granted' });
+    await expect(api.requestPermission()).resolves.toBe(true);
+    expect(plugin.request).toHaveBeenCalledTimes(1);
 
-    ln.requestPermissions.mockClear();
+    plugin.request.mockClear();
     granted('denied');
-    await expect(androidNotifications.requestPermission()).resolves.toBe(false);
+    await expect(api.requestPermission()).resolves.toBe(false);
     granted();
-    await expect(androidNotifications.requestPermission()).resolves.toBe(true);
-    expect(ln.requestPermissions).not.toHaveBeenCalled();
+    await expect(api.requestPermission()).resolves.toBe(true);
+    expect(plugin.request).not.toHaveBeenCalled();
   });
 });
 
@@ -65,61 +63,47 @@ describe('scheduleReviews', () => {
     { at: H10 + HOUR, newReviews: 1, totalReviews: 4, lessons: 5 },
   ];
 
-  it('replaces everything with one inexact notification per future time, Java texts, Java channel', async () => {
+  it('hands the native side one plan for the single notification, with the Java texts', async () => {
     granted();
-    await expect(androidNotifications.scheduleReviews(times, NOW)).resolves.toBe(2);
-    expect(ln.cancelAll).toHaveBeenCalled();
-    expect(ln.removeAllDeliveredNotifications).toHaveBeenCalled();
-    expect(ln.createChannel).toHaveBeenCalledWith({
-      id: 'NewReviewsChannel', name: 'NewReviewsChannel', description: 'New reviews available', importance: 3, visibility: 1,
+    await expect(api.scheduleReviews(times, { now: NOW, current: { lessons: 5, reviews: 1 } })).resolves.toBe(2);
+    expect(plugin.schedule).toHaveBeenCalledTimes(1);
+    expect(plugin.schedule.mock.calls[0]![0]).toEqual({
+      entries: [
+        { at: H10, title: 'New reviews available', body: '3 reviews available' },
+        { at: H10 + HOUR, title: 'New lessons and reviews available', body: '5 lessons and 4 reviews available' },
+      ],
+      current: { at: NOW, lessons: 5, reviews: 1, title: 'New lessons and reviews available', body: '5 lessons and 1 reviews available' },
     });
-    const sent = ln.schedule.mock.calls[0]![0].notifications;
-    expect(sent).toEqual([
-      expect.objectContaining({
-        id: REVIEW_ID_BASE, title: 'New reviews available', body: '3 reviews available', channelId: 'NewReviewsChannel',
-        smallIcon: 'ic_stat_name', isExactNotification: false, schedule: { at: new Date(H10), allowWhileIdle: true },
-      }),
-      expect.objectContaining({
-        id: REVIEW_ID_BASE + 1, title: 'New lessons and reviews available', body: '5 lessons and 4 reviews available',
-      }),
-    ]);
+    expect(plugin.cancelAll).not.toHaveBeenCalled();
   });
 
-  it('caps at 64', async () => {
+  it('caps at 64 entries', async () => {
     granted();
     const many = Array.from({ length: 100 }, (_, i) => ({ at: H10 + i * HOUR, newReviews: 1, totalReviews: i + 1, lessons: 0 }));
-    await expect(androidNotifications.scheduleReviews(many, NOW)).resolves.toBe(64);
-    expect(ln.schedule.mock.calls[0]![0].notifications.at(-1).id).toBe(REVIEW_ID_BASE + 63);
+    await expect(api.scheduleReviews(many, { now: NOW })).resolves.toBe(64);
+    expect(plugin.schedule.mock.calls[0]![0].entries).toHaveLength(64);
+    expect(plugin.schedule.mock.calls[0]![0].current).toBeNull();
   });
 
   it('without permission only cancels, never prompts', async () => {
     granted('prompt');
-    await expect(androidNotifications.scheduleReviews(times, NOW)).resolves.toBe(0);
-    expect(ln.cancelAll).toHaveBeenCalled();
-    expect(ln.requestPermissions).not.toHaveBeenCalled();
-    expect(ln.schedule).not.toHaveBeenCalled();
+    await expect(api.scheduleReviews(times, { now: NOW })).resolves.toBe(0);
+    expect(plugin.cancelAll).toHaveBeenCalled();
+    expect(plugin.request).not.toHaveBeenCalled();
+    expect(plugin.schedule).not.toHaveBeenCalled();
   });
 
-  it('nothing upcoming: cancels and schedules nothing', async () => {
+  it('nothing upcoming: an empty plan (the native side cancels its alarm)', async () => {
     granted();
-    await expect(androidNotifications.scheduleReviews([], NOW)).resolves.toBe(0);
-    expect(ln.cancelAll).toHaveBeenCalled();
-    expect(ln.schedule).not.toHaveBeenCalled();
-  });
-
-  it('creates the channel once', async () => {
-    granted();
-    await androidNotifications.scheduleReviews(times, NOW);
-    await androidNotifications.scheduleReviews(times, NOW);
-    expect(ln.createChannel).toHaveBeenCalledTimes(1);
+    await expect(api.scheduleReviews([], { now: NOW, current: { lessons: 0, reviews: 0 } })).resolves.toBe(0);
+    expect(plugin.schedule.mock.calls[0]![0].entries).toEqual([]);
   });
 });
 
 describe('cancelAll', () => {
-  it('cancels pending and clears the shade', async () => {
-    await androidNotifications.cancelAll();
-    expect(ln.cancelAll).toHaveBeenCalled();
-    expect(ln.removeAllDeliveredNotifications).toHaveBeenCalled();
+  it('cancels the plan and the shown notification', async () => {
+    await api.cancelAll();
+    expect(plugin.cancelAll).toHaveBeenCalled();
   });
 });
 
@@ -135,16 +119,17 @@ describe('rescheduleReviewNotifications', () => {
   updateProgress(db, 1, { unlockedAt: 1, startedAt: 1, availableAt: H10 });
 
   it('plans and schedules', async () => {
-    const api = { ...androidNotifications, scheduleReviews: vi.fn().mockResolvedValue(1), cancelAll: vi.fn() };
-    await expect(rescheduleReviewNotifications(api, db, {}, NOW)).resolves.toBe(1);
-    expect(api.scheduleReviews).toHaveBeenCalledWith([{ at: H10, newReviews: 1, totalReviews: 1, lessons: 0 }]);
+    const a2 = { ...androidNotifications, scheduleReviews: vi.fn().mockResolvedValue(1), cancelAll: vi.fn() };
+    await expect(rescheduleReviewNotifications(a2, db, {}, NOW)).resolves.toBe(1);
+    expect(a2.scheduleReviews).toHaveBeenCalledWith([{ at: H10, newReviews: 1, totalReviews: 1, lessons: 0 }],
+      { now: NOW, current: { lessons: 0, reviews: 0 } });
   });
 
   it('cancels when enable_notifications is off', async () => {
-    const api = { ...androidNotifications, scheduleReviews: vi.fn(), cancelAll: vi.fn().mockResolvedValue(undefined) };
-    await expect(rescheduleReviewNotifications(api, db, { enable_notifications: false }, NOW)).resolves.toBe(0);
-    expect(api.cancelAll).toHaveBeenCalled();
-    expect(api.scheduleReviews).not.toHaveBeenCalled();
+    const a2 = { ...androidNotifications, scheduleReviews: vi.fn(), cancelAll: vi.fn().mockResolvedValue(undefined) };
+    await expect(rescheduleReviewNotifications(a2, db, { enable_notifications: false }, NOW)).resolves.toBe(0);
+    expect(a2.cancelAll).toHaveBeenCalled();
+    expect(a2.scheduleReviews).not.toHaveBeenCalled();
   });
 
   it('is a no-op on the web build', async () => {

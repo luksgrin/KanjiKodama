@@ -18,6 +18,9 @@ import { SCHEMA_SQL } from '../../scripts/content/schema';
 import { NO_JLPT, subject } from '../progress-storage/helpers';
 import { makeApp, T0, type Harness } from './fixtures';
 import { sessionRuntime } from '../../src/ui/components/session';
+import { defaultParameters } from '../../src/core/search';
+import { levelColumns } from '../../src/ui/screens/browse/BrowseScreen';
+import { resultSpans } from '../../src/ui/screens/browse/SearchResultsScreen';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -179,7 +182,42 @@ describe('item page screen', () => {
   });
 });
 
+async function menu(el: HTMLElement, id: string): Promise<void> {
+  await click(el.querySelector('[data-testid="toolbar-overflow"]')!);
+  const item = el.querySelector<HTMLButtonElement>(`[data-testid="menu-${id}"]`);
+  if (!item) throw new Error(`no menu item ${id}`);
+  await click(item);
+}
+
 describe('browse and search', () => {
+  it('shows the Java overview: tutorial, flat level grid, keyword and advanced search', async () => {
+    const { el, app } = await render('/browse');
+    expect(el.querySelector('[data-testid="toolbar"] h1')?.textContent).toBe('Browse / search');
+    expect(el.querySelector('[data-testid="browse-tutorial"]')?.textContent).toContain('From this screen you can search the subject database');
+    expect([...el.querySelectorAll('.kk-browse-heading')].map((h) => h.textContent)).toEqual(['Choose a level to browse:', 'Keyword search:', 'Advanced search:']);
+    expect(el.querySelectorAll('.kk-browse-level')).toHaveLength(2);
+    expect(el.querySelector('[data-testid="browse-level-1"]')?.getAttribute('aria-current')).toBe('true');
+    await click(button(el.querySelector('[data-testid="browse-tutorial"]')!, 'Dismiss'));
+    expect(el.querySelector('[data-testid="browse-tutorial"]')).toBeNull();
+    app.dispose();
+  });
+
+  it('puts the results actions in the toolbar menu, as res/menu does', async () => {
+    const { el, app } = await render('/browse/results?t=0&q=1');
+    expect(el.querySelector('[data-testid="results-tutorial"]')).not.toBeNull();
+    await click(el.querySelector('[data-testid="toolbar-overflow"]')!);
+    const items = [...el.querySelectorAll('[data-testid^="menu-search_result_"]')].map((b) => b.textContent);
+    expect(items).toEqual(['Refine search', 'Save preset', 'Start self-study quiz']);
+    await click(el.querySelector('[data-testid="menu-search_result_refine"]')!);
+    expect(el.querySelector('.kk-results-form .kk-advanced-search')).not.toBeNull();
+    app.dispose();
+  });
+
+  it('computes the Java grid sizes', () => {
+    expect([320, 360, 375, 411, 768].map(levelColumns)).toEqual([5, 5, 5, 10, 10]);
+    expect([200, 240, 320, 375, 411, 768].map(resultSpans)).toEqual([2, 2, 3, 4, 4, 8]);
+  });
+
   it('browses a level: grouped by type, stage on the cards, then the item page', async () => {
     const { el, app, location } = await render('/browse');
     await click(el.querySelector('[data-testid="browse-level-1"]')!);
@@ -188,26 +226,28 @@ describe('browse and search', () => {
     const headers = [...el.querySelectorAll('.kk-result-header-title')].map((h) => h.textContent);
     expect(headers).toEqual(['1 Radical', '1 Kanji', '1 Vocabulary']);
     expect(el.querySelector('[data-testid="result-3"]')).toBeNull();
-    // Type filter.
-    await click(button(el, 'Kanji'));
-    expect(el.querySelector('[data-testid="num-hits"]')?.textContent).toBe('Level 1: 1 subject(s) found');
+    // Not started: "Initiate" as in Java (SubjectCardBinder: the stored stage), never "Locked".
+    expect(el.querySelector('[data-testid="result-100"] .kk-card-progress')?.textContent).toBe('Initiate');
+    expect(el.querySelector('[data-testid="result-10"]')?.textContent).toBe('一OneいちInitiate');
+    // Vocabulary spans the whole row.
+    expect(el.querySelector<HTMLElement>('[data-testid="result-100"]')!.parentElement!.style.gridColumn).toMatch(/^span \d$/);
     await click(el.querySelector('[data-testid="result-10"]')!);
     expect(location.get()).toBe('/subject/10');
     app.dispose();
   });
 
   it('starts a self-study quiz from the results (Java\'s "Start self-study quiz")', async () => {
-    const { el, app, location } = await render('/browse/results?t=0&q=1');
-    await click(button(el, 'Kanji'));
-    await click(el.querySelector('[data-testid="start-self-study"]')!);
+    const kanjiOnly = `/browse/results?t=2&q=${encodeURIComponent(JSON.stringify({ ...defaultParameters(), itemTypes: ['WANIKANI_KANJI'] }))}`;
+    const { el, app, location } = await render(kanjiOnly);
+    await menu(el, 'search_result_self_study');
     expect(location.get()).toBe('/self-study/quiz');
     const session = sessionRuntime(app).get().session!;
     expect(session.type).toBe('SELF_STUDY');
     expect(session.items.map((i) => i.id)).toEqual([10]);
     // While it runs, the menu entry just opens it.
-    await act(async () => location.navigate('/browse/results?t=0&q=1'));
+    await act(async () => location.navigate(kanjiOnly));
     await flush();
-    await click(el.querySelector('[data-testid="start-self-study"]')!);
+    await menu(el, 'search_result_self_study');
     expect(location.get()).toBe('/self-study/quiz');
     expect(sessionRuntime(app).get().session!.items.map((i) => i.id)).toEqual([10]);
     app.dispose();
@@ -242,16 +282,16 @@ describe('browse and search', () => {
     await type(form.querySelector('input[aria-label="Min level"]')!, '2');
     await click(form.querySelector('button[type="submit"]')!);
     expect(el.querySelector('[data-testid="num-hits"]')?.textContent).toBe('Advanced search: 1 subject(s) found');
-    await click(button(el, 'Save preset'));
+    await menu(el, 'search_result_save_preset');
     await type(openDialog(el).querySelector('input')!, 'Level two up');
     await click(button(openDialog(el), 'Save'));
-    expect(el.textContent).toContain("Preset 'Level two up' saved");
+    expect(document.querySelector('[data-testid="toast"]')?.textContent).toBe("Preset 'Level two up' saved");
 
     await act(async () => location.navigate('/browse'));
     await flush();
     expect((el.querySelector('select[aria-label="Search preset"]') as HTMLSelectElement).value).toBe('Level two up');
     await click(button(el.querySelector('.kk-browse-presets')!, 'Search'));
-    expect(el.querySelector('.kk-search-results h2')?.textContent).toBe('Level two up');
+    expect(el.querySelector('[data-testid="toolbar"] h1')?.textContent).toBe('Level two up');
     expect(el.querySelector('[data-testid="result-3"]')).not.toBeNull();
 
     // Delete it.

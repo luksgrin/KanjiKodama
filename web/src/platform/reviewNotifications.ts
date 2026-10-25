@@ -1,6 +1,6 @@
 // Glue for the screens: plan and schedule the review notifications in one call. Call it after each
 // session, on pause (lifecycle.onPause), on resume and after a sync in server mode (counts change).
-import { enableNotifications, planReviewNotifications, type ReviewNotificationOptions } from '../core/notifications';
+import { enableNotifications, planReviewNotifications, planWidget, type ReviewNotificationOptions } from '../core/notifications';
 import type { LearnerDb } from '../core/progression';
 import type { Preferences } from '../core/settings';
 import type { NotificationsApi } from './index';
@@ -22,5 +22,6 @@ export async function rescheduleReviewNotifications(
     await api.cancelAll();
     return 0;
   }
-  return api.scheduleReviews(planReviewNotifications(db, now, options));
+  const counts = planWidget(db, now, { ...(options.maxLevel === undefined ? {} : { maxLevel: options.maxLevel }), cap: 0 });
+  return api.scheduleReviews(planReviewNotifications(db, now, options), { now, current: { lessons: counts.lessons, reviews: counts.reviews } });
 }

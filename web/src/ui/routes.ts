@@ -63,3 +63,20 @@ export const paths = {
   searchResults: (t: number = 0, q: string = '1', preset?: string) =>
     `/browse/results?${new URLSearchParams({ t: String(t), q, ...(preset === undefined ? {} : { preset }) }).toString()}`,
 } as const satisfies Record<RouteName, (...a: never[]) => string>;
+
+/**
+ * The route that shows a running session of this kind (same as components/session `sessionPath`;
+ * this one keeps the session chunk out of the dashboard bundle).
+ */
+export function sessionRoutePath(type: string): string {
+  switch (type) {
+    case 'LESSON':
+      return paths.lessons();
+    case 'REVIEW':
+      return paths.reviews();
+    case 'SELF_STUDY':
+      return paths.selfStudyQuiz();
+    default:
+      return paths.dashboard();
+  }
+}

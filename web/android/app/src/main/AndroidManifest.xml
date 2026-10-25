@@ -37,14 +37,11 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
-        <!-- @capacitor/local-notifications re-arms its alarms on BOOT_COMPLETED only. Alarms are
-             also dropped when the app is updated (adb install -r / a new APK), so add
-             MY_PACKAGE_REPLACED to the plugin's own restore receiver (the manifest merger adds this
-             intent filter to the plugin's declaration). The app also reschedules on every resume. -->
-        <receiver
-            android:name="com.capacitorjs.plugins.localnotifications.LocalNotificationRestoreReceiver"
-            android:exported="false">
+        <!-- The single review notification (ReviewNotifications.java): its inexact alarm, and
+             re-arming it after a reboot or an app update (both drop alarms). -->
+        <receiver android:name=".ReviewNotificationReceiver" android:exported="false">
             <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
@@ -65,7 +62,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Haptic feedback on answer verdicts (navigator.vibrate in the WebView), as the Java app's HapticUtil. -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Declared by @capacitor/local-notifications; we only schedule inexact alarms
-         (isExactNotification: false), so drop it (restricted by Play policy, denied by default on API 33+). -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
+    <!-- The review notification (Android 13+ asks at runtime) and its re-armed alarm after a reboot.
+         Only inexact alarms are used: no SCHEDULE_EXACT_ALARM. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>
