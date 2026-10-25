@@ -1,4 +1,16 @@
-import type { FilesApi, NotificationsApi, Platform, StorageApi } from './index';
+import type { Capabilities, FilesApi, NotificationsApi, OpenedText, Platform, SaveResult } from './index';
+import { browserStorage } from './browserStorage';
+
+const capabilities: Capabilities = {
+  notifications: false,
+  audio: false,
+  haptics: false,
+  backgroundSync: false,
+  widget: false,
+  cleartextHttp: false,
+  legacyMigration: false,
+  autoBackup: false,
+};
 
 const notifications: NotificationsApi = {
   supported: false,
@@ -8,41 +20,61 @@ const notifications: NotificationsApi = {
 };
 
 function isAbort(e: unknown): boolean {
-  return e instanceof DOMException && e.name === 'AbortError';
+  return typeof e === 'object' && e !== null && (e as { name?: unknown }).name === 'AbortError';
 }
 
-/** Share sheet with a file where available (iOS Safari: lets the user "Save to Files"), else a download. */
-async function saveText(name: string, text: string): Promise<void> {
-  const file = new File([text], name, { type: 'application/json' });
-  if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: name });
-      return;
-    } catch (e) {
-      if (isAbort(e)) return; // user closed the share sheet
-      // NotAllowedError etc.: fall back to a plain download
-    }
-  }
-  const url = URL.createObjectURL(file);
+/** Save through a Blob URL and an <a download> click. No way to know whether the user kept it. */
+export function downloadText(name: string, text: string, type = 'application/json'): void {
+  const url = URL.createObjectURL(new Blob([text], { type }));
   const a = document.createElement('a');
   a.href = url;
   a.download = name;
   a.rel = 'noopener';
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
+/**
+ * Share sheet with a file where available (iOS Safari: Save to Files, iCloud Drive, Google Drive
+ * app), else a download. Must be called from a user gesture (share() needs transient activation).
+ */
+export async function saveText(name: string, text: string): Promise<SaveResult> {
+  const type = 'application/json';
+  const nav = globalThis.navigator as Navigator | undefined;
+  if (typeof nav?.canShare === 'function' && typeof nav.share === 'function' && typeof File === 'function') {
+    const file = new File([text], name, { type });
+    let canShare = false;
+    try {
+      canShare = nav.canShare({ files: [file] });
+    } catch {
+      canShare = false;
+    }
+    if (canShare) {
+      try {
+        await nav.share({ files: [file], title: name });
+        return 'saved';
+      } catch (e) {
+        if (isAbort(e)) return 'cancelled'; // user closed the share sheet
+        // NotAllowedError (lost user activation), DataError etc.: fall back to a download.
+      }
+    }
+  }
+  downloadText(name, text, type);
+  return 'saved';
+}
+
 /** Open a text file through a hidden <input type=file>. Shared with android.ts (works in the WebView). */
-export function openTextViaInput(accept = '.json,application/json,text/plain'): Promise<string | null> {
+export function openTextViaInput(accept = '.json,application/json,text/plain'): Promise<OpenedText | null> {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = accept;
     input.style.display = 'none';
     let settled = false;
-    const finish = (value: string | null, error?: unknown) => {
+    const finish = (value: OpenedText | null, error?: unknown) => {
       if (settled) return;
       settled = true;
       input.remove();
@@ -52,8 +84,9 @@ export function openTextViaInput(accept = '.json,application/json,text/plain'): 
     input.addEventListener('change', () => {
       const file = input.files?.[0];
       if (!file) return finish(null);
-      file.text().then((t) => finish(t), (e: unknown) => finish(null, e));
+      file.text().then((text) => finish({ name: file.name, text }), (e: unknown) => finish(null, e ?? new Error('read failed')));
     });
+    // 'cancel' fires in current Chrome/Safari/Firefox; older browsers never settle on cancel.
     input.addEventListener('cancel', () => finish(null));
     document.body.appendChild(input);
     input.click();
@@ -62,12 +95,4 @@ export function openTextViaInput(accept = '.json,application/json,text/plain'): 
 
 const files: FilesApi = { saveText, openText: () => openTextViaInput() };
 
-const storage: StorageApi = {
-  async persist() {
-    if (!navigator.storage?.persist) return false;
-    if (await navigator.storage.persisted()) return true;
-    return navigator.storage.persist();
-  },
-};
-
-export const webPlatform: Platform = { name: 'web', notifications, files, storage };
+export const webPlatform: Platform = { name: 'web', capabilities, notifications, files, storage: browserStorage };

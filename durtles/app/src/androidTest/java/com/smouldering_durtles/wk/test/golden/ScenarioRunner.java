@@ -45,6 +45,7 @@ import com.smouldering_durtles.wk.model.SrsBreakDown;
 import com.smouldering_durtles.wk.model.TimeLine;
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.tasks.WaniKaniImporter;
+import com.smouldering_durtles.wk.util.InflectionUtil;
 import com.smouldering_durtles.wk.util.ObjectSupport;
 
 import java.io.ByteArrayOutputStream;
@@ -63,6 +64,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -134,6 +136,10 @@ import java.util.Set;
  *     {@code result.subjects} lists {id, object, level, hiddenAtBefore, hiddenAt}. The base reset puts back the
  *     content's original hiddenAt of every subject a scenario changed.</li>
  *     <li>{@code progressionUpdate}: LocalProgression.update alone ({@code result.unlocked}).</li>
+ *     <li>{@code dashboard} {settings}: what the dashboard computes (LiveTimeLine.computeTimeLine,
+ *     LiveLevelProgress.computeLevelProgress, LiveSrsBreakDown.computeBreakDown). {@code settings} (key → boolean,
+ *     number or string; null removes the key) are applied first, only those keys, and recorded in
+ *     {@code resolved.settings}; they stay for later steps and the base reset puts the originals back.</li>
  *     <li>{@code sessionStart}, {@code sessionAnswer}, {@code sessionButton}, {@code sessionWrapUp},
  *     {@code sessionFinish}, {@code sessionAbandon}, {@code sessionRestart}, …: drive the real Session; see
  *     {@link SessionDriver}.</li>
@@ -208,6 +214,8 @@ final class ScenarioRunner {
     /** Put the app in the base state every scenario starts from: no progress, WaniKani order, pinned clock. */
     void baseReset(final long seed) throws Exception {
         ObjectSupport.seedRandom(seed);
+        // The randomized inflection picks (Math.random() in the app) from their own generator with the same seed.
+        InflectionUtil.setRandomSourceForTesting(new Random(seed)::nextDouble);
         Clock.pin(T0);
         SessionDriver.baseReset(context);
         LevelTest.discard(db);
@@ -358,7 +366,10 @@ final class ScenarioRunner {
     }
 
     /** The dashboard as the app computes it: timeline, level progress bars and SRS breakdown (LiveTimeLine etc.). */
-    private Object dashboard() {
+    private Object dashboard(final JsonNode step, final Map<String, Object> resolved) {
+        if (step.has("settings")) {
+            SessionDriver.applyPreferences(context, step.get("settings"), resolved);
+        }
         final TimeLine t = LiveTimeLine.computeTimeLine(db, new ArrayList<>());
         final List<Object> slots = new ArrayList<>();
         for (int i = 0; i < t.getTimeLine().size(); i++) {
@@ -748,7 +759,7 @@ final class ScenarioRunner {
             case "progressionUpdate":
                 return obj("unlocked", LocalProgression.update(db));
             case "dashboard":
-                return dashboard();
+                return dashboard(step, resolved);
             default:
                 if (action.startsWith("session")) {
                     return sessions.perform(action, step, resolved);

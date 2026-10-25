@@ -225,3 +225,22 @@ def add(S, lvl):
         {"action": "sessionButton", "button": "TOGGLE_LIGHTNING_MODE"},
         {"action": "sessionAnswer", "until": "finishing", "advance": "app"},
         {"action": "sessionFinish"}]}
+
+    # Overdue boundaries (Subject.isOverdue). Level 1 uses the accelerated SRS system: Apprentice I = 2 h, II = 4 h,
+    # III = 8 h. 5 subjects (2 at Apprentice I, 2 at II, 1 at III), all available at A1 = the top of the hour after T0
+    # (availableInHours 1). The overdue threshold is a float (0.2f = 0.20000000298...), the ratio a double.
+    T0, H = 1767604620000, 3600000
+    a1 = T0 + H - (T0 + H) % H
+    od = [row(r1[0], 1, -1), row(r1[1], 2, -1), row(k1[0], 1, -1), row(k1[1], 2, -1), row(r1[2], 3, -1)]
+    od_first = s(review_order="LEVEL_THEN_TYPE", review_order_overdue_first=True)
+    od_25 = s(review_order="LEVEL_THEN_TYPE", review_order_overdue_first=True, overdue_threshold="25")
+    steps = []
+    for at, settings in [(a1, od_first), (a1 + 1440000, od_first), (a1 + 1440001, od_first), (a1 + 2880000, od_first),
+                         (a1 + 2880001, od_first), (a1 + H - 1, od_25), (a1 + H, od_25)]:
+        steps.append({"action": "sessionStart", "type": "REVIEW", "where": {}, "atMs": at, "settings": settings})
+        steps.append({"action": "sessionAbandon"})
+    S["session-order-overdue-boundary"] = {
+      "description": "Overdue boundaries with review_order_overdue_first (LEVEL_THEN_TYPE): 3 radicals and 2 kanji of level 1 (accelerated SRS: Apprentice I 2 h, II 4 h, III 8 h) at Apprentice I, II and III, all available at the top of the hour after T0. Started exactly at availableAt (due, but not overdue: elapsed time 0), at 20 % of 2 h (Apprentice I not overdue: the ratio 0.2 as a double is below the float threshold 0.2f), 1 ms later (Apprentice I overdue), at 20 % of 4 h and 1 ms later (the same for Apprentice II), then with overdue_threshold 25 (exact as a float) at 1 h - 1 ms and exactly 1 h (25 % of 4 h: Apprentice II joins exactly there, the comparison is >=); Apprentice III is never overdue here. Each start is abandoned; the items' order and bucket show which are overdue.",
+      "mode": "WANIKANI", "exportMode": "delta", "seed": 47,
+      "start": {"generate": {"userLevel": 1, "rows": od}},
+      "steps": steps}

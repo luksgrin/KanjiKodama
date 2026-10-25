@@ -17,6 +17,7 @@
 package com.smouldering_durtles.wk.util;
 
 import java.util.HashMap;
+import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 
 public class InflectionUtil {
@@ -255,13 +256,28 @@ public class InflectionUtil {
         return adjectiveEndings.get(declension).decline(adjective, adjectiveType);
     }
 
+    /**
+     * KanjiKodama: where the random picks get their doubles. Math.random() in production (unchanged behavior); golden
+     * tests replace it with a seeded java.util.Random's nextDouble so the picks are reproducible.
+     */
+    private static DoubleSupplier randomSource = Math::random;
+
+    /**
+     * KanjiKodama: test seam. Replace the source of doubles for the random picks; null restores Math.random().
+     *
+     * @param source the source, e.g. {@code new Random(seed)::nextDouble}, or null
+     */
+    public static void setRandomSourceForTesting(final DoubleSupplier source) {
+        randomSource = source == null ? Math::random : source;
+    }
+
     public static String getRandomAdjectiveDeclension() {
-        int index = (int) (Math.random() * adjectiveEndings.size());
+        int index = (int) (randomSource.getAsDouble() * adjectiveEndings.size());
         return (String) adjectiveEndings.keySet().toArray()[index];
     }
 
     public static String getRandomVerbConjugation() {
-        int index = (int) (Math.random() * verbEndings.size());
+        int index = (int) (randomSource.getAsDouble() * verbEndings.size());
         return (String) verbEndings.keySet().toArray()[index];
     }
 

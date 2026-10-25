@@ -1,20 +1,37 @@
 // Android (Capacitor) implementation of the platform interface.
 // Loaded only when Capacitor.isNativePlatform() is true (see ./index.ts).
 import { registerPlugin } from '@capacitor/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import type { FilesApi, NotificationsApi, Platform, StorageApi } from './index';
+import { Share } from '@capacitor/share';
+import type { AutoBackupEntry, Capabilities, FilesApi, NotificationsApi, OpenedText, Platform, SaveResult } from './index';
+import { browserStorage } from './browserStorage';
 import { openTextViaInput } from './web';
+import { AUTO_BACKUP_DIR, AUTO_BACKUP_KEEP, autoBackupName, parseAutoBackupName, planRotation, sortBackupsNewestFirst } from '../progress/backup';
 
 /**
- * Minimal native plugin in web/android (DocumentPlugin.java) wrapping the
- * Storage Access Framework: ACTION_CREATE_DOCUMENT / ACTION_OPEN_DOCUMENT.
- * The system picker lists Drive, Downloads and other document providers.
+ * Local native plugin in web/android (app/src/main/java/.../DocumentPlugin.java, registered in
+ * MainActivity) wrapping the Storage Access Framework: ACTION_CREATE_DOCUMENT / ACTION_OPEN_DOCUMENT.
+ * The system picker lists Drive, Downloads and other document providers, like the Java app.
+ * No installed Capacitor plugin offers a create-document picker (@capacitor/filesystem writes only
+ * to app/public dirs, @capacitor/share is a share sheet), hence this plugin.
  */
-interface DocumentPlugin {
+export interface DocumentPlugin {
   save(options: { filename: string; text: string; mimeType?: string }): Promise<{ saved: boolean; uri?: string }>;
   open(options?: { mimeTypes?: string[] }): Promise<{ text?: string; name?: string; cancelled: boolean }>;
 }
-const Document = registerPlugin<DocumentPlugin>('Document');
+export const Document = registerPlugin<DocumentPlugin>('Document');
+
+const capabilities: Capabilities = {
+  notifications: true,
+  audio: false, // step 5
+  haptics: false, // step 5
+  backgroundSync: false,
+  widget: false,
+  cleartextHttp: true,
+  legacyMigration: false, // step 6
+  autoBackup: true,
+};
 
 const NOTIFICATION_ID = 1;
 
@@ -57,36 +74,97 @@ const notifications: NotificationsApi = {
   },
 };
 
-const files: FilesApi = {
-  async saveText(name: string, text: string): Promise<void> {
-    // Resolves on success and on user cancel (interface contract); write errors reject.
-    await Document.save({ filename: name, text, mimeType: 'application/json' });
-  },
-  async openText(): Promise<string | null> {
-    try {
-      const result = await Document.open({ mimeTypes: ['application/json', 'text/plain', 'application/octet-stream'] });
-      return result.cancelled ? null : (result.text ?? null);
-    } catch (err) {
-      // Native plugin missing (e.g. stale APK): fall back to <input type=file>,
-      // which Capacitor's WebChromeClient routes to the system picker.
-      if (err instanceof Error && /not implemented/i.test(err.message)) {
-        return openTextViaInput();
-      }
-      throw err;
-    }
-  },
-};
+/** The native Document plugin is missing (e.g. an APK built before it existed). */
+function isUnimplemented(err: unknown): boolean {
+  if (typeof err !== 'object' || err === null) return false;
+  const { code, message } = err as { code?: unknown; message?: unknown };
+  return code === 'UNIMPLEMENTED' || (typeof message === 'string' && /not implemented/i.test(message));
+}
 
-const storage: StorageApi = {
-  async persist(): Promise<boolean> {
-    if (!navigator.storage?.persist) return false;
-    return navigator.storage.persist();
-  },
-};
+function isShareCancel(err: unknown): boolean {
+  const message = typeof err === 'object' && err !== null ? (err as { message?: unknown }).message : undefined;
+  return typeof message === 'string' && /cancel/i.test(message);
+}
+
+/** Fallback when the Document plugin is missing: write to the cache dir and open the share sheet. */
+async function saveViaShare(name: string, text: string): Promise<SaveResult> {
+  const { uri } = await Filesystem.writeFile({ path: name, data: text, directory: Directory.Cache, encoding: Encoding.UTF8 });
+  try {
+    await Share.share({ title: name, files: [uri], dialogTitle: name });
+    return 'saved';
+  } catch (err) {
+    if (isShareCancel(err)) return 'cancelled';
+    throw err;
+  }
+}
+
+async function saveText(name: string, text: string): Promise<SaveResult> {
+  try {
+    const result = await Document.save({ filename: name, text, mimeType: 'application/json' });
+    return result.saved ? 'saved' : 'cancelled';
+  } catch (err) {
+    if (isUnimplemented(err)) return saveViaShare(name, text);
+    throw err;
+  }
+}
+
+async function openText(): Promise<OpenedText | null> {
+  try {
+    const result = await Document.open({ mimeTypes: ['application/json', 'text/plain', 'application/octet-stream'] });
+    if (result.cancelled || result.text === undefined) return null;
+    return { name: result.name ?? '', text: result.text };
+  } catch (err) {
+    // Native plugin missing: fall back to <input type=file>, which Capacitor's WebChromeClient
+    // routes to the system picker.
+    if (isUnimplemented(err)) return openTextViaInput();
+    throw err;
+  }
+}
+
+/** files/backups/ (Directory.Data is Context.getFilesDir()). */
+async function listAutoBackups(): Promise<AutoBackupEntry[]> {
+  let listed;
+  try {
+    listed = await Filesystem.readdir({ path: AUTO_BACKUP_DIR, directory: Directory.Data });
+  } catch {
+    return []; // directory does not exist yet
+  }
+  const entries: AutoBackupEntry[] = [];
+  for (const f of listed.files) {
+    if (f.type !== 'file') continue;
+    const at = parseAutoBackupName(f.name);
+    if (at === null) continue; // only ever touch our own files
+    entries.push({ name: f.name, at });
+  }
+  return sortBackupsNewestFirst(entries);
+}
+
+async function writeAutoBackup(text: string, now: Date = new Date()): Promise<AutoBackupEntry> {
+  const name = autoBackupName(now);
+  await Filesystem.writeFile({
+    path: `${AUTO_BACKUP_DIR}/${name}`,
+    data: text,
+    directory: Directory.Data,
+    encoding: Encoding.UTF8,
+    recursive: true,
+  });
+  const entry: AutoBackupEntry = { name, at: now.getTime() };
+  const existing = await listAutoBackups();
+  const all = existing.some((e) => e.name === name) ? existing : [...existing, entry];
+  const { remove } = planRotation(all, AUTO_BACKUP_KEEP);
+  for (const old of remove) {
+    // A failed delete only leaves an extra file; the next rotation retries it.
+    await Filesystem.deleteFile({ path: `${AUTO_BACKUP_DIR}/${old.name}`, directory: Directory.Data }).catch(() => undefined);
+  }
+  return entry;
+}
+
+const files: FilesApi = { saveText, openText, writeAutoBackup, listAutoBackups };
 
 export const androidPlatform: Platform = {
   name: 'android',
+  capabilities,
   notifications,
   files,
-  storage,
+  storage: browserStorage,
 };

@@ -73,3 +73,55 @@ def add(S, lvl):
          "settings": {"enable_advanced": True, "anki_mode_review_meaning": True, "test_mode": True}},
         {"action": "sessionAnswer", "until": "finishing", "spacingSeconds": 5, "answer": "ankiCorrect"},
         {"action": "sessionFinish"}]}
+
+    # Randomized inflections (review_randomize_inflections / self_study_randomize_inflections, advanced only, never in
+    # lessons): a verb or adjective question shows an inflected form (Question.getCharacters, recorded per answer as
+    # "characters") and the revealed answer names it. The pick (InflectionUtil, Math.random() in the app) comes from the
+    # base reset's new Random(seed) through InflectionUtil.setRandomSourceForTesting, once per Question object.
+    # 2480 入る godan, 2586 立つ godan (つ), 2490 上げる ichidan, 2499 大きい い adj, 2502 大人 (noun, な adj: the first
+    # inflecting part of speech), 2501 大した ("adjective": no inflection), 9180 する (kana-only, する verb), 9219 サービス
+    # (kana-only, noun + する verb: no する ending), 3174 運転する (する verb), 440 一 (kanji: no parts of speech).
+    # Settings on top of BASE (every advanced session setting removed), so the device's own preferences don't leak in.
+    from session_order_scenarios import BASE
+    INFL = [2480, 2586, 2490, 2499, 2502, 2501, 9180, 9219, 3174, 440]
+    S["anki-randomize-inflections-review"] = {
+      "description": "Review session in Anki mode with randomized inflections (review_randomize_inflections): 10 subjects due at Apprentice IV (godan, ichidan and する verbs, い and な adjectives, a plain adjective, kana-only する verbs, a kanji); every answer lists the characters shown (inflected for verbs and adjectives) and the revealed answer with the form appended. The pick happens once per question: a question graded Incorrect comes back with the same form, the meaning and reading questions of one subject pick separately.",
+      "mode": "WANIKANI", "exportMode": "delta", "seed": 5,
+      "start": {"generate": {"userLevel": 10, "rows": due(INFL)}},
+      "steps": [
+        {"action": "sessionStart", "type": "REVIEW", "ids": INFL,
+         "settings": dict(BASE, review_randomize_inflections=True, anki_mode_review_meaning=True,
+                          anki_mode_review_reading=True)},
+        {"action": "sessionAnswer", "until": "finishing", "spacingSeconds": 5, "answer": "ankiCorrect",
+         "rules": {"2480:meaning": ["ankiIncorrect"], "2499:reading": ["ankiIncorrect"], "3174:meaning": ["ankiIncorrect"]}},
+        {"action": "sessionFinish"}]}
+
+    S["anki-randomize-inflections-self-study"] = {
+      "description": "Self-study with randomized inflections (self_study_randomize_inflections) and typed answers (no Anki mode): the same 10 subjects at Guru; the shown characters are inflected, the typed answers are still checked against the dictionary form. Meaning questions first (readings skipped, Skip keeps the question and its form), one wrong answer (the question keeps its form when asked again), then a restart: the reloaded questions are new objects and pick again; the rest is answered.",
+      "mode": "WANIKANI", "exportMode": "delta", "seed": 9,
+      "start": {"generate": {"userLevel": 10, "rows": due(INFL, 5)}},
+      "steps": [
+        {"action": "sessionStart", "type": "SELF_STUDY", "ids": INFL, "atHours": 1,
+         "settings": dict(BASE, self_study_randomize_inflections=True)},
+        {"action": "sessionAnswer", "only": "meaning", "count": 6, "spacingSeconds": 5,
+         "rules": {"2490:meaning": ["wrong", "correct"]}},
+        {"action": "sessionRestart", "advanceSeconds": 60},
+        {"action": "sessionAnswer", "until": "finishing", "spacingSeconds": 5},
+        {"action": "sessionFinish", "advanceSeconds": 60}]}
+
+    S["anki-randomize-inflections-off"] = {
+      "description": "Randomized inflections where they don't apply: with enable_advanced off the review setting is ignored (no characters listed, the plain answer); a lesson session never inflects (lessons have no such setting), even with both other settings on.",
+      "mode": "WANIKANI", "exportMode": "delta",
+      "start": {"generate": {"userLevel": 10, "rows": due([2480, 2499]) + [{"id": 2490, "stage": 0}, {"id": 2515, "stage": 0}]}},
+      "steps": [
+        {"action": "sessionStart", "type": "REVIEW", "ids": [2480, 2499],
+         "settings": dict(BASE, enable_advanced=False, review_randomize_inflections=True, anki_mode_review_meaning=True)},
+        {"action": "sessionAnswer", "until": "finishing", "spacingSeconds": 5, "answer": "ankiCorrect"},
+        {"action": "sessionFinish"},
+        {"action": "sessionStart", "type": "LESSON", "ids": [2490, 2515],
+         "settings": dict(BASE, review_randomize_inflections=True, self_study_randomize_inflections=True,
+                          lesson_randomize_inflections=True, anki_mode_lesson_meaning=True,
+                          anki_mode_lesson_reading=True)},
+        {"action": "sessionStartQuiz", "advanceSeconds": 60},
+        {"action": "sessionAnswer", "until": "finishing", "spacingSeconds": 5, "answer": "ankiCorrect"},
+        {"action": "sessionFinish"}]}

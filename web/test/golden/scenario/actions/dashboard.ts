@@ -2,8 +2,9 @@
  * `dashboard` (`ScenarioRunner.dashboard`): the timeline, level progress bars and SRS breakdown as the
  * app computes them (`LiveTimeLine`, `LiveLevelProgress`, `LiveSrsBreakDown`).
  *
- * The settings come from `rs.ext.prefs` (the scenario's SharedPreferences, by key) when an action group
- * keeps them there; without it the Java defaults apply.
+ * The settings come from `rs.ext.prefs` (the scenario's SharedPreferences, by key, shared with the session
+ * actions); without it the Java defaults apply. The step's `settings` are applied there first
+ * (`SessionDriver.applyPreferences`: only those keys, null removes one; `resolved.settings` lists them).
  */
 
 import {
@@ -18,11 +19,21 @@ import {
   timeLineChartSize,
   upcomingReviewDate,
 } from '../../../../src/core/dashboard';
-import type { Preferences } from '../../../../src/core/settings';
+import type { PreferenceValue, Preferences } from '../../../../src/core/settings';
 import type { ActionHandler } from '../runner';
 
 export const dashboardActions: Record<string, ActionHandler> = {
-  dashboard: ({ rs }) => {
+  dashboard: ({ rs, step, resolved }) => {
+    if (step.settings !== undefined && step.settings !== null) {
+      const store = (rs.ext.prefs ??= {}) as Record<string, PreferenceValue>;
+      const applied: Record<string, PreferenceValue> = {};
+      for (const [k, v] of Object.entries(step.settings as Record<string, PreferenceValue>)) {
+        applied[k] = v;
+        if (v === null || v === undefined) delete store[k];
+        else store[k] = v;
+      }
+      resolved.settings = applied;
+    }
     const prefs = (rs.ext.prefs ?? {}) as Preferences;
     const size = timeLineChartSize(prefs);
     const t = computeTimeLine(rs.db, rs.now, { size, maxLevel: LOCAL_MAX_LEVEL_GRANTED });

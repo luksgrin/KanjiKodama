@@ -8,27 +8,27 @@ One review card, built once in TypeScript (React 19 + Vite 8, strict TS) and shi
 |---|---|
 | `src/kana/kanaConverter.ts` (+ `.test.ts`) | Port of `core/srs/.../KanaConverter.kt`, with all Kotlin test cases ported to Vitest |
 | `src/AnswerInput.tsx` | Answer field: romaji→kana on every `input` event, left alone during IME composition |
-| `src/content/contentDb.ts` | sql.js (WASM) loader for `wk-content.db`, timed per phase |
+| `src/content/contentDb.ts` | sql.js (WASM) loader for the content file (`content-manifest.json` → `content-<hash>.db`, see `src/content/contentFile.ts`), timed per phase |
 | `src/content/answer.ts` | Spike answer check (exact match on accepted meanings/whitelist and readings). The real `AnswerChecker.kt` is ported later |
 | `src/storage/db.ts` | Dexie/IndexedDB: per-subject progress + meta (launch count, build, load history) |
 | `src/progress/progressFile.ts` | Export/import in the `ProgressStore.java` format (`kanjikodama-progress`, version 1) |
 | `src/platform/` | `Platform` interface (`index.ts`), `web.ts` (spike-web), `android.ts` (spike-android) |
 | `src/App.tsx` | Card + stored-progress panel + diagnostics panel |
-| `scripts/copy-content.mjs` | `npm run content:spike`: copies the private DB into git-ignored `public/content/` |
+| `scripts/build-content.ts` | `npm run content` (step 4; replaced the spike's `copy-content.mjs`): builds the content file and manifest into git-ignored `public/content/` |
 | `scripts/make-icons.mjs` | `npm run icons`: renders the PNG icons from `public/icons/*.svg` (the 森 trees from `app/src/main/res/drawable/ic_launcher_foreground.xml` on #1B4332) |
 
 The font is Zen Maru Gothic Medium from `durtles/app/src/main/res/font/`, bundled locally (SIL OFL 1.1). The license ships at `licenses/OFL-zenmarugothic.txt`, and no font comes from a CDN.
 
 ## Private data
 
-`wk-content.db` is internal-use WaniKani data. `npm run content:spike` copies it to `web/public/content/`, which `web/.gitignore` ignores. Vite then copies it into `dist/content/`, which is also ignored, and Capacitor copies it into `android/app/src/main/assets/public/`, which is ignored too. `git status --ignored` was checked and the DB shows only as ignored. **Never deploy `dist/` to a public host** (GitHub Pages, Netlify, a public tunnel), because it contains the DB.
+`wk-content.db` is internal-use WaniKani data. `npm run content` (also run by `npm run build`) builds the private content file from it into `web/public/content/`, which `web/.gitignore` ignores. Vite then copies it into `dist/content/`, which is also ignored, and Capacitor copies it into `android/app/src/main/assets/public/`, which is ignored too. `git status --ignored` was checked and the DB shows only as ignored. **Never deploy `dist/` to a public host** (GitHub Pages, Netlify, a public tunnel), because it contains the DB. `node scripts/check-no-private.mjs` (part of `npm run check`) fails if WaniKani-derived data is tracked by git; add `--dir dist` to check a build output.
 
 ## Running
 
 ```sh
 cd web
 npm ci                 # exact pinned versions from package-lock.json
-npm run content:spike  # once, and again whenever the DB changes
+npm run content        # builds public/content/ (npm run build runs it too)
 npm run dev            # dev server (no service worker in dev)
 npm test               # Vitest: 60 tests
 npm run build          # tsc -b + vite build -> dist/ (with sw.js + manifest.webmanifest)

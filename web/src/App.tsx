@@ -3,10 +3,11 @@ import { getPlatform, type Platform } from './platform';
 import { loadContent, type LoadTimings } from './content/contentDb';
 import type { KanjiSubject } from './content/subject';
 import { checkAnswer, primaryAnswer, acceptedAnswers, type QuestionKind } from './content/answer';
-import { toHiragana } from './kana/kanaConverter';
-import { db, applyAnswer, emptyProgress, getMeta, setMeta, type SubjectProgress } from './storage/db';
-import { describeProgressFile, exportProgress, parseProgressFile, restoreProgress } from './progress/progressFile';
-import { AnswerInput } from './AnswerInput';
+import { db, getMeta, setMeta, type SubjectRecord } from './storage/db';
+import { emptySubjectRow } from './core/progressFile/format';
+import { exportProgressFile } from './progress/exportFile';
+import { previewImport } from './progress/importFile';
+import { AnswerInput, submittedReading } from './AnswerInput';
 
 interface LaunchInfo { count: number; firstAt: number; lastBuild: string | undefined }
 interface PersistInfo { granted: boolean; usage?: number; quota?: number }
@@ -29,7 +30,7 @@ export function App() {
   const [kind, setKind] = useState<QuestionKind>('meaning');
   const [answer, setAnswer] = useState('');
   const [result, setResult] = useState<Result>(null);
-  const [progress, setProgress] = useState<SubjectProgress>();
+  const [progress, setProgress] = useState<SubjectRecord>();
   const [imeLog, setImeLog] = useState<string[]>([]);
   const [notifStatus, setNotifStatus] = useState('');
   const [fileStatus, setFileStatus] = useState('');
@@ -40,7 +41,7 @@ export function App() {
   // tap's user activation is still live, so Save must not await IndexedDB first.
   const exportText = useRef<string | undefined>(undefined);
   const refreshExport = useCallback(async () => {
-    exportText.current = await exportProgress(db);
+    exportText.current = (await exportProgressFile(db)).text;
   }, []);
   useEffect(() => { void refreshExport(); }, [refreshExport]);
 
@@ -82,7 +83,7 @@ export function App() {
 
   const refreshProgress = useCallback(async () => {
     if (!subject) return;
-    setProgress((await db.progress.get(subject.id)) ?? emptyProgress(subject.id));
+    setProgress((await db.subjects.get(subject.id)) ?? { ...emptySubjectRow(), id: subject.id });
   }, [subject]);
   useEffect(() => { void refreshProgress(); }, [refreshProgress]);
 
@@ -90,13 +91,15 @@ export function App() {
 
   const submit = async (dontKnow: boolean) => {
     if (!subject || finished) return;
-    const typed = kind === 'reading' ? toHiragana(answer.trim()) : answer.trim();
+    const typed = kind === 'reading' ? submittedReading(answer) : answer.trim();
     if (!dontKnow && typed === '') return;
     const correct = !dontKnow && checkAnswer(subject, kind, typed);
     setResult({ correct, answer: dontKnow ? '' : typed });
-    const current = (await db.progress.get(subject.id)) ?? emptyProgress(subject.id);
-    const next = applyAnswer(current, kind, correct, dontKnow ? "(don't know)" : typed);
-    await db.progress.put(next);
+    // Spike only (no SRS): count the answer. The real session logic comes with the step 5 screens.
+    const current = (await db.subjects.get(subject.id)) ?? { ...emptySubjectRow(), id: subject.id };
+    const field = `${kind}${correct ? 'Correct' : 'Incorrect'}` as const;
+    const next: SubjectRecord = { ...current, [field]: Number(current[field] ?? 0) + 1 };
+    await db.subjects.put(next);
     setProgress(next);
     void refreshExport();
   };
@@ -151,10 +154,10 @@ export function App() {
       // Synchronous re-stamp keeps exportedAt accurate without losing the user activation.
       const text = cachedText !== undefined
         ? JSON.stringify({ ...(JSON.parse(cachedText) as object), exportedAt: Date.now() })
-        : await exportProgress(db);
+        : (await exportProgressFile(db)).text;
       const stamp = new Date().toISOString().slice(0, 10);
-      await platform.files.saveText(`kanjikodama-progress-${stamp}.json`, text);
-      setFileStatus(`saved (${text.length} bytes)`);
+      const result = await platform.files.saveText(`kanjikodama-progress-${stamp}.json`, text);
+      setFileStatus(result === 'saved' ? `saved (${text.length} bytes)` : 'save cancelled');
     } catch (e) {
       setFileStatus(`save failed: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -163,13 +166,11 @@ export function App() {
   const loadProgress = async () => {
     if (!platform) return;
     try {
-      const text = await platform.files.openText();
-      if (text === null) { setFileStatus('load cancelled'); return; }
-      const file = parseProgressFile(text); // throws before anything is written
-      await restoreProgress(db, file);
-      await refreshProgress();
-      void refreshExport();
-      setFileStatus(`loaded: ${describeProgressFile(file)}`);
+      const opened = await platform.files.openText();
+      if (opened === null) { setFileStatus('load cancelled'); return; }
+      // The spike has no full content to restore against (step 5 wires importProgress); check only.
+      const { summary } = previewImport(opened.text);
+      setFileStatus(`valid, not restored (spike): ${summary}`);
     } catch (e) {
       setFileStatus(`load rejected, nothing changed: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -218,8 +219,6 @@ export function App() {
           <dl>
             <dt>Subject</dt><dd>{subject?.characters} #{progress.id}</dd>
             <dt>srsStage</dt><dd data-testid="srsStage">{progress.srsStage}</dd>
-            <dt>Times answered</dt><dd data-testid="timesAnswered">{progress.timesAnswered ?? 0}</dd>
-            <dt>Last answer</dt><dd>{progress.lastAnswer ?? '-'}</dd>
             <dt>Meaning ✓/✗</dt><dd>{progress.meaningCorrect}/{progress.meaningIncorrect}</dd>
             <dt>Reading ✓/✗</dt><dd>{progress.readingCorrect}/{progress.readingIncorrect}</dd>
           </dl>

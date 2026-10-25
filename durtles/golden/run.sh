@@ -28,6 +28,9 @@ adb shell rm -rf /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden
 # inputs too large to keep twice in git are pushed instead of packed as test assets (ScenarioRunner.readPushed)
 adb shell mkdir -p /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden-in/progress
 adb push ../web/test/golden/progress/android-export.json /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden-in/progress/ >/dev/null
+# progress files written by the TS port (ScenarioGoldenTest#progressTsExports)
+adb shell rm -rf /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden-in/progress/ts-export
+adb push ../web/test/golden/progress/ts-export /sdcard/Android/data/app.kanjikodama.wk.debug/files/golden-in/progress/ >/dev/null
 adb logcat -c
 start=$(date +%s)
 adb shell am instrument -w -e class $FILTER "${SCEN[@]}" com.smouldering_durtles.wk.test/androidx.test.runner.AndroidJUnitRunner | tail -8

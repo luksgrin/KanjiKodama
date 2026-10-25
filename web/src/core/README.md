@@ -16,6 +16,8 @@ golden fixtures (`web/test/golden/`, see the README there) pass.
   - `Collections.shuffle(list, rnd)` / `ObjectSupport.shuffleInPlace` → `shuffleInPlace(list, rng)`
   - `ObjectSupport.shuffle(list)` (remove-at-random) → `shuffleByRemoval(list, rng)`
   - `random.nextInt(n)` / `ObjectSupport.nextRandomInt(n)` → `rng.nextInt(n)`
+  - `Math.random()` → `rng.nextDouble()` from a generator of its own (Java's `Math.random()` is one shared
+    `new Random()`; e.g. `SessionEnv.inflectionRng` for `InflectionUtil`'s picks)
   Draw in the same order as Java, or seeded fixtures stop matching.
 - **Content comes in as data**: `Content`, `ContentSubject`, `SrsSystemData` in `content.ts` (the
   static columns of the content DB, JSON parts with the stored field names such as

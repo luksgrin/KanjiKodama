@@ -1,48 +1,151 @@
-import Dexie, { type EntityTable } from 'dexie';
+/**
+ * The progress database (IndexedDB through Dexie), on both builds. Only the learner's own data
+ * lives here; the content (subjects, SRS systems) is static and loaded separately, joined by
+ * subject id, so a content update never touches these tables.
+ *
+ * Tables (plan, "Progress schema (Dexie)"):
+ * - `subjects` (key `id`): exactly the `ProgressStore.NUMERIC` and `TEXT` columns, same names
+ *   (`SubjectProgressRow` of core `progressFile/format`). Only subjects with a stored row; an absent
+ *   row is the empty defaults.
+ * - `levelProgression` (key `id`): the `LEVEL_PROGRESSION` columns.
+ * - `probation` (key `id`): `since`.
+ * - `jumps` (auto key `seq`, index `at`): `at`, `fromLevel`, `toLevel`. Java's `mm_jump` has no key
+ *   (rowid), so two jumps may share an `at`; `seq` keeps them all, in insertion order.
+ * - `state` (key `key`): `userLevel`, `curriculum`, `ordering`, the other `mm_state` keys
+ *   (`mm_state.<key>`), and later the server mode settings and sync cursors.
+ * - `levelTest` (key `id`): `round`, `known` (`mm_level_test`).
+ * - `session` (key `subjectId`): the current session's items (shape defined in step 5).
+ * - `tasks` (auto key `id`): the server-mode upload queue (step 5).
+ * - `settings` (key `key`): the settings in use.
+ * - `meta` (key `key`): `schemaVersion`, persistence result, last backup time, diagnostics.
+ *
+ * Migrations: every schema version stays declared below with its upgrade function, so a database
+ * from any earlier version opens. Never drop a table without a migration that moves its data.
+ * `src/storage/migrations.test.ts` opens a database of every earlier version.
+ */
+import Dexie, { type EntityTable, type Transaction } from 'dexie';
 
-/** Per-subject progress. Field names follow the subject table columns used in progress files. */
-export interface SubjectProgress {
-  id: number;
-  srsStage: number;
-  meaningCorrect: number;
-  meaningIncorrect: number;
-  readingCorrect: number;
-  readingIncorrect: number;
-  /** Spike-only extras (not exported). */
-  lastAnswer?: string;
-  lastAnsweredAt?: number;
-  timesAnswered?: number;
-}
+import {
+  emptySubjectRow,
+  type Jump,
+  type LevelProgressionRow,
+  type SubjectProgressRow,
+} from '../core/progressFile/format';
 
+export const DB_NAME = 'kanjikodama';
+/** The newest schema version (Dexie's `verno`). */
+export const SCHEMA_VERSION = 2;
+
+/** A `subjects` row: the subject id and its saved progress columns. */
+export type SubjectRecord = SubjectProgressRow & { id: number };
+/** A `levelProgression` row (the core row; `id` is always an integer once stored). */
+export type LevelProgressionRecord = LevelProgressionRow & { id: number };
+export interface ProbationRecord { id: number; since: number }
+export interface JumpRecord extends Jump { seq?: number }
+export interface StateRecord { key: string; value: unknown }
+export interface LevelTestRecord { id: number; round: number; known: number }
+/** One item of the current session. Its fields are defined with the session screens (step 5). */
+export interface SessionRecord { subjectId: number; [field: string]: unknown }
+/** A queued server-mode upload (step 5). */
+export interface TaskRecord { id?: number; kind: string; payload: unknown; createdAt: number }
+export interface SettingRecord { key: string; value: unknown }
 export interface MetaRow { key: string; value: unknown }
 
+/** The progress tables a progress-file restore replaces (Java's `resetProgress` also drops the session). */
+export const PROGRESS_TABLES = ['subjects', 'levelProgression', 'probation', 'jumps', 'state', 'levelTest', 'session'] as const;
+
+/** Version 1 (the spike): `progress` rows. Kept for the migration. */
+interface SpikeProgressRow {
+  id: number;
+  srsStage?: number;
+  meaningCorrect?: number;
+  meaningIncorrect?: number;
+  readingCorrect?: number;
+  readingIncorrect?: number;
+}
+
+const SPIKE_FIELDS = ['srsStage', 'meaningCorrect', 'meaningIncorrect', 'readingCorrect', 'readingIncorrect'] as const;
+
+/** v1 → v2: spike progress rows become `subjects` rows; the spike's `meta.userLevel` moves to `state`. */
+async function upgradeFromSpike(tx: Transaction): Promise<void> {
+  const old = (await tx.table('progress').toArray()) as SpikeProgressRow[];
+  const rows: SubjectRecord[] = old.map((p) => {
+    const row: SubjectRecord = { ...emptySubjectRow(), id: p.id };
+    for (const f of SPIKE_FIELDS) {
+      const v = p[f];
+      if (typeof v === 'number' && Number.isFinite(v)) row[f] = v;
+    }
+    return row;
+  });
+  await tx.table('subjects').bulkPut(rows);
+  const level = (await tx.table('meta').get('userLevel')) as MetaRow | undefined;
+  if (typeof level?.value === 'number') await tx.table('state').put({ key: 'userLevel', value: level.value });
+  await tx.table('meta').delete('userLevel');
+  await tx.table('meta').put({ key: 'schemaVersion', value: 2 });
+}
+
 export class KkDb extends Dexie {
-  progress!: EntityTable<SubjectProgress, 'id'>;
+  subjects!: EntityTable<SubjectRecord, 'id'>;
+  levelProgression!: EntityTable<LevelProgressionRecord, 'id'>;
+  probation!: EntityTable<ProbationRecord, 'id'>;
+  jumps!: EntityTable<JumpRecord, 'seq'>;
+  state!: EntityTable<StateRecord, 'key'>;
+  levelTest!: EntityTable<LevelTestRecord, 'id'>;
+  session!: EntityTable<SessionRecord, 'subjectId'>;
+  tasks!: EntityTable<TaskRecord, 'id'>;
+  settings!: EntityTable<SettingRecord, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
-  constructor(name = 'kanjikodama') {
+
+  constructor(name = DB_NAME) {
     super(name);
+    // v1: the spike (step 1).
     this.version(1).stores({ progress: 'id', meta: 'key' });
+    // v2: the real progress schema (step 4).
+    this.version(2)
+      .stores({
+        progress: null,
+        subjects: 'id',
+        levelProgression: 'id',
+        probation: 'id',
+        jumps: '++seq, at',
+        state: 'key',
+        levelTest: 'id',
+        session: 'subjectId',
+        tasks: '++id',
+        settings: 'key',
+        meta: 'key',
+      })
+      .upgrade(upgradeFromSpike);
+    this.on('populate', (tx) => {
+      void tx.table('meta').put({ key: 'schemaVersion', value: SCHEMA_VERSION });
+    });
   }
 }
 
 export const db = new KkDb();
-
-export function emptyProgress(id: number): SubjectProgress {
-  return { id, srsStage: 0, meaningCorrect: 0, meaningIncorrect: 0, readingCorrect: 0, readingIncorrect: 0, timesAnswered: 0 };
-}
-
-/** Spike SRS: correct moves up one stage (max 9), wrong moves down one (min 1 once started). */
-export function applyAnswer(p: SubjectProgress, kind: 'meaning' | 'reading', correct: boolean, answer: string, now = Date.now()): SubjectProgress {
-  const next: SubjectProgress = { ...p, lastAnswer: answer, lastAnsweredAt: now, timesAnswered: (p.timesAnswered ?? 0) + 1 };
-  if (kind === 'meaning') next[correct ? 'meaningCorrect' : 'meaningIncorrect'] += 1;
-  else next[correct ? 'readingCorrect' : 'readingIncorrect'] += 1;
-  next.srsStage = correct ? Math.min(9, p.srsStage + 1) : Math.max(1, p.srsStage - 1);
-  return next;
-}
 
 export async function getMeta<T>(key: string, d: KkDb = db): Promise<T | undefined> {
   return (await d.meta.get(key))?.value as T | undefined;
 }
 export async function setMeta(key: string, value: unknown, d: KkDb = db): Promise<void> {
   await d.meta.put({ key, value });
+}
+
+/** `meta` key of the last manual progress save (epoch ms), for the PWA backup reminder. */
+export const LAST_SAVED_META_KEY = 'lastSavedAt';
+
+/**
+ * The `LastSavedStore` of `progress/backup.ts`, backed by `meta.lastSavedAt` (structurally typed so
+ * storage doesn't depend on the progress module).
+ */
+export function lastSavedStore(d: KkDb = db): { getLastSavedAt(): Promise<number | null>; setLastSavedAt(at: number): Promise<void> } {
+  return {
+    async getLastSavedAt() {
+      const v = await getMeta<unknown>(LAST_SAVED_META_KEY, d);
+      return typeof v === 'number' ? v : null;
+    },
+    async setLastSavedAt(at: number) {
+      await setMeta(LAST_SAVED_META_KEY, at, d);
+    },
+  };
 }

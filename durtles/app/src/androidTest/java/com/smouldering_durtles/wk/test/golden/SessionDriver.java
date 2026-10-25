@@ -102,7 +102,10 @@ import java.util.function.Consumer;
  *     only those questions and presses Skip (Session.skip) on the others, listed with answer "skip". {@code resolved.answers} lists {id, questionType, answer,
  *     text, verdict {ok, retry, nearMatch}, atMs}; text is what was submitted (null for dontKnow). With a matching
  *     kanji (MatchingKanji + SubjectDao.getKanjiByCharacters, like UnansweredSessionFragment; only while the setting is
- *     on, which needs enable_advanced) the entry also has {@code matchingKanji} (its id) and Session.submit gets it.</li>
+ *     on, which needs enable_advanced) the entry also has {@code matchingKanji} (its id) and Session.submit gets it.
+ *     With randomized inflections on for the session (GlobalSettings.getRandomizeInflections), every entry, skips
+ *     included, has {@code characters}: Question.getCharacters, called before answering like the question header
+ *     does, which picks the question's inflection (InflectionUtil, seeded per scenario by the base reset).</li>
  *     <li>{@code sessionAdvance}: Session.advance.</li>
  *     <li>{@code sessionButton} {button: SpecialButtonBehavior name, count (default 1)}: the special button, e.g.
  *     UNDO_AND_MARK_CORRECT ("Ignore"), UNDO_AND_RETRY_NOW, UNDO_AND_PUT_BACK, SKIP. {@code resolved.pressed} lists
@@ -250,8 +253,20 @@ final class SessionDriver {
     // --- settings and jobs -----------------------------------------------------------------------
 
     private void applySettings(final JsonNode overrides, final Map<String, Object> resolved) {
+        apply(context, new LinkedHashMap<>(PINNED), overrides, resolved);
+    }
+
+    /**
+     * Only the given preferences (no pinned session defaults), e.g. for the dashboard action; like the session
+     * settings they stay until the next base reset, which puts the originals back. {@code resolved.settings} records them.
+     */
+    static void applyPreferences(final Context context, final JsonNode overrides, final Map<String, Object> resolved) {
+        apply(context, new LinkedHashMap<>(), overrides, resolved);
+    }
+
+    private static void apply(final Context context, final Map<String, Object> wanted, final JsonNode overrides,
+                              final Map<String, Object> resolved) {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final Map<String, Object> wanted = new LinkedHashMap<>(PINNED);
         if (overrides != null) {
             for (final Iterator<Map.Entry<String, JsonNode>> it = overrides.fields(); it.hasNext();) {
                 final Map.Entry<String, JsonNode> e = it.next();
@@ -537,10 +552,18 @@ final class SessionDriver {
                 stopped = q == null ? "noQuestion" : session.isAnswered() ? "answered" : "notActive";
                 break;
             }
+            // With randomized inflections on, the question header shows Question.getCharacters (SubjectInfoButtonView),
+            // which picks the question's inflection on first use; the driver does the same before answering.
+            final boolean inflections = GlobalSettings.getRandomizeInflections(session.getType());
+            final String shown = inflections ? q.getCharacters(q.getItem().getSubject(), session.getType()) : null;
             if (only != null && !only.equals(kind(q.getType())) && !only.equals(q.getItem().getId() + ":" + kind(q.getType()))) {
                 // Not the wanted kind of question: the Skip button puts it back.
-                answers.add(obj("id", q.getItem().getId(), "questionType", q.getType().name(), "answer", "skip", "text", null,
-                        "verdict", null, "atMs", Clock.now()));
+                final Map<String, Object> skipped = obj("id", q.getItem().getId(), "questionType", q.getType().name(),
+                        "answer", "skip", "text", null, "verdict", null, "atMs", Clock.now());
+                if (inflections) {
+                    skipped.put("characters", shown);
+                }
+                answers.add(skipped);
                 session.skip();
                 continue;
             }
@@ -589,6 +612,9 @@ final class SessionDriver {
                     "text", text, "verdict", verdict == null ? null : obj("ok", verdict.isOk(), "retry", verdict.isRetry(),
                             "nearMatch", verdict.isNearMatch()),
                     "atMs", Clock.now());
+            if (inflections) {
+                entry.put("characters", shown);
+            }
             if (anki != null) {
                 entry.putAll(anki);
             }

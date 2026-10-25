@@ -4,7 +4,17 @@ import { goldenSuite } from './harness';
 import type { ContentSubject, SubjectObject } from '../../src/core/content';
 import { QUESTION_TYPES, possibleQuestionTypes, type QuestionType } from '../../src/core/answer';
 import { ankiAnswerRichText } from '../../src/core/anki/answerText';
-import { inflectedCharacters, inflectionForm } from '../../src/core/anki/inflection';
+import {
+  conjugatedVerb,
+  declinedAdjective,
+  inflectedCharacters,
+  inflectionForm,
+  randomAdjectiveDeclension,
+  randomVerbConjugation,
+  type AdjectiveType,
+  type VerbType,
+} from '../../src/core/anki/inflection';
+import { JavaRandom } from '../../src/core/rng';
 import { meaningSynonymsRichText } from '../../src/core/answer/synonymsRichText';
 import { parseMeaningSynonyms, parseStudyMaterialJob, serializeSynonymsColumn } from '../../src/core/answer/synonyms';
 import { writeStringList } from '../../src/core/answer/jackson';
@@ -90,4 +100,34 @@ goldenSuite<{ id: number; characters: string; partsOfSpeech: string[]; form: str
     return out;
   },
   { needsContent: true },
+);
+
+interface InflectionPick {
+  name: string;
+  forms: string[];
+}
+const SAMPLE_VERBS: [string, VerbType][] = [['飲む', 'GODAN'], ['食べる', 'ICHIDAN'], ['勉強する', 'SURU']];
+const SAMPLE_ADJECTIVES: [string, AdjectiveType][] = [['大きい', 'I'], ['静か', 'NA_PLAIN'], ['静か', 'NA_POLITE']];
+
+/** InflectionGolden.pick: one random pick and the sample words in that form. */
+function inflectionPick(kind: string, rng: Pick<JavaRandom, 'nextDouble'>): InflectionPick {
+  if (kind === 'verb') {
+    const name = randomVerbConjugation(rng);
+    return { name, forms: SAMPLE_VERBS.map(([v, t]) => conjugatedVerb(v, t, name)) };
+  }
+  const name = randomAdjectiveDeclension(rng);
+  return { name, forms: SAMPLE_ADJECTIVES.map(([a, t]) => declinedAdjective(a, t, name)) };
+}
+
+goldenSuite<{ kind?: string; doubles?: number[]; seed?: number; kinds?: string[] }, unknown>(
+  'anki/inflection-random.json',
+  (input) => {
+    if (input.doubles !== undefined) {
+      const ds = [...input.doubles];
+      const rng = { nextDouble: () => ds.shift() as number };
+      return { picks: input.doubles.map(() => inflectionPick(input.kind as string, rng)) };
+    }
+    const rng = new JavaRandom(input.seed as number);
+    return { picks: (input.kinds as string[]).map((k) => inflectionPick(k, rng)) };
+  },
 );

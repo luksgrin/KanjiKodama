@@ -3,7 +3,8 @@
  * adjective question shows an inflected form and the revealed answer names it.
  *
  * Java: `util/InflectionUtil`, `model/Question.getInflectionForm` / `getInflection` / `getCharacters`.
- * Fixture: `anki/answer-inflection.json` (every form, picked explicitly).
+ * Fixtures: `anki/answer-inflection.json` (every form, picked explicitly), `anki/inflection-random.json` (the random
+ * pick), `scenarios/anki-randomize-inflections-*.json` (in sessions).
  */
 import type { Rng } from '../rng';
 
@@ -150,14 +151,50 @@ export function inflectionForm(partsOfSpeech: readonly string[]): InflectingPart
   return null;
 }
 
+/** Java `String.hashCode`. */
+function javaStringHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return h;
+}
+
 /**
- * `Question.getInflection`'s random pick (`InflectionUtil.getRandomVerbConjugation` /
- * `getRandomAdjectiveDeclension`). Java picks with the unseeded `Math.random` from a `HashMap`'s key
- * order, so no fixture can depend on the pick; this draws one `rng.nextInt` over the names in source order.
+ * The iteration order of a `java.util.HashMap<String, V>` filled with `keys` in this order (default capacity 16 and
+ * load factor 0.75, doubling while `size > 0.75 * capacity`): by bucket `(h ^ (h >>> 16)) & (capacity - 1)`, then
+ * insertion order within a bucket (a resize keeps it). Buckets here stay far below the 8 entries that would turn one
+ * into a tree.
  */
-export function randomInflection(form: InflectingPartOfSpeech, rng: Rng): string {
-  const names = form.endsWith('verb') ? VERB_CONJUGATIONS : ADJECTIVE_DECLENSIONS;
-  return names[rng.nextInt(names.length)] as string;
+export function javaHashMapKeyOrder(keys: readonly string[]): string[] {
+  let capacity = 16;
+  while (keys.length > capacity * 0.75) capacity *= 2;
+  const bucket = (k: string): number => {
+    const h = javaStringHash(k);
+    return (h ^ (h >>> 16)) & (capacity - 1);
+  };
+  return keys.map((k, i) => ({ k, i, b: bucket(k) })).sort((x, y) => x.b - y.b || x.i - y.i).map((e) => e.k);
+}
+
+/** `verbEndings.keySet().toArray()` / `adjectiveEndings.keySet().toArray()`: what the random pick indexes. */
+export const VERB_CONJUGATION_KEY_ORDER: readonly string[] = javaHashMapKeyOrder(VERB_CONJUGATIONS);
+export const ADJECTIVE_DECLENSION_KEY_ORDER: readonly string[] = javaHashMapKeyOrder(ADJECTIVE_DECLENSIONS);
+
+/**
+ * `InflectionUtil.getRandomVerbConjugation` / `getRandomAdjectiveDeclension`:
+ * `keySet().toArray()[(int) (Math.random() * size)]`. `rng.nextDouble()` stands for `Math.random()` (the app passes
+ * an unseeded generator; golden tests a `JavaRandom` matching the Java seam `InflectionUtil.setRandomSourceForTesting`).
+ * Fixture: `anki/inflection-random.json`.
+ */
+export function randomVerbConjugation(rng: Pick<Rng, 'nextDouble'>): string {
+  return VERB_CONJUGATION_KEY_ORDER[Math.trunc(rng.nextDouble() * VERB_CONJUGATION_KEY_ORDER.length)] as string;
+}
+
+export function randomAdjectiveDeclension(rng: Pick<Rng, 'nextDouble'>): string {
+  return ADJECTIVE_DECLENSION_KEY_ORDER[Math.trunc(rng.nextDouble() * ADJECTIVE_DECLENSION_KEY_ORDER.length)] as string;
+}
+
+/** `Question.getInflection`'s pick for a subject whose inflection form is `form` (`isVerb`: the form contains "verb"). */
+export function randomInflection(form: InflectingPartOfSpeech, rng: Pick<Rng, 'nextDouble'>): string {
+  return form.includes('verb') ? randomVerbConjugation(rng) : randomAdjectiveDeclension(rng);
 }
 
 /** `Question.getCharacters(subject, sessionType)` with an inflection chosen (`form` is the subject's). */

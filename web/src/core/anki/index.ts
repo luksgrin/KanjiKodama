@@ -16,7 +16,12 @@ export {
 } from './answerText';
 export {
   ADJECTIVE_DECLENSIONS,
+  ADJECTIVE_DECLENSION_KEY_ORDER,
   VERB_CONJUGATIONS,
+  VERB_CONJUGATION_KEY_ORDER,
+  javaHashMapKeyOrder,
+  randomAdjectiveDeclension,
+  randomVerbConjugation,
   conjugatedVerb,
   declinedAdjective,
   inflectedCharacters,

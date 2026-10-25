@@ -18,10 +18,13 @@ import { isKunYomi, isOnYomi } from '../answer/reading';
 import type { ContentSubject } from '../content';
 import { contentSubject, num, progressRow, srsSystemOf, tableRow, type LearnerDb } from '../progression/db';
 import { reportLocal } from '../progression/report';
-import type { JavaRandom } from '../rng';
+import type { JavaRandom, Rng } from '../rng';
 import { shuffleInPlace } from '../rng';
+import { ankiAnswerRichText } from '../anki/answerText';
+import { inflectedCharacters, inflectionForm, randomInflection } from '../anki/inflection';
+import type { RichText } from '../text/richText';
 import { chooseNextQuestion, type QuestionChoiceAccess } from './orderQuestions';
-import { advancedEnabled, prefBoolean, type Preferences, type SessionType } from '../settings';
+import { advancedEnabled, prefBoolean, randomizeInflections, type Preferences, type SessionType } from '../settings';
 import type {
   Question,
   QuestionChoiceReason,
@@ -51,6 +54,12 @@ export interface SessionEnv {
   /** `Clock.now()`. */
   now: number;
   readonly rng: JavaRandom;
+  /**
+   * `Math.random()`, the source of the randomized inflection picks (`InflectionUtil`; a separate generator from
+   * `rng`). The app passes an unseeded generator; golden tests a `JavaRandom`, like the Java seam
+   * `InflectionUtil.setRandomSourceForTesting`.
+   */
+  readonly inflectionRng: Pick<Rng, 'nextDouble'>;
   readonly stored: StoredSession;
   readonly ordering: SessionOrdering;
   readonly jobs: JobRecord[];
@@ -287,6 +296,47 @@ export class Session {
   /** The live subject of an item. */
   subjectOf(item: SessionItem): SessionSubject {
     return sessionSubject(this.env.db, item.id);
+  }
+
+  // --- randomized inflections (model/Question) --------------------------------------------------
+
+  /**
+   * `Question.getInflectionForm(subject, sessionType)`: with randomized inflections on for this session type, the
+   * subject's first inflecting part of speech; else null.
+   */
+  private inflectionFormOf(q: Question): ReturnType<typeof inflectionForm> {
+    if (!randomizeInflections(this.env.prefs, this.type)) return null;
+    return inflectionForm(contentSubject(this.env.db, q.item.id).partsOfSpeech);
+  }
+
+  /**
+   * `Question.getInflection(subject, sessionType)`: the question's inflection, picked on first use with
+   * `env.inflectionRng` and kept (a question picked once keeps it even if the setting changes); null when the setting
+   * is off or the subject doesn't inflect. Java calls it from `getCharacters` (the question's characters on screen)
+   * and `getAnkiAnswerRichText` (the revealed answer), so the pick happens when the question is first shown.
+   */
+  questionInflection(q: Question): string | null {
+    if (q.inflection !== null) return q.inflection;
+    const form = this.inflectionFormOf(q);
+    if (form === null) return null;
+    q.inflection = randomInflection(form, this.env.inflectionRng);
+    return q.inflection;
+  }
+
+  /** `Question.getCharacters(subject, sessionType)`: the characters shown, inflected when the question has one. */
+  questionCharacters(q: Question): string | null {
+    const characters = contentSubject(this.env.db, q.item.id).characters;
+    if (characters === null) return null;
+    const form = this.inflectionFormOf(q);
+    const inflection = this.questionInflection(q);
+    if (form === null || inflection === null) return characters;
+    return inflectedCharacters(characters, form, inflection);
+  }
+
+  /** `Question.getAnkiAnswerRichText(subject, sessionType)`: the revealed answer, `" (<inflection>)"` appended. */
+  questionAnkiAnswer(q: Question, showOnInKatakana: boolean): RichText {
+    const inflection = this.questionInflection(q);
+    return ankiAnswerRichText(contentSubject(this.env.db, q.item.id), q.type, { showOnInKatakana, inflection });
   }
 
   // --- jobs ------------------------------------------------------------------------------------

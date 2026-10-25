@@ -31,7 +31,7 @@ in `test/golden-results/scenarios__<name>.json.json`.
 
 ## Status (end of step 3)
 
-All 109 scenarios replay exactly (821 of 821 steps), with no exceptions. Every action in the
+All 115 scenarios replay exactly (889 of 889 cases: 115 starts and 774 steps), with no exceptions. Every action in the
 inventory below is implemented. Together with the other fixtures: 172 of 172 files, 387,902 of
 387,902 cases pass (`npm run golden:coverage`).
 
@@ -46,7 +46,7 @@ missing action.
 | review | 28 | | actions/base.ts (REVIEW, incl. `FastTravel.onReviewed`) |
 | snapshot | 24 | | actions/base.ts |
 | grind | 18 | | actions/base.ts (all `until` forms incl. `onlyLastProbationSlot`, `noProbation`) |
-| restore | 18 | | actions/base.ts (`pushed`, `inline`, `fromStep`, `generate`) |
+| restore | 19 | | actions/base.ts (`pushed`, `inline`, `fromStep`, `generate`) |
 | exportRestore | 18 | | actions/base.ts |
 | switchCurriculum | 16 | | actions/curriculum.ts |
 | fastTravel | 13 | | actions/fastTravel.ts (`core/fastTravel`) |
@@ -56,25 +56,25 @@ missing action.
 | place | 1 | | actions/curriculum.ts |
 | advance | 1 | | actions/base.ts |
 | progressionUpdate | 1 | | actions/base.ts |
-| sessionStart | 39 | | actions/session.ts (`core/session` `Session`) |
-| sessionAnswer | 35 | | actions/session.ts (`core/session` `Session`) |
-| sessionFinish | 29 | | actions/session.ts (`core/session` `Session`) |
+| sessionStart | 43 | | actions/session.ts (`core/session` `Session`) |
+| sessionAnswer | 38 | | actions/session.ts (`core/session` `Session`) |
+| sessionFinish | 32 | | actions/session.ts (`core/session` `Session`) |
 | importWaniKani | 14 | | actions/importer.ts (`core/importer`) |
-| sessionStartQuiz | 10 | | actions/session.ts (`core/session` `Session`) |
-| sessionAbandon | 7 | | actions/session.ts (`core/session` `Session`) |
+| sessionStartQuiz | 11 | | actions/session.ts (`core/session` `Session`) |
+| sessionAbandon | 8 | | actions/session.ts (`core/session` `Session`) |
 | levelTestRound | 5 | | actions/levelTest.ts (`core/levelTest` `startRound1/2`, `onSessionFinishing`) |
 | levelTestResult | 5 | | actions/levelTest.ts |
 | sessionButton | 5 | | actions/session.ts (`core/session` `Session`) |
 | levelTestStartAtResult | 3 | | actions/levelTest.ts |
 | sessionWrapUp | 3 | | actions/session.ts (`core/session` `Session`) |
-| sessionRestart | 3 | | actions/session.ts (`core/session` `Session`) |
+| sessionRestart | 4 | | actions/session.ts (`core/session` `Session`) |
 | sessionBackToPresentation | 3 | | actions/session.ts (`core/session` `Session`) |
 | sessionAdvance | 2 | | actions/session.ts (`core/session` `Session`) |
 | sessionPresentationNext | 2 | | actions/session.ts (`core/session` `Session`) |
 | sessionInspect | 2 | | actions/session.ts (`core/session` `Session`) |
 | sessionAnkiButton | 1 | | actions/session.ts (`core/session` `Session`) |
 | levelTestDiscard | 1 | | actions/levelTest.ts |
-| dashboard | 1 | | actions/dashboard.ts (`core/dashboard`: timeline, level progress, SRS breakdown; settings from `rs.ext.prefs`, Java defaults without it) |
+| dashboard | 3 | | actions/dashboard.ts (`core/dashboard`: timeline, level progress, SRS breakdown; the step's `settings` go into `rs.ext.prefs`, Java defaults for keys never set) |
 | sessionPresentationPrevious | 1 | | actions/session.ts (`core/session` `Session`) |
 
 Also outside the scenarios: `answers/synonyms-storage.json` (no adapter yet) needs the importer and
@@ -135,5 +135,7 @@ exact ids and clears the flag; the flag is persisted state, so a restarted sessi
 `reset()` like `ProgressStore.restore` does), `rs.ext.sessionLive` the live `Session` (replaced on
 `sessionRestart`, then `load()`), `rs.ext.prefs` the preferences the steps set. Jobs run at once in
 scheduling order and are listed per step; ordering comes from `settingsOrdering`, the level test hooks
-from `core/levelTest` (`onSessionFinishing`, the round flag). With it every scenario replays: 821 of
-821 steps.
+from `core/levelTest` (`onSessionFinishing`, the round flag). With it every scenario replays. Randomized inflections
+pick from `SessionEnv.inflectionRng`, `rs.ext.inflectionRng` = `new JavaRandom(seed)` for the whole scenario (the
+Java base reset's `InflectionUtil.setRandomSourceForTesting(new Random(seed)::nextDouble)`); with the setting on,
+`sessionAnswer` lists `characters` (`Session.questionCharacters`) before answering, like `SessionDriver`.

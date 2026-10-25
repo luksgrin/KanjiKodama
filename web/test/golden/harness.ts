@@ -22,8 +22,10 @@ import { NO_CONTENT_DB_MESSAGE, contentDb, hasContentDb, loadContent } from './c
 
 export const GOLDEN_DIR = fileURLToPath(new URL('.', import.meta.url));
 export const RESULTS_DIR = fileURLToPath(new URL('../golden-results/', import.meta.url));
-// Files under test/golden that hold no cases: the manifest, the exceptions list, and inputs.
+// Files under test/golden that hold no cases: the manifest, the exceptions list, and inputs
+// (the owner's phone export and the progress files the TS core wrote, progress/ts-export/).
 const NOT_FIXTURES = new Set(['manifest.json', 'exceptions.json', 'progress/android-export.json']);
+const INPUT_DIRS = ['progress/ts-export/'];
 
 export interface GoldenCase<I = unknown, O = unknown> {
   name: string;
@@ -74,7 +76,7 @@ export function listFixtures(): string[] {
     }
   };
   walk(GOLDEN_DIR.replace(/\/$/, ''));
-  return out.filter((f) => !NOT_FIXTURES.has(f));
+  return out.filter((f) => !NOT_FIXTURES.has(f) && !INPUT_DIRS.some((d) => f.startsWith(d)));
 }
 
 /** `*` matches within a path segment, `**` across segments, `?` one character. */

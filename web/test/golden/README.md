@@ -74,6 +74,8 @@ version, the generation time and the sha256 of the content DB.
 | `progress/describe.json` | `ProgressStore.describe` (Android's `org.json`), including the owner's phone export | B |
 | `progress/android-export.json` | the owner's real phone export (2026-10-18; JLPT, level 6, 1,034 subjects): an input, not an output | input |
 | `progress/android-roundtrip.json` | `ProgressStore.restore` then `export` of `android-export.json`, twice | B |
+| `progress/ts-export/*.json` | progress files written by the TS core (`progress-ts-inputs.ts`): inputs, not outputs | input |
+| `progress/ts-roundtrip.json` | `ProgressStore.restore` then `export` of every `ts-export` file (TS export → Java restore → Java export) | B |
 | `scenarios/real-progress.json` | `android-export.json` restored, then the dashboard (`LiveTimeLine`, `LiveLevelProgress`, `LiveSrsBreakDown`) over a week and a review session | B |
 | `answers/osa.json` | `OptimalStringAlignmentDistance` | A |
 | `answers/fuzzy.json`, `answers/fuzzy-wk-N.jsonl` | `FuzzyMatching.matches`: synthetic; every WK meaning/auxiliary meaning with a 1- and 2-edit typo | A, WK part needs content DB |
@@ -107,6 +109,10 @@ version, the generation time and the sha256 of the content DB.
 | `anki/mode-settings.json` | `GlobalSettings.getAnkiMode(sessionType, questionType)` (which screen a question gets) for every combination of `enable_advanced` and the six `anki_mode_*_{meaning,reading}` preferences | B |
 | `anki/answer-text.jsonl` | the answer Anki mode reveals (`Question.getAnkiAnswerRichText`) for every visible subject and question type, with its intended bold ranges, with and without on'yomi in katakana; the "My synonyms" line | B |
 | `anki/answer-inflection.json` | the revealed answer and question characters with randomized inflections, for every form `InflectionUtil` can pick | B |
+| `anki/inflection-random.json` | `InflectionUtil.getRandomVerbConjugation` / `getRandomAdjectiveDeclension`: the random pick (`HashMap` key order indexed by `(int) (d * size)`) from given doubles and from seeded `java.util.Random`s, through the `setRandomSourceForTesting` seam | A |
+| `scenarios/anki-randomize-inflections-*.json` | randomized inflections in sessions (Anki and typed, review and self-study, restart, skip; setting off, Advanced off, lessons) with the seeded seam | B |
+| `scenarios/dashboard-level-progress-settings*.json` | `LiveLevelProgress.computeLevelProgress` under `show_over_level_progression`, `previous_level_progression_limit` and its amount (generated WaniKani progress and the owner's export) | B |
+| `scenarios/session-order-overdue-boundary.json` | `Subject.isOverdue` at its boundaries (elapsed 0, exactly the threshold, 1 ms past it; float threshold) | B |
 | `scenarios/session-lesson-back-*.json`, `scenarios/session-lesson-wrong-answers.json`, `scenarios/session-matching-kanji.json` | the lesson quiz: presentation next/previous, Back to lesson presentation (also with an answer on screen and around restarts), wrong, Don't know and retry answers in a lesson, the single-kanji matching kanji retry in a session | B |
 | `scenarios/anki-*.json` | Anki mode sessions: self-graded answers in reviews, lesson quiz and self-study, meaning-only Anki, Advanced off, the Test mode quirk | B |
 | `scenarios/*.json` | progression, curriculum switch, fast travel (also near the last level), level test rounds, import, restore, unknown and hidden subjects, hidden components, per-answer time, sync reminder, sessions (`session-*`: undo, ignore, wrap-up, abandon, restart, self-study, the level test's session; session configuration: `session-order-*`, `session-size-review`, `session-sequence-*`, `session-lightning-mode`) | B |
@@ -389,6 +395,28 @@ Notes per area:
   `exportedAt`, `restore` then `export`. `differences` lists every JSON difference from the input
   (arrays of objects with an `id` matched by id), and `textIdentical` compares the bytes. Both
   rounds: no differences, byte-identical. The port's restore + export must do the same.
+- `progress/ts-export/*.json`: progress files the TS core wrote (`exportFromDb`), made by
+  `progress-ts-inputs.ts`: `01-real-after-steps` (the owner's export, then lessons and reviews with
+  some wrong answers until a level-up, a fast-travel jump with probation, one probation review right
+  and one wrong, notes and synonyms with non-ASCII, emoji and whitespace on a started, a probation
+  and a locked subject), `02-imported-wanikani` (a WaniKani import with huge, zero and far-future
+  values, ids beyond 2^31, notes and synonyms with control characters, a BOM and a zero-width space
+  through the save job, which turns U+2028/2029 into spaces and trims DEL like Java; then lessons
+  and reviews), `03-legacy-format` (`02` under the `mojimori-progress` tag),
+  `04-hand-edited` (a hand-edited file as the TS port stores it: text and non-integral numbers in
+  numeric columns, numbers in text columns, negative and 2^53-1 values, a NUL character, an extra
+  kanji, two level rows for one level, odd jumps) and `05-empty-jlpt`. Every file is settled (TS
+  restore + export at its `exportedAt` gives the same bytes); `progress-ts-inputs.test.ts` checks
+  that and that the committed files are what the core writes now. Regenerate with
+  `WRITE_TS_PROGRESS_INPUTS=1 npx vitest run test/golden/progress-ts-inputs.test.ts`, then re-run
+  `ScenarioGoldenTest#progressTsExports`. `run.sh` pushes the directory to `golden-in/progress/`.
+- `progress/ts-roundtrip.json`: per `ts-export` file (case name = file name), from the empty base
+  state with the clock pinned to the file's `exportedAt`, `restore` then `export`: output `{export}`
+  (Java's export text), `differences` from the input (as in `android-roundtrip.json`) and
+  `textIdentical`. `progress-ts.golden.test.ts` compares `export` with the TS core's own restore +
+  export of the same file semantically (keys, integral/non-integral/string types, values; key and
+  row order ignored). Generated 2026-10-25: all byte-identical, the only difference the legacy
+  file's `format` tag, which the export rewrites.
 
 ## Scenario notes
 
@@ -406,6 +434,16 @@ Notes per area:
   The scenario sets `exportMode: "delta"`: the first snapshot keeps `export`, later ones carry
   `exportDelta` `{fields, subjectsChanged, subjectsRemoved, subjectCount}` against the previous
   snapshot (changed top-level fields with their new value, changed subject rows in full).
+- **Dashboard settings** (`dashboard-level-progress-settings`, `-real`): the `dashboard` action takes `settings`
+  (only those keys, recorded in `resolved.settings`, put back by the next base reset; each step sets all three).
+  `show_over_level_progression` (default off) makes bars for every level up to `getUserMaxLevelGranted` (60 in local
+  mode) instead of the user level. Bars with no subjects or with everything passed are dropped, but levels above the
+  user level are **not** dropped for being all locked: `computeLevelProgress` never calls `setNumLocked`, so
+  `numLocked` stays 0 and only `totalCount == 0` drops them (JLPT's empty levels 59-60). With
+  `previous_level_progression_limit` on, bars below `userLevel - amount` are dropped too; the amount is the string
+  `previous_level_progression_limit_amount` through `Integer.parseInt` (default `"1"`; `"abc"`, `""` and `" 1"` give 1;
+  `"0"` keeps only the user level and above; `"-1"` drops the user level itself, so without show-over nothing is left).
+  The amount is ignored while the limit is off. Kana-only vocabulary counts in the vocabulary bar as below.
 - **Level progress includes kana-only vocabulary in the vocabulary bar** (fixed 2026-10-18, see the
   bug list): its totals, passed counts and stage buckets count `vocabulary` and `kana_vocabulary`
   together; there is no separate kana-only bar.
@@ -542,6 +580,26 @@ Notes per area:
   (`anki-test-mode`, see fix 11). The revealed text keeps its bold (the primary meaning/reading when
   there are several): `bold` lists the ranges in the shown text, `shownStyled` is true exactly when
   there are some. Meanings and readings are HTML-escaped like synonyms (`escape/*` cases).
+- **Randomized inflections** (`anki-randomize-inflections-*`, `anki/inflection-random.json`):
+  `GlobalSettings.getRandomizeInflections(type)` is `review_randomize_inflections` (reviews) or
+  `self_study_randomize_inflections` (self-study and NONE), advanced only, never in lessons. A question whose subject
+  has an inflecting part of speech (the first of godan/ichidan/する verb, い/な adjective) picks one form the first
+  time `Question.getCharacters` (the question header) or `getAnkiAnswerRichText` asks, and keeps it on that `Question`
+  object (wrong answers and skips come back with the same form; a restart builds new questions, which pick again). The
+  pick is `keySet().toArray()[(int) (Math.random() * size)]` over the endings `HashMap` (44 verb forms, 7 adjective
+  forms, Java `HashMap` iteration order). `Math.random()` goes through the seam
+  `InflectionUtil.setRandomSourceForTesting`; the scenario base reset installs `new Random(seed)::nextDouble` (a
+  generator of its own, not `ObjectSupport`'s), the TS port `SessionEnv.inflectionRng` (`new JavaRandom(seed)` in the
+  replay). With the setting on, `SessionDriver` calls `getCharacters` before every answer (skips included) and lists
+  `characters`; the revealed Anki answer appends `" (<form>)"`. Typed answers are still checked against the
+  dictionary form. **Java bug kept (display only, not fixed):** for する verbs the NAI stem is `しな`, and the NAI
+  endings start with `な` again, so `運転する` + negative shows `運転しなない` (`しななくて`, `しなかった` is
+  `しななかった`, ...); also for kana-only `する` and `サービス` (noun + する verb, no する ending: `サービスしなない`).
+- **Overdue** (`session-order-overdue-boundary`): `Subject.isOverdue` is false while `now - availableAt <= 0` (a review
+  due exactly now is not overdue), then compares the double ratio elapsed / interval with the float threshold widened
+  to double: at exactly 20 % (the default 0.2f = 0.20000000298…) the ratio 0.2 is below it, 1 ms later it is overdue;
+  with `overdue_threshold` 25 (exact as a float) exactly 25 % is overdue (`>=`). Level 1-2 subjects use the
+  accelerated SRS system (Apprentice I 2 h, II 4 h, III 8 h).
 - **Lesson quiz** (`session-lesson-*`, `session-matching-kanji`; `sessionBackToPresentation`,
   `sessionPresentationNext`/`Previous` and `sessionInspect` add `result.presentation` {item, index, storedItemId}).
   Back to lesson presentation (menu visible while a LESSON session is `ACTIVE`) opens on the item being quizzed
@@ -640,6 +698,24 @@ synonyms) and has no romaji-to-kana conversion. These are upstream design choice
    up and the buckets include kana-only items. Display only; levelling up never used these bars.
 
 
+## Behavior-neutral Java test seams
+
+Changes in `durtles/app/src/main/` made only so the golden tests can run or pin the Java code; the app behaves exactly
+as before:
+
+- `local/Clock` (`now()`, `pin`, `advance`): `System.currentTimeMillis()` unless a test pinned it. Read by
+  `ReportSessionItemJob`, `Question.markCorrect`, `Subject.isOverdue` / `isEligibleForSessionType`, `SearchUtil`'s time
+  filters, `SearchResultAdapter`, `TimeLine`, `LiveTimeLine`.
+- `ObjectSupport.seedRandom(seed)`: the shared `Random` (`Session.populateItems` shuffles through
+  `ObjectSupport.shuffleInPlace`, question choice through `nextRandomInt`).
+- `InflectionUtil.setRandomSourceForTesting(DoubleSupplier)`: the source of the randomized inflection picks
+  (`Math::random` in the app; null restores it). The scenario base reset sets `new Random(seed)::nextDouble`.
+- `JobRunnerService.testInterceptor`: lets the harness run the session's jobs itself, in order (null in the app).
+- Code moved unchanged into callable methods: `LiveTimeLine.computeTimeLine`, `LiveLevelProgress.computeLevelProgress`,
+  `LiveSrsBreakDown.computeBreakDown`, `Session.lightningAdvancesNow` (SessionActivity), `MatchingKanji`
+  (UnansweredSessionFragment), `StudyMaterialsSupport` (SubjectInfoView, StudyMaterialsActivity), `SubmitPrecheck` /
+  `SubmitFeedback` (`Session.submit`).
+
 ## Regenerating
 
 Only regenerate when the Java behavior changes on purpose (a bug fix in `durtles/` first, then
@@ -713,8 +789,12 @@ Agents coordinate with `mkdir` locks: `/tmp/claude-501/kk-emulator.lock` (5554),
 `/tmp/claude-501/kk-emulator2.lock` (5556), `/tmp/claude-501/kk-durtles-gradle.lock` (builds and installs).
 
 The run takes about 80 s and is deterministic (two runs give identical files). Subsets: one test
-with `class=…ScenarioGoldenTest#scenarios`, `#srsOutcome`, `#progressDescribe` or `#progressRealExport`; some scenarios
+with `class=…ScenarioGoldenTest#scenarios`, `#srsOutcome`, `#progressDescribe`, `#progressRealExport` or `#progressTsExports`; some scenarios
 with `-Pandroid.testInstrumentationRunnerArguments.scenario=name1,name2`.
+Scenario settings go back to the device's own values before every scenario and, since 2026-10-25, after the last
+one too. Before that, a subset run ending in a scenario with settings left them on the device, and the next run's
+scenarios that don't set those keys (e.g. `anki-review` reads `review_order` once `enable_advanced` is on) came out
+different; if a run differs only there, check the debug app's preferences for leftovers.
 
 Then, after both tiers:
 

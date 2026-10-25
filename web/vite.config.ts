@@ -41,12 +41,24 @@ export default defineConfig({
         // character set / WOFF2 is a follow-up; until then allow it into the precache.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         globIgnores: ['content/**'],
-        // The 27 MB content DB is too large for the precache manifest (and would make every
+        // The ~33 MB content file is too large for the precache manifest (and would make every
         // app update re-download it). It is cached at runtime on first fetch instead, in its
-        // own cache that survives app (service-worker) updates.
+        // own cache that survives app (service-worker) updates. Its name carries its hash
+        // (content-<hash>.db, named by content-manifest.json), so a new build is a new URL;
+        // the manifest itself is network-first so updates are seen, with the cached copy offline.
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.endsWith('/content/wk-content.db'),
+            urlPattern: ({ url }) => /\/content\/content-manifest\.json$/.test(url.pathname),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'kk-content-manifest-v1',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 1 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            urlPattern: ({ url }) => /\/content\/content-[0-9a-f]+\.db$/.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'kk-content-v1',

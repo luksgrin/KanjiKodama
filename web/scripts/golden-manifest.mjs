@@ -21,7 +21,10 @@ const contentDb = join(repoDir, 'durtles', 'app', 'src', 'main', 'assets', 'wk-c
 // exceptions.json is the TS port's list of accepted differences (test/golden/harness.ts), not a fixture.
 const NOT_FIXTURES = new Set(['manifest.json', 'README.md', 'exceptions.json']);
 /** Inputs the Java tests read (not fixtures): listed under `inputs` with their hash, no case count. */
-const INPUTS = new Set(['progress/android-export.json']);
+const INPUT_FILES = new Set(['progress/android-export.json']);
+/** Directories of such inputs: the progress files written by the TS core (test/golden/progress-ts-inputs.ts). */
+const INPUT_DIRS = ['progress/ts-export/'];
+const INPUTS = { has: (path) => INPUT_FILES.has(path) || INPUT_DIRS.some((d) => path.startsWith(d)) };
 
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 const git = (...args) => execFileSync('git', args, { cwd: repoDir, encoding: 'utf8' }).trim();

@@ -143,6 +143,15 @@ export function meaningFirst(prefs: Preferences, type: SessionType): boolean {
 }
 
 /**
+ * `GlobalSettings.getRandomizeInflections(type)`: never for lessons; `review_randomize_inflections` for reviews,
+ * `self_study_randomize_inflections` otherwise (self-study and NONE); advanced only, default false.
+ */
+export function randomizeInflections(prefs: Preferences, type: SessionType): boolean {
+  if (type === 'LESSON') return false;
+  return advancedBoolean(prefs, type === 'REVIEW' ? 'review_randomize_inflections' : 'self_study_randomize_inflections');
+}
+
+/**
  * `Review.gexMaxLessonSessionSize` / `gexMaxReviewSessionSize` / `getMaxSelfStudySessionSize`:
  * `max_<type>_session_size`, a string; the default (5 lessons, 100 otherwise) when it is empty, not
  * a number or below 1. Not an advanced setting.

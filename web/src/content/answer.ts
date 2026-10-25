@@ -1,11 +1,21 @@
 // Spike answer checking: exact match after normalisation. The real AnswerChecker.kt is ported later.
-import { isKana, katakanaToHiragana, toHiragana } from '../kana/kanaConverter';
+import { convertKatakanaToHiragana, simulateInput } from '../core/kana';
 import type { KanjiSubject } from './subject';
 
 export type QuestionKind = 'meaning' | 'reading';
 
 const normMeaning = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
-const normReading = (s: string) => katakanaToHiragana(s.trim()).replace(/\s+/g, '');
+const normReading = (s: string) => convertKatakanaToHiragana(s.trim()).replace(/\s+/g, '');
+/** Romaji to kana as on submit (`PseudoIme.simulateInput`; kana pass through); '' when nothing is left. */
+const toKana = (s: string) => {
+  const t = s.trim();
+  if (t === '') return '';
+  try {
+    return simulateInput(t);
+  } catch {
+    return '';
+  }
+};
 
 export function acceptedAnswers(subject: KanjiSubject, kind: QuestionKind): string[] {
   if (kind === 'meaning') {
@@ -27,6 +37,6 @@ export function checkAnswer(subject: KanjiSubject, kind: QuestionKind, answer: s
     const a = normMeaning(answer);
     return a !== '' && acceptedAnswers(subject, kind).some((m) => normMeaning(m) === a);
   }
-  const a = normReading(isKana(answer.trim()) ? answer : toHiragana(answer.trim()));
+  const a = normReading(toKana(answer));
   return a !== '' && acceptedAnswers(subject, kind).some((r) => normReading(r) === a);
 }

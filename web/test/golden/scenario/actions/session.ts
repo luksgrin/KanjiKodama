@@ -9,7 +9,8 @@
  * `rs.ext.prefs` the preferences the steps set (put back only by the next scenario's base reset).
  */
 
-import { ankiAnswerRichText, ankiMode, inflectionForm } from '../../../../src/core/anki';
+import { ankiMode } from '../../../../src/core/anki';
+import { JavaRandom } from '../../../../src/core/rng';
 import {
   QUESTION_TYPE_INFO,
   checkAnswer,
@@ -37,7 +38,13 @@ import {
   type SessionSubject,
   type StoredSession,
 } from '../../../../src/core/session';
-import { prefBoolean, shakeOnMatchingKanji, type Preferences, type PreferenceValue } from '../../../../src/core/settings';
+import {
+  prefBoolean,
+  randomizeInflections,
+  shakeOnMatchingKanji,
+  type Preferences,
+  type PreferenceValue,
+} from '../../../../src/core/settings';
 import { javaRound, type ActionHandler, type RunnerState, type Step } from '../runner';
 import { matchesFilter, select, type Filter } from '../select';
 import { levelTestRandom } from './levelTest';
@@ -101,6 +108,16 @@ const hooks: SessionHooks = {
   },
 };
 
+/** The Java base reset's `new Random(seed)` behind the inflection picks; it lives for the whole scenario. */
+function inflectionRngOf(rs: RunnerState): JavaRandom {
+  let r = rs.ext.inflectionRng as JavaRandom | undefined;
+  if (r === undefined) {
+    r = new JavaRandom(BigInt(rs.seed));
+    rs.ext.inflectionRng = r;
+  }
+  return r;
+}
+
 function newLive(rs: RunnerState): Live {
   const jobs: JobRecord[] = [];
   const env: SessionEnv = {
@@ -112,6 +129,8 @@ function newLive(rs: RunnerState): Live {
       return rs.now;
     },
     rng: rs.rng,
+    // InflectionUtil.setRandomSourceForTesting(new Random(seed)::nextDouble) in the Java base reset.
+    inflectionRng: inflectionRngOf(rs),
     get stored(): StoredSession {
       return storedOf(rs);
     },
@@ -251,20 +270,9 @@ function kanjiByCharacters(db: LearnerDb, characters: string): ContentSubject | 
   return null;
 }
 
-/** `GlobalSettings.getRandomizeInflections(type)` (advanced; never for lessons). */
-function randomizeInflections(prefs: Preferences, type: string): boolean {
-  if (type === 'LESSON' || !prefBoolean(prefs, 'enable_advanced', false)) return false;
-  return prefBoolean(prefs, type === 'REVIEW' ? 'review_randomize_inflections' : 'self_study_randomize_inflections', false);
-}
-
-/** `Question.getAnkiAnswerRichText(subject, sessionType).toString()`. */
-function ankiAnswerText(live: Live, q: Question, s: ContentSubject): string {
-  const prefs = live.env.prefs;
-  if (randomizeInflections(prefs, live.session.type) && inflectionForm(s.partsOfSpeech) !== null) {
-    // Java picks with an unseeded Math.random; no fixture turns the setting on.
-    throw new Error('randomized inflections are not reproducible');
-  }
-  return ankiAnswerRichText(s, q.type, { showOnInKatakana: prefBoolean(prefs, 'show_onyomi_in_katakana', false) }).text;
+/** `Question.getAnkiAnswerRichText(subject, sessionType).toString()` (picks the inflection on first use). */
+function ankiAnswerText(live: Live, q: Question): string {
+  return live.session.questionAnkiAnswer(q, prefBoolean(live.env.prefs, 'show_onyomi_in_katakana', false)).text;
 }
 
 function answer(rs: RunnerState, live: Live, step: Step, resolved: Record<string, unknown>, result: Record<string, unknown>): void {
@@ -292,8 +300,13 @@ function answer(rs: RunnerState, live: Live, step: Step, resolved: Record<string
       break;
     }
     const id = q.item.id;
+    // With randomized inflections on, the question header shows Question.getCharacters, which picks the inflection.
+    const inflections = randomizeInflections(live.env.prefs, session.type);
+    const shown = inflections ? session.questionCharacters(q) : null;
     if (only !== null && only !== kind(q.type) && only !== `${id}:${kind(q.type)}`) {
-      answers.push({ id, questionType: q.type, answer: 'skip', text: null, verdict: null, atMs: rs.now });
+      const skipped: Record<string, unknown> = { id, questionType: q.type, answer: 'skip', text: null, verdict: null, atMs: rs.now };
+      if (inflections) skipped.characters = shown;
+      answers.push(skipped);
       session.skip();
       continue;
     }
@@ -309,7 +322,7 @@ function answer(rs: RunnerState, live: Live, step: Step, resolved: Record<string
     if (k === 'dontKnow') {
       session.submitDontKnow();
     } else if (k === 'ankiCorrect' || k === 'ankiIncorrect') {
-      anki = { ankiMode: ankiMode(live.env.prefs, session.type, q.type), ankiAnswer: ankiAnswerText(live, q, s) };
+      anki = { ankiMode: ankiMode(live.env.prefs, session.type, q.type), ankiAnswer: ankiAnswerText(live, q) };
       if (k === 'ankiCorrect') session.submitAnkiCorrect();
       else session.submitAnkiIncorrect();
     } else {
@@ -327,6 +340,7 @@ function answer(rs: RunnerState, live: Live, step: Step, resolved: Record<string
       verdict: verdict === null ? null : { ok: verdict.ok, retry: verdict.retry, nearMatch: verdict.nearMatch },
       atMs: rs.now,
     };
+    if (inflections) entry.characters = shown;
     if (anki !== null) Object.assign(entry, anki);
     if (matchingKanji !== null) entry.matchingKanji = matchingKanji.id;
     if (app) {

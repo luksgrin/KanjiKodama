@@ -53,6 +53,8 @@ import java.util.TimeZone;
  *     <li>{@link #progressDescribe()}: ProgressStore.describe on the inputs in golden-inputs/progress-describe.json
  *     and on the owner's phone export (pushed to golden-in/ by run.sh).</li>
  *     <li>{@link #progressRealExport()}: restore + export round trip of that export.</li>
+ *     <li>{@link #progressTsExports()}: restore + export of the progress files the TypeScript port wrote
+ *     (web/test/golden/progress/ts-export/, pushed to golden-in/ by run.sh).</li>
  * </ul>
  *
  * <p>Fixtures go to the app's external files dir, golden/, mirroring web/test/golden/.</p>
@@ -119,6 +121,9 @@ public final class ScenarioGoldenTest {
             android.util.Log.i("ScenarioGoldenTest", "scenario " + name + " took " + (System.currentTimeMillis() - started) + " ms");
             ran++;
         }
+        // Put the preferences back after the last scenario too (the base reset only runs before each one), so the
+        // settings of a run's last scenario don't leak into the next run's scenarios that leave some unset.
+        SessionDriver.baseReset(context);
         assertTrue("no scenario matched " + only, ran > 0);
         assertTrue("failed scenarios: " + failures, failures.isEmpty());
     }
@@ -313,6 +318,53 @@ public final class ScenarioGoldenTest {
             diff("", firstTree, ScenarioRunner.JSON.readTree(second), again);
             w.add("second-round", obj("of", "restore-then-export", "clockMs", clock),
                     obj("differences", again, "textIdentical", second.equals(first)));
+            runner.baseReset(1);
+        }
+    }
+
+    // --- progress files written by the TypeScript port --------------------------------------------
+
+    /** Relative to golden-in/ on the device and to web/test/golden/ in the repo; run.sh pushes the directory. */
+    static final String TS_EXPORT_DIR = "progress/ts-export";
+
+    /**
+     * TS export, Java restore, Java export: every file of web/test/golden/progress/ts-export/ (written by the TS
+     * core, see progress-ts-inputs.ts there) restored from the empty base state with the clock pinned to its
+     * exportedAt, then exported. Records the export text, every difference from the input and whether the bytes
+     * are equal; the TS test compares the export with its own.
+     */
+    @Test
+    public void progressTsExports() throws Exception {
+        final AppDatabase db = WkApplication.getDatabase();
+        final File dir = new File(new File(context.getExternalFilesDir(null), "golden-in"), TS_EXPORT_DIR);
+        final String[] names = dir.list();
+        assertTrue("pushed inputs missing: " + dir + " (run durtles/golden/run.sh)", names != null && names.length > 0);
+        Arrays.sort(names);
+        final ScenarioRunner runner = new ScenarioRunner(context, testContext);
+        try (final GoldenWriter w = GoldenWriter.open("progress/ts-roundtrip.json", "progress.tsRoundTrip",
+                "local/ProgressStore.restore + export of files written by the TypeScript port")) {
+            for (final String name: names) {
+                if (!name.endsWith(".json")) {
+                    continue;
+                }
+                final String file = TS_EXPORT_DIR + "/" + name;
+                final String text = ScenarioRunner.readPushed(context, file);
+                final JsonNode input = ScenarioRunner.JSON.readTree(text);
+                runner.baseReset(1);
+                final long clock = input.get("exportedAt").asLong();
+                Clock.pin(clock);
+                Map<String, Object> out;
+                try {
+                    ProgressStore.restore(db, text);
+                    final String exported = ProgressStore.export(db);
+                    final List<Object> differences = new ArrayList<>();
+                    diff("", input, ScenarioRunner.JSON.readTree(exported), differences);
+                    out = obj("export", exported, "differences", differences, "textIdentical", exported.equals(text));
+                } catch (final Exception e) {
+                    out = obj("error", e.getClass().getName(), "message", e.getMessage());
+                }
+                w.add(name.substring(0, name.length() - 5), obj("file", file, "clockMs", clock, "from", "empty base state"), out);
+            }
             runner.baseReset(1);
         }
     }

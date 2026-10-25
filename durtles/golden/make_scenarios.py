@@ -766,6 +766,8 @@ import lesson_scenarios
 lesson_scenarios.add(S, lvl)
 import real_progress_scenarios
 real_progress_scenarios.add(S, lvl)
+import dashboard_scenarios
+dashboard_scenarios.add(S, lvl)
 os.makedirs(OUT, exist_ok=True)
 for name, sc in S.items():
     with open(os.path.join(OUT, name + ".json"), "w") as f:

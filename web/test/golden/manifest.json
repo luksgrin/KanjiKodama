@@ -1,10 +1,10 @@
 {
   "generatorVersion": 1,
-  "generatedAt": "2026-10-18T05:02:45.781Z",
-  "durtlesCommit": "02512c2590724ebaf0dade11bae695d3712a53aa",
-  "durtlesDirty": false,
+  "generatedAt": "2026-10-25T06:06:42.578Z",
+  "durtlesCommit": "40f73f76a9c7e95a9a5e388a1a5194ad229e6c71",
+  "durtlesDirty": true,
   "contentDbSha256": "a81e44da1bba8e09f2384a458ec97fff06da4024e94499443dd687c5d603a512",
-  "totalCases": 387902,
+  "totalCases": 387986,
   "files": [
     {
       "path": "anki/answer-inflection.json",
@@ -21,6 +21,14 @@
       "cases": 9847,
       "bytes": 3401596,
       "sha256": "22707629ea2da02059b0c870d4cca288b28467a27bba84bae15f9df041d4aeb5"
+    },
+    {
+      "path": "anki/inflection-random.json",
+      "area": "anki.inflectionRandom",
+      "javaSource": "util/InflectionUtil.getRandomVerbConjugation, getRandomAdjectiveDeclension (setRandomSourceForTesting)",
+      "cases": 11,
+      "bytes": 31408,
+      "sha256": "20071e79f543bdc744c80c5440453497fb28420335c7c01b20fc72a6fa425c72"
     },
     {
       "path": "anki/mode-settings.json",
@@ -439,12 +447,44 @@
       "sha256": "641bcb913b4b480f47c5149afb9c1c9707755b3d1a162da9c016d3e76c02cd79"
     },
     {
+      "path": "progress/ts-roundtrip.json",
+      "area": "progress.tsRoundTrip",
+      "javaSource": "local/ProgressStore.restore + export of files written by the TypeScript port",
+      "cases": 5,
+      "bytes": 1692696,
+      "sha256": "fea5e68cafca1873efa79af537e00e8d8a7c03d3c642280bf786f9cd157ae051"
+    },
+    {
       "path": "scenarios/anki-lesson-quiz.json",
       "area": "scenario",
       "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
       "cases": 5,
       "bytes": 79146,
       "sha256": "4533aba52bf6945677e591ba64b82c0b956b642973ed78d3be1a8a07b30a7c89"
+    },
+    {
+      "path": "scenarios/anki-randomize-inflections-off.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 8,
+      "bytes": 185926,
+      "sha256": "c1267ee64041ddf5fa8dca121d28ead5b10f33cf6d970278a3531478a1d1d88c"
+    },
+    {
+      "path": "scenarios/anki-randomize-inflections-review.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 4,
+      "bytes": 193478,
+      "sha256": "6073efab01587639a71e5077a8e64ee754955a407153fe5fd08ca89eac5860bd"
+    },
+    {
+      "path": "scenarios/anki-randomize-inflections-self-study.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 6,
+      "bytes": 197694,
+      "sha256": "949d340903d2c7732aa0685af980f37658e70d16ebfbc5972e3c4a328cbde140"
     },
     {
       "path": "scenarios/anki-review-advanced-off.json",
@@ -533,6 +573,22 @@
       "cases": 4,
       "bytes": 681203,
       "sha256": "e8c9d42c806ca454307e57d195f37abe7fe7c50774222cee7ebcac8cc30a5965"
+    },
+    {
+      "path": "scenarios/dashboard-level-progress-settings-real.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 18,
+      "bytes": 1316381,
+      "sha256": "f5c53f0e2a750fefe75e3a1926160066bf860fe9e09b2f31482729d2110e0200"
+    },
+    {
+      "path": "scenarios/dashboard-level-progress-settings.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 17,
+      "bytes": 602496,
+      "sha256": "b5949f8196fdbfdb6b57c80082dad190190bbd0cb0db7b18cbaab2f741debc9c"
     },
     {
       "path": "scenarios/ft-blocked-open-probation.json",
@@ -975,6 +1031,14 @@
       "sha256": "72580f3a60fa409b890afb42e54d28d8bbfa376f660cf861a529c9b06087ae3d"
     },
     {
+      "path": "scenarios/session-order-overdue-boundary.json",
+      "area": "scenario",
+      "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
+      "cases": 15,
+      "bytes": 79172,
+      "sha256": "663959de833caf4231ca1b129f9782479ce56b4775f5106029979df30d2ca64e"
+    },
+    {
       "path": "scenarios/session-order-review.json",
       "area": "scenario",
       "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
@@ -1388,6 +1452,31 @@
       "path": "progress/android-export.json",
       "bytes": 749461,
       "sha256": "237f33a29986f897b5b4e620e5a05227fc9fea6152905d6e70ad0f9bc87704d4"
+    },
+    {
+      "path": "progress/ts-export/01-real-after-steps.json",
+      "bytes": 1367422,
+      "sha256": "65eff4fa86bfbdb7ab484fef7dedc0ba09899b9a782f467cd336994b678faaa7"
+    },
+    {
+      "path": "progress/ts-export/02-imported-wanikani.json",
+      "bytes": 45520,
+      "sha256": "871f9d48b71a917774f109135b4ab661b7c86493f474bd516bea0fd63e68ac83"
+    },
+    {
+      "path": "progress/ts-export/03-legacy-format.json",
+      "bytes": 45517,
+      "sha256": "391587e6e800d8afa07d6f1d4af2120c4c90c80cbe7a40be197a9b87c40546c5"
+    },
+    {
+      "path": "progress/ts-export/04-hand-edited.json",
+      "bytes": 20271,
+      "sha256": "a67a9ec7ea8e8978b199a0e89041601ff82ea668aa07fabcbcc65f9382f868fc"
+    },
+    {
+      "path": "progress/ts-export/05-empty-jlpt.json",
+      "bytes": 31678,
+      "sha256": "ad7f121205dc4d469e892bb5bfce6bc65629b093dc93d2768c97f000d9722f64"
     }
   ]
 }
