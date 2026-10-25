@@ -48,6 +48,16 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <!-- Home-screen widget (port of the Java app's services/SessionWidgetProvider). WIDGET_TICK is
+             its own inexact alarm at the next review hour (SessionWidgetProvider.scheduleNext). -->
+        <receiver android:name=".SessionWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_OPTIONS_CHANGED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/session_appwidget_info" />
+        </receiver>
     </application>
 
     <!-- Permissions -->

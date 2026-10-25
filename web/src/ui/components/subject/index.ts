@@ -29,3 +29,14 @@ export { dbSoundLookup, soundComponentsHtml, type SoundLookup } from './soundCom
 export { readPitchInfo, readStrokeData, readSubjectTexts, type ContextSentence, type SubjectTexts } from './subjectContent';
 export { hasPitchInfo, parsePitchInfo, pitchInfoFor, type PitchInfo } from './pitchInfo';
 export { parseStroke, parseStrokes, type Stroke } from './strokePaths';
+export { StarRating, type StarRatingProps } from './StarRating';
+export {
+  STAR_RATINGS_META_KEY,
+  loadStarRatings,
+  nextStarRating,
+  setStarRatings,
+  starsText,
+  useStarRatings,
+  type StarRatings,
+  type UseStarRatings,
+} from './starRatings';

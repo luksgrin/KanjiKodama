@@ -50,3 +50,17 @@ the file text is built synchronously so iOS keeps the user activation), `exportP
 and `createMemoryLocation()` (tests). Routes and path builders: `ui/routes.ts`; hooks `useRoute`,
 `useNavigate`, `useBackHandler` (`ui/hooks/useRoute.ts`). `back.ts`: a handler stack; the Android
 back button (`main.tsx`), Escape and the top bar's back arrow call `handleBack`.
+
+## Server mode, device glue (`src/sync/deviceSync.ts`)
+
+- `state.mode === 'server'`: `state.content.content` is the server's subjects (`loadServerContent`;
+  bundled Parts and sound, strokes and pitch still by id); `app.bundledContent()` is the file.
+- `app.syncEngine()` (status, subscribe, setToken), `app.syncNow({manual})`, `app.flushUploads()`:
+  the learner is reloaded (in place) after a sync that wrote something.
+- **Sessions must take their hooks from `app.sessionHooks(base)`**: in server mode the `report`
+  hook predicts locally (core `reportServer`) and the write queues and sends the upload.
+- `app.tokenStore()`: the server token in `platform.secrets` (moved from `state` on first read).
+- `app.reload()` after a mode switch; `app.connectionOptions()` for one-off server calls.
+- Lifecycle: resume → `tick`, re-count, notifications, widget, sync (server mode); pause →
+  notifications, widget. Widget after every write; background sync on in server mode with
+  `enable_background_sync`.

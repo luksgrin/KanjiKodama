@@ -72,6 +72,20 @@
   --color-lp-8: #B7C9BD;
   --color-lp-9: #DDEBE2;
 
+  /* Quiz (styles.xml wkLight* meaning/reading hint, correct/incorrect backgrounds; ActiveTheme KANJIKODAMA_LIGHT ankiColors) */
+  --color-q-meaning-bg: #FFFFFF;
+  --color-q-meaning-fg: #000000;
+  --color-q-reading-bg: #000000;
+  --color-q-reading-fg: #FFFFFF;
+  --color-answer-correct: #B7DAC7;
+  --color-answer-incorrect: #EAC2BC;
+  --color-anki-show: #909000;
+  --color-anki-next: #909000;
+  --color-anki-correct: #00A000;
+  --color-anki-incorrect: #A00000;
+  --color-anki-text: #FFFFFF;
+  --color-anki-answer-bg: #909000;
+
   /* Fonts: pixel for Latin, Zen Maru Gothic for Japanese (fallback in every stack, and :lang(ja)). */
   --font-body: 'Pixelify Sans', 'Zen Maru Gothic', system-ui, sans-serif;
   --font-display: 'Silkscreen', 'Zen Maru Gothic', system-ui, sans-serif;
@@ -178,6 +192,19 @@
     --color-lp-7: #7D6370;
     --color-lp-8: #4A5F66;
     --color-lp-9: #2B414A;
+    /* Quiz (styles.xml wkDark*; ActiveTheme KANJIKODAMA_DARK ankiColors) */
+    --color-q-meaning-bg: #C0C0C0;
+    --color-q-meaning-fg: #000000;
+    --color-q-reading-bg: #000000;
+    --color-q-reading-fg: #C0C0C0;
+    --color-answer-correct: #205020;
+    --color-answer-incorrect: #502020;
+    --color-anki-show: #606000;
+    --color-anki-next: #606000;
+    --color-anki-correct: #006000;
+    --color-anki-incorrect: #600000;
+    --color-anki-text: #E8E8E8;
+    --color-anki-answer-bg: #606000;
   }
 }
 
@@ -248,4 +275,17 @@
   --color-lp-7: #7D6370;
   --color-lp-8: #4A5F66;
   --color-lp-9: #2B414A;
+  /* Quiz (styles.xml wkDark*; ActiveTheme KANJIKODAMA_DARK ankiColors) */
+  --color-q-meaning-bg: #C0C0C0;
+  --color-q-meaning-fg: #000000;
+  --color-q-reading-bg: #000000;
+  --color-q-reading-fg: #C0C0C0;
+  --color-answer-correct: #205020;
+  --color-answer-incorrect: #502020;
+  --color-anki-show: #606000;
+  --color-anki-next: #606000;
+  --color-anki-correct: #006000;
+  --color-anki-incorrect: #600000;
+  --color-anki-text: #E8E8E8;
+  --color-anki-answer-bg: #606000;
 }

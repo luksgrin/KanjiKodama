@@ -66,3 +66,8 @@ export function strokeOrderSize(prefs: Preferences): number {
 export function fontSizeSubjectInfo(prefs: Preferences): number {
   return prefInt(prefs, 'font_size_subject_info', 16);
 }
+
+/** `Other.getEnableStarRatings`: `enable_star_ratings`, default false. */
+export function enableStarRatings(prefs: Preferences): boolean {
+  return prefBoolean(prefs, 'enable_star_ratings', false);
+}

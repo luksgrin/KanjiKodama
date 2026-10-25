@@ -17,13 +17,13 @@ export const LIMITATIONS: readonly Limitation[] = [
     applies: (c) => !c.notifications,
   },
   {
-    title: 'No audio.',
-    text: "The Android app downloads WaniKani's audio from WaniKani's file server on demand. A web app can't cache those files for offline use (no CORS), and we don't host audio ourselves.",
-    applies: (c) => !c.audio,
+    title: 'Audio needs a connection.',
+    text: "Audio plays only while online; it can't be downloaded for offline use.",
+    applies: (c) => !c.audioDownload,
   },
   {
     title: 'Storage can be cleared.',
-    text: "iOS keeps a home-screen app's data apart from Safari's, and the app asks for persistent storage. Even so, deleting the home-screen icon, clearing website data, or the system running low on storage can delete progress. Back up regularly (Settings → Progress → Save).",
+    text: "The web app asks the browser for persistent storage (on iPhone a home-screen app also keeps its data apart from Safari's). Even so, removing the home-screen app, clearing website data, or the system running low on storage can delete progress. Back up regularly (Settings → Progress → Save).",
     applies: (c) => !c.autoBackup,
   },
   {
@@ -37,8 +37,8 @@ export const LIMITATIONS: readonly Limitation[] = [
     applies: (c) => !c.cleartextHttp,
   },
   {
-    title: 'iOS install is manual.',
-    text: 'In Safari: Share → Add to Home Screen.',
+    title: 'Install is manual.',
+    text: 'The web app is installed from the browser: on iPhone in Safari, Share → Add to Home Screen; on Android, the browser menu\'s Install app / Add to Home screen. See Settings → About.',
     applies: (c) => !c.autoBackup,
   },
 ];

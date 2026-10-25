@@ -79,6 +79,43 @@ plus `applicationIdSuffix ".web"` on both build types; Java package and namespac
 
 ## Server-mode HTTP
 
-`HttpApi` (`index.ts`) is not part of `Platform` yet, so `android.ts` / `web.ts` stay untouched:
-`getHttp()` picks `fetchHttp` (`http.ts`) or `androidHttp` (`httpAndroid.ts`). When those files take
-an `http` field, set it to the same objects and make `getHttp()` return `(await getPlatform()).http`.
+`platform.http` (`HttpApi`): `fetchHttp` (`http.ts`) on the web, `androidHttp` (`httpAndroid.ts`,
+CapacitorHttp) on Android. `getHttp()` returns `(await getPlatform()).http`.
+
+## Secrets
+
+`platform.secrets` (`SecretsApi`) holds the server token, outside the progress database (so no
+progress file, backup or reset carries it). Android: the local `Secrets` plugin
+(`SecretsPlugin.java`/`SecretStore.java`: AES-GCM, key in the Android Keystore, excluded from
+Auto Backup). Web: a separate IndexedDB database `kanjikodama-secrets` (`webSecrets.ts`).
+**PWA limitation:** browsers have no secure store; the token is origin-scoped but not encrypted at
+rest. `src/sync/secretsTokenStore.ts` moves a token an earlier build kept in `state` on first read.
+
+## Audio
+
+`capabilities.audioPlayback` (both builds) and `capabilities.audioDownload` (Android only;
+`capabilities.audio` is a deprecated alias of it). Web: `webAudio.ts` streams the recording's URL
+with an `<audio>` element while online (no fetch, so no CORS; `play` resolves false offline);
+download/status/deleteAll are unsupported. Android: `androidAudio.ts`.
+
+## Widget and background sync (Android)
+
+- `platform.widget` (`androidWidget.ts` → `WidgetPlugin.java`, `SessionWidgetProvider.java`, a
+  port of the Java widget with its layouts and texts). The app hands over core `planWidget`'s
+  counts plus later entries; the provider redraws at the next review hour from its own inexact
+  alarm (and the hourly `updatePeriodMillis`), without the app.
+- `platform.backgroundSync` (`androidBackgroundSync.ts` → `BackgroundSyncPlugin.java`,
+  `BackgroundSyncWorker.java`): periodic WorkManager work `bgsync2` like the Java app's (1 h, flex
+  5 min, network, battery not low, random first delay), on in server mode with
+  `enable_background_sync`. The worker loads `index.html?kk-background-sync` in a headless WebView
+  on `https://localhost` (same origin, so the same IndexedDB) and `src/sync/background.ts` runs
+  one sync with the app's own engine, over native HTTP and the Keystore token injected as
+  `window.KKBackground`; the widget counts come back to the worker. `@capacitor/background-runner`
+  (3.0.0, Capacitor 8) was not used: its JS runtime has no IndexedDB, so it can't read the upload
+  queue or write progress without a second storage. Skipped while the app is in the foreground.
+  Review notifications are not rescheduled in the background (the local-notifications plugin needs
+  the Capacitor bridge); the app reschedules on its next resume or pause.
+
+The app controller (`src/sync/deviceSync.ts`) calls all of these: widget after writes, syncs,
+resume and pause; notifications on resume and pause; background sync configured on start, resume,
+mode switches and when the setting changes.

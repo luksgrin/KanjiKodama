@@ -82,3 +82,58 @@ export function reportLocal(db: LearnerDb, report: LocalReport, now: number): bo
   }
   return firstPassed;
 }
+
+/** What a server-mode report hands to the upload queue (`ReportSessionItemTask`). */
+export interface ServerReport extends LocalReport {
+  /** The session item's assignment id (0 when not known yet). */
+  assignmentId: number;
+  /** `processReviewFinished`'s `justPassed`: passed for the first time and has amalgamations. */
+  justPassed: boolean;
+  /** `ts`: the answer time, or `now` when the report had none. */
+  at: number;
+}
+
+/**
+ * `jobs/ReportSessionItemJob.runLocal` in server mode: the same local prediction as local mode (the
+ * "patched" assignment and review statistic, `assignmentPatched`/`statisticPatched` = 1, replaced
+ * when the server's data comes in), but no fast-travel probation and no local progression: the
+ * server decides unlocks and level-ups. Returns what to upload, or null for a self-study item (no
+ * reporting task) or an unknown subject.
+ */
+export function reportServer(db: LearnerDb, report: LocalReport & { assignmentId?: number }, now: number): ServerReport | null {
+  const id = report.subjectId;
+  const known = db.table.has(id);
+  const ts = report.timestamp > 0 ? report.timestamp : now;
+  let justPassed = false;
+  if (known && (report.type === 'LESSON' || report.type === 'REVIEW')) {
+    const reviewed = reportSessionItem(srsSystemOf(db, id), srsProgress(db, id), {
+      type: report.type, meaningIncorrect: report.meaningIncorrect, readingIncorrect: report.readingIncorrect, timestamp: ts,
+    }, now);
+    const p = reviewed.progress;
+    patchAssignment(db, id, p.srsStage, p.unlockedAt, p.startedAt, p.availableAt, p.passedAt, p.burnedAt, p.resurrectedAt);
+    if (report.type === 'REVIEW') {
+      justPassed = reviewed.firstPassed && (db.content.byId.get(id)?.amalgamationSubjectIds.length ?? 0) > 0;
+      updateProgress(db, id, {
+        meaningCorrect: p.meaningCorrect,
+        meaningIncorrect: p.meaningIncorrect,
+        meaningCurrentStreak: p.meaningCurrentStreak,
+        meaningMaxStreak: p.meaningMaxStreak,
+        readingCorrect: p.readingCorrect,
+        readingIncorrect: p.readingIncorrect,
+        readingCurrentStreak: p.readingCurrentStreak,
+        readingMaxStreak: p.readingMaxStreak,
+        percentageCorrect: p.percentageCorrect,
+        leechScore: leechScore(p),
+        statisticPatched: 1,
+      });
+    }
+  }
+  if (known && (report.meaningIncorrect > 0 || report.readingIncorrect > 0)) {
+    updateProgress(db, id, { lastIncorrectAnswer: ts });
+  }
+  if (!known || (report.type !== 'LESSON' && report.type !== 'REVIEW')) return null;
+  const assignmentId = report.assignmentId !== undefined && report.assignmentId !== 0
+    ? report.assignmentId
+    : num(progressRow(db, id), 'assignmentId');
+  return { ...report, assignmentId, justPassed, at: ts };
+}

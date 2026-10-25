@@ -1,6 +1,6 @@
 /**
  * Settings → Progress: save the progress file (picker / share sheet) and restore one (pick, show the
- * summary, confirm, replace), like `ProgressPreferences`. Local mode only, like the Java app.
+ * summary, confirm, replace), like `ProgressPreferences`. Restore is local mode only (`LocalMode.LOCAL_PREFERENCES`).
  */
 import { useState } from 'react';
 import type { OpenedProgressFile } from '../../../app/appController';
@@ -63,7 +63,9 @@ export function ProgressSection() {
       </p>
       <div className="kk-btn-row">
         <button type="button" className="kk-btn" onClick={save}>Save progress</button>
-        <button type="button" className="kk-btn secondary" onClick={() => void pick()}>Restore progress</button>
+        {state.mode !== 'server' && (
+          <button type="button" className="kk-btn secondary" onClick={() => void pick()}>Restore progress</button>
+        )}
       </div>
       {status && (
         <p role="status" className={`kk-small ${status.kind === 'error' ? 'kk-error-text' : ''}`} data-testid="progress-status">

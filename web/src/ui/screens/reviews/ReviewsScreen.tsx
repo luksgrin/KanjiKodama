@@ -1,6 +1,9 @@
-import { Placeholder } from '../../components/Placeholder';
+/**
+ * Reviews (`MainActivity` "Start reviews" → `Session.startNewReviewSession(availableReviews)`): the review
+ * quiz with the quick-action row; wrap-up and abandon from the session menu; the summary at the end.
+ */
+import { SessionScreen } from '../../components/session/SessionScreen';
 
-/** Stub: replaced by the Reviews screen (step 5a). */
 export function ReviewsScreen() {
-  return <Placeholder title="Reviews" />;
+  return <SessionScreen kind="REVIEW" start={(rt) => rt.startReviews()} emptyText="No reviews available." />;
 }

@@ -12,7 +12,12 @@ export type PlatformName = 'web' | 'android';
 /** Drives what the UI shows; screens check these instead of `name === 'android'`. */
 export interface Capabilities {
   notifications: boolean;
+  /** @deprecated Same as `audioDownload` (kept for existing screens). */
   audio: boolean;
+  /** Pronunciation audio plays (`audio.play`): both builds; the web build streams, online only. */
+  audioPlayback: boolean;
+  /** Downloads, per-level status, delete all (`audio.download`/`status`/`deleteAll`): Android only. */
+  audioDownload: boolean;
   haptics: boolean;
   backgroundSync: boolean;
   widget: boolean;
@@ -74,9 +79,13 @@ export interface AudioDownloadResult {
   aborted: boolean;
 }
 
-/** Pronunciation audio (Android): download into the app's files dir and play from there. */
+/**
+ * Pronunciation audio. Android: download into the app's files dir and play from there (or stream).
+ * Web: `play` streams the URL with an <audio> element while online; download/status/deleteAll are
+ * unsupported there (capability `audioDownload` false).
+ */
 export interface AudioApi {
-  /** False on the web build (known limitation: WaniKani's audio host sends no CORS headers). */
+  /** True on both builds (playback); check `capabilities.audioDownload` for downloads. */
   readonly supported: boolean;
   /** Which subjects have which recordings; build it with `readAudioCatalog` (src/content/audio.ts). */
   setCatalog(catalog: AudioCatalog | null): void;
@@ -202,6 +211,42 @@ export interface HttpApi {
   request(req: HttpRequest): Promise<HttpResponse>;
 }
 
+/** Small secrets (the server-mode API token), kept out of the progress database. */
+export interface SecretsApi {
+  /** 'keystore': Android, encrypted with an Android Keystore key. 'indexeddb': PWA, origin-scoped, not encrypted (known limitation). */
+  readonly kind: 'keystore' | 'indexeddb' | 'memory';
+  get(key: string): Promise<string | null>;
+  /** null deletes. */
+  set(key: string, value: string | null): Promise<void>;
+}
+
+/** The widget's counts (`SessionWidgetProvider` / `AlertContext`); core `planWidget` builds them. */
+export interface WidgetUpdate {
+  lessons: number;
+  reviews: number;
+  /** Next review time (epoch ms, 0: none): the "More at …" footer. */
+  nextAt: number;
+  /** Later states the widget switches to by itself (at a top of the hour), earliest first. */
+  schedule?: { at: number; lessons: number; reviews: number; nextAt: number }[];
+}
+
+/** Home-screen widget (Android). */
+export interface WidgetApi {
+  readonly supported: boolean;
+  /** Stores the counts and redraws every widget. */
+  update(u: WidgetUpdate): Promise<void>;
+  /** Asks the launcher to add a widget; false when it can't. */
+  requestPin?(): Promise<boolean>;
+}
+
+/** Periodic background sync (Android, server mode). */
+export interface BackgroundSyncApi {
+  readonly supported: boolean;
+  /** Enqueue (true) or cancel (false) the periodic worker. Idempotent. */
+  configure(enabled: boolean): Promise<void>;
+  status?(): Promise<{ scheduled: boolean; lastRunAt: number; lastResult: string | null }>;
+}
+
 export interface Platform {
   readonly name: PlatformName;
   readonly capabilities: Capabilities;
@@ -213,17 +258,20 @@ export interface Platform {
   readonly files: FilesApi;
   /** Android only. */
   readonly systemBars?: SystemBarsApi;
+  /** Server-mode HTTP: `fetchHttp` (web), `androidHttp` (CapacitorHttp). */
+  readonly http: HttpApi;
+  readonly secrets: SecretsApi;
+  /** Android only (capability `widget`). */
+  readonly widget?: WidgetApi;
+  /** Android only (capability `backgroundSync`). */
+  readonly backgroundSync?: BackgroundSyncApi;
 }
 
 let cached: Promise<Platform> | undefined;
-let cachedHttp: Promise<HttpApi> | undefined;
 
-/** Server-mode HTTP for this build (kept out of `Platform` until android.ts/web.ts take `http`). */
-export function getHttp(): Promise<HttpApi> {
-  cachedHttp ??= Capacitor.isNativePlatform()
-    ? import('./httpAndroid').then((m) => m.androidHttp)
-    : import('./http').then((m) => m.fetchHttp);
-  return cachedHttp;
+/** Server-mode HTTP for this build: `platform.http`. */
+export async function getHttp(): Promise<HttpApi> {
+  return (await getPlatform()).http;
 }
 
 export function getPlatform(): Promise<Platform> {

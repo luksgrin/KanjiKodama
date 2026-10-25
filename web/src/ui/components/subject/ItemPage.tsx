@@ -10,8 +10,9 @@
  *
  * Visibility follows `SubjectInfoView.layoutSubjectImpl` with the four info-dump flags (all on, as in
  * the browse screen, unless `visibility` says otherwise: lessons and answered questions pass theirs).
- * Not ported: star ratings, legacy radical names (no data), resurrect/burn buttons, the image titles
- * of the 19 image-only radicals (the slug is shown).
+ * The Resurrect / Burn buttons (`subject_info.xml`, below the details table) and the star rating go in
+ * the `extras` slot (the subject screen fills it). Not ported: legacy radical names (no data), the image
+ * titles of the 19 image-only radicals (the slug is shown).
  */
 import { useMemo, useState, type ReactNode } from 'react';
 import type { Database } from 'sql.js';
@@ -90,6 +91,8 @@ export interface ItemPageProps {
   onOpenSubject?: (id: number) => void;
   /** Save synonyms and notes; without it the page is read-only (no "+", no notes editor). */
   onSaveStudyMaterial?: SaveStudyMaterial;
+  /** Below the details table (Java's Resurrect / Burn buttons): the subject screen's extras. */
+  extras?: ReactNode;
 }
 
 const textOrNull = (v: string | number | null | undefined): string | null =>
@@ -117,6 +120,7 @@ export function ItemPage({
   audio,
   onOpenSubject,
   onSaveStudyMaterial,
+  extras,
 }: ItemPageProps) {
   const { db } = content;
   const v = { ...SHOW_ALL, ...visibility };
@@ -255,6 +259,8 @@ export function ItemPage({
           <DetailsTable subject={subject} progress={progress} srsSystem={srsSystem} />
         </>
       )}
+
+      {extras}
 
       {onSaveStudyMaterial !== undefined && (
         <section className="kk-subject-section kk-notes-editor">

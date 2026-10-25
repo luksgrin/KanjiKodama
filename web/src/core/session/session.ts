@@ -17,7 +17,7 @@ import { CLOSE_ENOUGH_ACTIONS, makeVerdict, NOK_WITHOUT_RETRY } from '../answer/
 import { isKunYomi, isOnYomi } from '../answer/reading';
 import type { ContentSubject } from '../content';
 import { contentSubject, num, progressRow, srsSystemOf, tableRow, type LearnerDb } from '../progression/db';
-import { reportLocal } from '../progression/report';
+import { reportLocal, type LocalReport } from '../progression/report';
 import type { JavaRandom, Rng } from '../rng';
 import { shuffleInPlace } from '../rng';
 import { ankiAnswerRichText } from '../anki/answerText';
@@ -45,6 +45,11 @@ export type JobRecord = [string, string];
 export interface SessionHooks {
   levelTestRoundActive(db: LearnerDb): boolean;
   onSessionFinishing(db: LearnerDb, type: SessionType, items: readonly SessionItem[], now: number): void;
+  /**
+   * `ReportSessionItemJob.runLocal` for one finished item. Absent: local mode (`reportLocal`). Server
+   * mode passes one that predicts locally and queues the upload (`src/sync/serverSession.ts`).
+   */
+  report?(db: LearnerDb, report: LocalReport & { assignmentId: number }, now: number): void;
 }
 
 /** Everything the session reads and writes outside itself. `now` and `prefs` change between calls. */
@@ -370,7 +375,7 @@ export class Session {
         break;
       case 'ReportSessionItemJob': {
         const f = data.split(' ');
-        runReportJob(this.env, Number(f[0]), f[2] as SessionType, Number(f[3]), Number(f[4]), Number(f[5]));
+        runReportJob(this.env, Number(f[0]), f[2] as SessionType, Number(f[3]), Number(f[4]), Number(f[5]), Number(f[1]));
         break;
       }
       default:
@@ -860,7 +865,7 @@ export class Session {
     const pending = storedRows(this.env.stored).filter((r) => r.state === 'PENDING');
     for (const r of pending) {
       const [i1, i2, i3, i4] = r.incorrect;
-      runReportJob(this.env, r.id, this.type, i1, i2 + i3 + i4, r.lastAnswer);
+      runReportJob(this.env, r.id, this.type, i1, i2 + i3 + i4, r.lastAnswer, r.assignmentId);
     }
     return pending;
   }
@@ -872,7 +877,7 @@ function stringOrNull(v: unknown): string | null {
 
 /** `ReportSessionItemJob.runLocal`: the stored item becomes REPORTED, then the local report. */
 function runReportJob(env: SessionEnv, id: number, type: SessionType, meaningIncorrect: number, readingIncorrect: number,
-  timestamp: number): void {
+  timestamp: number, assignmentId = 0): void {
   const row = env.stored.items.get(id);
   if (row !== undefined) {
     row.state = 'REPORTED';
@@ -880,5 +885,6 @@ function runReportJob(env: SessionEnv, id: number, type: SessionType, meaningInc
     row.lastAnswer = timestamp;
   }
   if (type === 'NONE') throw new Error('report without a session type');
-  reportLocal(env.db, { subjectId: id, type, meaningIncorrect, readingIncorrect, timestamp }, env.now);
+  if (env.hooks.report) env.hooks.report(env.db, { subjectId: id, type, meaningIncorrect, readingIncorrect, timestamp, assignmentId: Number.isFinite(assignmentId) ? assignmentId : 0 }, env.now);
+  else reportLocal(env.db, { subjectId: id, type, meaningIncorrect, readingIncorrect, timestamp }, env.now);
 }

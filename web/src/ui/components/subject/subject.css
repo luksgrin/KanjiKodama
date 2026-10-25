@@ -188,3 +188,22 @@ span.kk-link-button { cursor: default; }
 .kk-subject-details td { padding: 2px; }
 
 .kk-notes-editor { margin-top: var(--space-4, 16px); }
+
+/* Star rating (StarRatingView). */
+.kk-star-rating {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+.kk-star {
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--color-target);
+  cursor: pointer;
+}
+.kk-star:focus-visible {
+  outline: 2px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+}

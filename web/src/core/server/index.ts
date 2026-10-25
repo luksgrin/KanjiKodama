@@ -20,3 +20,5 @@ export * from './messages';
 export * from './queue';
 export * from './rateLimiter';
 export type { HttpMethod } from './types';
+export * from './localMode';
+export * from './subjects';

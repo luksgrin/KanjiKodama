@@ -5,4 +5,6 @@
      Keep in sync with data_extraction_rules.xml. -->
 <full-backup-content>
     <exclude domain="file" path="pronunciation-audio/" />
+    <!-- Encrypted with a device-bound Keystore key: useless elsewhere (SecretStore.java). -->
+    <exclude domain="sharedpref" path="kk_secrets.xml" />
 </full-backup-content>

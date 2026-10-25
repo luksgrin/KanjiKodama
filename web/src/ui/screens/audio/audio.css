@@ -1,0 +1,5 @@
+/* Audio download screen. Tokens only. */
+.kk-audio { display: grid; gap: var(--space-4); }
+.kk-audio-text { white-space: pre-line; margin: 0 0 var(--space-3); }
+.kk-audio-progress { width: 100%; accent-color: var(--color-accent); }
+.kk-audio-voices { flex-wrap: wrap; }

@@ -14,7 +14,10 @@
  * - `state` (key `key`): `userLevel`, `curriculum`, `ordering`, the other `mm_state` keys
  *   (`mm_state.<key>`), and later the server mode settings and sync cursors.
  * - `levelTest` (key `id`): `round`, `known` (`mm_level_test`).
- * - `session` (key `subjectId`): the current session's items (shape defined in step 5).
+ * - `session` (key `subjectId`): the current session (`ui/components/session/sessionStorage.ts`): one
+ *   `kind: 'item'` row per session item (the `session_item` columns) and a `kind: 'properties'` row under
+ *   key 0 (session type, on/kun split, current item and question type, start time and level, level test
+ *   round). No index change, so no new schema version. Empty when no session runs.
  * - `tasks` (auto key `id`): the server-mode upload queue (`src/sync/`; order and payloads in core
  *   `server/queue`). Non-indexed retry fields `attempts`, `nextAttemptAt`, `lastError`.
  * - `serverSubjects` (key `id`, v3): subjects downloaded in server mode, as the API sends them
@@ -47,8 +50,11 @@ export interface ProbationRecord { id: number; since: number }
 export interface JumpRecord extends Jump { seq?: number }
 export interface StateRecord { key: string; value: unknown }
 export interface LevelTestRecord { id: number; round: number; known: number }
-/** One item of the current session. Its fields are defined with the session screens (step 5). */
-export interface SessionRecord { subjectId: number; [field: string]: unknown }
+/**
+ * A `session` row: `kind: 'item'` (a session item) or `kind: 'properties'` (key 0). The typed shapes are
+ * `SessionItemRecord` / `SessionPropertiesRecord` in `ui/components/session/sessionStorage.ts`.
+ */
+export interface SessionRecord { subjectId: number; kind?: 'item' | 'properties'; [field: string]: unknown }
 /** A queued server-mode upload (`StoredTask` of core `server/queue`). */
 export interface TaskRecord {
   id?: number;

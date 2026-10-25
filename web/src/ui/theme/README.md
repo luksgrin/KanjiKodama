@@ -39,6 +39,9 @@ properties. `index.css` imports `fonts.css`, `tokens.css` and `base.css`; `main.
 | `--color-stage-{locked,initial,apprentice,guru,master,enlightened,burned}` | SRS stage colours |
 | `--color-lp-0` … `--color-lp-9` | level progress buckets: 0 passed, 1–7 apprentice stages (7 = first), 8 initiate, 9 locked |
 | `--kk-ink` … `--kk-peach`, `--kk-mint(-hi/-lo)`, `--kk-bar` | the raw palette (prefer the semantic tokens) |
+| `--color-q-{meaning,reading}-{bg,fg}` | question type banner (meaning white, reading black, as Java) |
+| `--color-answer-correct` / `--color-answer-incorrect` | answered field background |
+| `--color-anki-{show,next,correct,incorrect,text,answer-bg}` | Anki mode buttons and answer |
 | `--font-body` `--font-display` `--font-ja` | fonts (above) |
 | `--text-xs/sm/md/lg/xl/xxl` | 13/14/16/20/26/34 px (WK.TextView sizes) |
 | `--space-1` … `--space-6` | 4/8/12/16/24/32 px |

@@ -5,6 +5,10 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import type { AutoBackupEntry, Capabilities, FilesApi, OpenedText, Platform, SaveResult } from './index';
 import { androidAudio } from './androidAudio';
+import { androidBackgroundSync } from './androidBackgroundSync';
+import { androidSecrets } from './androidSecrets';
+import { androidWidget } from './androidWidget';
+import { androidHttp } from './httpAndroid';
 import { androidHaptics, androidLifecycle, androidSystemBars } from './androidLifecycle';
 import { androidNotifications } from './androidNotifications';
 import { browserStorage } from './browserStorage';
@@ -27,9 +31,11 @@ export const Document = registerPlugin<DocumentPlugin>('Document');
 const capabilities: Capabilities = {
   notifications: true,
   audio: true,
+  audioPlayback: true,
+  audioDownload: true,
   haptics: true, // navigator.vibrate in the WebView (androidLifecycle.ts)
-  backgroundSync: false,
-  widget: false,
+  backgroundSync: true, // BackgroundSyncWorker (WorkManager), server mode
+  widget: true, // SessionWidgetProvider
   cleartextHttp: true,
   legacyMigration: false, // step 6
   autoBackup: true,
@@ -132,4 +138,8 @@ export const androidPlatform: Platform = {
   systemBars: androidSystemBars,
   files,
   storage: browserStorage,
+  http: androidHttp,
+  secrets: androidSecrets,
+  widget: androidWidget,
+  backgroundSync: androidBackgroundSync,
 };

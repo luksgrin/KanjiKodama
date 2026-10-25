@@ -18,11 +18,16 @@
  * The `LearnerDb` is mutable and shared; each change publishes a new `AppState` object with a higher
  * `revision`, so derived values can be memoized on `revision`.
  */
+import { readAudioCatalog } from '../content/audio';
 import type { LoadedContent } from '../content/contentFile';
 import { emptyProgress, exportProgress, type ProgressState } from '../core/progressFile';
 import { applyOrdering, updateProgression, type LearnerDb } from '../core/progression';
 import type { Preferences, PreferenceValue } from '../core/settings';
 import type { Platform } from '../platform';
+import type { SessionHooks } from '../core/session';
+import type { EngineDeps, SyncEngine, SyncResult } from '../sync/engine';
+import type { TokenStore } from '../sync/store';
+import { createDeviceSync, type DeviceSync } from '../sync/deviceSync';
 import { backupReminder, saveProgressFile, type BackupReminder } from '../progress/backup';
 import { progressFileName } from '../progress/exportFile';
 import { importProgress, previewImport, type ImportPreview } from '../progress/importFile';
@@ -72,6 +77,8 @@ export interface AppDeps {
   clock?: Clock;
   /** How often `now` refreshes (ms); null: never (tests call `tick()`). Default 30 s. */
   tickMs?: number | null;
+  /** Server mode: sync engine options (tests shorten retries). */
+  sync?: Partial<Pick<EngineDeps, 'tries' | 'retryDelay' | 'clock' | 'limiter' | 'appVersion'>>;
 }
 
 /** How a write saves its changes. */
@@ -126,6 +133,25 @@ export interface AppController extends ReadableStore<AppState> {
   restoreProgress(text: string): Promise<string>;
   /** The backup reminder at `now` (PWA; Android has auto backups and never shows it). */
   backupReminder(): BackupReminder;
+  /** The server token store (platform secrets, `src/sync/secretsTokenStore.ts`). Ready only. */
+  tokenStore(): TokenStore;
+  /** Server mode's sync engine (status, subscribe, syncNow, flushUploads); null in local mode. */
+  syncEngine(): SyncEngine | null;
+  /** `engine.syncNow` and then the learner reloaded from what the sync wrote. Null in local mode. */
+  syncNow(opts?: { manual?: boolean }): Promise<SyncResult | null>;
+  /** Sends the upload queue now (server mode); null in local mode. */
+  flushUploads(opts?: { manual?: boolean }): Promise<SyncResult | null>;
+  /**
+   * Session hooks for this mode: `base` in local mode; in server mode with a `report` that predicts
+   * locally and queues the upload (sent after the write is saved). Sessions must use these.
+   */
+  sessionHooks(base: SessionHooks): SessionHooks;
+  /** Re-reads mode, content and progress from the database (after a mode switch). */
+  reload(): Promise<void>;
+  /** The bundled content file (in server mode `state.content` holds the server's subjects). */
+  bundledContent(): LoadedContent | null;
+  /** Options for one-off server calls (`checkConnection`, `downloadForLocal`): `deps.sync`. */
+  connectionOptions(): Partial<Pick<EngineDeps, 'tries' | 'retryDelay' | 'clock' | 'limiter' | 'appVersion'>>;
 }
 
 const DEFAULT_TICK_MS = 30_000;
@@ -183,6 +209,7 @@ export function createAppController(deps: AppDeps): AppController {
   let queue: Promise<unknown> = Promise.resolve();
   let timer: ReturnType<typeof setInterval> | undefined;
   let disposed = false;
+  let bundled: LoadedContent | null = null;
 
   const patch = (changes: Partial<AppState>, bump = false): void => {
     const prev = store.get();
@@ -280,6 +307,11 @@ export function createAppController(deps: AppDeps): AppController {
 
     patch({ status: { kind: 'loading', step: 'progress' }, content });
     try {
+      bundled = content;
+      if (await isServerMode()) {
+        content = await device.contentFor(content);
+        patch({ content });
+      }
       const learner = hydrateLearnerDb(content.content, content.jlptKanji, snap);
       orphans = orphansOf(snap, learner);
       const [prefs, lastSavedAt, server] = await Promise.all([readPrefs(), saved.getLastSavedAt(), isServerMode()]);
@@ -290,10 +322,20 @@ export function createAppController(deps: AppDeps): AppController {
         updateProgression(learner, clock.now());
         await persist(learner, 'auto', before);
       }
+      // Android audio: which subjects have which recordings (the item page, sessions, the audio screen).
+      if (platform.audio?.supported && content.db) {
+        try {
+          platform.audio.setCatalog(readAudioCatalog(content.db));
+        } catch {
+          // no audio data in this content file
+        }
+      }
       patch({ learner, prefs, lastSavedAt, mode: server ? 'server' : 'local', now: clock.now(), status: { kind: 'ready' } }, true);
     } catch (e) {
       fail(dbError(e));
+      return;
     }
+    device.ready(platform);
   }
 
   function startTimer(): void {
@@ -302,13 +344,21 @@ export function createAppController(deps: AppDeps): AppController {
     timer = setInterval(() => controller.tick(), ms);
   }
 
-  async function reloadLearner(): Promise<void> {
-    const content = store.get().content;
+  async function reloadLearner(opts: { content?: boolean; inPlace?: boolean } = {}): Promise<void> {
+    let content = store.get().content;
     if (!content) return;
+    let mode = store.get().mode;
+    if (opts.content && bundled) {
+      mode = (await isServerMode()) ? 'server' : 'local';
+      content = mode === 'server' ? await device.contentFor(bundled) : bundled;
+    }
     const snap = await readSnapshot(kk);
-    const learner = hydrateLearnerDb(content.content, content.jlptKanji, snap);
+    let learner = hydrateLearnerDb(content.content, content.jlptKanji, snap);
     orphans = orphansOf(snap, learner);
-    patch({ learner }, true);
+    const current = store.get().learner;
+    // Keep the object a running session holds (its env.db) when only the rows changed (a sync).
+    if (opts.inPlace && current) learner = Object.assign(current, learner);
+    patch({ learner, content, mode, prefs: await readPrefs() }, true);
   }
 
   function enqueue<R>(task: () => Promise<R>): Promise<R> {
@@ -316,6 +366,16 @@ export function createAppController(deps: AppDeps): AppController {
     queue = p.catch(() => undefined);
     return p;
   }
+
+  // Server mode, notifications, widget, background sync and the lifecycle (src/sync/deviceSync.ts).
+  const device: DeviceSync = createDeviceSync({
+    kk,
+    clock,
+    sync: deps.sync,
+    get: () => store.get(),
+    reload: (o) => enqueue(() => reloadLearner(o)),
+    tick: () => controller.tick(),
+  });
 
   const controller: AppController = {
     clock,
@@ -334,6 +394,7 @@ export function createAppController(deps: AppDeps): AppController {
 
     dispose() {
       disposed = true;
+      device.dispose();
       if (timer !== undefined) clearInterval(timer);
       timer = undefined;
       kk.close();
@@ -367,10 +428,12 @@ export function createAppController(deps: AppDeps): AppController {
           } catch {
             // keep the in-memory state; the error below is what matters
           }
+          device.reporter.drain(); // the predictions were rolled back with memory
           patch({ lastWriteError: message }, true);
           throw e;
         }
         patch({ now, lastWriteError: null }, true);
+        await device.afterWrite();
         return result;
       });
     },
@@ -383,6 +446,7 @@ export function createAppController(deps: AppDeps): AppController {
         if (value === undefined) delete prefs[key];
         else prefs[key] = value;
         patch({ prefs }, true);
+        device.preferenceChanged(key);
       });
     },
 
@@ -423,6 +487,39 @@ export function createAppController(deps: AppDeps): AppController {
         patch({ learner: res.learner, now: clock.now(), lastWriteError: null }, true);
         return res.message;
       });
+    },
+
+    tokenStore() {
+      return device.tokens();
+    },
+
+    syncEngine() {
+      return device.engine();
+    },
+
+    syncNow(opts) {
+      return device.syncNow(opts);
+    },
+
+    flushUploads(opts) {
+      return device.flushUploads(opts);
+    },
+
+    sessionHooks(base) {
+      return store.get().mode === 'server' ? device.reporter.hooks(base) : base;
+    },
+
+    bundledContent() {
+      return bundled;
+    },
+
+    connectionOptions() {
+      return { ...deps.sync };
+    },
+
+    async reload() {
+      await enqueue(() => reloadLearner({ content: true }));
+      device.modeChanged();
     },
 
     backupReminder() {

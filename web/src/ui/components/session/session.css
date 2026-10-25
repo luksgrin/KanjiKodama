@@ -1,0 +1,277 @@
+/*
+ * Session screens. Static layout (no visualViewport code): question view, type banner, answer field and
+ * the quick-action row come first, in normal flow, with heights that keep the row above the keyboard on
+ * the smallest target (iPhone SE with the keyboard open, about 375×410 visible; small Android phones from
+ * 320 px wide). The question view shrinks with the small viewport height (svh: the keyboard never changes
+ * it, so the layout doesn't jump) and the glyph shrinks with the width and the length of the text.
+ * Tokens only (theme/README.md).
+ */
+
+.kk-quiz {
+  /* Edge to edge inside .kk-main, like the Java fragments. */
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.kk-quiz-question {
+  position: relative;
+  height: clamp(96px, 22svh, 220px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--color-kanji);
+  color: var(--color-on-subject);
+  overflow: hidden;
+}
+.kk-quiz-question.kk-type--radical { background: var(--color-radical); }
+.kk-quiz-question.kk-type--kanji { background: var(--color-kanji); }
+.kk-quiz-question.kk-type--vocabulary,
+.kk-quiz-question.kk-type--kana_vocabulary { background: var(--color-vocab); }
+
+.kk-quiz-top,
+.kk-quiz-bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+}
+.kk-quiz-progress { font-family: var(--font-display); }
+.kk-quiz-srs { flex: 1; text-align: center; }
+.kk-quiz-spacer { flex: 1; }
+
+.kk-quiz-glyph {
+  align-self: center;
+  justify-self: center;
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  font-family: var(--font-ja);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  /* max_font_size_quiz_text 104 sp; fits the width for long words and the height on short screens. */
+  font-size: min(104px, calc((100vw - 32px) / var(--len, 1)), 12svh, calc((var(--content-max-width) - 32px) / var(--len, 1)));
+}
+
+.kk-quiz-special,
+.kk-quiz-menu-btn {
+  appearance: none;
+  border: 0;
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  color: inherit;
+  border-radius: var(--radius-sm);
+  min-height: 32px;
+  min-width: 44px;
+  padding: 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+.kk-quiz-menu { position: relative; }
+.kk-quiz-menu-list {
+  position: absolute;
+  right: 0;
+  bottom: 36px;
+  z-index: 5;
+  margin: 0;
+  padding: var(--space-1) 0;
+  list-style: none;
+  min-width: 220px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: var(--border-pixel) solid var(--btn-outline);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 0 var(--color-shadow);
+}
+.kk-quiz-menu-list button {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  min-height: 44px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kk-quiz-toasts {
+  position: absolute;
+  top: 34px;
+  left: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  pointer-events: none;
+}
+.kk-quiz-toast {
+  max-width: 100%;
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 2px 0 var(--color-shadow);
+  font-size: var(--text-sm);
+  animation: kk-toast-fade 2.75s ease-in forwards;
+}
+.kk-quiz-toast.close { animation-duration: 5s; }
+@keyframes kk-toast-fade {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.kk-quiz-type {
+  padding: 4px var(--space-2);
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+}
+.kk-quiz-type.meaning { background: var(--color-q-meaning-bg); color: var(--color-q-meaning-fg); }
+.kk-quiz-type.reading { background: var(--color-q-reading-bg); color: var(--color-q-reading-fg); }
+
+.kk-quiz-answer {
+  position: relative;
+  padding: var(--space-2) var(--space-4) 0;
+}
+.kk-answer-form { margin: 0; }
+.kk-answer {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-pixel) solid var(--btn-outline);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  /* 22 sp (font_size_question_edit); 16 px minimum keeps iOS from zooming into the field. */
+  font-size: 22px;
+  font-family: var(--font-body);
+}
+.kk-answer.kana { font-family: var(--font-ja); }
+.kk-answer.centered { text-align: center; }
+.kk-answer:focus { outline: 3px solid var(--color-accent); outline-offset: 1px; }
+.kk-quiz-answer.correct .kk-answer { background: var(--color-answer-correct); }
+.kk-quiz-answer.incorrect .kk-answer { background: var(--color-answer-incorrect); }
+.kk-quiz-mark {
+  position: absolute;
+  right: calc(var(--space-4) + var(--space-3));
+  top: calc(var(--space-2) + 8px);
+  font-size: 24px;
+  animation: kk-mark 1.2s ease-out forwards;
+}
+.kk-quiz-mark.ok { color: var(--color-ok); }
+.kk-quiz-mark.bad { color: var(--color-bad); }
+@keyframes kk-mark {
+  0% { transform: scale(0.4); opacity: 0; }
+  30% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.kk-quiz-answer.shake-0 .kk-answer { animation: kk-shake-a 1s linear; }
+.kk-quiz-answer.shake-1 .kk-answer { animation: kk-shake-b 1s linear; }
+@keyframes kk-shake-a {
+  0%, 14%, 28%, 42%, 57%, 71%, 85%, 100% { transform: translateX(0); }
+  7%, 35%, 64%, 92% { transform: translateX(10px); }
+  21%, 50%, 78% { transform: translateX(-10px); }
+}
+@keyframes kk-shake-b {
+  0%, 14%, 28%, 42%, 57%, 71%, 85%, 100% { transform: translateX(0); }
+  7%, 35%, 64%, 92% { transform: translateX(10px); }
+  21%, 50%, 78% { transform: translateX(-10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kk-quiz-answer.shake-0 .kk-answer, .kk-quiz-answer.shake-1 .kk-answer { animation-duration: 0.3s; }
+}
+
+/* The quick-action row: Don't know | Submit (or Next), directly under the field. */
+.kk-quiz-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) 0;
+}
+.kk-quiz-actions > .kk-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 48px;
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: nowrap;
+  /* One line from 320 px wide. */
+  font-size: clamp(12px, 3.6vw, 15px);
+  letter-spacing: 0.04em;
+}
+.kk-quiz-actions.bottom { padding-top: var(--space-4); }
+
+.kk-quiz-message {
+  margin: var(--space-2) var(--space-4) 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.kk-quiz-info { padding: var(--space-3) var(--space-4) 0; }
+.kk-quiz-reveal { display: flex; justify-content: flex-end; margin-bottom: var(--space-2); }
+
+/* Anki mode (ActiveTheme ankiColors). */
+.kk-btn.kk-anki { --btn-text: var(--color-anki-text); --btn-light: color-mix(in srgb, white 35%, var(--btn-fill)); --btn-shade: color-mix(in srgb, black 25%, var(--btn-fill)); }
+.kk-btn.kk-anki.show { --btn-fill: var(--color-anki-show); }
+.kk-btn.kk-anki.next { --btn-fill: var(--color-anki-next); }
+.kk-btn.kk-anki.correct { --btn-fill: var(--color-anki-correct); }
+.kk-btn.kk-anki.incorrect { --btn-fill: var(--color-anki-incorrect); }
+.kk-anki-answer {
+  margin: var(--space-2) var(--space-4) 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-anki-answer-bg);
+  color: var(--color-anki-text);
+  font-size: 20px;
+  white-space: pre-line;
+}
+
+/* Lesson presentation (fragment_lesson.xml): Previous | n/m | Next on top, the item below. */
+.kk-lesson-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.kk-lesson-nav > .kk-btn { flex: 1 1 0; min-width: 0; }
+.kk-lesson-nav .kk-lesson-progress { font-family: var(--font-display); min-width: 3.5em; text-align: center; }
+
+/* Summary */
+.kk-summary-table { width: 100%; border-collapse: collapse; }
+.kk-summary-table td { padding: 2px 0; }
+.kk-summary-table td:last-child { text-align: right; font-family: var(--font-display); }
+.kk-summary-grid { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.kk-summary-chip {
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  min-width: 40px;
+  min-height: 40px;
+  padding: 2px var(--space-2);
+  font-family: var(--font-ja);
+  font-size: var(--text-lg);
+  color: var(--color-on-subject);
+  cursor: pointer;
+}
+.kk-summary-chip.kk-type--radical { background: var(--color-radical); }
+.kk-summary-chip.kk-type--kanji { background: var(--color-kanji); }
+.kk-summary-chip.kk-type--vocabulary, .kk-summary-chip.kk-type--kana_vocabulary { background: var(--color-vocab); }
+
+.kk-pre-line { white-space: pre-line; }
+.kk-dialog-actions-3 { flex-wrap: wrap; }
+.kk-self-study-form fieldset { border: 0; padding: 0; margin: 0 0 var(--space-3); }
+.kk-self-study-form legend { font-family: var(--font-display); font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-1); }
+.kk-check-grid { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+.kk-check-grid label { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 36px; }
+.kk-num-pair { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.kk-num-pair input { width: 6em; min-height: 40px; font-size: 16px; padding: 0 var(--space-2); border: 2px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); }
+
+/* Secondary buttons on the dark surface: the base pill text (mmInkLight) is too dark there. */
+.kk-quiz .kk-btn.secondary,
+.kk-lesson .kk-btn.secondary { --btn-text: var(--color-text); }

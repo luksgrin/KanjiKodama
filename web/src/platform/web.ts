@@ -1,9 +1,14 @@
-import type { AudioApi, Capabilities, FilesApi, HapticsApi, LifecycleApi, NotificationsApi, OpenedText, Platform, SaveResult } from './index';
+import type { Capabilities, FilesApi, HapticsApi, LifecycleApi, NotificationsApi, OpenedText, Platform, SaveResult } from './index';
 import { browserStorage } from './browserStorage';
+import { fetchHttp } from './http';
+import { webAudio } from './webAudio';
+import { webSecrets } from './webSecrets';
 
 const capabilities: Capabilities = {
   notifications: false,
   audio: false,
+  audioPlayback: true, // streamed, online only (webAudio.ts)
+  audioDownload: false,
   haptics: false,
   backgroundSync: false,
   widget: false,
@@ -13,7 +18,7 @@ const capabilities: Capabilities = {
 };
 
 // Known limitations of the PWA: no review notifications (the dashboard shows the next review time),
-// no audio (WaniKani's audio host sends no CORS headers), no haptics (iOS Safari has no vibrate).
+// audio only streamed while online (no download: WaniKani's audio host sends no CORS headers), no haptics (iOS Safari has no vibrate).
 const notifications: NotificationsApi = {
   supported: false,
   permission: () => Promise.resolve('denied'),
@@ -23,14 +28,6 @@ const notifications: NotificationsApi = {
   schedule: () => Promise.reject(new Error('Notifications are not supported in the web build')),
 };
 
-const audio: AudioApi = {
-  supported: false,
-  setCatalog: () => undefined,
-  play: () => Promise.resolve(false),
-  download: () => Promise.reject(new Error('Audio is not supported in the web build')),
-  status: () => Promise.resolve({ levels: [], files: 0, bytes: 0 }),
-  deleteAll: () => Promise.resolve(),
-};
 
 const haptics: HapticsApi = { supported: false, feedback: () => undefined };
 
@@ -129,9 +126,11 @@ export const webPlatform: Platform = {
   name: 'web',
   capabilities,
   notifications,
-  audio,
+  audio: webAudio,
   haptics,
   lifecycle: webLifecycle,
   files,
   storage: browserStorage,
+  http: fetchHttp,
+  secrets: webSecrets,
 };

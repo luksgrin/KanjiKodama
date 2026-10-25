@@ -1,6 +1,8 @@
 /** A fake `HttpApi` (no network), a fake clock and the hand-written API v2 fixtures. */
 import 'fake-indexeddb/auto';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 
 import { HttpNetworkError, type HttpApi, type HttpRequest, type HttpResponse } from '../../src/platform';
 import { RateLimiter, type Clock } from '../../src/sync/client';
@@ -9,7 +11,9 @@ import { KkDb } from '../../src/storage/db';
 export const BASE = 'https://kk.example.test';
 
 export function fixture(name: string): unknown {
-  return JSON.parse(readFileSync(new URL(`./fixtures/${name}.json`, import.meta.url), 'utf8'));
+  // String paths only: under jsdom the global URL is jsdom's, which fileURLToPath rejects.
+  const here = import.meta.url.startsWith('file:') ? resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures') : resolve(process.cwd(), 'test/sync/fixtures');
+  return JSON.parse(readFileSync(resolve(here, `${name}.json`), 'utf8'));
 }
 
 export function json(status: number, body: unknown, headers: Record<string, string> = {}): HttpResponse {

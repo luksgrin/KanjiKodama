@@ -12,7 +12,7 @@ import { BottomNav } from './BottomNav';
 import { StartupScreen } from './StartupScreen';
 import { TopBar } from './TopBar';
 
-const NO_NAV: ReadonlySet<RouteName> = new Set(['lessons', 'reviews', 'summary']);
+const NO_NAV: ReadonlySet<RouteName> = new Set(['lessons', 'reviews', 'summary', 'selfStudyQuiz']);
 
 export function AppShell() {
   const app = useApp();

@@ -1,0 +1,87 @@
+/* Settings rows and the settings-area screens (curriculum, fast travel, import, about). Tokens only. */
+
+.kk-setting { flex-wrap: wrap; }
+.kk-setting.is-disabled .kk-row-title,
+.kk-setting.is-disabled .kk-row-sub { opacity: 0.55; }
+.kk-setting-heading {
+  font-size: var(--text-sm);
+  color: var(--color-text-toned);
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-2);
+  border-top: 2px solid var(--color-divider);
+}
+.kk-rows > li:first-child > .kk-setting-heading { border-top: 0; margin-top: 0; padding-top: 0; }
+.kk-setting-info { margin: var(--space-2) 0; }
+
+.kk-switch {
+  appearance: none;
+  flex: none;
+  width: 48px;
+  height: 28px;
+  margin: 0;
+  border: var(--border-pixel) solid var(--btn-outline);
+  border-radius: var(--radius-pill);
+  background: var(--color-divider);
+  position: relative;
+  cursor: pointer;
+}
+.kk-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  transition: transform 120ms ease;
+}
+.kk-switch:checked { background: var(--color-accent); }
+.kk-switch:checked::after { transform: translateX(20px); }
+.kk-switch:disabled { cursor: default; opacity: 0.5; }
+.kk-switch:focus-visible, .kk-select:focus-visible, .kk-input:focus-visible, .kk-slider:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.kk-select, .kk-input {
+  font: inherit;
+  font-size: var(--text-md);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 2px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  min-height: 40px;
+  max-width: 100%;
+}
+.kk-select { flex: 1 1 100%; }
+.kk-select:disabled, .kk-input:disabled { opacity: 0.55; }
+.kk-input-number { width: 5.5em; text-align: right; }
+.kk-input-block { width: 100%; }
+.kk-slider { flex: 1 1 100%; accent-color: var(--color-accent); }
+.kk-range { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+.kk-choice-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.kk-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: var(--border-pixel) solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  cursor: pointer;
+}
+.kk-choice[aria-checked="true"] { border-color: var(--color-accent); }
+.kk-choice:disabled { cursor: default; opacity: 0.6; }
+.kk-choice-title { display: block; font-family: var(--font-display); font-size: var(--text-sm); }
+.kk-choice-sub { display: block; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+.kk-pre-line { white-space: pre-line; }
+.kk-about a { color: inherit; }
+.kk-about ul { margin: 0 0 var(--space-2); padding-left: 1.4em; }
+.kk-license { white-space: pre-wrap; font-size: var(--text-xs); max-height: 40vh; overflow: auto; background: var(--color-bg); padding: var(--space-2); border-radius: var(--radius-sm); }
+.kk-install-steps { margin: 0 0 var(--space-2); padding-left: 1.4em; }

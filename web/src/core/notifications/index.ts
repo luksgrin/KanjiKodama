@@ -13,3 +13,4 @@ export {
   type ReviewNotificationOptions,
   type ReviewTime,
 } from './plan';
+export { planWidget, type WidgetCounts, type WidgetEntry, type WidgetPlan, type WidgetPlanOptions } from './widget';
