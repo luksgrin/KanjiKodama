@@ -60,10 +60,16 @@ export interface AnswerInputAttributes {
   autoCapitalize: 'none';
   autoComplete: 'off';
   inputMode: 'text';
+  /** TYPE_TEXT_VARIATION_VISIBLE_PASSWORD: TextView.setInputType switches the field to the monospace
+   *  typeface (`force_visible_password_*`, Android build only: the flag is set natively there). */
+  monospace: boolean;
 }
 
-export function answerInputAttributes(prefs: Preferences, type: QuestionType): AnswerInputAttributes {
+export function answerInputAttributes(prefs: Preferences, type: QuestionType, imeFlags = false): AnswerInputAttributes {
   const info = QUESTION_TYPE_INFO[type];
+  const visiblePassword = info.ascii
+    ? prefBoolean(prefs, 'force_visible_password_meaning', false)
+    : info.kana && prefBoolean(prefs, 'force_visible_password_reading', false);
   const autoCorrect = info.ascii
     ? prefBoolean(prefs, 'enable_auto_correct_meaning', false)
     : info.kana && prefBoolean(prefs, 'enable_auto_correct_reading', false);
@@ -74,5 +80,6 @@ export function answerInputAttributes(prefs: Preferences, type: QuestionType): A
     autoCapitalize: 'none',
     autoComplete: 'off',
     inputMode: 'text',
+    monospace: imeFlags && visiblePassword,
   };
 }

@@ -92,7 +92,7 @@ export interface QuizProps {
 }
 
 export function Quiz({ rt, snap, session, question }: QuizProps) {
-  const { learner, state } = useReady();
+  const { learner, state, platform } = useReady();
   const prefs = state.prefs;
   const haptic = useHaptics();
   const field = useRef<AnswerFieldHandle>(null);
@@ -206,7 +206,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
   const dump = floating.dumpStage ?? infoDump(prefs, question.type, session.correct);
   const verdict = floating.lastVerdict;
 
-  const input = answerInputAttributes(prefs, question.type);
+  const input = answerInputAttributes(prefs, question.type, platform.capabilities.imeFlags === true);
   // Taps on the quiz buttons leave the focus (and the keyboard) in the answer field, like Java's buttons.
   const keepFocus = (e: React.PointerEvent | React.MouseEvent) => e.preventDefault();
   const stretch = !answered && stretchQuestionView(prefs);

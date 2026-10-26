@@ -66,8 +66,18 @@ export function isReadingField(el: HTMLInputElement): boolean {
   return el.classList.contains('kana') || (el.lang ?? '').toLowerCase().startsWith('ja');
 }
 
-/** The settings for the focused element (all off unless it is an `input.kk-answer`). */
+let lastAnswer: AnswerKeyboard = NONE;
+
+/**
+ * The settings for the focused element: all off unless it is an `input.kk-answer`. Between two
+ * questions the invisible `.kk-keyboard-keeper` holds the focus (keyboardKeeper.tsx): it keeps the
+ * last answer field's settings, so the keyboard isn't restarted with Chromium's own flags (and then
+ * again with the next field's) while it stays open, as Java's single questionEdit keeps them.
+ */
 export function answerKeyboardFor(el: Element | null, prefs: Preferences = current): AnswerKeyboard {
-  if (!(el instanceof HTMLInputElement) || !el.classList.contains('kk-answer')) return NONE;
-  return answerKeyboard(prefs, isReadingField(el));
+  if (!(el instanceof HTMLInputElement)) return NONE;
+  if (el.classList.contains('kk-keyboard-keeper')) return lastAnswer;
+  if (!el.classList.contains('kk-answer')) return NONE;
+  lastAnswer = answerKeyboard(prefs, isReadingField(el));
+  return lastAnswer;
 }

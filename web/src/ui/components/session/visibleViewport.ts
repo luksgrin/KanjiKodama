@@ -21,12 +21,28 @@ export function visibleHeight(win: Window = window): number {
 }
 
 let users = 0;
+let tallest = 0;
+
+/**
+ * The Android app (adjustResize): Java's quiz pads its content by the keyboard's inset although it is
+ * already above the navigation bar, so the quick-action row ends one navigation bar height above the
+ * keyboard (`--kk-nav-bar`, from androidSystemUi.ts). `kk-ime-open` marks the keyboard as open (the
+ * WebView is then much shorter than it was); session.css adds the gap then.
+ */
+function updateImeGap(root: HTMLElement): void {
+  if (!root.classList.contains('kk-viewport-resizes')) return;
+  const inner = window.innerHeight;
+  tallest = Math.max(tallest, inner);
+  const open = tallest - inner > 120;
+  root.classList.toggle('kk-ime-open', open);
+}
 
 function update(): void {
   const root = document.documentElement;
   const h = visibleHeight();
   root.style.setProperty('--kk-visible-height', `${h}px`);
   root.classList.toggle('kk-keyboard-open', window.innerHeight - h > 120);
+  updateImeGap(root);
   const vv = window.visualViewport;
   if (vv && vv.offsetTop > 0 && root.classList.contains('kk-keyboard-open') && window.scrollY > 0) {
     window.scrollTo(0, 0);
@@ -49,6 +65,7 @@ export function useVisibleViewport(active = true): void {
       window.removeEventListener('resize', update);
       if (--users === 0) {
         document.documentElement.style.removeProperty('--kk-visible-height');
+        document.documentElement.classList.remove('kk-ime-open');
         document.documentElement.classList.remove('kk-keyboard-open');
       }
     };

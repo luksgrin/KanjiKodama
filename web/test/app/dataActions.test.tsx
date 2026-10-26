@@ -88,11 +88,11 @@ function dialogButton(el: HTMLElement, label: string): HTMLButtonElement {
 const rowTitles = (el: HTMLElement) => [...$(el, 'category-about')!.querySelectorAll('.kk-pref-title')].map((t) => t.textContent);
 
 describe('Other actions', () => {
-  it("has Java's rows in Java's order; Known limitations only on the web build", async () => {
+  it("has Java's rows in Java's order, on every build", async () => {
     const web = await render('/settings');
     expect(rowTitles(web.el)).toEqual([
       'About this app', 'Data import / export', 'Reset UI confirmations and tutorials', 'Reset database',
-      'Backup your settings', 'Restore your settings', 'Known limitations',
+      'Backup your settings', 'Restore your settings',
     ]);
     expect($(web.el, 'reset-database')!.textContent).toContain('Clear all data in the app');
     expect($(web.el, 'backup-settings')!.textContent).toContain('Backup your settings to a file');

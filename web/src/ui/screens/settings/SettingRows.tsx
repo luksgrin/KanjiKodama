@@ -42,6 +42,16 @@ import {
 export type Write = (key: string, value: PreferenceValue) => void;
 export type Actions = Readonly<Record<string, () => void>>;
 
+/**
+ * Android's line breaker (ICU) may break after a "/" between words ("readings/ meanings"), Chromium's
+ * doesn't: give the browser the same opportunity with a <wbr> (the text content stays the same).
+ */
+export function slashBreaks(text: ReactNode): ReactNode {
+  if (typeof text !== 'string' || !/\/\p{L}/u.test(text)) return text;
+  const parts = text.split(/(?<=\/)(?=\p{L})/u);
+  return parts.flatMap((p, i) => (i === 0 ? [p] : [<wbr key={i} />, p]));
+}
+
 /** One tappable preference row. */
 export function PrefRow({ title, summary, onClick, testId, disabled = false, widget, role, checked }: {
   title: ReactNode; summary?: ReactNode; onClick?(): void; testId?: string; disabled?: boolean; widget?: ReactNode;
@@ -52,8 +62,8 @@ export function PrefRow({ title, summary, onClick, testId, disabled = false, wid
       <button type="button" className="kk-pref" data-testid={testId} disabled={disabled} onClick={onClick}
         role={role} aria-checked={role === 'switch' ? checked : undefined}>
         <span className="kk-pref-text">
-          <span className="kk-pref-title">{title}</span>
-          {summary !== undefined && summary !== '' && <span className="kk-pref-summary">{summary}</span>}
+          <span className="kk-pref-title">{slashBreaks(title)}</span>
+          {summary !== undefined && summary !== '' && <span className="kk-pref-summary">{slashBreaks(summary)}</span>}
         </span>
         {widget}
       </button>

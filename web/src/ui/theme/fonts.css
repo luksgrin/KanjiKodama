@@ -10,18 +10,31 @@
   src: url('../../assets/fonts/pixelify_sans.ttf') format('truetype');
   font-weight: 400 700;
   font-display: swap;
+  /* Android lays a TextView line out with Paint.getFontMetricsInt(): ascent (0.92 em) and descent
+     (0.28 em) each rounded up to whole device pixels. At 16 sp on a 420 dpi phone that is 39 + 12 of
+     42 px: a 1.214 em line instead of 1.2. These overrides make "line-height: normal" the same. */
+  ascent-override: 92.857%;
+  descent-override: 28.571%;
+  line-gap-override: 0%;
 }
 @font-face {
   font-family: 'Silkscreen';
   src: url('../../assets/fonts/silkscreen_regular.ttf') format('truetype');
   font-weight: 400;
   font-display: swap;
+  /* As Pixelify Sans above: 1.03 / 0.25 em rounded up at 16 sp, 420 dpi (44 + 11 of 42 px). */
+  ascent-override: 104.762%;
+  descent-override: 26.190%;
+  line-gap-override: 0%;
 }
 @font-face {
   font-family: 'Silkscreen';
   src: url('../../assets/fonts/silkscreen_bold.ttf') format('truetype');
   font-weight: 700;
   font-display: swap;
+  ascent-override: 104.762%;
+  descent-override: 26.190%;
+  line-gap-override: 0%;
 }
 @font-face {
   font-family: 'Zen Maru Gothic';

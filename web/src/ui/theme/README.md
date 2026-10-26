@@ -43,6 +43,11 @@ Colours are the Java app's exactly (no contrast tweaks).
 | `--color-warn-bg` | banner background (backup reminder) |
 | `--color-chip` | small labels (JLPT block chip) |
 | `--color-shadow` | soft shadows (mmShadow) |
+| `--color-waterfall`, `--color-pitch-*`, `--color-stroke-ghost` | timeline waterfall line, pitch accent lines, stroke-order ghosts (colorWaterfallLine, pitchInfo*Color, strokeDiagramGhostColor) |
+| `--color-card-ink-radical/-kanji/-vocab`, `--color-card-ink-shadow` | meaning / reading / progress text on subject cards (SubjectCardBinder.styleCardText; colorPrimaryLight with a shadow in the upstream themes) |
+| `--color-edit-line` | EditText underline and hint (AppCompat hint grey) |
+| `--text-shadow-3px`, `--text-shadow-3px-glyph`, `--srs-count-shadow` | Android's `setShadowLayer(3, 1, 1, black)` on text and on big glyphs; the SRS counts' shadow (none in the dark upstream themes) |
+| `--fp-top`, `--fp-bottom` | Android `includeFontPadding` above / below a TextView (0 for the KanjiKodama fonts, Roboto's in the upstream themes) |
 | `--btn-fill` `--btn-light` `--btn-shade` `--btn-outline` `--btn-text` | the pixel pill button (mm_btn); override the first three for a coloured button |
 | `--btn-secondary-text` | `.kk-btn.secondary` text (surface fill: the theme's text colour, so it reads in dark) |
 | `--color-radical` `--color-kanji` `--color-vocab` | subject-type backgrounds (item headers, buttons) |

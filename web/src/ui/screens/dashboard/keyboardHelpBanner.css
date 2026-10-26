@@ -5,12 +5,16 @@
  * AppCompat borderless, colorPrimaryDark text). The yellow and black are fixed Java colours.
  */
 .kk-kbhelp-banner {
-  margin: 0 0 8px;
-  border-radius: 10px;
-  background: #FFFF80;
+  /* Outside Java's scroll view: its own 8 dp bottom margin plus the scroll content's 8 dp padding. */
+  margin: 0 0 16px;
+  /* It sits above Java's NestedScrollView, so it stays put while the dashboard scrolls under it; the
+     margins around it are the window background (the scroll view's clip). */
+  position: sticky;
+  top: calc(var(--safe-top) + var(--toolbar-height) + 8px);
+  z-index: 2;
   color: #000;
 }
-.kk-kbhelp-banner-text { margin: 0; padding: 8px 8px 0; font-size: 16px; line-height: 1.2; }
+.kk-kbhelp-banner-text { margin: 0; padding: calc(8px + var(--fp-top)) 8px var(--fp-bottom); font-size: 16px; }
 .kk-kbhelp-banner-actions { display: flex; justify-content: space-between; }
 .kk-kbhelp-banner-btn {
   appearance: none;
@@ -28,3 +32,7 @@
   cursor: pointer;
 }
 .kk-kbhelp-banner-btn:active { background: rgb(0 0 0 / 0.12); }
+.kk-kbhelp-banner::before,
+.kk-kbhelp-banner::after { content: ''; position: absolute; }
+.kk-kbhelp-banner::before { inset: -8px; z-index: -2; background: var(--color-bg); }
+.kk-kbhelp-banner::after { inset: 0; z-index: -1; border-radius: 10px; background: #FFFF80; }

@@ -11,7 +11,7 @@
 
 .kk-quiz {
   /* Edge to edge inside .kk-main, like the Java fragments, down to the bottom of the screen. */
-  margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) calc(-1 * (var(--safe-bottom) + var(--space-4)));
+  margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) calc(-1 * (var(--safe-bottom) + var(--main-gutter)));
   display: flex;
   flex-direction: column;
   --kk-quiz-height: calc(var(--kk-visible-height, 100dvh) - var(--safe-top) - var(--toolbar-height));
@@ -23,8 +23,8 @@
 .kk-quiz.unanswered {
   height: var(--kk-quiz-height);
   overflow: hidden;
-  /* What the question view may use: the rest is banner 34 + field 48 + row 60. */
-  --kk-qv-avail: max(56px, calc(var(--kk-quiz-height) - 142px - var(--kk-bottom-inset)));
+  /* What the question view may use: the rest is banner 34 + field 48 + row 62. */
+  --kk-qv-avail: max(56px, calc(var(--kk-quiz-height) - 144px - var(--kk-bottom-inset) - var(--kk-ime-gap, 0px)));
 }
 .kk-quiz-spacer { flex: 1 1 0; min-height: 0; }
 .kk-quiz.stretch .kk-quiz-spacer { display: none; }
@@ -72,7 +72,9 @@
   line-height: 1.2;
 }
 .kk-quiz-bottom { align-items: flex-end; padding: 0 0 0; min-height: 0; }
-.kk-quiz-progress { flex: none; }
+/* progress / srsIndicator: WK.TextView.Normal.Light in bold; AppCompat applies the theme's app:fontFamily (Pixelify Sans) over the style's Silkscreen. */
+.kk-quiz-progress { flex: none; font-family: var(--font-body); font-weight: 700; }
+.kk-quiz-srs { font-family: var(--font-body); font-weight: 700; }
 .kk-quiz-srs {
   position: absolute;
   left: 50%;
@@ -86,14 +88,17 @@
 /* The answered fragment's nextButton: 18 sp, 8 dp margins, bottom right of the question view. */
 .kk-quiz-bottom > .kk-btn.kk-quiz-next {
   margin: 8px 8px 8px auto;
-  min-height: 48px;
-  padding: 2px 16px 7px;
+  /* WK.Button.Borderless.Light: 54 dp, padding 16 / 4 / 16 / 12 dp from the view's edge. */
+  min-height: 54px;
+  min-width: 0;
+  padding: 1px calc(16px - var(--border-pixel)) 4px;
   font-size: 18px;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
 
 .kk-quiz-glyph {
+  text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView shadow layer */
   align-self: center;
   justify-self: center;
   max-width: 100%;
@@ -243,9 +248,10 @@
   line-height: 1.25;
   font-family: var(--font-body);
 }
-.kk-answer::placeholder { color: var(--color-text-muted); opacity: 0.75; }
+.kk-answer::placeholder { color: var(--color-edit-line); opacity: 1; } /* AppCompat textColorHint (measured on the Java app) */
 .kk-answer.kana { font-family: var(--font-ja); }
 .kk-answer.centered { text-align: center; }
+.kk-answer.monospace { font-family: monospace, var(--font-ja); } /* Typeface.MONOSPACE (Droid Sans Mono) */
 .kk-answer:focus { outline: none; border-bottom-color: var(--color-accent); border-bottom-width: 3px; padding-bottom: 5px; }
 .kk-answer:focus-visible { outline: none; }
 .kk-quiz-answer.correct,
@@ -286,6 +292,9 @@
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2) calc(var(--space-1) + var(--kk-bottom-inset));
 }
+.kk-quiz { --kk-ime-gap: 0px; }
+:root.kk-ime-open .kk-quiz { --kk-ime-gap: var(--kk-nav-bar, 0px); }
+.kk-quiz.unanswered .kk-quiz-actions { padding-bottom: calc(var(--space-1) + var(--kk-bottom-inset) + var(--kk-ime-gap)); }
 .kk-quiz.answered .kk-quiz-actions {
   position: sticky;
   bottom: 0;
@@ -298,9 +307,11 @@
   min-width: 0;
 }
 .kk-quiz-actions > .kk-btn {
-  min-height: 48px;
-  padding-left: 8px;
-  padding-right: 8px;
+  /* WK.Button.Borderless.Light (54 dp, 4 / 12 dp top / bottom padding); 8 dp sides here so the
+     texts fit from 320 px. */
+  min-height: 54px;
+  min-width: 0;
+  padding: 1px 8px 4px;
   white-space: nowrap;
   /* 18 sp, letterSpacing 0.06 (WK.Button.Borderless.Light); one line from 320 px wide. */
   font-size: clamp(14px, 5.6vw, 18px);
@@ -390,9 +401,14 @@
 .kk-lesson-nav {
   display: flex;
   align-items: center;
-  margin: var(--space-1) var(--space-1) 0;
+  /* Above Java's SwipingScrollView: it stays while the subject info scrolls under it. */
+  position: sticky;
+  top: calc(var(--safe-top) + var(--toolbar-height));
+  z-index: 2;
+  padding: var(--space-1) var(--space-1) 0;
+  background: var(--color-bg);
 }
-.kk-lesson-nav > .kk-btn { flex: none; min-height: 48px; }
+.kk-lesson-nav > .kk-btn { flex: none; } /* WK.Button.Normal: 52 dp */
 .kk-lesson-space { flex: 1 1 0; }
 .kk-lesson-nav .kk-lesson-progress { font-family: var(--font-body); font-size: 16px; text-align: center; }
 .kk-lesson .kk-quiz-info { padding: var(--space-2); }
@@ -467,7 +483,7 @@
   text-align: start;
 }
 button.kk-log-row { cursor: pointer; }
-.kk-log-chars { flex: none; margin-left: 4px; font-family: var(--font-ja); font-size: 24px; }
+.kk-log-chars { text-shadow: var(--text-shadow-3px); flex: none; margin-left: 4px; font-family: var(--font-ja); font-size: 24px; }
 .kk-log-unknown { margin-left: 12px; font-family: var(--font-body); font-weight: 700; font-size: 26px; }
 .kk-log-status { flex: 1; display: flex; flex-direction: column; align-items: flex-end; text-align: end; font-size: 14px; }
 
@@ -488,27 +504,28 @@ button.kk-log-row { cursor: pointer; }
 
 /* Java AlertDialog look (SessionDialog, NotesDialog): title in the body font with the warning icon,
    flat text buttons in one row (neutral left, negative and positive right). */
-.kk-sdialog { padding: 20px 24px 8px; border: 0; border-radius: 2px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.32); }
+.kk-sdialog { padding: 18px 24px 4px; width: min(400px, calc(100vw - 53.33px)); border: 0; border-radius: 2px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.32); }
 .kk-sdialog-title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 0 var(--space-3);
+  margin: 0 0 15.6px;
   font-family: var(--font-body);
   font-size: 20px;
+  line-height: normal;
   font-weight: 500;
   letter-spacing: normal;
   text-transform: none;
 }
 .kk-sdialog-icon { flex: none; color: #FF0000; } /* ic_baseline_warning_24px fillColor */
-.kk-sdialog-message { margin: 0 0 var(--space-4); font-size: 16px; }
-.kk-sdialog-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 var(--space-2); margin: 0 -16px; }
+.kk-sdialog-message { margin: 0; font-size: 16px; line-height: normal; }
+.kk-sdialog-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0; margin: 4px -12px 0; }
 .kk-sdialog-spacer { display: none; }
 .kk-sdialog-btn.neutral { margin-right: auto; }
 .kk-sdialog-btn {
   min-width: 64px;
   appearance: none;
-  min-height: 44px;
+  min-height: 54px;
   padding: 0 var(--space-2);
   border: 0;
   border-radius: 2px;
@@ -556,8 +573,9 @@ button.kk-log-row { cursor: pointer; }
 .kk-self-study-presets > .kk-btn { min-height: 48px; }
 .kk-self-study-divider { border: 0; border-top: 1px solid var(--color-divider); margin: var(--space-2) 0; }
 
-/* Subject cards in the lesson presentation and under answers (subject_card_*_compact.xml): each card has
-   4 dp margin on top and 2 dp on the other sides, so the cards are 4 dp apart across and 6 dp down, 2 dp
-   from the edges. */
+/* Subject cards in the lesson presentation and under answers: the same SubjectGridView as the item page
+   (Experimental.getSubjectCardLayoutOther() is NORMAL, not the *_compact layouts; RigidGridLayout uses
+   its 2 dp child margin only), so 4 dp apart across and down and 2 dp from the edges, plus the grid's
+   2 dp margin above the first row. */
 .kk-lesson .kk-link-grid,
-.kk-quiz .kk-link-grid { gap: 6px 4px; padding: 4px 2px 2px; }
+.kk-quiz .kk-link-grid { gap: 4px; padding: 2px; margin: 4px 0 0; }

@@ -20,8 +20,7 @@ import { InstallHint } from '../about/InstallHint';
 import { useCurriculumFlow } from '../curriculum/curriculumFlow';
 import { useFastTravelFlow } from '../fastTravel/fastTravelFlow';
 import { useImportFlow } from '../import/importFlow';
-import { KnownLimitations } from './KnownLimitations';
-import { DATA_IMPORT_EXPORT_SCREEN, DATA_IMPORT_EXPORT_TITLE, DataImportExportPage, LIMITATIONS_SCREEN, OtherActionsCategory } from './OtherActions';
+import { DATA_IMPORT_EXPORT_SCREEN, DATA_IMPORT_EXPORT_TITLE, DataImportExportPage, OtherActionsCategory } from './OtherActions';
 import { ProgressCategory } from './ProgressSection';
 import {
   ADVANCED_CATEGORY_TITLE,
@@ -39,8 +38,6 @@ import {
 import { PrefCategory, PrefRow, SettingGroupRows, SettingRow, useScreenLinkActions, useSettingWriter, type Actions } from './SettingRows';
 import { useAlerts, type Alerts } from './useAlerts';
 import './settings.css';
-
-export { LIMITATIONS_SCREEN };
 
 /** `Constants.RESET_TUTORIALS_WARNING`. */
 export const RESET_TUTORIALS_WARNING = 'This will re-enable all UI confirmations and reinstate all tutorial messages.'
@@ -146,7 +143,7 @@ function Root({ alerts, flows, write }: {
 export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
   const nav = useNavigate();
   const route = useRoute();
-  const { state, platform } = useReady();
+  const { state } = useReady();
   const { write, dialog } = useSettingWriter();
   const alerts = useAlerts();
   const actions = { ...useNotificationActions(), ...useScreenLinkActions() };
@@ -161,9 +158,8 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
   let group = screenId === null ? undefined : findGroup(screenId);
   // The advanced sub-screens are hidden while advanced settings are off (`setVisibility`).
   if (group && ADVANCED_GROUPS.includes(group) && !advancedEnabled(state.prefs)) group = undefined;
-  const limitations = screenId === LIMITATIONS_SCREEN;
   const dataPage = screenId === DATA_IMPORT_EXPORT_SCREEN;
-  const title = group ? groupTitle(group, state.mode) : limitations ? 'Known limitations' : dataPage ? DATA_IMPORT_EXPORT_TITLE : 'Settings';
+  const title = group ? groupTitle(group, state.mode) : dataPage ? DATA_IMPORT_EXPORT_TITLE : 'Settings';
   useToolbar({ title });
 
   const started = useRef(false);
@@ -178,11 +174,9 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
   }, [autoStart]);
 
   return (
-    <div className="kk-settings" data-testid={group ? `settings-screen-${group.id}` : limitations ? 'settings-limitations' : 'settings'}>
+    <div className="kk-settings" data-testid={group ? `settings-screen-${group.id}` : 'settings'}>
       {group ? (
         <SettingGroupRows group={group} write={write} actions={actions} />
-      ) : limitations ? (
-        <div className="kk-pref-page"><KnownLimitations capabilities={platform.capabilities} /></div>
       ) : dataPage ? (
         <DataImportExportPage />
       ) : (

@@ -702,7 +702,8 @@ synonyms) and has no romaji-to-kana conversion. These are upstream design choice
    regenerated (Tier A); in the Tier B files `anki/answer-inflection.json` and
    `scenarios/anki-randomize-inflections-{review,self-study}.json` the only change is the same `しなな` → `しな` in
    the shown characters, which is exactly what the Tier A regeneration produced (old text with that one
-   replacement is byte-identical to the new output); they were not re-run on a device.
+   replacement is byte-identical to the new output). Re-recorded on emulator-5556 from the fixed Java app
+   (`AnkiGoldenTest`, the two scenarios) on 2026-10-26: byte-identical to the edited files.
 
 
 ## Behavior-neutral Java test seams

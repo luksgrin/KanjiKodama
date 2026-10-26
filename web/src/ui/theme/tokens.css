@@ -31,6 +31,7 @@
   --color-pref-summary: rgb(0 0 0 / 0.6); /* Preference summary: ?android:textColorSecondary */
   --color-dialog-item: rgb(0 0 0 / 0.87); /* AlertDialog list items: ?textColorAlertDialogListItem */
   --color-control-normal: rgb(0 0 0 / 0.54); /* unchecked radio buttons: ?colorControlNormal */
+  --color-edit-line: rgb(0 0 0 / 0.6); /* EditText underline and hint (measured on the Java app) */
   --color-divider: #BFD9CB;
   --color-accent: #7CC8AC;
   --color-target: #E9B572;
@@ -62,6 +63,13 @@
   --color-pitch-odaka: #0CD24D;
   --color-pitch-nakadaka: #27A2FF;
   --color-pitch-atamadaka: #EA9316;
+  /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+     in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
+     black 1 px shadow (themes.ts). */
+  --color-card-ink-radical: #1D4A7A;
+  --color-card-ink-kanji: #7E1E40;
+  --color-card-ink-vocab: #45297F;
+  --color-card-ink-shadow: none;
   --color-stroke-ghost: #D0D0D0;
   /* Per-type text on the subject colours (= --color-on-subject here; the Breeze/Black/Nord themes colour the text instead) */
   --color-radical-fg: #2E4756;
@@ -136,6 +144,17 @@
   --radius-md: 12px;
   --radius-pill: 999px;
   --border-pixel: 3px;
+  /* includeFontPadding: what an Android TextView adds above its first and below its last line (the
+     font's top / bottom beyond its ascent / descent). Nothing for the KanjiKodama fonts; Roboto (the
+     upstream themes, themes.ts) 0.128 / 0.027 em. */
+  --fp-top: 0px;
+  --fp-bottom: 0px;
+  /* TextView.setShadowLayer(3, 1, 1, black) / android:shadowRadius 3 px: Skia blurs with sigma ~2.2 device
+     px at full black; two CSS layers of that blur match it on the emulator (420 dpi). */
+  --text-shadow-3px: 0.4px 0.4px 2.2px #000, 0.4px 0.4px 2.2px #000;
+  /* The same layer on big glyphs (quiz question, item title tile), where Android's blur (sigma ~2.2 px)
+     reads as one soft edge. */
+  --text-shadow-3px-glyph: 0.4px 0.4px 1.7px #000;
 
   /* Safe areas: Capacitor's SystemBars injects --safe-area-inset-* on Android (edge-to-edge);
      iOS / browsers provide env(). */
@@ -178,6 +197,7 @@
   --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
   --color-dialog-item: rgb(255 255 255 / 0.87);
   --color-control-normal: rgb(255 255 255 / 0.7);
+  --color-edit-line: rgb(255 255 255 / 0.7); /* EditText underline and hint (measured on the Java app) */
     --color-divider: #2B414A;
     --color-accent: #8EE3C8;
     --color-target: #E8B97A;
@@ -209,6 +229,13 @@
     --color-pitch-odaka: #0CD24D;
     --color-pitch-nakadaka: #27A2FF;
     --color-pitch-atamadaka: #EA9316;
+    /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+       in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
+       black 1 px shadow (themes.ts). */
+    --color-card-ink-radical: #1D4A7A;
+    --color-card-ink-kanji: #7E1E40;
+    --color-card-ink-vocab: #45297F;
+    --color-card-ink-shadow: none;
     --color-stroke-ghost: #404040;
     --color-radical-fg: #0F1C22;
     --color-kanji-fg: #0F1C22;
@@ -283,6 +310,7 @@
   --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
   --color-dialog-item: rgb(255 255 255 / 0.87);
   --color-control-normal: rgb(255 255 255 / 0.7);
+  --color-edit-line: rgb(255 255 255 / 0.7); /* EditText underline and hint (measured on the Java app) */
   --color-divider: #2B414A;
   --color-accent: #8EE3C8;
   --color-target: #E8B97A;
@@ -314,6 +342,13 @@
   --color-pitch-odaka: #0CD24D;
   --color-pitch-nakadaka: #27A2FF;
   --color-pitch-atamadaka: #EA9316;
+  /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+     in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
+     black 1 px shadow (themes.ts). */
+  --color-card-ink-radical: #1D4A7A;
+  --color-card-ink-kanji: #7E1E40;
+  --color-card-ink-vocab: #45297F;
+  --color-card-ink-shadow: none;
   --color-stroke-ghost: #404040;
   --color-radical-fg: #0F1C22;
   --color-kanji-fg: #0F1C22;

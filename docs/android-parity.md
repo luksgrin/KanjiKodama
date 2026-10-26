@@ -1,178 +1,93 @@
 # Android parity: TS app vs Java app
 
-Side-by-side check (round 2) on emulator-5556 (Pixel-class, 1080×2400, density 420 = 2.625, Android 16 /
-API 36, Android System WebView 133) on 2026-10-25: the Java debug app `app.kanjikodama.wk.debug`
+Side-by-side check (round 3) on emulator-5556 (Pixel-class, 1080×2400, density 420 = 2.625, Android 16 /
+API 36, Android System WebView 133) on 2026-10-26: the Java debug app `app.kanjikodama.wk.debug`
 (built from `durtles/`) next to the TS app `app.kanjikodama.wk.web` (`web/`, built with
 `npm run build && npx cap sync android && ./gradlew assembleDebug`). Both had the same progress file
-restored ("Restore progress from a file": JLPT order, level 6, 1034 reviews due); lesson screens were
-checked on fresh data (level 1, 20 lessons). Screenshots stay outside the repo (WaniKani content):
-scratchpad `parity2/` (`j-*` Java, `t-*` TS, `pair-*` side by side; round 1 in `parity/`).
+restored ("Restore progress from a file": JLPT order, level 6, 1034 reviews due); the lesson screens and
+dialogs were also checked on fresh data (Reset database, level 1). Every screen was captured in the
+KanjiKodama theme (light), KanjiKodama Dark (system dark mode) and Nord. Screenshots stay outside the repo
+(WaniKani content): scratchpad `parity3/` (`j-*` Java, `t-*` TS, `pair-*` side by side, `cpair-*`
+full-resolution crops; rounds 1 and 2 in `parity/` and `parity2/`).
 
-Severity: **blocker** = clearly not "the same app" / wrong behaviour; **noticeable** = a user switching
-apps sees it at once; **minor** = detail. "Deliberate" = an owner decision or a web/platform limit.
-
-Round 1's blockers (bottom tab bar, "Locked" stage on search results) and most noticeable items
-(toolbar colours and titles, dashboard layout, session menu, dialogs, settings sub-screens, curriculum
-and level-test dialogs, summary, version) were fixed in wave 4 (commit 46e09cc). Round 2 fixed the
-items listed under "Fixed in round 2"; what is left is listed per screen.
+Rounds 1 and 2 (waves 4 and 5) closed the structural differences (tab bar, toolbar, dashboard, session
+screens, settings sub-screens, dialogs, Display / Keyboard settings, radical images, Japanese face, tap
+sizes). Round 3 measured what was left pixel by pixel and fixed it; the list is below.
 
 ## Start-up
 
-Same restored progress, cold start (`am force-stop`, then `am start`), 5 runs each.
+Same restored progress, cold start (`am force-stop`, then `am start -W`), 6 runs each, round 3.
 
-| | Java | TS round 1 | TS before round 2 | TS after round 2 |
+| | Java | TS round 1 | TS round 2 | TS round 3 |
 |---|---|---|---|---|
-| `am start -W` TotalTime (first frame) | 0.89–0.95 s | 1.32–1.50 s | 1.31–1.41 s | ≈ first frame of the dashboard (splash held until the shell exists) |
-| Process start → dashboard with counts | ~0.95–1.0 s (dashboard fades in with its data) | 1.2–1.3 s | 1.24–1.34 s | **1.03–1.15 s** |
-| In-page time (time origin → dashboard) | — | — | 640–710 ms | 500–555 ms |
+| `am start -W` TotalTime | 0.87–0.95 s (first frame: the splash, then the dashboard fades in with its data) | 1.32–1.50 s | — | 1.13–1.23 s (the splash is held until the dashboard's first frame) |
+| Process start → dashboard with counts | ~0.95–1.0 s (round 2; this round's burst capture shows the counts between 1.15 and 1.4 s after `am start` including screencap overhead, consistent with it) | 1.2–1.3 s | 1.03–1.15 s | **1.10–1.16 s** |
+| In-page time (time origin → dashboard) | — | — | 500–555 ms | 515–547 ms |
 
-Where the time goes now: ~0.55–0.6 s Android process + WebView + Capacitor bridge start until the page's
-time origin (fixed cost, the Java app's activity is ready at about the same time); ~0.16–0.2 s until the
-first script and asset responses arrive (all of them land together, the WebView's asset loader is
-cold); the content file is then read in ~0.1 s; `readContent` + hydrate + first render ~0.2 s.
+Where the TS time goes: ~0.58–0.63 s Android process + WebView + Capacitor bridge start until the page's
+time origin (fixed cost; the Java activity is ready at about the same time); ~0.16–0.2 s until the first
+script and asset responses (all land together, the WebView's asset loader is cold); the content file is
+read by ~0.26 s; `readContent` + hydrate + first render ~0.25 s.
 
-Fixed in round 2:
-- `web/android/app/build.gradle`: `noCompress 'db'`: the 33 MB content file is stored uncompressed in the
-  APK, so the WebView streams it without inflating it first (−0.1 s; the APK grows from 16 to 41 MB,
-  still less on disk than the Java app, which keeps a compressed copy in the APK and an expanded copy in
-  its files).
-- `web/vite.config.ts`: a `<link rel=preload>` for the content file named in the bundled manifest, so its
-  download starts with the HTML instead of after the manifest (−0.05 s).
-- `web/src/content/readContent.ts`: all subject rows come from one SQL result (SQLite builds one JSON
-  text, decoded and parsed once) instead of ~180 000 wasm→JS string conversions (sql.js `UTF8ToString`
-  85 ms → 22 ms on the emulator). Falls back to the row-by-row read if the JSON path fails; the output
-  is identical (checked against the real content DB).
-- Tried and reverted: copying a frozen template in `core/progressFile/format.ts emptySubjectRow`
-  (object spread of a 40-key object is ~8× slower in V8 than the key loop).
+Remaining: TS is ~0.1–0.15 s behind Java to a dashboard with data. Not closable in the page: the WebView's
+own start-up and its cold asset loader (~0.75 s together before the first script runs) are fixed costs a
+native activity does not have. The page's own part was cut in round 2 (uncompressed content in the APK,
+content preload, one-JSON subject read); what is left in it is `emptySubjectRow` (~40 ms, core
+progression getters returning fresh empty rows; a shared read-only row would change core).
 
-Remaining (minor): ~0.05–0.15 s behind Java. Left: `emptySubjectRow` is called ~100 000 times during
-start-up (~40 ms, core progression getters returning fresh empty rows; a shared read-only row would need
-core changes), and the cold asset-loader delay before the first responses.
-
-## Fixed in round 2 (all screens)
+## Fixed in round 3
 
 | Area | Java | TS before | Fix (file) |
 |---|---|---|---|
-| Button font | AppCompat applies the theme's `app:fontFamily` (Pixelify Sans) over the styles' `android:fontFamily` (Silkscreen): every Button is Pixelify Sans in capitals | Silkscreen, so all buttons were ~25 % wider with wide letter gaps | `.kk-btn`, quiz special buttons, tutorial Dismiss: body font + `text-transform: uppercase` (`ui/theme/base.css`, `session.css`) |
-| Quiz buttons | 18 sp, letterSpacing 0.06 | 13–18 px, 0.04 em | `session.css` |
-| Dialogs | white (`background_floating`), Pixelify 14 sp button text without spacing, message line height ~1.2, red warning icon, no focused button on open | mint surface, Silkscreen buttons with spacing, line height 1.4, dark icon, first button focused (outline) | `--color-dialog` token, `.kk-dialog`/`.kk-alert`/`.kk-sdialog` styles, `ConfirmDialog` flat buttons, `SessionDialog` focuses the dialog and gives the focus back (the answer field) on close |
-| Radio list dialogs | item text 87 % black, unchecked rings 54 % black, text 73 dp from the edge | ink text, green rings, 64 dp | `--color-dialog-item`, `--color-control-normal`, `alert.css` |
-| Preference summaries | `textColorSecondary` (grey) | green (`--color-text-muted`) | `--color-pref-summary`, `settings.css`; row line heights as Java |
-| Overflow menu | top at the toolbar's top, no list padding, Silkscreen without letter spacing, max(50 %, 320 dp) wide with ellipsis, keyboard stays open, Back closes it | 8 px lower, padded, spaced, full width, keyboard closed, Back left the app | `base.css`, `ToolbarView.tsx` |
-| Toolbar SearchView | magnifier inside the field, no hint, clear "×", other actions (Mute, overflow) stay | wide field with a hint, no other actions | `ToolbarView.tsx`, `base.css` (+ `test/app/shell.test.tsx`) |
-| Dashboard | "Lessons:"/"Reviews:" 26 sp at ≥ 360 dp (`layout-w360dp`); level bars all end at the same x (TableLayout); hairline chart grid; 1-px-device text shadows; SRS tiles in one row ≥ 480 dp (`layout-w480dp`) | 20 px labels, bars as wide as each label allowed, 1 px grid, 3 px blurred shadows, always 3 + 2 | `dashboard.css` |
-| Headline tile | glyph = `max_font_size_lesson` 128 / `_quiz` 28 / `_browse` 64 sp, bounded by the screen width − 80 dp | 3.5 em everywhere (small in lessons, big under answers) | `ItemPage`/`Headline` `maxFontSize`, `SessionItemInfo`, `LessonsScreen`, `subject.css` |
-| Quiz question (Android) | question view = progress line + 104 sp text (~133 dp) with the keyboard open | 88 px (the keyboard allowance was subtracted twice: the WebView already shrinks) | `kk-viewport-resizes` class (`main.tsx`) + `session.css` |
-| Answer mark | Lottie: white mark on a filled red/green circle | coloured ✗ glyph | `session.css` |
-| Item info | dividers above Used radicals / Visually similar / Used in; reveal button normal size; Pixelify line height ~1.21; fake-bold primary meaning (same width as regular) | no dividers, small reveal button, 1.3 line height, real bold (long meanings wrapped earlier) | `ItemPage.tsx`, `SessionItemInfo.tsx`, `subject.css` |
-| Search results | (width + 10) / 90 columns; tutorial box edge to edge; card text 24 sp glyph box, 1.21 lines | 5 columns after the toolbar search (WebView reported a wrong width while the keyboard closed and sent no second resize); inset box; taller cards | `SearchResultsScreen.tsx`/`BrowseScreen.tsx` width via `ResizeObserver`, `browse.css` |
-| Browse | level cells with gaps, crisp numbers; Search buttons normal size | 1 px gaps, blurred numbers, small Search buttons | `browse.css`, `AdvancedSearchFormView.tsx` |
-| Settings | sub-screens open at the top; advanced warning with its bold parts | sub-screen kept the root's scroll position; plain text | `AppShell.tsx` (scroll reset on query change), `SettingRows.tsx` |
-| Level test | dialog over the dashboard with the dashboard's toolbar | toolbar "Level test" with a back arrow | `ToolbarView.tsx` (level test counts as the main screen) |
-| Summary | rows 25 dp apart | 23 px | `session.css` |
-| About | "• item" lines without indent | indented list | `about.css` |
+| Line heights everywhere | a TextView line is as tall as the font's ascent + descent, each rounded up to whole device px (Pixelify Sans 16 sp: 1.214 em; lines with Japanese grow to the CJK face's height) | fixed `line-height: 1.2`/`1.21`/`1.25`: long texts drifted (About ~10 px, item page and Keyboard help more) | `fonts.css` `ascent-/descent-override` with Android's rounding for Pixelify Sans and Silkscreen, `line-height: normal` in `base.css` and the item page / dialogs / keyboard help; Roboto's `includeFontPadding` for the upstream themes (`--fp-top/--fp-bottom`, `themes.ts`) |
+| Buttons (`mm_btn`) | the pill is drawn inside the 52 dp view: 3 dp outline, fill, 4 dp shade, 8 dp of outline at the bottom; 88 dp min width; pressed = `mm_btn_pressed` | outline + 4 px box-shadow outside the view (4 px taller) and 3 px wider side padding | `.kk-btn` (`base.css`) |
+| Quiz buttons (`WK.Button.Borderless.Light`) | 54 dp, padding 4 / 12 dp | 48 px | `session.css` (Don't know / Submit / Next) |
+| Dialogs (all) | 26.7 dp from the screen edges, 18 dp above the title, 15.6 dp title → message, 54 dp buttons 12 dp from the sides, list items closer to the title | 24 px edges, 20 px, 12 px, 40 px buttons | `alert.css`, `.kk-dialog` (`base.css`), `.kk-sdialog` (`session.css`) |
+| Text shadows | `setShadowLayer(3, 1, 1, black)` (device px): Skia's blur reads darker than a 1.15 px CSS blur; cards, item tile and quiz glyph have it too | lighter shadow; no shadow on card / tile / quiz glyphs | `--text-shadow-3px`, `--text-shadow-3px-glyph` (`tokens.css`), browse / subject / session CSS |
+| SRS breakdown counts | shadow only in LIGHT and the KanjiKodama themes | shadow in every theme | `--srs-count-shadow` (`themes.ts`, `dashboard.css`) |
+| SRS breakdown tiles | 8 dp inside the panel padding, 4 dp apart | 5 px | `dashboard.css` |
+| Timeline chart | 250 dp view incl. the panel's shadow band; always Pixelify Sans | SVG 250 px inside the border (12 px taller); Roboto in upstream themes | `TimeLineChart.tsx`, `dashboard.css` |
+| Keyboard hints banner | above the scroll view (stays while the dashboard scrolls), 16 dp to the content | scrolled away, 8 px | `keyboardHelpBanner.css` |
+| Bottom of every screen | 8 dp padding | 16 px | `.kk-main` (`base.css`) |
+| Colours that follow the theme | waterfall line, pitch accent, stroke ghosts and the card meaning/reading/progress text (deep shade in the KanjiKodama themes, colorPrimaryLight with a shadow in the others), WaniKani tags (each type's text colour), EditText hint and underline | hard-coded KanjiKodama values | `--color-waterfall`, `--color-pitch-*`, `--color-stroke-ghost`, `--color-card-ink-*`, `--color-edit-line` (`tokens.css`, `themes.ts`) |
+| Toolbar | title ellipsized ~12 dp before the actions ("SEARCH RESUL…"); overflow dots 2.67 dp left of centre; SearchView: the first tap expands it iconified (Collapse + magnifier), the magnifier opens the field (16 dp magnifier, 8 dp insets) | title ran to the actions; field opened at once | `ToolbarView.tsx`, `base.css` (+ `shell.test.tsx`, e2e `toolbarSearch`) |
+| Browse | heading 8 dp under the tutorial box's 12 dp (margins add up); EditTexts 43 dp with 4 dp insets, 1 dp underline in the hint colour, 18 sp; spinner = text + grey triangle, no underline | margins collapsed (−9 dp), 2 px green underline, 16 px, underlined select | `browse.css`, `BrowseScreen.tsx` |
+| Advanced search form | a `TableLayout` (`shrinkColumns="*"`): label column and value column, Min/Max `ems=2` / `ems=4`, SwitchCompat rows (27 dp) with the labels right-aligned, group headers 16 dp above, Search at the start of column 2 | free grid, wide Min/Max fields, checkboxes, fieldsets with dividers | `AdvancedSearchFormView.tsx`, `tableColumns.ts` (Android's column shrinking), `browse.css`; also on Self-study and Refine |
+| Search results | the tutorial and the count stay above the list (only the RecyclerView scrolls); margins add up | scrolled with the list; collapsed margins | `SearchResultsScreen.tsx`, `browse.css` |
+| Item page | vertical LinearLayout: every view's 4 dp top margin counts (no collapsing); subject grids are `SubjectGridView` (NORMAL cards, `RigidGridLayout` 2 dp child margin: 4 dp apart across and down, 2 dp edges; the cards' own XML margins are ignored); card glyph 24 sp; details rows 2 + 2 dp; synonym "+" 24 × 22 dp | collapsed margins, 5.3 px gaps, 26 px glyph, 0 / 2 px rows, 40 px "+" | `subject.css`, `StudyMaterials.tsx` (e2e exemption `add-synonym`) |
+| Session subject grids | the same `SubjectGridView` as the item page (`getSubjectCardLayoutOther()` is NORMAL; the `*_compact.xml` margins wave 5 used are never applied) | 4 / 6 px | `session.css` |
+| Lesson presentation | Previous / Next row above the scroll view (stays); 52 dp buttons | scrolled away; 48 px | `session.css` |
+| Quiz with the keyboard open | the quick-action row ends one navigation-bar height above the keyboard (the fragment pads by the IME inset inside a view already above the navigation bar); progress text Pixelify bold; answer hint in the hint grey; visible-password fields in monospace | row on the keyboard; Silkscreen progress; green hint | `visibleViewport.ts` (`kk-ime-open`), `SystemUiPlugin.getNavigationBarHeight` → `--kk-nav-bar`, `displayPrefs.ts`, `AnswerField.tsx`, `session.css` |
+| Keyboard IME hints between questions | Java's one `questionEdit` keeps its flags | the invisible keyboard keeper got Chromium's flags, so the keyboard was restarted twice per question | `answerKeyboard.ts` (the keeper reports the last answer field's hints) |
+| Settings | category titles 7 dp lower and 8 dp above the first row; summaries 14 sp at Android's line height; text wraps where Java's does (breaks after "/", 17 px widget gap for the WebView's 412 px width); InfoPreference keeps its 41 dp widget frame | 16 px / 0; 1.25 lines; other breaks; full width | `settings.css`, `SettingRows.tsx` |
+| Fast travel (menu) | the dialogs over the dashboard | over the Settings screen | `FastTravelScreen.tsx`, `ToolbarView.tsx` |
+| Keyboard help | 8 dp button padding, blank lines 16 sp × 1.214 | 22 dp side padding, 19 px | `keyboardHelp.css` |
+| "Known limitations" settings row | none (the text is in About) | web-only row and sub-screen | removed (`OtherActions.tsx`, `SettingsScreen.tsx`); About keeps the list |
+
+Wave 5 leftovers also closed: the `visuals.spec.ts` browse-cell check on pixel-7 read two
+`boundingBox()` calls in different frames of the screen's slide-in (−8 px); it now measures the grid in
+one evaluation and polls until it settles.
 
 ## Per screen: what still differs
 
-### Dashboard (`pair-dashboard`, `pair-dashboard2`, `pair-overflow-menu`)
+Everything else matched in the three themes (positions within 1 dp, colours from the same tokens, texts
+identical). What is left cannot match, with the reason:
 
-| Difference | Java | TS | Severity | Why / file |
-|---|---|---|---|---|
-| Keyboard hints banner | yellow "Please take a moment to review some hints for your keyboard settings" DISMISS / VIEW until dismissed; VIEW opens Keyboard help | same box (first on the dashboard, `keyboard_help_dismissed`, reset by "Reset UI confirmations and tutorials"); Android build only: the hints are about Android keyboard flags a browser can't set | — | fixed (wave 5, `dashboard/KeyboardHelpBanner.tsx`) |
-| Recent-unlocks rows | 32 dp rows, 4 dp apart | same (wave 5; e2e exemption `subject-row-*`) | — | fixed |
-| App label in the toolbar | "KanjiKodama - Debug" (debug build) | "KanjiKodama" | — | build label only |
-
-### Lesson presentation and quiz (`pair-lesson-pres`, `pair-lesson-last`, `pair-lesson-quiz`)
-
-Wave 5 closed the remaining differences:
-- Don't know / Submit at the bottom, on the keyboard (Java's spacer + quickActionRow). The quiz fills the
-  height above the keyboard (`visibleViewport.ts`: `visualViewport.height` on iOS / Chrome, the resized
-  viewport in the Android app); on very short screens (320 × 568 with the keyboard: 300 px visible) the
-  question view gives up height first, so the row stays visible. Checked with the keyboard simulated both
-  ways in WebKit, Chromium and Firefox (`checkQuickActions`, `session-layout.spec.ts`).
-- Subject card grid: 4 dp apart across, 6 dp down, 2 dp from the edges (`subject_card_*_compact.xml`
-  margins; `session.css` for the session screens).
-- Fragment slides between questions and lesson items (`slide_animations`, Java's `getAnimation`).
-
-### Review question, wrong answer, item info (`pair-review-meaning-kb`, `pair-review-reading-kb`, `pair-wrong`, `pair-info-more`)
-
-Wave 5: NEXT after answering is in the coloured header (bottom right, focused with Java's highlight; the
-header grows to ~193 px) and pinned at the bottom (`nextButton2`); the keyboard closes as in Java and
-opens again for the next question (`keyboardKeeper.tsx`). Session dialogs (wrap-up, abandon, level
-test, self-study, summary) are an overlay that leaves the focus in the answer field, so the keyboard stays
-open (`SessionDialog.tsx`; Enter/typing don't reach the field while it is open, Tab moves into it).
-Anki mode: the flat full-width button bar pinned at the bottom, `anki_buttons_height` dp high. Display
-settings read: `center_caret`, `anki_buttons_height`, `quiz_question_view_height`,
-`stretch_quiz_question_view`, `slide_animations`; Keyboard settings: `enable_auto_correct_*` →
-`autocorrect`/`spellcheck`, `lang` per question kind (the other IME flags are native, `KkWebView`).
-
-### Session menu, wrap-up / abandon dialogs, summary, session log (`pair-session-menu`, `pair-wrapup-dialog`, `pair-summary`)
-
-Match (entries and order, dialog look and texts, summary blocks and buttons, FINISH focused with Java's
-highlight). The full session log (`full_session_log`) has Java's "Events" list (session started /
-re-loaded, lesson quiz started, back to presentation, every submit, Anki grade, Don't know, undo, skip,
-ignore; "12s ago"; in memory only, as Java).
-
-### Item pages (`pair-item-radical`, `pair-item-kanji`, `pair-item-vocab`)
-
-| Difference | Java | TS | Severity | Why / file |
-|---|---|---|---|---|
-| Radicals without characters (e.g. "Yurt") | the radical's image | same: the Java drawables converted into the content file's `title_image` table, drawn by `SubjectChars` (headline, cards, results, toolbar title, dashboard tables, session question and log) | — | fixed (wave 5) |
-| Japanese face | system CJK font everywhere (the bundled Zen Maru Gothic is never used) | same (`--font-ja` = system CJK stack) | — | fixed (wave 5) |
-
-### Browse and search results (`pair-browse`, `pair-browse-level`, `pair-search`, `pair-search-open`)
-
-| Difference | Java | TS | Severity | Why / file |
-|---|---|---|---|---|
-| Advanced search | Level range, Frequency range, Only leeches… | same (JLPT block row removed, wave 5) | — | fixed |
-| Level cells | ~37 × 31 dp, 2 dp / 8 dp apart | same (wave 5; e2e exemption `browse-level-*`) | — | fixed |
-| DISMISS on the results tutorial | grey pressed/focus background | same state layer on press / keyboard focus (the Java capture showed it focused because adb key input leaves touch mode) | — | fixed (wave 5) |
-| Results list | edge to edge (headers full width, cards 2 dp from the screen edge) | same (wave 5) | — | fixed |
-
-### Settings (`pair-settings-main`, `pair-settings-display`, `pair-list-dialog`, `pair-advanced-warning`, `pair-advanced`, `pair-curriculum`, `pair-restore-confirm`, `pair-restore-done`)
-
-| Difference | Java | TS | Severity | Why / file |
-|---|---|---|---|---|
-| Keyboard input settings | own sub-screen, 11 rows | same rows, titles, summaries, defaults (`force_ascii_meaning` XML default written when settings open); Android sets every flag natively (`KkWebView`: no personalized learning, force ASCII, auto-correct, visible password, language hint; checked with `dumpsys input_method`). Web: only auto-correct and the Next delay (the other rows are hidden, as Java hides the language hints below Android 7) | — | fixed (wave 5) |
-| Display settings | Light Theme / Dark Theme lists (8 themes), Theme customisation, centre caret, Anki button size, fixed question height, slide animations, stretch question view | same rows, order, summaries ("… theme is currently selected", "… is used in system wide dark mode"), defaults; all 8 themes with Java's colours (`ui/theme/themes.ts`, compared on the emulator in Wanikani and Nord); Theme customization screen with the 33 samples and the HSL picker; switch and seek bar geometry measured from Java | — | fixed (wave 5) |
-| Sub-screen back stack | the root keeps its scroll position when you come back | same: Back restores every screen's scroll position (`AppShell.tsx`) | — | fixed (wave 5) |
-
-List dialogs, the advanced warning, the curriculum dialog and the restore dialogs match (texts, layout,
-colours).
-
-Other actions (wave 5): About this app, Data import / export, Reset UI confirmations and tutorials,
-Reset database, Backup your settings, Restore your settings, in Java's order with Java's summaries,
-warning dialogs (No / Yes) and toasts. "Known limitations" stays on the web build only (Android has
-none, so the row is hidden there). Data import/export is Java's screen (title "Data import/export",
-the two texts, four buttons; search presets and star ratings as Java's JSON, shared through the share
-sheet on Android). Settings backups use the Java file format (`smouldering_durtles_<date>.json`): a
-backup made by the Java app restores in the new app and the other way round. The API settings screen
-has "Network access rule" again (it gates the Android audio auto-download, `auto_download_audio`, as
-Java does); `show_legacy` shows the old radical names and mnemonics on the item page.
-
-### About (`pair-about`)
-
-| Difference | Java | TS | Severity | Why |
-|---|---|---|---|---|
-| Open-source components | Jackson, Lottie, JSoup, OkHttp, Pikolo | React, Dexie.js, sql.js, Workbox, Capacitor | — | deliberate: different stack |
-| URL wrapping | the GitHub link breaks at "/" | same (`<wbr>` after each "/"); paragraph spacing one empty line as Java | — | fixed (wave 5) |
-
-### Kanji level test start (`pair-leveltest`)
-
-Matches (dialog over the dashboard, toolbar, texts, buttons).
-
-### Widget (`widgets-crop`), icon, notification (`notifications`)
-
-| Difference | Java | TS | Severity | Why / file |
-|---|---|---|---|---|
-| Widget | dark rounded 1×1 tile "R: 1033 / More at …" | identical layout and texts | — | (the two showed different "More at" hours only because the two apps' progress diverged during the test sessions) |
-| Notification | one notification (id 1) on `NewReviewsChannel`, category recommendation, public, "New reviews available" / "1034 reviews available" | identical (checked by moving the emulator clock forward a day; id, channel, category, visibility, title and text the same) | — | native `ReviewNotifications.java` since wave 4 |
-| App label | "KanjiKodama - Debug" (debug build) | "KanjiKodama" | minor | `android/app/src/main/res/values/strings.xml` (step 6) |
+| Screen | Difference | Why |
+|---|---|---|
+| Toolbar | Java debug build's label "KanjiKodama - Debug" | build label only; the release Java app says "KanjiKodama" like the TS app |
+| All long texts | a word occasionally wraps one word earlier or later than in Java (e.g. one line of the reading mnemonic) | Android's text layout rounds every glyph advance to whole device pixels (Pixelify Sans runs ~2 % wider than the same text in Chromium, which keeps fractional advances), and Android's line breaker (ICU, `breakStrategy=high_quality`) balances lines differently from Chromium's greedy breaker. Neither is exposed to CSS; a per-glyph spacing hack would change every text's width elsewhere. Line count and heights match in almost all paragraphs |
+| About | the open-source components list (React, Dexie.js, sql.js, Workbox, Capacitor vs Jackson, Lottie, JSoup, OkHttp, Pikolo) | deliberate: a different stack |
+| Settings → Font settings | only "Font size of dashboard subject tables"; Java also has quiz font selection/import and the seven max/size sliders | not ported (inventory "Drop" / owner scope: the TS app uses the system CJK face, as Java does by default); the sliders' getters are not read by the TS screens |
+| Settings → Notifications and other | no "Notification update frequency / priority / category" and no "Search engine 1–5" rows | not ported: the native notification (`ReviewNotifications.java`) uses Java's defaults; the item page's search-engine long-press menu is not ported (settings inventory "Ask") |
+| Settings → Audio | no "Request audio focus when playing vocab audio" | the WebView's media session always takes audio focus; the switch would do nothing |
+| Dashboard | no "Show post-60 progression" panels | not in the TS dashboard (settings inventory) |
+| Cold start | ~0.1–0.15 s slower to a dashboard with data | WebView start-up, see Start-up |
 
 ## Top remaining differences
 
-1. ~~Keyboard help banner + Keyboard input settings sub-screen missing~~ — fixed in wave 5.
-2. ~~Display settings: TS has only Theme (system/light/dark) and the Anki swap~~ — fixed in wave 5 (all 8 themes, Theme customization).
-3. ~~Radicals without characters show their slug~~ — fixed in wave 5.
-5. Start-up still ~0.05–0.15 s behind Java — minor.
-6. ~~40 px tap-target floor on recent-unlock rows and browse level cells~~ — fixed in wave 5 (Java sizes, documented e2e exemptions).
+1. Start-up ~0.1–0.15 s behind Java (WebView start-up; minor).
+2. Occasional one-word line-break differences in long texts (Android's integer glyph advances and ICU line
+   breaking; minor).
+3. Settings rows for features that are not ported (font selection/import and sizes, notification details,
+   search engines, audio focus, post-60 panels) — scope decisions, not layout.

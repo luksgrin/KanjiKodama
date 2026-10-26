@@ -21,14 +21,18 @@ test('browse level cells have the Java size (~31 dp tall, 2 dp apart, 8 dp betwe
   await openApp(page);
   await tab(page, 'Browse');
   await settle(page);
-  const a = (await page.getByTestId('browse-level-1').boundingBox())!;
-  const b = (await page.getByTestId('browse-level-2').boundingBox())!;
-  expect(Math.round(a.height)).toBeGreaterThanOrEqual(30);
-  expect(Math.round(a.height)).toBeLessThanOrEqual(32);
-  expect(Math.round(b.x - (a.x + a.width))).toBe(2);
-  const cols = await page.getByTestId('browse-levels').evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
-  const below = (await page.getByTestId(`browse-level-${cols + 1}`).boundingBox())!;
-  expect(Math.round(below.y - (a.y + a.height))).toBe(8);
+  // One measurement of the whole grid, repeated until the screen's slide-in and the column count (set
+  // from a ResizeObserver) have settled: separate boundingBox calls could catch two different frames.
+  const measure = () => page.getByTestId('browse-levels').evaluate((grid) => {
+    const box = (n: number) => grid.querySelector(`[data-testid="browse-level-${n}"]`)!.getBoundingClientRect();
+    const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+    const a = box(1), b = box(2), below = box(cols + 1);
+    return { height: Math.round(a.height), across: Math.round(b.left - a.right), down: Math.round(below.top - a.bottom) };
+  });
+  await expect.poll(async () => { const m = await measure(); return [m.across, m.down]; }).toEqual([2, 8]);
+  const { height } = await measure();
+  expect(height).toBeGreaterThanOrEqual(30);
+  expect(height).toBeLessThanOrEqual(32);
 });
 
 test('the settings root keeps its scroll position when coming back from a sub-screen', async ({ page }) => {

@@ -2,14 +2,13 @@
  * Settings → "Other actions" (`preferences.xml` category `about`, `PreferencesFragment`): About this
  * app, Data import / export, Reset UI confirmations and tutorials, Reset database, Backup your
  * settings, Restore your settings, with the Java titles, summaries, dialogs and toasts. "Support and
- * feedback" is hidden as in Java (`LocalMode`). The web build adds "Known limitations" (Android has
- * none, so the row is not shown there).
+ * feedback" is hidden as in Java (`LocalMode`). The known limitations of a build are in About, as in
+ * Java (no settings row).
  *
  * `DataImportExportPage` is `DataImportExportActivity` (`activity_data_import_export.xml`), shown as
  * `/settings?screen=data_import_export`.
  */
 import type { ReactNode } from 'react';
-import { limitationsFor } from './limitations';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
@@ -37,8 +36,6 @@ import './data.css';
 export const DATA_IMPORT_EXPORT_SCREEN = 'data_import_export';
 /** `android:label` of `DataImportExportActivity`. */
 export const DATA_IMPORT_EXPORT_TITLE = 'Data import/export';
-/** The TS-only sub-screen with this build's known limitations. */
-export const LIMITATIONS_SCREEN = 'known_limitations';
 
 function ResetDatabaseMessage() {
   return (
@@ -132,7 +129,6 @@ export function OtherActionsCategory({ alerts, onResetTutorials }: { alerts: Ale
     },
   });
 
-  const showLimitations = limitationsFor(platform.capabilities).length > 0;
   return (
     <PrefCategory title="Other actions" testId="category-about">
       <PrefRow title="About this app" testId="link-about" onClick={() => nav(paths.about())} />
@@ -142,10 +138,6 @@ export function OtherActionsCategory({ alerts, onResetTutorials }: { alerts: Ale
       <PrefRow title="Reset database" summary="Clear all data in the app" testId="reset-database" onClick={resetDatabase} />
       <PrefRow title="Backup your settings" summary="Backup your settings to a file" testId="backup-settings" onClick={backup} />
       <PrefRow title="Restore your settings" summary="Restore from a backup of your settings file" testId="restore-settings" onClick={restore} />
-      {showLimitations && (
-        <PrefRow title="Known limitations" summary="What this build of the app cannot do" testId="link-limitations"
-          onClick={() => nav(`${paths.settings()}?screen=${LIMITATIONS_SCREEN}`)} />
-      )}
     </PrefCategory>
   );
 }

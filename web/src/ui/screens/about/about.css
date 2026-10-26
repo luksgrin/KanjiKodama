@@ -1,6 +1,6 @@
 /* About (activity_about.xml): one WK.TextView.Normal document (the 8 dp padding is .kk-main's gutter), accent links. Tokens only. */
 .kk-about { overflow-wrap: anywhere; }
-.kk-about h3 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-lg); margin: 3px 0 21px; }
+.kk-about h3 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-lg); margin: 0.5px 0 20px; }
 .kk-about h4 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-md); margin: var(--space-5) 0 var(--space-2); }
 /* Java's HTML: paragraphs end with <br/><br/>, one empty 16 sp line (~19 dp) between them (measured). */
 .kk-about p { margin: 0 0 1.2em; }

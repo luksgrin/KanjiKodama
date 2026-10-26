@@ -62,6 +62,14 @@ describe('imeHintsFor', () => {
       expect(imeHintsFor(el)).toMatchObject({ answerField: false, noPersonalizedLearning: false, forceAscii: false });
     }
   });
+  it('the keyboard keeper keeps the last answer field’s hints between questions', () => {
+    setAnswerKeyboardPrefs({ ime_hint_reading: true });
+    const reading = imeHintsFor(input('kk-answer kana', 'ja'));
+    expect(reading).toMatchObject({ answerField: true, hintLocale: 'ja' });
+    expect(imeHintsFor(input('kk-keyboard-keeper', ''))).toEqual(reading);
+    expect(imeHintsFor(input('', 'en'))).toMatchObject({ answerField: false });
+    setAnswerKeyboardPrefs({});
+  });
 });
 
 describe('startAndroidSystemUi', () => {

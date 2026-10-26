@@ -95,6 +95,9 @@ describe('toolbar', () => {
   it('the search action opens a SearchView that runs a keyword search', async () => {
     const { el, app, location } = await render('/');
     await click(q(el, 'toolbar-search'));
+    // Java: the action view expands iconified first (Collapse + magnifier); the magnifier opens the field.
+    expect(q(el, 'toolbar-search-input')).toBeNull();
+    await click(q(el, 'toolbar-search-expand'));
     const input = q(el, 'toolbar-search-input') as HTMLInputElement;
     expect(input.placeholder).toBe(''); // android.widget.SearchView without a queryHint
     await act(async () => {

@@ -3,8 +3,10 @@
  * `AdvancedSearchForm`: its fields, switches and sort order in the layout's order and texts, a Search
  * button above and below. Refine passes the current search's parameters (`injectParameters`).
  */
-import { useId, useRef, useState } from 'react';
-import { AdvancedSearchForm, SEARCH_SORT_ORDERS, SORT_ORDER_DESCRIPTIONS, type AdvancedSearchParameters, type FormSwitch, type SearchSortOrder, type TextField } from '../../../core/search';
+import { Fragment, useId, useRef, useState, type ReactNode } from 'react';
+import { useTableColumns } from './tableColumns';
+import './browse.css';
+import { AdvancedSearchForm, SEARCH_SORT_ORDERS, SORT_ORDER_DESCRIPTIONS, type AdvancedSearchParameters, type SearchSortOrder, type TextField } from '../../../core/search';
 import type { SrsSystem } from '../../../core/srs';
 import { starsText } from '../../components/subject';
 
@@ -60,17 +62,19 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, o
   const form = formRef.current;
   const [, setVersion] = useState(0);
   const changed = (): void => setVersion((v) => v + 1);
+  const tableRef = useTableColumns<HTMLFormElement>();
 
-  const text = (field: TextField, label: string) => (
+  const text = (field: TextField, label: string, ems: 2 | 4) => (
     <input
       id={`${id}-${field}`}
-      className="kk-search-number"
+      className={`kk-search-number ems${ems}`}
       type="text"
       inputMode="numeric"
       autoComplete="off"
       aria-label={label}
       placeholder={field === 'minLevel' || field === 'minFrequency' ? 'Min' : field === 'maxLevel' || field === 'maxFrequency' ? 'Max' : ''}
       value={form.texts[field]}
+      onFocus={(e) => e.currentTarget.select()}
       onChange={(e) => {
         form.texts[field] = e.target.value;
         changed();
@@ -78,110 +82,100 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, o
     />
   );
 
-  const toggle = (sw: FormSwitch, label: string) => (
-    <label key={sw.name} className="kk-search-switch">
-      <span>{label}</span>
+  /** A SwitchCompat (WK.Switch.Normal) over a checkbox. */
+  const switchControl = (name: string, label: string) => (
+    <label className="kk-adv-switch">
       <input
         type="checkbox"
-        name={sw.name}
-        checked={form.checked.has(sw.name)}
+        role="switch"
+        name={name}
+        data-testid={`adv-switch-${name}`}
+        aria-label={label.replace(/:$/, '')}
+        checked={form.checked.has(name)}
         onChange={(e) => {
-          if (e.target.checked) form.checked.add(sw.name);
-          else form.checked.delete(sw.name);
+          if (e.target.checked) form.checked.add(name);
+          else form.checked.delete(name);
           changed();
         }}
       />
+      <span className="kk-adv-switch-track" aria-hidden="true"><span className="kk-adv-switch-thumb" /></span>
     </label>
   );
 
-  const group = (prefix: string) =>
-    form.switches.filter((sw) => sw.name.startsWith(prefix) && sw.visible).map((sw) => toggle(sw, sw.label ?? SWITCH_LABELS[sw.name] ?? sw.name));
+  /** A table row: label (column 1) and value (column 2). */
+  const row = (label: ReactNode, value: ReactNode, key?: string) => (
+    <Fragment key={key}>
+      <span className="kk-adv-label">{label}</span>
+      <span className="kk-adv-value">{value}</span>
+    </Fragment>
+  );
+
+  /** A group header ("SRS stages:", 16 dp above) and its switch rows (labels right-aligned). */
+  const group = (title: string, prefix: string) => (
+    <>
+      <span className="kk-adv-label kk-adv-group">{title}</span>
+      {form.switches.filter((sw) => sw.name.startsWith(prefix) && sw.visible).map((sw) => {
+        const label = sw.label ?? SWITCH_LABELS[sw.name] ?? sw.name;
+        return (
+          <Fragment key={sw.name}>
+            <span className="kk-adv-label kk-adv-switch-label">{label}</span>
+            <span className="kk-adv-value kk-adv-switch-cell">{switchControl(sw.name, label)}</span>
+          </Fragment>
+        );
+      })}
+    </>
+  );
 
   const search = () => onSearch(form.extractParameters());
   const leech = form.switches.find((s) => s.name === 'limitToLeeches');
+  const button = (top: boolean) => (
+    <>
+      <span className="kk-adv-label" />
+      <span className={`kk-adv-value kk-adv-button${top ? '' : ' bottom'}`}><button type="submit" className="kk-btn">{searchLabel}</button></span>
+    </>
+  );
 
   return (
     <form
       className="kk-advanced-search"
+      ref={tableRef}
       onSubmit={(e) => {
         e.preventDefault();
         search();
       }}
     >
-      <button type="submit" className="kk-btn">{searchLabel}</button>
-      <div className="kk-search-grid">
-        <span>Level range:</span>
-        <span className="kk-search-range">{text('minLevel', 'Min level')} - {text('maxLevel', 'Max level')}</span>
-        <span>Frequency range:</span>
-        <span className="kk-search-range">{text('minFrequency', 'Min frequency')} - {text('maxFrequency', 'Max frequency')}</span>
-        {leech && (
-          <>
-            <span>Only leeches:</span>
-            <label className="kk-search-check">
-              <input
-                type="checkbox"
-                aria-label="Only leeches"
-                checked={form.checked.has('limitToLeeches')}
-                onChange={(e) => {
-                  if (e.target.checked) form.checked.add('limitToLeeches');
-                  else form.checked.delete('limitToLeeches');
-                  changed();
-                }}
-              />
-            </label>
-          </>
-        )}
-        <span>Next review in less than:</span>
-        <span>{text('reviewLessHours', 'Next review in less than (hours)')} hours</span>
-        <span>Next review in more than:</span>
-        <span>{text('reviewMoreHours', 'Next review in more than (hours)')} hours</span>
-        <span>Incorrect answer less than:</span>
-        <span>{text('incorrectHours', 'Incorrect answer less than (hours ago)')} hours ago</span>
-        <span>Burned less than:</span>
-        <span>{text('burnedLessDays', 'Burned less than (days ago)')} days ago</span>
-        <span>Burned more than:</span>
-        <span>{text('burnedMoreDays', 'Burned more than (days ago)')} days ago</span>
-        {showSortOrder && (
-          <>
-            <label htmlFor={`${id}-sort`}>Sort order:</label>
-            <select
-              id={`${id}-sort`}
-              value={form.sortOrder}
-              onChange={(e) => {
-                form.sortOrder = e.target.value as SearchSortOrder;
-                changed();
-              }}
-            >
-              {SEARCH_SORT_ORDERS.map((o) => (
-                <option key={o} value={o}>{SORT_ORDER_DESCRIPTIONS[o]}</option>
-              ))}
-            </select>
-          </>
-        )}
-      </div>
-      {starRatingsEnabled && (
-        <fieldset className="kk-search-group">
-          <legend>Star rating:</legend>
-          {group('starRating')}
-        </fieldset>
+      {button(true)}
+      {row('Level range:', <span className="kk-search-range">{text('minLevel', 'Min level', 2)}<span className="kk-adv-dash">-</span>{text('maxLevel', 'Max level', 2)}</span>)}
+      {row('Frequency range:', <span className="kk-search-range">{text('minFrequency', 'Min frequency', 4)}<span className="kk-adv-dash">-</span>{text('maxFrequency', 'Max frequency', 4)}</span>)}
+      {leech && row('Only leeches:', switchControl('limitToLeeches', 'Only leeches:'))}
+      {row('Next review in less than:', <span className="kk-search-range">{text('reviewLessHours', 'Next review in less than (hours)', 2)}<span>hours</span></span>)}
+      {row('Next review in more than:', <span className="kk-search-range">{text('reviewMoreHours', 'Next review in more than (hours)', 2)}<span>hours</span></span>)}
+      {row('Incorrect answer less than:', <span className="kk-search-range">{text('incorrectHours', 'Incorrect answer less than (hours ago)', 2)}<span>hours ago</span></span>)}
+      {row('Burned less than:', <span className="kk-search-range">{text('burnedLessDays', 'Burned less than (days ago)', 2)}<span>days ago</span></span>)}
+      {row('Burned more than:', <span className="kk-search-range">{text('burnedMoreDays', 'Burned more than (days ago)', 2)}<span>days ago</span></span>)}
+      {showSortOrder && row(
+        <label htmlFor={`${id}-sort`}>Sort order:</label>,
+        <select
+          id={`${id}-sort`}
+          className="kk-adv-spinner"
+          data-testid="adv-sort-order"
+          value={form.sortOrder}
+          onChange={(e) => {
+            form.sortOrder = e.target.value as SearchSortOrder;
+            changed();
+          }}
+        >
+          {SEARCH_SORT_ORDERS.map((o) => (
+            <option key={o} value={o}>{SORT_ORDER_DESCRIPTIONS[o]}</option>
+          ))}
+        </select>,
       )}
-      <fieldset className="kk-search-group">
-        <legend>SRS stages:</legend>
-        {group('srsStage')}
-      </fieldset>
-      <fieldset className="kk-search-group">
-        <legend>Subject types:</legend>
-        {group('itemType')}
-      </fieldset>
-      <fieldset className="kk-search-group">
-        <legend>JLPT levels:</legend>
-        {group('jlptLevel')}
-      </fieldset>
-      <fieldset className="kk-search-group">
-        <legend>Jōyō kanji grades:</legend>
-        {group('joyoGrade')}
-      </fieldset>
-      <button type="submit" className="kk-btn">{searchLabel}</button>
+      {starRatingsEnabled && group('Star rating:', 'starRating')}
+      {group('SRS stages:', 'srsStage')}
+      {group('Subject types:', 'itemType')}
+      {group('JLPT levels:', 'jlptLevel')}
+      {group('Jōyō kanji grades:', 'joyoGrade')}
+      {button(false)}
     </form>
   );
 }

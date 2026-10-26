@@ -534,10 +534,4 @@ describe('about', () => {
     web.app.dispose();
   });
 
-  it('lists the known limitations on their own settings screen', async () => {
-    const { el, app } = await render('/settings');
-    await click($(el, 'link-limitations'));
-    expect($(el, 'settings-limitations')!.textContent).toContain('No review notifications.');
-    app.dispose();
-  });
 });

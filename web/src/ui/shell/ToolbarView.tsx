@@ -66,12 +66,17 @@ export function ToolbarView() {
   const app = useApp();
   const state = useAppState();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  // android.widget.SearchView under AppCompat's collapseActionView: the first tap expands the action
+  // view still iconified (Collapse arrow + magnifier, AppCompat doesn't call the framework
+  // CollapsibleActionView hook); tapping the magnifier opens the field, as in the Java app.
+  const [searchState, setSearchState] = useState<'closed' | 'icon' | 'field'>('closed');
+  const searchOpen = searchState !== 'closed';
+  const setSearchOpen = (open: boolean): void => setSearchState(open ? 'icon' : 'closed');
   const [query, setQuery] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   // The level test's steps are dialogs over the dashboard (Java: over MainActivity): its toolbar too.
-  const isMain = route.name === 'dashboard' || route.name === 'levelTest';
+  const isMain = route.name === 'dashboard' || route.name === 'levelTest' || route.name === 'fastTravel';
   const muted = isMuted(state.prefs);
 
   // Content changes collapse the search box (Java collapseSearchBox) and close the menu.
@@ -126,6 +131,8 @@ export function ToolbarView() {
 
   // Back (Android button, Escape) closes the popup first, as Java's PopupWindow.
   useBackHandler(() => { setMenuOpen(false); return true; }, menuOpen);
+  // Back collapses the SearchView (MenuItem.collapseActionView).
+  useBackHandler(() => { setSearchState('closed'); return true; }, searchOpen && !menuOpen);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -137,8 +144,8 @@ export function ToolbarView() {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (searchOpen) searchRef.current?.focus();
-  }, [searchOpen]);
+    if (searchState === 'field') searchRef.current?.focus();
+  }, [searchState]);
 
   const back = opts.back ?? !isMain;
   const onBack = typeof back === 'function'
@@ -161,7 +168,16 @@ export function ToolbarView() {
             <button type="button" className="kk-toolbar-btn" aria-label="Collapse" onClick={() => setSearchOpen(false)}>
               <Icon name="arrowBack" />
             </button>
-            {/* android.widget.SearchView: magnifier inside the field, no hint, the clear "x" always there. */}
+            {searchState === 'icon' ? (
+              <>
+                <button type="button" className="kk-toolbar-btn kk-toolbar-search-expand" aria-label="Search" title="Search"
+                  data-testid="toolbar-search-expand" onClick={() => setSearchState('field')}>
+                  <Icon name="search" />
+                </button>
+                <div className="kk-toolbar-search-space" />
+              </>
+            ) : (
+            /* android.widget.SearchView: magnifier inside the field, no hint, the clear "x" always there. */
             <form className="kk-toolbar-search" role="search" onSubmit={(e) => { e.preventDefault(); submitSearch(); }}>
               <span className="kk-toolbar-search-icon" aria-hidden="true"><Icon name="search" /></span>
               <input ref={searchRef} type="search" enterKeyHint="search" value={query} aria-label="Search"
@@ -174,6 +190,7 @@ export function ToolbarView() {
                 <Icon name="closeFilled" />
               </button>
             </form>
+            )}
             {icons.filter((a) => a.id !== 'search').map((a) => (
               <button key={a.id} type="button" className="kk-toolbar-btn" aria-label={a.label} title={a.label}
                 data-testid={`toolbar-${a.id}`} disabled={a.disabled} aria-pressed={a.checked}

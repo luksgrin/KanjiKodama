@@ -285,6 +285,8 @@ export function SearchResultsScreen() {
 
   return (
     <div className="kk-search-results">
+      {/* fragment_search_result.xml: the tutorial and the count sit above the RecyclerView, which alone scrolls. */}
+      <div className="kk-results-top">
       {tutorial && (
         <div className="kk-tip bleed" data-testid="results-tutorial">
           <p className="kk-tip-text">{RESULTS_TUTORIAL}</p>
@@ -296,6 +298,7 @@ export function SearchResultsScreen() {
       <p className="kk-num-hits" data-testid="num-hits">
         {searchDescription(type, data)}: {shown.length} subject(s) found
       </p>
+      </div>
 
       {refining && run.parameters !== null && (
         <div className="kk-results-form">

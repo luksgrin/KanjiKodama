@@ -14,6 +14,10 @@ import { shortTime } from '../../../app/format';
 import { roundUpInterval, type TimeLineChartGridStyle, type TimeLineDataSet } from './panelData';
 
 const HEIGHT = 250;
+/** main_activity_view_background: the panel's border box is the 250 dp view minus the 6 dp shadow band,
+ *  and its 3 dp outline sits inside it; the drawing keeps Java's view coordinates and the SVG shows the
+ *  part inside the outline (250 − 6 − 2 × 3). */
+const SHOWN_HEIGHT = HEIGHT - 12;
 const PAD = 4;
 const FONT = 12;
 
@@ -109,7 +113,7 @@ export function TimeLineChart({ data, shown, grid, waterfall }: TimeLineChartPro
   if (totalCount === 0) {
     return (
       <div className="kk-dash-panel kk-timeline" ref={ref} data-testid="timeline">
-        <svg width="100%" height={HEIGHT} role="img" aria-label="No upcoming reviews">
+        <svg width="100%" height={SHOWN_HEIGHT} role="img" aria-label="No upcoming reviews">
           <text x={baseWidth / 2} y={HEIGHT / 2} textAnchor="middle" dominantBaseline="middle" className="kk-tl-text" fontSize={16}>
             No upcoming reviews
           </text>
@@ -246,7 +250,7 @@ export function TimeLineChart({ data, shown, grid, waterfall }: TimeLineChartPro
     <div className="kk-dash-panel kk-timeline" ref={ref} data-testid="timeline">
       <svg
         width="100%"
-        height={HEIGHT}
+        height={SHOWN_HEIGHT}
         role="img"
         aria-label={ariaLabel}
         className={scrollable ? 'scrollable' : undefined}

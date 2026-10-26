@@ -108,7 +108,7 @@ export function BrowseScreen() {
 
       {names.length > 0 && (
         <>
-          <h2 className="kk-browse-heading">Search presets:</h2>
+          <h2 className="kk-browse-heading presets">Search presets:</h2>
           <select className="kk-browse-preset-select" aria-label="Search preset" value={selection ?? ''} onChange={(e) => setSelected(e.target.value)}>
             {names.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>

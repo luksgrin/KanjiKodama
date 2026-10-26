@@ -90,7 +90,7 @@ export function SynonymsLine({ subjectId, synonyms, meaningNote, readingNote, on
     <div className="kk-synonyms">
       <WkMarkup html={synonymsHtml(synonyms)} highlight={highlight} className="kk-synonyms-text" />
       {onSave !== undefined && (
-        <button type="button" className="kk-add-synonym" aria-label="Add synonym" onClick={() => apply({ open: true })}>
+        <button type="button" className="kk-add-synonym" data-testid="add-synonym" aria-label="Add synonym" onClick={() => apply({ open: true })}>
           <span aria-hidden="true">+</span>
         </button>
       )}

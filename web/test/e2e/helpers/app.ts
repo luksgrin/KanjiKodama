@@ -56,6 +56,7 @@ export async function toolbarSearch(page: Page, query: string): Promise<void> {
     const icon = page.getByTestId('toolbar-search');
     if (await icon.count() > 0) await icon.click();
     else await menu(page, 'search');
+    await page.getByTestId('toolbar-search-expand').click(); // SearchView expands iconified first, as Java's
   }
   await field.fill(query);
   await field.press('Enter');
@@ -278,6 +279,13 @@ export async function smallTapTargets(page: Page, min = 40): Promise<string[]> {
         // activity_theme_customization.xml colour samples: 24 dp high (subject types 26 sp text), the
         // width an equal share of the row (10 level progression cells ≈ 22 dp at 320 px).
         ['tc-sample-', 16, 24],
+        // advanced_search.xml SwitchCompat rows (WK.Switch.Normal): 27 dp tall, the 20 dp thumb over the
+        // 23 dp track with 8 / 11 dp around it = 42 dp wide.
+        ['adv-switch-', 40, 26],
+        // subject_info.xml addSynonymButton (WK.TextView.InlineButton "+", 6 dp side padding): ~24 x 22 dp.
+        ['add-synonym', 24, 22],
+        // advanced_search.xml sortOrder Spinner (AppCompat, wrap_content): ~28 dp tall (measured 73 device px).
+        ['adv-sort-order', 40, 27],
       ];
       const tid = el.getAttribute('data-testid') ?? '';
       const ex = exempt.find(([prefix]) => tid.startsWith(prefix));

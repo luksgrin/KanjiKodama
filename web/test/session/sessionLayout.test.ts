@@ -59,11 +59,16 @@ describe('Display and Keyboard settings (GlobalSettings)', () => {
   it('sets the answer field\'s keyboard attributes per question kind', () => {
     expect(answerInputAttributes({}, 'WANIKANI_KANJI_MEANING')).toEqual({
       lang: 'en', autoCorrect: 'off', spellCheck: false, autoCapitalize: 'none', autoComplete: 'off', inputMode: 'text',
+      monospace: false,
     });
     expect(answerInputAttributes({}, 'WANIKANI_VOCAB_READING').lang).toBe('ja');
     expect(answerInputAttributes({ enable_auto_correct_meaning: true }, 'WANIKANI_KANJI_MEANING').autoCorrect).toBe('on');
     expect(answerInputAttributes({ enable_auto_correct_meaning: true }, 'WANIKANI_KANJI_READING').autoCorrect).toBe('off');
     expect(answerInputAttributes({ enable_auto_correct_reading: true }, 'WANIKANI_KANJI_READING').spellCheck).toBe(true);
+    // Visible password switches Java's field to the monospace typeface; only where the flag is set (Android).
+    expect(answerInputAttributes({ force_visible_password_meaning: true }, 'WANIKANI_KANJI_MEANING', true).monospace).toBe(true);
+    expect(answerInputAttributes({ force_visible_password_meaning: true }, 'WANIKANI_KANJI_MEANING', false).monospace).toBe(false);
+    expect(answerInputAttributes({ force_visible_password_meaning: true }, 'WANIKANI_KANJI_READING', true).monospace).toBe(false);
   });
 });
 

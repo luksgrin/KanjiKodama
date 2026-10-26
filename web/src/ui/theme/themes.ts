@@ -130,11 +130,19 @@ function paletteTokens(p: Palette, kind: 'light' | 'dark'): Record<string, strin
     '--color-toolbar-bg': p.toolbar, '--color-level-up': p.levelUp, '--color-waterfall': p.waterfall,
     // AppCompat's textColorPrimary (KanjiKodama overrides it with mmInk).
     '--color-pref-title': kind === 'light' ? 'rgb(0 0 0 / 0.87)' : '#FFFFFF',
+    '--color-edit-line': kind === 'light' ? 'rgb(0 0 0 / 0.6)' : 'rgb(255 255 255 / 0.7)',
+    // SrsBreakDownView: the counts' shadow layer only in LIGHT and the KanjiKodama themes.
+    '--srs-count-shadow': kind === 'light' ? 'var(--text-shadow-3px)' : 'none',
+    // Roboto's includeFontPadding (yMax 1.056 / yMin 0.271 em against ascent 0.928 / descent 0.244).
+    '--fp-top': '0.128em', '--fp-bottom': '0.027em',
     '--color-answer-correct': p.correct, '--color-answer-incorrect': p.incorrect,
     '--color-q-meaning-bg': p.meaningHint, '--color-q-meaning-fg': p.readingHint,
     '--color-q-reading-bg': p.readingHint, '--color-q-reading-fg': p.meaningHint,
     '--color-pitch-heiban': p.pitch[0], '--color-pitch-odaka': p.pitch[1], '--color-pitch-nakadaka': p.pitch[2],
     '--color-pitch-atamadaka': p.pitch[3], '--color-stroke-ghost': p.ghost,
+    // subject_card_*.xml: colorPrimaryLight with a black shadow (dx/dy 1 px, radius 3 px).
+    '--color-card-ink-radical': p.primaryLight, '--color-card-ink-kanji': p.primaryLight,
+    '--color-card-ink-vocab': p.primaryLight, '--color-card-ink-shadow': 'var(--text-shadow-3px)',
     ...WK_BUTTON, ...WK_FONTS,
   };
 }

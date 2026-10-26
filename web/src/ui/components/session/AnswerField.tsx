@@ -133,7 +133,7 @@ export const AnswerField = forwardRef<AnswerFieldHandle, AnswerFieldProps>(funct
     <form className="kk-answer-form" onSubmit={submit} action="#" noValidate>
       <input
         ref={input}
-        className={`kk-answer${kana ? ' kana' : ''}${centered ? ' centered' : ''}`}
+        className={`kk-answer${kana ? ' kana' : ''}${centered ? ' centered' : ''}${attrs?.monospace && !readOnly ? ' monospace' : ''}`}
         style={fontSize !== undefined ? { fontSize } : undefined}
         aria-label={label}
         type="text"
