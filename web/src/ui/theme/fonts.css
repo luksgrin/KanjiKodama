@@ -17,6 +17,20 @@
   descent-override: 28.571%;
   line-gap-override: 0%;
 }
+/* 'KK Android Metrics': only the space (U+0020, so it is the primary font of an element that lists it first)
+   with Roboto's line metrics (hhea ascent 1900 / descent 500 of 2048). SubjectInfoButtonView draws a glyph
+   at `textHeight / 2 - (ascent + descent) / 2` with the default Typeface (Roboto) metrics, the CJK face only
+   supplying the outlines; a `lang="ja"` element in the WebView would otherwise centre on the CJK face's
+   taller metrics and sit ~0.09 em lower. Every other character falls through to the next family. */
+@font-face {
+  font-family: 'KK Android Metrics';
+  src: url('../../assets/fonts/pixelify_sans.ttf') format('truetype');
+  unicode-range: U+0020;
+  font-display: block;
+  ascent-override: 92.773%;
+  descent-override: 24.414%;
+  line-gap-override: 0%;
+}
 @font-face {
   font-family: 'Silkscreen';
   src: url('../../assets/fonts/silkscreen_regular.ttf') format('truetype');

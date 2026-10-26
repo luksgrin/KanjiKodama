@@ -247,7 +247,7 @@
 .kk-card-chars {
   margin-top: 4px;
   text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView paint.setShadowLayer(3, 1, 1, black) */
-  font-family: var(--font-ja);
+  font-family: var(--font-glyph); /* centred on Roboto's metrics, as Java's Paint (fonts.css) */
   font-size: 24px;
   line-height: 1; /* SubjectInfoButtonView.setSizeSp(24): the view is exactly 24 sp high */
   color: var(--color-on-subject);

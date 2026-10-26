@@ -117,7 +117,7 @@ interface Palette {
 
 const WK_PITCH = ['#D20CA3', '#0CD24D', '#27A2FF', '#EA9316'] as const;
 
-function paletteTokens(p: Palette, kind: 'light' | 'dark'): Record<string, string> {
+function paletteTokens(p: Palette, kind: 'light' | 'dark', extra: Readonly<Record<string, string>> = {}): Record<string, string> {
   return {
     '--kk-ink': p.primary, '--kk-muted': p.primaryLight, '--kk-toned': p.primaryToned, '--kk-accent': p.accent,
     '--kk-ground': p.background, '--kk-window': p.tile, '--kk-mint': '#DDDDDD', '--kk-mint-hi': p.highlight,
@@ -143,7 +143,7 @@ function paletteTokens(p: Palette, kind: 'light' | 'dark'): Record<string, strin
     // subject_card_*.xml: colorPrimaryLight with a black shadow (dx/dy 1 px, radius 3 px).
     '--color-card-ink-radical': p.primaryLight, '--color-card-ink-kanji': p.primaryLight,
     '--color-card-ink-vocab': p.primaryLight, '--color-card-ink-shadow': 'var(--text-shadow-3px)',
-    ...WK_BUTTON, ...WK_FONTS,
+    ...WK_BUTTON, ...WK_FONTS, ...extra,
   };
 }
 
@@ -250,7 +250,7 @@ export const THEMES: Readonly<Record<ThemeId, ThemeDef>> = {
       toolbar: '#2E3440', browseLevel: '#2E3440', highlight: '#88C0D0', target: '#D8DEE9', waterfall: '#88C0D0',
       correct: '#434C5E', incorrect: '#434C5E', meaningHint: '#E5E9F0', readingHint: '#434C5E',
       pitch: ['#5E81AC', '#81A1C1', '#88C0D0', '#E5E9F0'], ghost: '#2E3440', levelUp: '#88C0D0', muted: '#E5E9F0',
-    }, 'dark'),
+    }, 'dark', { '--color-alt-toast-fg': '#E5E9F0' }),
   },
 };
 

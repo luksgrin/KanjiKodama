@@ -46,7 +46,8 @@ Colours are the Java app's exactly (no contrast tweaks).
 | `--color-waterfall`, `--color-pitch-*`, `--color-stroke-ghost` | timeline waterfall line, pitch accent lines, stroke-order ghosts (colorWaterfallLine, pitchInfo*Color, strokeDiagramGhostColor) |
 | `--color-card-ink-radical/-kanji/-vocab`, `--color-card-ink-shadow` | meaning / reading / progress text on subject cards (SubjectCardBinder.styleCardText; colorPrimaryLight with a shadow in the upstream themes) |
 | `--color-edit-line` | EditText underline and hint (AppCompat hint grey) |
-| `--text-shadow-3px`, `--text-shadow-3px-glyph`, `--srs-count-shadow` | Android's `setShadowLayer(3, 1, 1, black)` on text and on big glyphs; the SRS counts' shadow (none in the dark upstream themes) |
+| `--dev-px` | one Android device pixel in CSS px (`1px / devicePixelRatio`, `devicePixels.ts`): for Android values given in raw px (shadow radius / offsets), not dp |
+| `--text-shadow-3px`, `--text-shadow-3px-glyph`, `--srs-count-shadow` | Android's `setShadowLayer(3, 1, 1, black)` (device px: 1 px offset, 4.46 px CSS blur) on text and on big glyphs; the SRS counts' shadow (none in the dark upstream themes) |
 | `--fp-top`, `--fp-bottom` | Android `includeFontPadding` above / below a TextView (0 for the KanjiKodama fonts, Roboto's in the upstream themes) |
 | `--btn-fill` `--btn-light` `--btn-shade` `--btn-outline` `--btn-text` | the pixel pill button (mm_btn); override the first three for a coloured button |
 | `--btn-secondary-text` | `.kk-btn.secondary` text (surface fill: the theme's text colour, so it reads in dark) |
@@ -74,6 +75,7 @@ Colours are the Java app's exactly (no contrast tweaks).
 | `--safe-top/right/bottom/left` | safe-area insets (iOS `env()`, Android SystemBars `--safe-area-inset-*`) |
 | `--toolbar-height` `--main-gutter` `--content-max-width` | shell layout: 56px toolbar, 8px `.kk-main` padding (bleed with `calc(-1 * var(--main-gutter))`) |
 | `--color-toast-{bg,fg}` | `toast()` (ui/shell/toast.ts) |
+| `--color-custom-toast-{bg,fg}`, `--color-alt-toast-fg` | the quiz's SRS-change / close-enough toasts (WK.TextView.CustomToast: #FFFF80, black, every theme) and the alternatives toast (alternativeToastColorPrimary) |
 
 ## Shared classes (`base.css`)
 

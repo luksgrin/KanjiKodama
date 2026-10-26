@@ -40,6 +40,11 @@
   --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
   --color-toast-bg: #F1F1F1;
   --color-toast-fg: #1F1F1F;
+  /* The quiz's SRS / close-enough toasts (WK.TextView.CustomToast): the same in every theme. */
+  --color-custom-toast-bg: #FFFF80;
+  --color-custom-toast-fg: #000000;
+  /* The alternatives toast (alternativeToastColorPrimary; Nord #E5E9F0, themes.ts). */
+  --color-alt-toast-fg: #FFFFFF;
   --color-level-up: #3FA383;
   --color-ok: #3FA383;
   --color-bad: #D9667F;
@@ -124,6 +129,9 @@
   --font-ja: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
   --font-body: 'Pixelify Sans', var(--font-ja);
   --font-display: 'Silkscreen', var(--font-ja);
+  /* SubjectInfoButtonView glyphs (quiz question, item title tile, subject cards): Roboto's metrics for the
+     vertical centring, the CJK face for the outlines (fonts.css). */
+  --font-glyph: 'KK Android Metrics', var(--font-ja);
 
   /* Type scale (WK.TextView.*: 13/14/16/20/26/34 sp) */
   --text-xs: 13px;
@@ -149,12 +157,16 @@
      upstream themes, themes.ts) 0.128 / 0.027 em. */
   --fp-top: 0px;
   --fp-bottom: 0px;
-  /* TextView.setShadowLayer(3, 1, 1, black) / android:shadowRadius 3 px: Skia blurs with sigma ~2.2 device
-     px at full black; two CSS layers of that blur match it on the emulator (420 dpi). */
-  --text-shadow-3px: 0.4px 0.4px 2.2px #000, 0.4px 0.4px 2.2px #000;
-  /* The same layer on big glyphs (quiz question, item title tile), where Android's blur (sigma ~2.2 px)
-     reads as one soft edge. */
-  --text-shadow-3px-glyph: 0.4px 0.4px 1.7px #000;
+  /* One Android device pixel in CSS px (devicePixels.ts sets --kk-dpr = devicePixelRatio). android:shadowDx /
+     shadowDy / shadowRadius and setShadowLayer() take raw device pixels, not dp, so their CSS size shrinks
+     as the density grows. */
+  --dev-px: calc(1px / var(--kk-dpr, 1));
+  /* TextView.setShadowLayer(3, 1, 1, black) / android:shadowRadius="3" shadowDx/Dy="1": a 1 device px offset
+     and a Gaussian of sigma 3 × 0.57735 + 0.5 = 2.23 device px (Skia's radius → sigma); a CSS blur radius is
+     2 sigma: 4.46 device px. One layer, as Java draws one. */
+  --text-shadow-3px: var(--dev-px) var(--dev-px) calc(4.46 * var(--dev-px)) #000;
+  /* The same layer on big glyphs (quiz question, item title tile: SubjectInfoButtonView's paint). */
+  --text-shadow-3px-glyph: var(--text-shadow-3px);
 
   /* Safe areas: Capacitor's SystemBars injects --safe-area-inset-* on Android (edge-to-edge);
      iOS / browsers provide env(). */

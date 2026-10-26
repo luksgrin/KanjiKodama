@@ -96,7 +96,9 @@ export function Post60Progress({ counts, prefs }: { counts: readonly number[]; p
       const label = segmentLabel(value, total, end - start, (s) => ctx.measureText(s).width, Math.trunc(2 * dpr));
       if (label !== null) {
         ctx.fillStyle = isLight ? dark : light;
-        if (!isLight) { ctx.shadowColor = '#000000'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; }
+        // paint.setShadowLayer(3, 1, 1, black) in device px (this canvas is device px): Skia's sigma
+        // 3 × 0.57735 + 0.5 = 2.23 px; a canvas shadowBlur is 2 sigma.
+        if (!isLight) { ctx.shadowColor = '#000000'; ctx.shadowBlur = 4.46; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; }
         ctx.fillText(label, (start + end) / 2, height / 2);
       }
       done += value;

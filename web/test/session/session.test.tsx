@@ -130,6 +130,23 @@ describe('reviews', () => {
     await waitFor(() => q(el, 'reviews-count'), 'dashboard');
   });
 
+  it('shows the SRS change as Java\'s toast: a green up arrow and the new stage', async () => {
+    const { el } = await renderApp('/reviews', { setup: dueReviews([10]), prefs: { enable_lightning_mode: false } });
+    await waitFor(() => q(el, 'submit'), 'question');
+    await answer(el, rightAnswer(el));
+    await waitFor(() => q(el, 'next'), 'answered');
+    await click(q(el, 'next'));
+    await waitFor(() => q(el, 'submit'), 'second question');
+    await answer(el, rightAnswer(el));
+    await waitFor(() => el.querySelector('.kk-quiz-toast.srs-up'), 'SRS toast');
+    const toast = el.querySelector('.kk-quiz-toast.srs-up')!;
+    expect(toast.querySelector('[data-testid="srs-arrow-up"] path')?.getAttribute('fill')).toBe('#00A000');
+    expect(toast.textContent).toMatch(/^ \S/);
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync(`${process.cwd()}/src/ui/components/session/session.css`, 'utf8');
+    expect(css).toMatch(/\.kk-quiz-toast\.srs-up,\s*\.kk-quiz-toast\.srs-down,\s*\.kk-quiz-toast\.close \{ background: var\(--color-custom-toast-bg\)/);
+  });
+
   it('retries a reading typed as a meaning with a shake, and converts after an IME composition', async () => {
     const { el } = await renderApp('/reviews', { setup: dueReviews([10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');

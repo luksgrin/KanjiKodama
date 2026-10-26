@@ -70,7 +70,7 @@
   min-width: 1em;
   padding: 12px 16px 8px;
   border: 0;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: 12px; /* small_rounded_corners */
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
   /* Font size set inline: min(max_font_size_*, width that fits). Glyph box = font size, as Java. */
   font-size: 64px;
@@ -211,7 +211,7 @@
 }
 .kk-link {
   --kk-card-text: var(--color-card-ink-kanji);
-  border-radius: var(--radius-sm, 6px);
+  border-radius: 12px; /* SubjectCardBinder: small_rounded_corners */
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
   overflow: hidden;
   container-type: inline-size;
@@ -241,6 +241,12 @@
 }
 span.kk-link-button { cursor: default; }
 .kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; } /* SubjectInfoButtonView.setSizeSp(24) */
+/* SubjectInfoButtonView glyphs centre on Roboto's metrics (--font-glyph, fonts.css), not the CJK face's. */
+.kk-item .kk-subject-tile,
+.kk-item .kk-subject-tile .kk-ja,
+.kk-item .kk-link-chars,
+.kk-subject-tile,
+.kk-link-chars { font-family: var(--font-glyph); }
 .kk-link-text { display: flex; flex-direction: column; align-items: center; width: 100%; min-width: 0; }
 .kk-link-meaning,
 .kk-link-reading,

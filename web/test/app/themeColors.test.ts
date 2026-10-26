@@ -41,3 +41,26 @@ describe('theme colours', () => {
     expect(darkForced).toEqual(darkMedia);
   });
 });
+
+describe('Android raw-pixel sizes', () => {
+  it('draws setShadowLayer(3, 1, 1, black) in device pixels, not CSS px (crisp on 3× phones)', async () => {
+    expect(tokensCss).toMatch(/--dev-px: calc\(1px \/ var\(--kk-dpr, 1\)\);/);
+    // Skia: sigma = 3 × 0.57735 + 0.5 = 2.23 device px; a CSS blur radius is 2 sigma; one layer.
+    expect(tokensCss).toMatch(/--text-shadow-3px: var\(--dev-px\) var\(--dev-px\) calc\(4\.46 \* var\(--dev-px\)\) #000;/);
+    const { trackDevicePixelRatio } = await import('../../src/ui/theme/devicePixels');
+    const root = { style: { values: {} as Record<string, string>, setProperty(k: string, v: string) { this.values[k] = v; } } };
+    const g = globalThis as { window?: unknown };
+    const before = g.window;
+    g.window = { devicePixelRatio: 2.625 };
+    try {
+      trackDevicePixelRatio(root as unknown as HTMLElement);
+    } finally {
+      g.window = before;
+    }
+    expect(root.style.values['--kk-dpr']).toBe('2.625');
+  });
+  it('gives the SRS-change toast Java\'s CustomToast colours in every theme', () => {
+    expect(light['--color-custom-toast-bg']).toBe('#FFFF80');
+    expect(light['--color-custom-toast-fg']).toBe('#000000');
+  });
+});

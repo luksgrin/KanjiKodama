@@ -93,13 +93,23 @@ export interface QuestionViewProps {
   fixedHeight?: boolean;
 }
 
+/** ic_arrow_up / ic_arrow_down (40 × 40 viewport, #00A000 / #A00000), drawn 20 dp as the toast's ImageSpan
+ * (`<img src="*"/>  name`: the arrow, one space, the new stage). */
+function SrsArrow({ up }: { up: boolean }) {
+  return (
+    <svg className="kk-quiz-toast-arrow" viewBox="0 0 40 40" width="20" height="20" aria-hidden="true" data-testid={up ? 'srs-arrow-up' : 'srs-arrow-down'}>
+      <path fill={up ? '#00A000' : '#A00000'} d={up ? 'M20,0L0,24h12v16h16V24h12L20,0z' : 'M20,40L0,16h12v-16h16V16h12L20,40z'} />
+    </svg>
+  );
+}
+
 function Toast({ toast, onDone }: { toast: SessionToast; onDone(id: number): void }) {
   useEffect(() => {
     const t = setTimeout(() => onDone(toast.id), toast.kind === 'close' ? 5000 : 2750);
     return () => clearTimeout(t);
   }, [toast.id, toast.kind, onDone]);
-  const arrow = toast.kind === 'srs-up' ? '▲ ' : toast.kind === 'srs-down' ? '▼ ' : '';
-  return <div className={`kk-quiz-toast ${toast.kind}`} role="status">{arrow}{toast.text}</div>;
+  const arrow = toast.kind === 'srs-up' || toast.kind === 'srs-down' ? <SrsArrow up={toast.kind === 'srs-up'} /> : null;
+  return <div className={`kk-quiz-toast ${toast.kind}`} role="status">{arrow}{arrow !== null ? ' ' : null}{toast.text}</div>;
 }
 
 export function QuestionView({
@@ -123,7 +133,7 @@ export function QuestionView({
   const glyphStyle = {
     ['--len' as string]: len,
     ...(quizFont.font.family !== null ? { fontFamily: `'${quizFont.font.family}', var(--font-ja)` } : {}),
-    ...(quizFont.font.padTop > 0 ? { paddingTop: `${quizFont.font.padTop / 100}em` } : {}),
+    ...(quizFont.font.padTop > 0 ? { ['--kk-glyph-pad' as string]: quizFont.font.padTop / 100 } : {}),
   };
   const s2 = special(2);
   const bottom = s2 !== null || next !== undefined;

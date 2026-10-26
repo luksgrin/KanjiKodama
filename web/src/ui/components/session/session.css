@@ -97,23 +97,37 @@
   white-space: nowrap;
 }
 
+/* questionText (SubjectInfoButtonView, sizeForQuiz): a view at most max_font_size_quiz_text dp high
+   (AbstractSessionFragment.setMaxSize) and no higher than the room between the top row and the bottom row,
+   centred there. The text is that height minus the quiz margins (setQuizMargins(4, 4); the Anki fragment
+   keeps the view's 28 / 24 dp) and the font's top padding (TypefaceConfiguration, % of the text size), so
+   the glyph never reaches the type banner. The baseline sits where Java's
+   `top + textHeight / 2 - (ascent + descent) / 2` puts it: line-height 1 centres the primary font's ascent +
+   descent on the em box the same way, and --font-glyph gives it Roboto's metrics as Java's Paint. */
 .kk-quiz-glyph {
+  --kk-glyph-mt: 4px;
+  --kk-glyph-mb: 4px;
+  --kk-glyph-view: min(var(--kk-quiz-text-max, 104px), var(--kk-glyph-hcap));
+  --kk-glyph-fit-h: calc((var(--kk-glyph-view) - var(--kk-glyph-mt) - var(--kk-glyph-mb)) / (1 + var(--kk-glyph-pad, 0)));
   text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView shadow layer */
   align-self: center;
   justify-self: center;
   max-width: 100%;
-  padding: 0 var(--space-1);
-  font-family: var(--font-ja);
+  padding: calc(var(--kk-glyph-mt) + var(--kk-glyph-pad, 0) * 1em) var(--space-1) var(--kk-glyph-mb);
+  font-family: var(--font-glyph);
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
-  /* max_font_size_quiz_text 104; fits the width (Java: screen width - 10 dp, - 140 dp with the answer
-     toast) for long words, and the room the question view has on short screens. */
-  font-size: min(var(--kk-quiz-text-max, 104px), calc((100vw - 16px) / var(--len, 1)), calc((var(--content-max-width) - 16px) / var(--len, 1)), var(--kk-glyph-hcap));
+  /* Fits the width too (Java: screen width - 10 dp, - 140 dp with the answer toast) for long words; never
+     below absoluteMinTextHeight (14 sp). */
+  font-size: max(14px, min(var(--kk-glyph-fit-h), calc((100vw - 16px) / var(--len, 1)), calc((var(--content-max-width) - 16px) / var(--len, 1))));
 }
+.kk-quiz-question.anki .kk-quiz-glyph { --kk-glyph-mt: 28px; --kk-glyph-mb: 24px; }
+/* A radical image fills the text box (image.setBounds over the textHeight square below the top margin). */
+.kk-quiz-glyph .kk-title-image { vertical-align: top; }
 .kk-quiz-question.with-mark .kk-quiz-glyph {
-  font-size: min(var(--kk-quiz-text-max, 104px), calc((100vw - 140px) / var(--len, 1)), calc((var(--content-max-width) - 140px) / var(--len, 1)), var(--kk-glyph-hcap));
+  font-size: max(14px, min(var(--kk-glyph-fit-h), calc((100vw - 140px) / var(--len, 1)), calc((var(--content-max-width) - 140px) / var(--len, 1))));
 }
 
 /* Java's focused-button highlight (?attr/colorControlHighlight over the button's bounds): the answered
@@ -177,7 +191,11 @@
   100% { transform: scale(1); opacity: 0; }
 }
 
-/* levelUpToastText / closeToastText / alternativesToastText (WK.TextView.CustomToast, 20 sp). */
+/* levelUpToastText / closeToastText / alternativesToastText (20 sp). The first two are
+   WK.TextView.CustomToast in every theme: black text (customToastColorPrimary) on @drawable/rounded_corners
+   (customToastColorBackground #FFFF80, 10 dp corners), elevation 4 dp; the SRS one starts with a 20 dp green
+   up / red down arrow (ic_arrow_up / ic_arrow_down) and a space. The alternatives toast is
+   WK.TextView.AlternativeToast: alternativeToastColorPrimary on a transparent background, no elevation. */
 .kk-quiz-toasts {
   position: absolute;
   top: 1px;
@@ -192,13 +210,19 @@
 .kk-quiz-toast {
   max-width: 100%;
   padding: 2px var(--space-4) var(--space-1);
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
   background: var(--color-surface);
   color: var(--color-text);
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
   font-size: 20px;
   animation: kk-toast-fade 2.75s ease-in forwards;
 }
+.kk-quiz-toast.srs-up,
+.kk-quiz-toast.srs-down,
+.kk-quiz-toast.close { background: var(--color-custom-toast-bg); color: var(--color-custom-toast-fg); }
+.kk-quiz-toast.alternatives { background: transparent; color: var(--color-alt-toast-fg); box-shadow: none; }
+/* ImageSpan ALIGN_BOTTOM: the image's bottom on the line's descent. */
+.kk-quiz-toast-arrow { display: inline-block; vertical-align: text-bottom; }
 .kk-quiz-toast.alternatives { margin-top: 74px; }
 .kk-quiz-toast.close { animation-duration: 5s; }
 @keyframes kk-toast-fade {
@@ -221,6 +245,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* fragment_anki.xml's questionType has no textSize: WK.TextView.Normal's 16 sp. */
+.kk-quiz-question.anki + .kk-quiz-type { font-size: 16px; }
 .kk-quiz-type.meaning { background: var(--color-q-meaning-bg); color: var(--color-q-meaning-fg); }
 .kk-quiz-type.reading { background: var(--color-q-reading-bg); color: var(--color-q-reading-fg); }
 

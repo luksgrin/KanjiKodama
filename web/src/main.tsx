@@ -8,6 +8,7 @@ import { handleBack } from './app/back';
 import { createHashLocation } from './app/router';
 import { appliedThemeKind, applyTheme, onThemeApplied, storedThemePrefs } from './app/theme';
 import { getPlatform } from './platform';
+import { trackDevicePixelRatio } from './ui/theme/devicePixels';
 import { db } from './storage/db';
 import './ui/theme/index.css';
 
@@ -26,7 +27,8 @@ if (BACKGROUND_SYNC) {
   // allowance there (session.css).
   if (Capacitor.getPlatform() === 'android') document.documentElement.classList.add('kk-viewport-resizes');
 
-  // Paint the remembered theme before anything else.
+  // Paint the remembered theme before anything else (and the device pixel size its shadows use).
+  trackDevicePixelRatio();
   applyTheme(storedThemePrefs());
 
   const app = createAppController({ db, platform: getPlatform, loadContent: loadBrowserContent });

@@ -43,7 +43,7 @@ progression getters returning fresh empty rows; a shared read-only row would cha
 | Buttons (`mm_btn`) | the pill is drawn inside the 52 dp view: 3 dp outline, fill, 4 dp shade, 8 dp of outline at the bottom; 88 dp min width; pressed = `mm_btn_pressed` | outline + 4 px box-shadow outside the view (4 px taller) and 3 px wider side padding | `.kk-btn` (`base.css`) |
 | Quiz buttons (`WK.Button.Borderless.Light`) | 54 dp, padding 4 / 12 dp | 48 px | `session.css` (Don't know / Submit / Next) |
 | Dialogs (all) | 26.7 dp from the screen edges, 18 dp above the title, 15.6 dp title → message, 54 dp buttons 12 dp from the sides, list items closer to the title | 24 px edges, 20 px, 12 px, 40 px buttons | `alert.css`, `.kk-dialog` (`base.css`), `.kk-sdialog` (`session.css`) |
-| Text shadows | `setShadowLayer(3, 1, 1, black)` (device px): Skia's blur reads darker than a 1.15 px CSS blur; cards, item tile and quiz glyph have it too | lighter shadow; no shadow on card / tile / quiz glyphs | `--text-shadow-3px`, `--text-shadow-3px-glyph` (`tokens.css`), browse / subject / session CSS |
+| Text shadows | `setShadowLayer(3, 1, 1, black)` (device px); cards, item tile and quiz glyph have it too | lighter shadow; no shadow on card / tile / quiz glyphs | `--text-shadow-3px`, `--text-shadow-3px-glyph` (`tokens.css`), browse / subject / session CSS (round 3 made it two CSS-px layers; replaced in round 4, below) |
 | SRS breakdown counts | shadow only in LIGHT and the KanjiKodama themes | shadow in every theme | `--srs-count-shadow` (`themes.ts`, `dashboard.css`) |
 | SRS breakdown tiles | 8 dp inside the panel padding, 4 dp apart | 5 px | `dashboard.css` |
 | Timeline chart | 250 dp view incl. the panel's shadow band; always Pixelify Sans | SVG 250 px inside the border (12 px taller); Roboto in upstream themes | `TimeLineChart.tsx`, `dashboard.css` |
@@ -74,6 +74,27 @@ Final touches (2026-10-26):
 Wave 5 leftovers also closed: the `visuals.spec.ts` browse-cell check on pixel-7 read two
 `boundingBox()` calls in different frames of the screen's slide-in (−8 px); it now measures the grid in
 one evaluation and polls until it settles.
+
+## Round 4: the owner's phone (2026-10-26)
+
+The owner's Samsung (1080 × 2520, KanjiKodama Dark) showed three things the 420 dpi emulator round had
+hidden or missed. Re-checked on the spare AVD `kk-golden2` (emulator-5558, 1080 × 2400 at 420 dpi, and
+1080 × 2340 at 480 dpi, 1080 × 1900 at 420 dpi via `wm size` / `wm density`, reset afterwards), Java
+debug app next to the TS app, dark mode, same restored progress; captures in the scratchpad
+`shadowfix/` (`j-*` / `t-*`, `z-*` zoomed crops, `pair-*`).
+
+| Area | Java | TS before | Fix (file) |
+|---|---|---|---|
+| Text shadows (SRS counts, recent unlocks and dates, cards, item tile, quiz glyph, post-60 labels) | `setShadowLayer(3, 1, 1, black)` / `android:shadowRadius="3" shadowDx/Dy="1"` are raw **device pixels** (not dp): a 1 px offset and a Gaussian of sigma 3 × 0.57735 + 0.5 = 2.23 px, one layer, whatever the density | two layers of a 2.2 **CSS** px blur at 0.4 CSS px: the blur and offset grew with the density (5.8 device px of blur radius per layer at 2.625, 6.6 at 3), so black text looked smudged ("odd shadow, blurry"); the quiz glyph's 1.7 CSS px likewise | `--dev-px` = `1px / devicePixelRatio` (`devicePixels.ts` sets `--kk-dpr`, `main.tsx`); `--text-shadow-3px` = 1 device px offset, 4.46 device px blur (2 sigma), one layer (`tokens.css`); radical image copies at +2 / −1 device px (`titleImage.css`); the post-60 canvas `shadowBlur` 3 → 4.46 (`Post60Progress.tsx`). Edge profiles beside the strokes now match Java within 1–3 levels of 255 at 1–4 px (before: 8–15 darker and wider); a sweep of 3 / 4.46 / 6 / 8 px confirmed 4.46. Java's stroke edges stay ~20 levels darker on the first anti-aliased pixel (Android's text rasteriser), not a shadow difference |
+| Quiz question size and gap above the type banner | `questionText` is at most `max_font_size_quiz_text` (104) dp **including** the quiz margins `setQuizMargins(4, 4)`: text 96 dp; the view is centred between the top row and the bottom row and shrinks with the room (keyboard open); Anki mode keeps the view's 28 / 24 dp margins (text 52 dp) | font size 104 px with no margins, line-height 1: the CJK ink ran to the banner and was clipped there (worse with the keyboard open on the owner's phone) | `.kk-quiz-glyph` (`session.css`): view = min(max, room), text = view − margins, the font's top padding % as Java's `TypefaceConfiguration`; `.anki` 28 / 24 px; radical images fill the text box |
+| Glyph vertical position (quiz question, item title tile, subject cards) | `SubjectInfoButtonView` draws at `textHeight / 2 − (ascent + descent) / 2` with the default Typeface's (Roboto's) metrics; the CJK face only supplies outlines | a `lang="ja"` element in the WebView centres on Noto Sans CJK's taller metrics: glyphs ~0.09 em low (quiz 22 device px, tile 14 px, cards 5 px) | `'KK Android Metrics'` face (only U+0020, Roboto's hhea ascent / descent as overrides) first in `--font-glyph` (`fonts.css`, `tokens.css`), used by the quiz glyph, the item tile and the cards; same word on both: quiz ink rows 358–592 vs Java 359–593 (420 dpi), 387–652 vs 390–654 (480 dpi); tile 326–481 vs 328–482 |
+| SRS change toast ("▲ Apprentice II") | `WK.TextView.CustomToast` in every theme: black text on `rounded_corners` (#FFFF80, 10 dp corners), elevation 4 dp; a 20 dp green up (#00A000) / red down (#A00000) block arrow (`ic_arrow_up` / `ic_arrow_down`), a space, the new stage name | the surface colour (grey in the dark themes) with the text colour and a "▲ / ▼" character | `SrsArrow` (`QuestionView.tsx`), `--color-custom-toast-bg/-fg`, `--color-alt-toast-fg` (`tokens.css`, Nord in `themes.ts`), `session.css`; the close-enough toast uses the same style, the alternatives toast is transparent with alternativeToastColorPrimary as in Java |
+| Item tile and subject card corners | `small_rounded_corners`: 12 dp | 6 px | `subject.css` |
+| Anki mode question banner | `fragment_anki.xml`'s `questionType` has no textSize: 16 sp | 22 px | `session.css` |
+
+Still differing: with the keyboard open on a short screen (1080 × 1900) the TS question view is
+~8 device px shorter than Java's (the banner / field / row budget of `--kk-qv-avail` is 144 px, Java's
+views add up to ~3 dp less), so the glyph there is 94 instead of 96 px; it no longer touches the banner.
 
 ## Remaining settings ported (wave 5, "remaining settings")
 
