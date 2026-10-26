@@ -8,7 +8,7 @@
 > only the Capacitor APK is used now); its content inputs moved to `content/inputs/`, the private
 > `wk-content.db` to `content/private/` (git-ignored), its tools to `tools/` and the release key to
 > `web/android/release.jks` (git-ignored; see README "Signing"). The Kotlin prototype (`app/`,
-> `core/`, `feature/`) stays for now (owner's call). The sections below are kept as history, so
+> `core/`, `feature/`) was removed too (owner's call; last seen at 4def50a). The sections below are kept as history, so
 > their `durtles/` paths refer to commit `94abf2e`.
 
 ## Pivot 2026-10-10: fork Smouldering Durtles

@@ -194,8 +194,6 @@ content/                 Hand-authored component, mnemonic, sound-series and JLP
   inputs/                Committed content-build inputs (open data)
   private/               wk-content.db (git-ignored, never committed)
 docs/                    Spec and implementation plan
-app/, core/, feature/    Standalone Kotlin/Compose app built only from open data
-                         (JLPT-ordered N5 and N4 content)
 .github/workflows/       CI, manual only (workflow_dispatch)
 ```
 
