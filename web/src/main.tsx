@@ -9,6 +9,7 @@ import { createHashLocation } from './app/router';
 import { appliedThemeKind, applyTheme, onThemeApplied, storedThemePrefs } from './app/theme';
 import { getPlatform } from './platform';
 import { trackDevicePixelRatio } from './ui/theme/devicePixels';
+import { trackFocusMode } from './ui/theme/focusMode';
 import { db } from './storage/db';
 import './ui/theme/index.css';
 
@@ -29,6 +30,7 @@ if (BACKGROUND_SYNC) {
 
   // Paint the remembered theme before anything else (and the device pixel size its shadows use).
   trackDevicePixelRatio();
+  trackFocusMode();
   applyTheme(storedThemePrefs());
 
   const app = createAppController({ db, platform: getPlatform, loadContent: loadBrowserContent });

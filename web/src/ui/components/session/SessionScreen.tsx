@@ -5,7 +5,8 @@
  * on its own route. Back leaves the session running (Java returns to the dashboard; Resume continues).
  *
  * A new fragment (lesson item, question, answered screen) slides in as Java's with `slide_animations`
- * (`transitions.ts`); the keyboard keeper holds the keyboard open between questions.
+ * (`transitions.ts`) while the old one slides out (`exitingFragment.ts`); the keyboard keeper holds the
+ * keyboard open between questions.
  */
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { ankiMode } from '../../../core/anki';
@@ -21,6 +22,7 @@ import { useSession } from './useSession';
 import { slideAnimations } from './displayPrefs';
 import { KeyboardKeeper, releaseKeyboard } from './keyboardKeeper';
 import { fragmentOf, transitionAnimation, type FragmentInfo, type SlideAnimation } from './transitions';
+import { playExit, snapshotFragment } from './exitingFragment';
 import './session.css';
 
 /** The route that shows a running session of this kind. */
@@ -55,13 +57,26 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
   const fragKey = frag === null ? '' : `${frag.kind}:${frag.id}`;
   const lastFrag = useRef<FragmentInfo | null>(null);
   const slide = useRef<{ key: string; anim: SlideAnimation; n: number }>({ key: '', anim: 'NONE', n: 0 });
+  const fragmentRef = useRef<HTMLDivElement>(null);
+  const clipRef = useRef<HTMLDivElement>(null);
+  // The fragment being replaced: a still copy of its view, taken before React swaps it out, which slides
+  // out under the new one (FragmentTransaction.replace with setCustomAnimations(enter, exit)).
+  const exiting = useRef<HTMLElement | null>(null);
   if (frag !== null && slide.current.key !== fragKey && session !== null) {
     const anim = slideAnimations(prefs) ? transitionAnimation(lastFrag.current, frag, session.questionChoiceReason) : 'NONE';
     // Only a slide remounts the wrapper (to play it again).
     slide.current = { key: fragKey, anim, n: slide.current.n + (anim === 'NONE' ? 0 : 1) };
     lastFrag.current = frag;
+    exiting.current = anim !== 'NONE' && fragmentRef.current !== null ? snapshotFragment(fragmentRef.current) : null;
   }
   const slideClass = slide.current.anim === 'RTL' ? ' kk-slide-rtl' : slide.current.anim === 'LTR' ? ' kk-slide-ltr' : '';
+  const slideN = slide.current.n;
+  useLayoutEffect(() => {
+    const node = exiting.current;
+    exiting.current = null;
+    if (node === null || clipRef.current === null || fragmentRef.current === null) return;
+    playExit(clipRef.current, fragmentRef.current, node, slide.current.anim === 'LTR' ? 'LTR' : 'RTL');
+  }, [slideN]);
 
   // A new question's field took the focus from the keeper; otherwise let it go.
   useLayoutEffect(() => {
@@ -121,8 +136,8 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
   return (
     <>
       <KeyboardKeeper />
-      <div className="kk-fragment-clip">
-        <div key={slide.current.n} className={`kk-fragment${slideClass}`}>{body}</div>
+      <div ref={clipRef} className="kk-fragment-clip">
+        <div key={slide.current.n} ref={fragmentRef} className={`kk-fragment${slideClass}`}>{body}</div>
       </div>
     </>
   );

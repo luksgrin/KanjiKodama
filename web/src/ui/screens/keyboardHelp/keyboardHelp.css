@@ -17,6 +17,6 @@
 .kk-kbh-doc li { padding-left: 0.7em; text-indent: -0.7em; }
 .kk-kbh-doc li::before { content: '\2022\00a0'; }
 /* keyboardSettingsButton1: android:padding="8dp" instead of WK.Button.Normal's 22 dp sides. */
-.kk-btn.kk-kbh-padded { padding: calc(8px - var(--border-pixel)) calc(8px - var(--border-pixel)) 0; } /* 8 dp on every side, outline included */
+.kk-btn.kk-kbh-padded { padding: 8px; } /* 8 dp on every side */
 /* The Do it / Keyboard settings rows: wrap_content, padding 8dp, buttons side by side. */
 .kk-kbh-row { display: flex; flex-wrap: wrap; padding: 8px; }

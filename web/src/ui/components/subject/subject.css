@@ -178,7 +178,7 @@
 .kk-subject-label { font-weight: 700; }
 .kk-subject-note { min-height: 5em; resize: vertical; }
 .kk-synonym-row { display: flex; align-items: center; gap: var(--space-2, 8px); }
-.kk-synonym-move { flex: none; min-width: 44px; padding-left: 8px; padding-right: 8px; }
+.kk-synonym-move { flex: none; min-width: 44px; padding-left: 11px; padding-right: 11px; }
 
 /* Context sentences */
 .kk-sentence { margin-bottom: var(--space-2, 8px); }

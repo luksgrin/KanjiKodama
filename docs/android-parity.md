@@ -40,7 +40,7 @@ progression getters returning fresh empty rows; a shared read-only row would cha
 | Area | Java | TS before | Fix (file) |
 |---|---|---|---|
 | Line heights everywhere | a TextView line is as tall as the font's ascent + descent, each rounded up to whole device px (Pixelify Sans 16 sp: 1.214 em; lines with Japanese grow to the CJK face's height) | fixed `line-height: 1.2`/`1.21`/`1.25`: long texts drifted (About ~10 px, item page and Keyboard help more) | `fonts.css` `ascent-/descent-override` with Android's rounding for Pixelify Sans and Silkscreen, `line-height: normal` in `base.css` and the item page / dialogs / keyboard help; Roboto's `includeFontPadding` for the upstream themes (`--fp-top/--fp-bottom`, `themes.ts`) |
-| Buttons (`mm_btn`) | the pill is drawn inside the 52 dp view: 3 dp outline, fill, 4 dp shade, 8 dp of outline at the bottom; 88 dp min width; pressed = `mm_btn_pressed` | outline + 4 px box-shadow outside the view (4 px taller) and 3 px wider side padding | `.kk-btn` (`base.css`) |
+| Buttons (`mm_btn`) | the pill is drawn inside the 52 dp view: 3 dp outline, fill, 4 dp shade, 8 dp of outline at the bottom; 88 dp min width; pressed = `mm_btn_pressed` | outline + 4 px box-shadow outside the view (4 px taller) and 3 px wider side padding | `.kk-btn` (`base.css`); redrawn in round 5 as Java's layer-list (see there) |
 | Quiz buttons (`WK.Button.Borderless.Light`) | 54 dp, padding 4 / 12 dp | 48 px | `session.css` (Don't know / Submit / Next) |
 | Dialogs (all) | 26.7 dp from the screen edges, 18 dp above the title, 15.6 dp title → message, 54 dp buttons 12 dp from the sides, list items closer to the title | 24 px edges, 20 px, 12 px, 40 px buttons | `alert.css`, `.kk-dialog` (`base.css`), `.kk-sdialog` (`session.css`) |
 | Text shadows | `setShadowLayer(3, 1, 1, black)` (device px); cards, item tile and quiz glyph have it too | lighter shadow; no shadow on card / tile / quiz glyphs | `--text-shadow-3px`, `--text-shadow-3px-glyph` (`tokens.css`), browse / subject / session CSS (round 3 made it two CSS-px layers; replaced in round 4, below) |
@@ -95,6 +95,27 @@ debug app next to the TS app, dark mode, same restored progress; captures in the
 Still differing: with the keyboard open on a short screen (1080 × 1900) the TS question view is
 ~8 device px shorter than Java's (the banner / field / row budget of `--kk-qv-avail` is 144 px, Java's
 views add up to ~3 dp less), so the glyph there is 94 instead of 96 px; it no longer touches the banner.
+
+## Round 5: the owner's phone, buttons / focus / question slide (2026-10-26)
+
+Checked on `kk-golden2` (emulator-5558) at 420 dpi (2.625) and 1080 × 2340 at 480 dpi (3.0), Java debug
+app beside the TS app, data restored afterwards; captures in the scratchpad `w6/` (`ba-*`, `c-*` pixel
+diffs, `sheet-*` frame sheets of `screenrecord` videos).
+
+| Area | Java | TS before | Fix (file) |
+|---|---|---|---|
+| Button shape (every `.kk-btn`: dashboard, quiz Submit / Don't know / Next, item page, dialogs' pill buttons, settings, summary, Anki) | `mm_btn_normal.xml` is a layer-list of separate pills (corners 999dp, clamped to half the height): two outline pills offset 5 dp (together a rounded rect with corners (H − 5 dp) / 2 and a straight 5 dp side), the shade pill 3 / 3 / 3 / 8 dp in, the fill pill 3 / 3 / 3 / 12 dp in, the light bar 14 dp from the sides, 6 dp down, 3 dp high; insets truncated to device px (`getDimensionPixelOffset`: 3 dp = 7 px, 5 = 13, 8 = 21, 12 = 31, 14 = 36 at 2.625), heights rounded | one CSS box with a 999 px radius and uneven borders: one H / 2 pill outside, an elliptical inner curve, so the ends were rounder than Java's and the fill reached the bar's ends: the highlight stuck out of the fill at both ends | `base.css`: the button's background is the shade (its H / 2 pill lies inside the outline and contains the shade pill), `::before` the outline (two exact SVG pills minus the shade pill, `mask-composite: exclude`), `::after` the fill pill with the light bar as gradients; insets `round(down, n dp × dpr) / dpr` (`--kk-bt*`), min-height rounded the same way. Pixel diff against Java: SUBMIT at 3.0 identical apart from the label's anti-aliasing; both ends at 2.625: 0 pixels differ by more than 24 / 255 (left), 40 (right, the label) |
+| Pressed / disabled buttons | `mm_btn_pressed` (outline pill 5 dp down, shade pill 3 / 8 / 3 / 3 dp, no fill or bar); disabled = normal + a #66FFFFFF pill over the bounds, text unchanged | pressed approximated by border changes; disabled = opacity 0.55 (text faded too) | same layers (`base.css`); disabled overlay is 40 % white (the overlay also lightens the outline's few px outside the H / 2 pill, which Java leaves) |
+| Focus square around the quiz Next (and the summary's Finish, a dialog's first button) | `requestFocus()` on a phone does nothing visible: in touch mode a Button can't take the focus, and the default focus highlight (colorControlHighlight over the bounds) exists only out of touch mode (after a D-pad / Tab / arrow key) | the highlight copied from emulator captures (adb input leaves touch mode) was drawn whenever Next / Finish had the focus | `focusMode.ts` (`:root.kk-nontouch` on Tab / arrow keys, off on any pointer down, `main.tsx`); the highlight (a rectangle over the bounds: `border-image` fill plus a layer on each pseudo-element) only then; the browser's `:focus-visible` rings are off in touch mode too (Chrome counts a button focused from script after the answer field as focus-visible) |
+| Question → question slide | `FragmentTransaction.replace` + `setCustomAnimations(enter, exit)`: the new fragment translates in by a full width with `decelerate_interpolator` while the old one translates out with `accelerate_interpolator`, both 150 ms, the old one underneath (`res/anim/{rtl,ltr}_{enter,exit}.xml`); unanswered → answered has none; no delay anywhere (`commitNow`) | only the entering fragment slid, by its own width (screen − 16 px), with Material's `cubic-bezier(0, 0, 0.2, 1)` (most of the move in the first frames), the old content vanished at once | `exitingFragment.ts` + `SessionScreen.tsx`: a still, inert copy of the old view slides out under the new one; `cubic-bezier(1/3, 2/3, 2/3, 1)` (exactly 1 − (1 − t)²) in, `(1/3, 0, 2/3, 1/3)` (t²) out, a full screen width, 150 ms (`base.css`, `session.css`). Recorded with `screenrecord` on both apps: both now slide for ~150–165 ms with both fragments visible |
+
+Also found: the quiz Next turned bright cyan while the session was busy after a tap: the disabled overlay
+had been written `#66FFFFFF` (Android ARGB) in CSS, where it means opaque #66FFFF; fixed (40 % white).
+Seen only on the emulator (WebView 133, where Capacitor's SystemBars pads the decor view): when the new
+question's field asks for the keyboard, the WebView is laid out once at the full screen height (915 dp
+instead of 842) for one or two frames, so the page jumps up by the status bar height before the keyboard
+opens. Native inset handling (`@capacitor/android` SystemBars); not changed here. On WebView 140+ (the
+owner's phone) SystemBars takes the other path (no top padding).
 
 ## Remaining settings ported (wave 5, "remaining settings")
 

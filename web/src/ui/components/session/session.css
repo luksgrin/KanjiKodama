@@ -89,9 +89,9 @@
 .kk-quiz-bottom > .kk-btn.kk-quiz-next {
   margin: 8px 8px 8px auto;
   /* WK.Button.Borderless.Light: 54 dp, padding 16 / 4 / 16 / 12 dp from the view's edge. */
-  min-height: 54px;
+  --kk-btn-h: 54px;
   min-width: 0;
-  padding: 1px calc(16px - var(--border-pixel)) 4px;
+  padding: 4px 16px 12px;
   font-size: 18px;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -130,17 +130,6 @@
   font-size: max(14px, min(var(--kk-glyph-fit-h), calc((100vw - 140px) / var(--len, 1)), calc((var(--content-max-width) - 140px) / var(--len, 1))));
 }
 
-/* Java's focused-button highlight (?attr/colorControlHighlight over the button's bounds): the answered
-   fragment's Next and the summary's Finish, which Java focuses. */
-.kk-btn.kk-btn-focus:focus,
-.kk-btn.kk-btn-focus:focus-visible { outline: none; }
-.kk-btn.kk-btn-focus:focus::after {
-  content: '';
-  position: absolute;
-  inset: -5px -6px -10px;
-  background: color-mix(in srgb, var(--color-text) 15%, transparent);
-  pointer-events: none;
-}
 
 /* Special buttons: WK.Button.Borderless.Light (Silkscreen, transparent), 8 dp margin; ≥ 40 px tap target. */
 .kk-quiz-special {
@@ -335,9 +324,9 @@
 .kk-quiz-actions > .kk-btn {
   /* WK.Button.Borderless.Light (54 dp, 4 / 12 dp top / bottom padding); 8 dp sides here so the
      texts fit from 320 px. */
-  min-height: 54px;
+  --kk-btn-h: 54px;
   min-width: 0;
-  padding: 1px 8px 4px;
+  padding: 4px 11px 12px;
   white-space: nowrap;
   /* 18 sp, letterSpacing 0.06 (WK.Button.Borderless.Light); one line from 320 px wide. */
   font-size: clamp(14px, 5.6vw, 18px);
@@ -404,7 +393,17 @@
   margin: 0 calc(-1 * var(--main-gutter));
   padding: 0 var(--main-gutter);
   overflow-x: clip;
+  position: relative;
 }
+/* The leaving fragment's copy (exitingFragment.ts): over the same box, under the entering one. */
+.kk-fragment-clip > .kk-fragment-exit {
+  position: absolute;
+  top: 0;
+  left: var(--main-gutter);
+  right: var(--main-gutter);
+  pointer-events: none;
+}
+.kk-fragment-clip > .kk-fragment:not(.kk-fragment-exit) { position: relative; }
 
 /* The keyboard keeper (keyboardKeeper.tsx): an invisible field that holds the focus between questions. */
 .kk-keyboard-keeper {
@@ -580,7 +579,7 @@ button.kk-log-row { cursor: pointer; }
    incorrect TableLayouts in correctColorBackground / incorrectColorBackground, 16 dp apart. */
 .kk-summary { margin: 0; }
 .kk-summary-buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0 var(--space-1); }
-.kk-summary-buttons > .kk-btn { min-height: 48px; padding-left: 16px; padding-right: 16px; }
+.kk-summary-buttons > .kk-btn { --kk-btn-h: 48px; padding-left: 19px; padding-right: 19px; }
 .kk-summary-progress { display: block; width: 100%; margin-top: var(--space-1); }
 .kk-summary-table { width: 100%; margin-top: var(--space-4); border-collapse: collapse; font-size: 16px; }
 .kk-summary-table.correct { background: var(--color-answer-correct); }
@@ -596,7 +595,7 @@ button.kk-log-row { cursor: pointer; }
 /* Self-study start (activity_self_study_start.xml). */
 .kk-self-study-header { margin: var(--space-2) 0 var(--space-1); font-family: var(--font-body); font-size: 20px; font-weight: 400; letter-spacing: normal; text-transform: none; color: var(--color-text); }
 .kk-self-study-presets { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-1); }
-.kk-self-study-presets > .kk-btn { min-height: 48px; }
+.kk-self-study-presets > .kk-btn { --kk-btn-h: 48px; }
 .kk-self-study-divider { border: 0; border-top: 1px solid var(--color-divider); margin: var(--space-2) 0; }
 
 /* Subject cards in the lesson presentation and under answers: the same SubjectGridView as the item page

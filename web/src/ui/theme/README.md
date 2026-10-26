@@ -49,7 +49,7 @@ Colours are the Java app's exactly (no contrast tweaks).
 | `--dev-px` | one Android device pixel in CSS px (`1px / devicePixelRatio`, `devicePixels.ts`): for Android values given in raw px (shadow radius / offsets), not dp |
 | `--text-shadow-3px`, `--text-shadow-3px-glyph`, `--srs-count-shadow` | Android's `setShadowLayer(3, 1, 1, black)` (device px: 1 px offset, 4.46 px CSS blur) on text and on big glyphs; the SRS counts' shadow (none in the dark upstream themes) |
 | `--fp-top`, `--fp-bottom` | Android `includeFontPadding` above / below a TextView (0 for the KanjiKodama fonts, Roboto's in the upstream themes) |
-| `--btn-fill` `--btn-light` `--btn-shade` `--btn-outline` `--btn-text` | the pixel pill button (mm_btn); override the first three for a coloured button |
+| `--btn-fill` `--btn-light` `--btn-shade` `--btn-outline` `--btn-text` | the pixel pill button (mm_btn's layer-list: background = shade, `::before` = outline, `::after` = fill + light bar; both pseudo-elements are taken); override the first three for a coloured button; `--kk-btn-h` sets a button's min height (rounded to device px) |
 | `--btn-secondary-text` | `.kk-btn.secondary` text (surface fill: the theme's text colour, so it reads in dark) |
 | `--color-radical` `--color-kanji` `--color-vocab` | subject-type backgrounds (item headers, buttons) |
 | `--color-radical-strong` `--color-kanji-strong` `--color-vocab-strong` | subject-type chart colours |
@@ -97,3 +97,5 @@ data-slide-animations="off">`); screens slide in by themselves (AppShell).
 file header for the Java menu ids), `toast(text, {long})` from `ui/shell/toast`.
 
 Screen-specific styles go next to the screen (`screens/dashboard/dashboard.css`), using tokens only.
+
+Focus rings and the buttons' focus highlight show only out of Android's touch mode: `focusMode.ts` sets `:root.kk-nontouch` after Tab / arrow keys and clears it on any pointer down.

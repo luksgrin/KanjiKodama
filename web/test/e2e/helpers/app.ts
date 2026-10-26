@@ -72,8 +72,10 @@ export async function dashboardCounts(page: Page): Promise<{ lessons: number; re
 
 // ---- quiz ---------------------------------------------------------------------------------------
 
-export const answerField = (page: Page): Locator => page.locator('input.kk-answer');
-export const quiz = (page: Page): Locator => page.locator('section.kk-quiz');
+/** Not inside the leaving fragment's copy (exitingFragment.ts), which slides out for 150 ms. */
+const LIVE = ':not(.kk-fragment-exit *)';
+export const answerField = (page: Page): Locator => page.locator(`input.kk-answer${LIVE}`);
+export const quiz = (page: Page): Locator => page.locator(`section.kk-quiz${LIVE}`);
 
 export async function questionInfo(page: Page): Promise<QuestionInfo> {
   const view = page.getByTestId('question-view');
@@ -168,8 +170,8 @@ export async function submitWith(page: Page, act: () => Promise<unknown>): Promi
   // Mark this question's field: a new question remounts the quiz (and the field) without the mark.
   await answerField(page).evaluate((el) => { el.setAttribute('data-e2e-old', '1'); });
   await act();
-  const answered = page.locator('section.kk-quiz[data-answered="true"]');
-  const moved = page.locator('[data-testid="summary"], input.kk-answer:not([data-e2e-old])');
+  const answered = page.locator(`section.kk-quiz[data-answered="true"]${LIVE}`);
+  const moved = page.locator(`[data-testid="summary"], input.kk-answer:not([data-e2e-old])${LIVE}`);
   await expect(answered.or(moved).first()).toBeVisible();
   return !(await answered.isVisible());
 }
@@ -181,7 +183,7 @@ export async function next(page: Page): Promise<void> {
 /** Answers every question correctly until the summary shows; returns how many questions were answered. */
 export async function answerAllCorrect(page: Page, max = 200): Promise<number> {
   for (let n = 0; n < max; n++) {
-    await expect(page.locator('[data-testid="summary"], section.kk-quiz[data-answered="false"]').first()).toBeVisible();
+    await expect(page.locator(`[data-testid="summary"], section.kk-quiz[data-answered="false"]${LIVE}`).first()).toBeVisible();
     if (await page.getByTestId('summary').isVisible()) return n;
     const r = await answer(page, 'correct');
     if (!r.advanced) await next(page);
