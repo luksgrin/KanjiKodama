@@ -64,6 +64,13 @@ progression getters returning fresh empty rows; a shared read-only row would cha
 | Keyboard help | 8 dp button padding, blank lines 16 sp × 1.214 | 22 dp side padding, 19 px | `keyboardHelp.css` |
 | "Known limitations" settings row | none (the text is in About) | web-only row and sub-screen | removed (`OtherActions.tsx`, `SettingsScreen.tsx`); About keeps the list |
 
+Final touches (2026-10-26):
+
+| Area | Java | TS before | Fix (file) |
+|---|---|---|---|
+| Dashboard panels (`main_activity_view_background`) | 3 dp stroke = 8 device px at 2.625 (the shape rounds) | 7 px (Chromium floors border widths to device px) | `calc(var(--border-pixel) + 0.05px)` in `dashboard.css`: 8 px at 2.625, still 6 / 9 px at 2 / 3 |
+| Right edge of everything in the page flow | content ends 8 dp from the 1080 px screen edge | ~2 device px further right: Android's WebView lays the page out 412.19 CSS px wide for a 1080 px view (1082 px at 2.625), the last 2 px are cut off | `KkSystemUi.getViewWidth` + `androidSystemUi.ts` narrow the root element to the WebView's real width (411.43 dp) when the excess is under 2 px; panel outlines now end at x = 1048 in both apps |
+
 Wave 5 leftovers also closed: the `visuals.spec.ts` browse-cell check on pixel-7 read two
 `boundingBox()` calls in different frames of the screen's slide-in (−8 px); it now measures the grid in
 one evaluation and polls until it settles.
@@ -90,7 +97,7 @@ identical). What is left cannot match, with the reason:
 | Screen | Difference | Why |
 |---|---|---|
 | Toolbar | Java debug build's label "KanjiKodama - Debug" | build label only; the release Java app says "KanjiKodama" like the TS app |
-| All long texts | a word occasionally wraps one word earlier or later than in Java (e.g. one line of the reading mnemonic) | Android's text layout rounds every glyph advance to whole device pixels (Pixelify Sans runs ~2 % wider than the same text in Chromium, which keeps fractional advances), and Android's line breaker (ICU, `breakStrategy=high_quality`) balances lines differently from Chromium's greedy breaker. Neither is exposed to CSS; a per-glyph spacing hack would change every text's width elsewhere. Line count and heights match in almost all paragraphs |
+| All long texts | a line occasionally breaks one word earlier or later than in Java | Measured on emulator-5556 (About, Keyboard help, five item pages; line breaks read from stitched screenshots, word gaps counted per line): **157 of 172 line breaks match** (About 20/21, Keyboard help 38/47, item pages 99/104). Line widths are not the cause: lines with the same words are within 0.2 % (median Java/TS 1.002), so the "2 % wider" estimate was wrong and a letter-spacing correction does not help (+0.02 px: 153/167, +0.05 px: 154/171). The cause is Android's line breaker: TextView's `breakStrategy=high_quality` (Minikin's optimal breaker) evens out the slack of all lines of a paragraph, and in the samples it never breaks after a hyphen inside a word (`auto-correct`), while Chromium fills each line greedily and does break there. `text-wrap: pretty` (Chromium only re-balances the last lines) made it worse: 142/167. Neither behaviour can be selected from CSS; matching it would need a JS line breaker that inserts line breaks into React-rendered text, not done |
 | About | the open-source components list (React, Dexie.js, sql.js, Workbox, Capacitor vs Jackson, Lottie, JSoup, OkHttp, Pikolo) | deliberate: a different stack |
 | Settings → API settings (server mode with wanikani.com) | no "Web site password" row | its only use is Java's resurrect / burn through a login to the WaniKani web site; the TS app resurrects and burns locally and makes no WaniKani web calls (not approved) |
 | Cold start | ~0.1–0.15 s slower to a dashboard with data | WebView start-up, see Start-up |
@@ -98,6 +105,6 @@ identical). What is left cannot match, with the reason:
 ## Top remaining differences
 
 1. Start-up ~0.1–0.15 s behind Java (WebView start-up; minor).
-2. Occasional one-word line-break differences in long texts (Android's integer glyph advances and ICU line
-   breaking; minor).
+2. Occasional one-word line-break differences in long texts (Android's optimal line breaker vs Chromium's
+   greedy one; 157 of 172 breaks match; minor).
 3. "Web site password" (server mode against wanikani.com only), see above.

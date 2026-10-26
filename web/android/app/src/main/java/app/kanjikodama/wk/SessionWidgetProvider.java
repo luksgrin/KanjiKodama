@@ -25,7 +25,15 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Locale;
 
-public final class SessionWidgetProvider extends AppWidgetProvider {
+public class SessionWidgetProvider extends AppWidgetProvider {
+    /**
+     * The receiver declared in the manifest: the Java app's class name
+     * (com.smouldering_durtles.wk.services.SessionWidgetProvider, an empty subclass), so widgets
+     * placed with the Java app keep working after this app is installed over it. Placed widgets are
+     * bound to the provider's component name; a different name would remove them on the update.
+     */
+    static final Class<? extends AppWidgetProvider> PROVIDER = com.smouldering_durtles.wk.services.SessionWidgetProvider.class;
+
     /** The alarm's broadcast: the next scheduled entry has started. */
     static final String ACTION_TICK = "app.kanjikodama.wk.WIDGET_TICK";
     private static final long DAY = 24L * 60 * 60 * 1000;
@@ -60,7 +68,7 @@ public final class SessionWidgetProvider extends AppWidgetProvider {
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_APP_WIDGETS)) {
             return 0;
         }
-        return AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, SessionWidgetProvider.class)).length;
+        return AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, PROVIDER)).length;
     }
 
     /** Redraw every widget from the stored counts and set the alarm for the next entry. */
@@ -80,7 +88,7 @@ public final class SessionWidgetProvider extends AppWidgetProvider {
         if (am == null) {
             return;
         }
-        final Intent intent = new Intent(context, SessionWidgetProvider.class).setAction(ACTION_TICK);
+        final Intent intent = new Intent(context, PROVIDER).setAction(ACTION_TICK);
         final PendingIntent pi = PendingIntent.getBroadcast(context, 1, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         final long next = WidgetStore.nextChange(context, now);
@@ -95,7 +103,7 @@ public final class SessionWidgetProvider extends AppWidgetProvider {
 
     private static void draw(final Context context, final WidgetStore.Counts ctx, final long now) {
         final AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        final ComponentName name = new ComponentName(context, SessionWidgetProvider.class);
+        final ComponentName name = new ComponentName(context, PROVIDER);
         final Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         final PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,

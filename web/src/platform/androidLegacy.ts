@@ -13,6 +13,7 @@ export interface LegacyMigrationPlugin {
   exportSettings(): Promise<{ found: boolean; text?: string; skipped?: number; serverMode?: boolean; baseUrl?: string | null }>;
   readToken(): Promise<{ token: string | null; error: string | null }>;
   removeOldData(): Promise<{ database: boolean; settings: boolean; encryptedSettings: boolean; masterKey: boolean }>;
+  moveAudio(): Promise<{ files: number; bytes: number; failed: number }>;
 }
 
 export const LegacyMigration = registerPlugin<LegacyMigrationPlugin>('LegacyMigration');
@@ -42,6 +43,10 @@ export function createAndroidLegacy(plugin: LegacyMigrationPlugin = LegacyMigrat
     },
     async removeOldData() {
       await plugin.removeOldData();
+    },
+    async moveAudio() {
+      const r = await plugin.moveAudio();
+      return { files: r.files ?? 0, bytes: r.bytes ?? 0 };
     },
   };
 }

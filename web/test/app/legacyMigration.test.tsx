@@ -71,6 +71,24 @@ describe('legacy migration flow', () => {
     h.app.dispose();
   });
 
+  it('moves the downloaded audio and says so; a failing audio move does not stop the move', async () => {
+    for (const [moveAudio, line] of [
+      [vi.fn(async () => ({ files: 42, bytes: 420_000 })), '\n\nDownloaded audio moved (42 files).'],
+      [vi.fn(async () => { throw new Error('disk'); }), ''],
+    ] as const) {
+      const h = makeApp();
+      await h.app.start();
+      const legacy = fakeLegacy({ moveAudio });
+      const offer = await findLegacyData(h.app, legacy, { serverMode: false });
+      if (offer?.kind !== 'ready') throw new Error('no offer');
+      const res = await moveLegacyData(h.app, legacy, offer);
+      expect(moveAudio).toHaveBeenCalledOnce();
+      expect(res.message).toBe(`Progress moved from the old app, level 2.\n\nSettings moved.\n\nAPI token moved.${line}`);
+      expect(await legacyMarker(h.app.db)).toBe('moved');
+      h.app.dispose();
+    }
+  }, 30_000);
+
   it('server mode in the old app: keeps the server address and says how to connect', async () => {
     const h = makeApp();
     await h.app.start();
@@ -96,7 +114,7 @@ describe('legacy migration flow', () => {
     expect(h.app.exportProgressFile().text).toBe(before);
     expect(await legacyMarker(h.app.db)).toBeNull();
     h.app.dispose();
-  });
+  }, 30_000);
 });
 
 describe('LegacyMigrationPrompt', () => {
@@ -124,8 +142,9 @@ describe('LegacyMigrationPrompt', () => {
   }
   const q = (id: string) => container!.querySelector<HTMLElement>(`[data-testid="${id}"]`);
   /** Waits (in act) until `check` holds: the move runs a Dexie transaction, slower under a loaded test run. */
-  const until = async (check: () => boolean) => {
-    for (let i = 0; i < 200 && !check(); i++) await act(async () => { await new Promise((r) => setTimeout(r, 10)); });
+  const until = async (check: () => boolean, timeoutMs = 10_000) => {
+    const end = Date.now() + timeoutMs;
+    while (!check() && Date.now() < end) await act(async () => { await new Promise((r) => setTimeout(r, 10)); });
     expect(check()).toBe(true);
   };
   const click = async (id: string) => {
@@ -145,23 +164,23 @@ describe('LegacyMigrationPrompt', () => {
     expect(q('alert-message')?.textContent).toContain('Progress moved from the old app, level 2.');
     expect(h.app.get().learner?.progress.userLevel).toBe(2);
     await act(async () => { (container!.querySelector('[data-testid="alert-message"] .kk-alert-btn') as HTMLElement).click(); });
-    expect(q('dialog-legacy-remove')).not.toBeNull();
+    await until(() => q('dialog-legacy-remove') !== null);
     expect(legacy.removeOldData).not.toHaveBeenCalled();
     await click('legacy-remove');
     await until(() => (q('alert-message')?.textContent ?? '').includes('Old app data removed.'));
     expect(legacy.removeOldData).toHaveBeenCalledOnce();
     expect(q('alert-message')?.textContent).toContain('Old app data removed.');
     h.app.dispose();
-  });
+  }, 30_000);
 
   it('"Not now" changes nothing and asks again next time', async () => {
     const legacy = fakeLegacy();
     const h = await render(legacy);
     await until(() => q('legacy-not-now') !== null);
     await click('legacy-not-now');
-    expect(q('dialog-legacy-move')).toBeNull();
+    await until(() => q('dialog-legacy-move') === null);
     expect(h.app.get().learner?.progress.userLevel).toBe(1);
     expect(await legacyMarker(h.app.db)).toBeNull();
     h.app.dispose();
-  });
+  }, 30_000);
 });

@@ -36,7 +36,7 @@ public class WidgetPlugin extends Plugin {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             final AppWidgetManager m = AppWidgetManager.getInstance(getContext());
             if (m.isRequestPinAppWidgetSupported()) {
-                requested = m.requestPinAppWidget(new ComponentName(getContext(), SessionWidgetProvider.class), null, null);
+                requested = m.requestPinAppWidget(new ComponentName(getContext(), SessionWidgetProvider.PROVIDER), null, null);
             }
         }
         ret.put("requested", requested);

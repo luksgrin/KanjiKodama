@@ -9,7 +9,7 @@
  * normal import (`previewImport`): the dashboard then shows the summary and asks. `moveLegacyData`
  * runs the normal restore (`app.restoreProgress`: one transaction), restores the settings like
  * "Restore your settings" (`parseSettingsBackup`, the Java backup format) and stores the API token in
- * `platform.secrets` when it could be decrypted. Removing the old data is offered afterwards and
+ * `platform.secrets` when it could be decrypted, and moves the downloaded audio (same file layout). Removing the old data is offered afterwards and
  * only done when the learner asks (`removeLegacyData`).
  *
  * A marker in the `state` table (`legacyMigration`) stops the offer once the move is done, the old
@@ -87,6 +87,7 @@ export interface LegacyMoveResult {
   message: string;
   settingsMoved: number;
   tokenMoved: boolean;
+  audioMoved: number;
 }
 
 /** Moves progress (one transaction, as "Restore progress"), then settings and the API token. */
@@ -132,8 +133,16 @@ export async function moveLegacyData(host: LegacyHost, legacy: LegacyApi, offer:
     lines.push('API token moved.');
   }
 
+  let audioMoved = 0;
+  try {
+    audioMoved = (await legacy.moveAudio?.())?.files ?? 0; // downloaded audio: same layout, no new download
+  } catch {
+    audioMoved = 0;
+  }
+  if (audioMoved > 0) lines.push(`Downloaded audio moved (${audioMoved} files).`);
+
   await setLegacyMarker(host.db, 'moved', now);
-  return { userLevel: level, message: lines.join('\n\n'), settingsMoved, tokenMoved };
+  return { userLevel: level, message: lines.join('\n\n'), settingsMoved, tokenMoved, audioMoved };
 }
 
 /** "Remove old app data": the old database and preferences. Never automatic. */
@@ -146,7 +155,7 @@ export const LEGACY_TEXTS = {
   offerTitle: 'Move progress from the old app?',
   offer: (summary: string) =>
     `The progress of the previous KanjiKodama app is still on this device:\n${summary}\n\n`
-    + 'Moving it replaces the progress in this app, and also moves its settings. The old data is only read, never changed.',
+    + 'Moving it replaces the progress in this app, and also moves its settings and downloaded audio. The old database is only read, never changed.',
   moving: 'Moving progress…',
   errorTitle: 'Could not read the old app’s progress',
   error: (message: string) =>

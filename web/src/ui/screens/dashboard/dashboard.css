@@ -37,10 +37,12 @@
 .kk-session-buttons > .kk-btn { white-space: nowrap; }
 .kk-dashboard > .kk-session-buttons { margin-top: 12px; }
 
-/* main_activity_view_background: window fill, 3dp ink outline, 14dp corners, hard 4/6dp shadow. */
+/* main_activity_view_background: window fill, 3dp ink outline, 14dp corners, hard 4/6dp shadow.
+   The shape's stroke rounds to whole device px (3dp = 8 px at 2.625) where Chromium floors a border
+   width (7 px): + 0.05px gives Java's width at the common densities (2, 2.625, 2.75, 3). */
 .kk-dash-panel {
   background: var(--color-surface);
-  border: var(--border-pixel) solid var(--btn-outline);
+  border: calc(var(--border-pixel) + 0.05px) solid var(--btn-outline);
   border-radius: 14px;
   box-shadow: 4px 6px 0 var(--color-shadow);
   padding: 5px 6px 6px;

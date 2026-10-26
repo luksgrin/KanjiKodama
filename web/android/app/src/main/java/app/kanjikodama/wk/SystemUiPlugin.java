@@ -101,6 +101,22 @@ public class SystemUiPlugin extends Plugin {
         });
     }
 
+    /**
+     * The WebView's width in dp. Chromium rounds the CSS viewport up to whole dp (1080 px at 2.625
+     * is 411.43 dp but a 412.19 px wide page), so content laid out to the right edge ends ~2 device
+     * px further right than the Java app's views; the page narrows its root to this width
+     * (androidSystemUi.ts).
+     */
+    @PluginMethod
+    public void getViewWidth(final PluginCall call) {
+        getBridge().executeOnMainThread(() -> {
+            final float density = getActivity().getResources().getDisplayMetrics().density;
+            final JSObject ret = new JSObject();
+            ret.put("width", getBridge().getWebView().getWidth() / density);
+            call.resolve(ret);
+        });
+    }
+
     @PluginMethod
     public void getNavigationBarHeight(final PluginCall call) {
         getBridge().executeOnMainThread(() -> {

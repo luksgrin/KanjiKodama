@@ -45,7 +45,9 @@ import java.util.Map;
  *   {@code _androidx_security_master_key_} in the Android Keystore, same uid): {@link #readToken}.</li>
  * </ul>
  *
- * {@link #removeOldData} deletes all three (only when the learner asks for it).
+ * {@link #removeOldData} deletes all three (only when the learner asks for it). {@link #moveAudio} moves
+ * the pronunciation audio the Java app downloaded into the new app's audio directory, so it isn't
+ * downloaded again (same layout: {@code pronunciation-audio/<level>/<sourceId>.mp3|ogg}).
  */
 @CapacitorPlugin(name = "LegacyMigration")
 public class LegacyMigrationPlugin extends Plugin {
@@ -54,6 +56,8 @@ public class LegacyMigrationPlugin extends Plugin {
     static final String MASTER_KEY_ALIAS = "_androidx_security_master_key_";
     static final String FORMAT = "kanjikodama-progress";
     static final int VERSION = 1;
+    /** `Constants.AUDIO_DIRECTORY_NAME`, also the new app's `AUDIO_DIR` (src/core/audio). */
+    static final String AUDIO_DIR = "pronunciation-audio";
     /** Settings that the Java app keeps encrypted; never part of the settings export. */
     private static final String[] SECRET_KEYS = {"api_key", "web_password"};
 
@@ -271,6 +275,76 @@ public class LegacyMigrationPlugin extends Plugin {
         }
         ret.put("token", token == null ? JSObject.NULL : token);
         ret.put("error", error == null ? JSObject.NULL : error);
+        call.resolve(ret);
+    }
+
+    /**
+     * The Java app's downloaded audio (`AudioUtil`): {@code no_backup/pronunciation-audio} ("Internal",
+     * its default) and {@code pronunciation-audio} in every external files dir (the other "Audio
+     * location" choices; plus the stored `audio_location` path). Moved file by file into
+     * {@code files/pronunciation-audio} (src/platform/androidAudio.ts), renamed on the same file
+     * system, copied and deleted otherwise. Files the new app already has are kept and the old copy
+     * deleted. Empty old directories are removed.
+     */
+    @PluginMethod
+    public void moveAudio(final PluginCall call) {
+        final File target = new File(ctx().getFilesDir(), AUDIO_DIR);
+        final List<File> sources = new ArrayList<>();
+        sources.add(new File(ctx().getNoBackupFilesDir(), AUDIO_DIR));
+        for (final File ext: ctx().getExternalFilesDirs(null)) {
+            if (ext != null) sources.add(new File(ext, AUDIO_DIR));
+        }
+        final String location = ctx().getSharedPreferences(defaultPrefsName(), Context.MODE_PRIVATE).getString("audio_location", null);
+        if (location != null && !location.isEmpty() && !location.equals("Internal")) {
+            final File f = new File(location, AUDIO_DIR);
+            if (!sources.contains(f)) sources.add(f);
+        }
+        int files = 0;
+        long bytes = 0;
+        int failed = 0;
+        for (final File src: sources) {
+            final File[] levels = src.listFiles();
+            if (levels == null) continue;
+            for (final File level: levels) {
+                if (!level.isDirectory() || !level.getName().matches("\\d+")) continue;
+                final File[] audio = level.listFiles();
+                if (audio == null) continue;
+                final File dest = new File(target, level.getName());
+                //noinspection ResultOfMethodCallIgnored
+                dest.mkdirs();
+                for (final File a: audio) {
+                    if (!a.isFile() || !a.getName().matches("\\d+\\.(mp3|ogg)")) continue;
+                    final File to = new File(dest, a.getName());
+                    final long size = a.length();
+                    try {
+                        if (to.isFile() && to.length() > 0) {
+                            //noinspection ResultOfMethodCallIgnored
+                            a.delete();
+                            continue;
+                        }
+                        if (!a.renameTo(to)) {
+                            final File tmp = new File(dest, a.getName() + ".downloading.tmp");
+                            copyFile(a, tmp);
+                            if (!tmp.renameTo(to)) throw new Exception("rename failed");
+                            //noinspection ResultOfMethodCallIgnored
+                            a.delete();
+                        }
+                        files++;
+                        bytes += size;
+                    } catch (final Exception e) {
+                        failed++;
+                    }
+                }
+                //noinspection ResultOfMethodCallIgnored
+                level.delete(); // only when empty
+            }
+            //noinspection ResultOfMethodCallIgnored
+            src.delete(); // only when empty
+        }
+        final JSObject ret = new JSObject();
+        ret.put("files", files);
+        ret.put("bytes", bytes);
+        ret.put("failed", failed);
         call.resolve(ret);
     }
 

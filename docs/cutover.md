@@ -54,7 +54,7 @@ stays in the repository.
 8. **First start: "Move progress from the old app?"** The dialog shows the old progress
    ("Saved …, WaniKani order, level N, M items with progress."). **Move** replaces the new app's
    progress with it in one transaction (the same restore as a progress file), then moves the
-   settings and the API token. **Not now** asks again at the next start. Then check the dashboard
+   settings, the API token and the downloaded audio. **Not now** asks again at the next start. Then check the dashboard
    (level, review counts) against the Java app's last state.
 
 9. **"Remove old app data?"** is offered after a successful move. **Keep** leaves the old database
@@ -71,8 +71,9 @@ stays in the repository.
 | API token | Read from the Java app's `EncryptedSharedPreferences` (same uid, same Keystore master key) and stored in the new app's secret store | If it can't be decrypted, enter it again in Settings → Server connection. |
 | Server mode | Server address kept; the app starts in local mode with the server's last progress | Open Settings → Server connection to connect again. |
 | Session in progress, level test in progress | Not moved | Finish them first (step 1). |
-| Downloaded audio | Not moved | Download again (Settings → Download audio). |
-| Home-screen widget | Not moved | The Java widget disappears; add the new one from the launcher. |
+| Downloaded audio | `LegacyMigrationPlugin.moveAudio` during "Move": the files in the Java app's `no_backup/pronunciation-audio` ("Internal", its default), in `pronunciation-audio` of every external files dir and in the stored `audio_location` are moved (renamed, or copied and deleted across file systems) into the new app's `files/pronunciation-audio` | Same layout (`<level>/<sourceId>.mp3`/`.ogg`), so nothing is downloaded again. The result dialog says "Downloaded audio moved (N files)." Files the new app already has are kept. |
+| Home-screen widget | Kept | The new app declares its widget provider under the Java class name `com.smouldering_durtles.wk.services.SessionWidgetProvider` (an empty subclass of `app.kanjikodama.wk.SessionWidgetProvider`). Placed widgets are bound to that component name, so they stay on the home screen; the new app redraws them on the update (counts 0 until the move, then the moved counts). |
+| Notification channel | Kept | Same channel id `NewReviewsChannel` (and notification id 1) as the Java app, so Android keeps the channel and the learner's changes to it (sound, importance, lock screen). |
 | Scheduled notifications | Rescheduled by the new app | |
 
 ## Rollback
@@ -103,6 +104,16 @@ debug key) installed over it with `adb install -r` → "Move" → the TS app's p
 with the Java export (`web/test/golden/progress-ts.golden.test.ts`'s semantic comparison: same
 keys, types and values; key and row order ignored). Unit and render tests:
 `web/test/app/legacyMigration.test.tsx`.
+
+Widget, channel and audio (2026-10-26, same emulator): a Java widget (1×1, "R: 1034") placed on the
+Pixel launcher, 318 audio files in the Java app's `no_backup/pronunciation-audio`; after `adb install -r`
+of the TS debug build the widget (same id) was still bound to
+`app.kanjikodama.wk.debug/com.smouldering_durtles.wk.services.SessionWidgetProvider` and showed the new
+app's "R: 0"; after "Move" it showed "R: 1034", the dialog said "Downloaded audio moved (318 files).",
+`no_backup` had no audio left and the new app's audio dir had them. `dumpsys notification` showed the one
+`NewReviewsChannel` of the package before and after (no second channel). The Java debug app's data was
+backed up before and restored afterwards (`run-as … tar`, the Java APK installed back with
+`install -r -d`).
 
 Result (2026-10-26, emulator API 36): the offer showed "Saved …, JLPT order, level 6, 1034 items
 with progress."; after Move the TS app's export equalled the Java export: 0 semantic differences,

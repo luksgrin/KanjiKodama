@@ -30,6 +30,8 @@ export interface SystemUiPlugin {
   setImeHints(options: ImeHints): Promise<void>;
   /** The navigation bar inset in dp (absent in tests). */
   getNavigationBarHeight?(): Promise<{ bottom: number }>;
+  /** The WebView's width in dp (absent in tests). */
+  getViewWidth?(): Promise<{ width: number }>;
 }
 
 export const SystemUi = registerPlugin<SystemUiPlugin>('KkSystemUi');
@@ -179,6 +181,19 @@ export function startAndroidSystemUi(plugin: SystemUiPlugin = SystemUi, doc: Doc
   mo.observe(doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style', 'open', 'data-theme'] });
   win.addEventListener('hashchange', schedule);
   win.addEventListener('resize', schedule);
+  // Chromium rounds the viewport up to whole dp (a 1080 px WebView at 2.625 is 411.43 dp, the page
+  // 412.19 px): narrow the root to the WebView's real width so right edges match the Java views.
+  const fitWidth = () => {
+    void plugin.getViewWidth?.()
+      .then(({ width }) => {
+        const excess = (win.visualViewport?.width ?? win.innerWidth) - width;
+        if (width > 0 && excess > 0.01 && excess < 2) doc.documentElement.style.width = `${width}px`;
+        else doc.documentElement.style.removeProperty('width');
+      })
+      .catch(() => undefined);
+  };
+  win.addEventListener('resize', fitWidth);
+  fitWidth();
   const mq = typeof win.matchMedia === 'function' ? win.matchMedia('(prefers-color-scheme: dark)') : null;
   mq?.addEventListener?.('change', schedule);
 
@@ -209,6 +224,7 @@ export function startAndroidSystemUi(plugin: SystemUiPlugin = SystemUi, doc: Doc
     mo.disconnect();
     win.removeEventListener('hashchange', schedule);
     win.removeEventListener('resize', schedule);
+    win.removeEventListener('resize', fitWidth);
     mq?.removeEventListener?.('change', schedule);
     doc.removeEventListener('focusin', onFocus, true);
     doc.removeEventListener('focusout', onFocus, true);

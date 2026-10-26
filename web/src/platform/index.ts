@@ -308,6 +308,8 @@ export interface LegacyApi {
   readToken(): Promise<string | null>;
   /** Deletes the old database, preferences and encrypted preferences. */
   removeOldData(): Promise<void>;
+  /** Moves the old app's downloaded pronunciation audio into this app's audio directory (same layout). */
+  moveAudio?(): Promise<{ files: number; bytes: number }>;
 }
 
 /** Periodic background sync (Android, server mode). */
