@@ -133,6 +133,85 @@ deliberate improvements over the Java app, asked for by the owner; checked on `k
 | Tap or press beside the answer field (unanswered question) | the keyboard hides (the field loses the focus) and comes back when the field is tapped | the same | the keyboard stays for taps and long presses on the empty space, beside the field, on the banner, the question, the counter and the toolbar title (`keyboardKeeper.tsx` `useKeepAnswerFocus`, mounted by `Quiz.tsx` while the question is unanswered and not in Anki mode; skipped while a session dialog is open; buttons, links, fields, labels, menus and dialogs keep the browser's behaviour). Four layers: the tap's `mousedown` is cancelled (every engine); on Android a touch's `pointerdown` beside the field is cancelled too, because Chromium's long press (Android's long-press timeout, 400 ms, shorter on some phones) moves the focus without any mousedown (`GestureManager::SendContextMenuEventForGesture` → `HandleMouseFocus`: the body), and a cancelled pointerdown suppresses that focus change while the click still fires (not in WebKit, where it also drops the click); nothing selects on the unanswered question (owner's request: `:root.kk-keep-answer` in `session.css` makes the shell `user-select: none` but the fields, and `selectstart` outside the fields is cancelled), because the long press otherwise puts a caret in the pressed block (`SelectionController::HandleGestureLongPress` → `SetCaretAtHitTestResult`) or selects the pressed word, and with the selection out of the focused field the page reports no text input and the WebView hides the keyboard although the DOM focus stays (the case 8326a1d missed: round-6 rework). Java's banner, counter and title aren't selectable either, and its question view is a long-clickable view (title action mode, still opened here, keyboard stays). Last resorts for other paths: a focus lost to nothing during such a press is taken back at once, and a selection moved out of the focused field is put back with the keyboard asked for again (checked on the device with the first layers disabled: the keyboard stays in every frame). Answered screens, the item info and the lesson presentation are unchanged (the keyboard may hide). Checked on `kk-golden2` (WebView 133) with `input tap`, slow taps, 2–5 px moves and raw-evdev finger presses of 90 / 250 / 350 / 700 ms and double taps on the empty space, beside the field, the banner, the question, the glyph, the counter and the toolbar title, light + gesture and dark + 3-button navigation: the keyboard stays in every case (scratchpad `w8/matrix-final-*.txt`); before the rework only the presses of ≥ 400 ms hid the keyboard there, which is what a finger "tap" often is on the owner's phone |
 | Don't know / Submit / Next while the answer goes in | `UnansweredSessionFragment.disableInteraction()` on Submit / Don't know disables the buttons (the `mm_btn_disabled` look) and the outgoing fragment slides out pale (recorded on `kk-golden2`, scratchpad `w8/java-submit-row.png`) | the same pale look for a frame, then the pale exiting copy (`exitingFragment.ts` copies the disabled buttons) | the owner's request: no disabled look in this brief busy state. The buttons ignore taps while an action runs (`Quiz.tsx` `run`, a ref guard) but are no longer `disabled`; Next is disabled only by `next_button_delay` (`frozen`), as before; the Anki buttons had no disabled look. The exiting copy is therefore taken in the normal look |
 
+### Round 6 rework 2: the keyboard on the owner's phone (native keep-keyboard mode, keyboard diagnostics)
+
+The owner installed the 94abf2e APK on the Samsung (recent Android, Gboard or Samsung Keyboard) and the
+keyboard still went away for taps beside the field, while every touch kind passed on `kk-golden2`.
+
+**A newer WebView doesn't reproduce it.** `kk-golden2` is a `userdebug` image whose WebView provider list
+includes `com.android.webview`, so Chromium's own tip-of-tree build (Google's `chromium-browser-snapshots`
+bucket, `Android_Arm64/1726892`, `SystemWebView.apk`, WebView **158.0.8126.0**) was installed and selected
+with `cmd webviewupdate set-webview-implementation` (afterwards set back to the stock 133 and
+uninstalled). With 158 (the Capacitor SystemBars "WebView 140+" pass-through path included) and with 133,
+all 49 touch kinds (tap, slow tap, 3 px move, raw-evdev finger presses of 90 / 250 / 700 ms, double taps on
+the empty space, beside the field, the banner, the question, the glyph, the counter and the toolbar title)
+leave the keyboard up, with **no keyboard hide at all** in the native log (scratchpad `w9/m2-*.txt`: light +
+gesture and dark + 3-button navigation on 158, light + gesture on 133). The earlier matrix's check
+("IME insets visible") was weak: Gboard's "Try out your stylus" sheet had covered the screen during one run
+and every tap landed on it while the check still said "shown"; `w9/matrix2.sh` now also requires the
+touch to reach the WebView (native log) and the keyboard's inset height. Gboard's stylus handwriting was
+switched off on the AVD for the runs (`stylus_handwriting_enabled`, restored afterwards).
+
+**What Chromium does (read in `ImeAdapterImpl.java`, `render_widget_host_impl.cc`, `widget_base.cc`,
+`web_frame_widget_impl.cc`, main as of 2026-10-26).** After every tap (and a long press on a non-empty
+field) Chromium asks for the keyboard (`WebFrameWidgetImpl::DidHandleGestureEvent` → `ShowVirtualKeyboard`,
+`TextInputState.show_ime_if_needed`). It hides it only when the reported text input type becomes NONE (the
+focus or the selection left the editable), for `inputmode=none`, for `always_hide_ime` (the autofill
+"suppress showing IME" callbacks, Chrome's touch-to-fill), for `navigator.virtualKeyboard.hide()` with
+`virtualkeyboardpolicy=manual`, when the WebView view loses the Android focus (`onViewFocusChanged`), on
+detach, and for IME action DONE with a fullscreen IME. Nothing there depends on the WebView version for a tap
+beside a field that keeps the focus and the selection, which matches the 158 run. So on the phone the hide
+most likely comes from outside Chromium's tap path: (1) the keyboard app hiding itself (Samsung Keyboard
+reacts to `restartInput` / selection updates differently from Gboard), (2) a Samsung touch the page layers
+don't see as a primary press beside the field (a second pointer, a palm, a press that turns into a scroll,
+One UI's touch-and-hold delay), letting the focus or the selection go, or (3) the WebView view losing the
+Android focus to a One UI overlay. Which one is what the diagnostics below will show.
+
+**Native layer (whatever the cause).** `KkWebView` has a keep-keyboard mode (`SystemUiPlugin.setKeepKeyboard`
+/ `reshowKeyboard`), turned on by `nativeKeepKeyboard.ts` (mounted by `Quiz.tsx` with `useKeepAnswerFocus`)
+while the unanswered question shows, its answer field has the focus, no session dialog is open and the page
+is visible; off on answered screens, other screens, dialogs, for a press on a button / link / menu (until
+0.9 s after it) and while the activity is paused. While on, it watches the keyboard through the window
+insets (`WindowInsetsAnimationCompat.Callback` on the WebView's parent, dispatch continued to the WebView,
+plus `onApplyWindowInsets`). A hide during a touch on the WebView or up to 0.8 s after it (a touch the system
+took over, `ACTION_CANCEL`, doesn't count), or one the page reported (the field lost the focus to nothing
+without a press, e.g. a blur from script: the page takes it back and calls `reshowKeyboard`), is undone at
+once: `showSoftInput` on the WebView, then `window.kkKeepAnswer()` makes sure the field has the focus and the
+keyboard is asked for again. The re-show is posted right after the insets dispatch, not made inside it:
+a show from inside it cancels the hide animation while `InsetsController` is starting it and the app
+crashes ("Can't change insets on an animation that is cancelled", seen on WebView 133 before the fix; 3 ×
+6 forced hides after it, no crash). A hide with no touch
+on the page (the keyboard's own hide key, the back gesture) or within 1 s of a Back key (`onKeyPreIme`) is
+the user's: it stays hidden, and since Chromium would show the keyboard again for any tap on the page, the
+page makes the field `virtualkeyboardpolicy="manual"` (`window.kkKeyboardDismissed`) until the field itself
+is pressed. Measured on `kk-golden2` (native log, "ms after the hide"): a hide forced with the focus kept
+(Chromium's `virtualKeyboard.hide()` on the tap's pointerup) comes back in 14–31 ms (one 108 ms), a hide
+with the page layers switched off and a long press moving the focus to the body in 18–97 ms on WebView 133
+(22–395 ms on 158: Chromium rebuilds the input connection after the refocus first). The hide can't be
+stopped before it happens (`InputMethodManager` is final and Chromium calls it directly) and the keyboard
+app removes its window at once, so a hide that gets through shows as a dip, not a closed keyboard: ~0.1 s
+without the keyboard, then its ~0.2 s slide back (screen recordings `w9/reshow-*.mp4`). A
+blur from script is taken back before Chromium hides anything (`showSoftInput` result "unchanged shown").
+
+**Also checked** (`w9/dismiss.sh`, `buttons.sh`, `menu.sh`): Back (3-button and the key), the back gesture
+and the keyboard's own hide key (gesture and 3-button) hide it, and it stays hidden for taps, finger presses
+and long presses beside the field until the field is tapped; Submit, Don't know and Next work as before
+(the keyboard hides on the answered screen and comes back on the next question); the overflow menu and
+its dialogs turn the mode off; a blur from script is taken back with the keyboard up. `npm run check`
+(705 tests), `golden:coverage` (180/180 files) and the full `npm run e2e` (351) pass.
+
+**Hidden keyboard diagnostics.** About → tap the app version (Version → App) seven times within 3 s: the
+toast says "Keyboard diagnostics on" (seven more taps, or Turn off, end it). While on, a log of focus /
+blur (target and related target), selection (caret / range and the node it is in), presses and clicks
+(cancelled or not), long-press context menus, the visual viewport (the keyboard's height), page visibility,
+routes, the keep-keyboard mode and, from `KkWebView`, keyboard shown / hidden with its cause candidates,
+inset animations, touches (position, duration, tool type), Back keys, view and window focus, input
+connections and re-shows, with millisecond timestamps (`ui/shell/keyboardDiagnostics.ts`; up to 1500 lines,
+kept across restarts). Elements are named by tag, classes and test id only, never by text or value, and
+query strings are dropped from routes: no answers, no token. The last six lines show over the top of every
+screen (no touches; not on About), the whole log at the bottom of About with Copy, Share (the share sheet:
+Drive, mail, chat…), Clear and Turn off.
+
 ## Remaining settings ported (wave 5, "remaining settings")
 
 Checked side by side on emulator-5556 (scratchpad `parity4/`, `j-*` / `t-*` / `pair-*`):

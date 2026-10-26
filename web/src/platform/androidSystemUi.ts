@@ -11,7 +11,7 @@
  *   input settings (`answerKeyboard.ts`): "no personalized learning", force ASCII, auto-correct,
  *   'visible password' and the keyboard language hint, for the focused `input.kk-answer`.
  */
-import { registerPlugin } from '@capacitor/core';
+import { registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 import { answerKeyboardFor, type AnswerKeyboard } from './answerKeyboard';
 
 export interface BarColors {
@@ -30,6 +30,20 @@ export interface SystemUiPlugin {
   setImeHints(options: ImeHints): Promise<void>;
   /** The WebView's width in dp (absent in tests). */
   getViewWidth?(): Promise<{ width: number }>;
+  /** KkWebView's keep-keyboard mode (ui/components/session/nativeKeepKeyboard.ts). */
+  setKeepKeyboard?(options: { on: boolean }): Promise<void>;
+  /** The page took the answer field's focus back: show the keyboard again unless the user hid it. */
+  reshowKeyboard?(): Promise<void>;
+  /** KkWebView's keyboard events as `imeDiagnostics` events (ui/shell/keyboardDiagnostics.ts). */
+  setImeDiagnostics?(options: { on: boolean }): Promise<void>;
+  addListener(event: 'imeDiagnostics', cb: (e: ImeDiagnosticsEvent) => void): Promise<PluginListenerHandle>;
+}
+
+/** One native keyboard event: epoch ms, name, detail (no page text). */
+export interface ImeDiagnosticsEvent {
+  t: number;
+  event: string;
+  detail: string;
 }
 
 export const SystemUi = registerPlugin<SystemUiPlugin>('KkSystemUi');
@@ -145,7 +159,7 @@ let stop: (() => void) | undefined;
 let resync: (() => void) | undefined;
 
 /** Starts both syncs (once); returns a stop function (tests). */
-export function startAndroidSystemUi(plugin: SystemUiPlugin = SystemUi, doc: Document = document, win: Window = window): () => void {
+export function startAndroidSystemUi(plugin: Pick<SystemUiPlugin, 'setBarColors' | 'setImeHints' | 'getViewWidth'> = SystemUi, doc: Document = document, win: Window = window): () => void {
   if (stop) return stop;
   let last = '';
   let base: EdgeColors | null = null;

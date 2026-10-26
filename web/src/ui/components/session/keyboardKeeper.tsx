@@ -43,7 +43,7 @@ export function releaseKeyboard(): void {
 }
 
 /** What a tap may focus or act on: these keep the browser's behaviour. */
-const INTERACTIVE = 'input, textarea, select, button, a[href], label, summary, [contenteditable]:not([contenteditable="false"]), '
+export const INTERACTIVE = 'input, textarea, select, button, a[href], label, summary, [contenteditable]:not([contenteditable="false"]), '
   + '[tabindex]:not([tabindex="-1"]), [role="button"], [role="menu"], [role="menuitem"], [role="option"], [role="slider"], '
   + 'dialog, [role="dialog"], [role="alertdialog"]';
 

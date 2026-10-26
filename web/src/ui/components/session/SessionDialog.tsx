@@ -45,10 +45,21 @@ export interface SessionDialogProps {
 }
 
 let openCount = 0;
+const dialogListeners = new Set<() => void>();
 
 /** A session dialog is open (the answer field doesn't submit meanwhile). */
 export function sessionDialogOpen(): boolean {
   return openCount > 0;
+}
+
+/** Called after a session dialog opens or closes (the native keep-keyboard mode). */
+export function subscribeSessionDialogs(listener: () => void): () => void {
+  dialogListeners.add(listener);
+  return () => { dialogListeners.delete(listener); };
+}
+
+function dialogsChanged(): void {
+  for (const l of dialogListeners) l();
 }
 
 /** A text field that keeps the keyboard open (the answer field). */
@@ -80,6 +91,7 @@ export function SessionDialog({
   useLayoutEffect(() => {
     if (!open || host === null) return;
     openCount++;
+    dialogsChanged();
     before.current = document.activeElement;
     if (!isTextField(before.current)) ref.current?.focus({ preventScroll: true });
     return () => {
@@ -87,6 +99,7 @@ export function SessionDialog({
       const el = before.current;
       before.current = null;
       if (el instanceof HTMLElement && el.isConnected && document.activeElement !== el) el.focus({ preventScroll: true });
+      dialogsChanged();
     };
   }, [open, host]);
 

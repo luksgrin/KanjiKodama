@@ -11,6 +11,7 @@ import { useReady } from '../../hooks/useApp';
 import { useToolbar } from '../../shell/toolbar';
 import { KnownLimitations } from '../settings/KnownLimitations';
 import { InstallSection } from './InstallHint';
+import { KeyboardDiagnosticsSection, useDiagnosticsTaps } from './KeyboardDiagnostics';
 import './about.css';
 
 const BASE = import.meta.env.BASE_URL;
@@ -63,6 +64,8 @@ export function AboutScreen() {
   useToolbar({ title: 'About KanjiKodama' });
   const m = content.manifest;
   const wkContent = m === null || m.variant !== 'public';
+  // Hidden: seven taps on the version turn the keyboard diagnostics on or off.
+  const onVersionTap = useDiagnosticsTaps();
   return (
     <div className="kk-about" data-testid="about">
       <h3 data-testid="about-title">KanjiKodama (<span lang="ja">漢字木霊</span>) {__APP_VERSION__}</h3>
@@ -119,12 +122,13 @@ export function AboutScreen() {
 
       <h4>Version</h4>
       <dl className="kk-dl" data-testid="about-version">
-        <dt>App</dt><dd>{__APP_VERSION__}</dd>
+        <dt>App</dt><dd onClick={onVersionTap} data-testid="about-app-version">{__APP_VERSION__}</dd>
         <dt>Built</dt><dd>{dateTime(Date.parse(__BUILD_TIME__))}</dd>
         {m && <><dt>Content</dt><dd>{m.variant}, {m.sha256.slice(0, 12)}</dd></>}
       </dl>
       <h4>Storage</h4>
       <StorageInfo />
+      <KeyboardDiagnosticsSection />
     </div>
   );
 }

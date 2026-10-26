@@ -34,6 +34,10 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * paints behind the bars itself and only the icon colours matter.
  *
  * setImeHints: see KkWebView.
+ *
+ * setKeepKeyboard / reshowKeyboard: KkWebView's keep-keyboard mode (the unanswered quiz question).
+ * setImeDiagnostics: KkWebView's keyboard events as `imeDiagnostics` events ({ t, event, detail }; no
+ * text of the page), for the page's keyboard diagnostics log.
  */
 @CapacitorPlugin(name = "KkSystemUi")
 public class SystemUiPlugin extends Plugin {
@@ -109,6 +113,58 @@ public class SystemUiPlugin extends Plugin {
             ret.put("width", getBridge().getWebView().getWidth() / density);
             call.resolve(ret);
         });
+    }
+
+    private KkWebView kkWebView() {
+        final WebView wv = getBridge().getWebView();
+        return wv instanceof KkWebView ? (KkWebView) wv : null;
+    }
+
+    @PluginMethod
+    public void setKeepKeyboard(final PluginCall call) {
+        final boolean on = Boolean.TRUE.equals(call.getBoolean("on", false));
+        getBridge().executeOnMainThread(() -> {
+            final KkWebView wv = kkWebView();
+            if (wv != null) wv.setKeepKeyboard(on);
+            call.resolve();
+        });
+    }
+
+    @PluginMethod
+    public void reshowKeyboard(final PluginCall call) {
+        getBridge().executeOnMainThread(() -> {
+            final KkWebView wv = kkWebView();
+            if (wv != null) wv.requestReshow();
+            call.resolve();
+        });
+    }
+
+    @PluginMethod
+    public void setImeDiagnostics(final PluginCall call) {
+        final boolean on = Boolean.TRUE.equals(call.getBoolean("on", false));
+        getBridge().executeOnMainThread(() -> {
+            final KkWebView wv = kkWebView();
+            if (wv != null) wv.setImeLog(on ? (event, detail) -> {
+                final JSObject e = new JSObject();
+                e.put("t", System.currentTimeMillis());
+                e.put("event", event);
+                e.put("detail", detail);
+                notifyListeners("imeDiagnostics", e);
+            } : null);
+            call.resolve();
+        });
+    }
+
+    @Override
+    protected void handleOnPause() {
+        final KkWebView wv = kkWebView();
+        if (wv != null) wv.setPaused(true);
+    }
+
+    @Override
+    protected void handleOnResume() {
+        final KkWebView wv = kkWebView();
+        if (wv != null) wv.setPaused(false);
     }
 
     @PluginMethod

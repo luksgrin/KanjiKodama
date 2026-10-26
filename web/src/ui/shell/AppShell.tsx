@@ -14,6 +14,7 @@ import { useApp, useAppState } from '../hooks/useApp';
 import { useLocation, useRoute } from '../hooks/useRoute';
 import { LegacyMigrationPrompt } from '../migration/LegacyMigrationPrompt';
 import { preloadScreen, SCREENS } from '../screens';
+import { KeyboardDiagnosticsOverlay } from './KeyboardDiagnosticsOverlay';
 import { StartupScreen } from './StartupScreen';
 import { ToolbarView } from './ToolbarView';
 
@@ -108,6 +109,8 @@ export function AppShell() {
       </main>
       {/* Android, once after installing over the Java app: move its progress (step 6). */}
       <LegacyMigrationPrompt />
+      {/* Hidden keyboard diagnostics (About → seven taps on the version): the last log lines. */}
+      <KeyboardDiagnosticsOverlay />
     </div>
   );
 }

@@ -51,6 +51,7 @@ import { useSessionMenu } from './SessionMenu';
 import { useToolbar } from '../../shell/toolbar';
 import { answerInputAttributes, ankiButtonsHeight, centerCaret, quizQuestionViewHeight, stretchQuestionView } from './displayPrefs';
 import { holdKeyboard, useKeepAnswerFocus } from './keyboardKeeper';
+import { useNativeKeepKeyboard } from './nativeKeepKeyboard';
 import { sessionDialogOpen } from './SessionDialog';
 import type { SessionRuntime, SessionSnapshot } from './runtime';
 import { useVisibleViewport } from './visibleViewport';
@@ -171,6 +172,8 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
   useVisibleViewport();
   // The unanswered question: a tap beside the field leaves the keyboard open (owner's request).
   useKeepAnswerFocus(!answered && !anki, sessionDialogOpen);
+  // Android app: and the keyboard is shown again natively if it still goes away (nativeKeepKeyboard.ts).
+  useNativeKeepKeyboard(!answered && !anki, sessionDialogOpen);
   const fixedHeight = quizQuestionViewHeight(prefs);
   // Font settings: the question text's cap, the answer field and the Anki answer sizes.
   const quizStyle = {
