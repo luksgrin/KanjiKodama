@@ -1,6 +1,6 @@
 # Cutover: from the Java app to the TypeScript app on Android
 
-Issue #3, step 6. The release APK built from `web/` has the Java app's id (`app.kanjikodama.wk`)
+Issue #3, step 6. The release APK built from `app/` has the Java app's id (`app.kanjikodama.wk`)
 and key, so it installs **over** the Java app. Android keeps the Java app's data on such an update,
 and the new app moves it once on its first start. The cutover is done: the owner uses only the new
 app, and the Java app's code (`durtles/`) was removed from the repository after commit `94abf2e`
@@ -17,18 +17,18 @@ checklist below is kept for the record, with paths updated where they moved.
    Settings → Backup your settings. This file is the rollback path. Keep a copy outside Downloads
    (Drive or a computer): Android deletes an app's own files in Downloads when the app is uninstalled.
 
-3. **Back up the signing key** if not done yet: `web/android/release.jks` (until 2026-10-26
-   `durtles/release.jks`) and the passwords in `web/android/keystore.properties`, offline (USB
+3. **Back up the signing key** if not done yet: `app/android/release.jks` (until 2026-10-26
+   `durtles/release.jks`) and the passwords in `app/android/keystore.properties`, offline (USB
    stick, password manager). They are git-ignored, so they exist only on this Mac. Without them no
    later release can update the installed app.
 
 4. **Build the release:**
    ```sh
-   cd web && sh scripts/release-android.sh
+   cd app && sh scripts/release-android.sh
    ```
-   It needs `web/android/keystore.properties` (git-ignored, `storeFile=release.jks`, i.e.
-   `web/android/release.jks`).
-   Output: `web/release/kanjikodama-<version>.apk`.
+   It needs `app/android/keystore.properties` (git-ignored, `storeFile=release.jks`, i.e.
+   `app/android/release.jks`).
+   Output: `app/release/kanjikodama-<version>.apk`.
 
 5. **versionCode check.** The new APK's `versionCode` must be higher than the installed one:
    ```sh
@@ -39,7 +39,7 @@ checklist below is kept for the record, with paths updated where they moved.
 
 6. **Signature check.** The new APK must be signed with the same key as the installed app:
    ```sh
-   apksigner verify --print-certs web/release/kanjikodama-<version>.apk | grep SHA-256
+   apksigner verify --print-certs app/release/kanjikodama-<version>.apk | grep SHA-256
    # Installed app (from the phone):
    adb shell pm path app.kanjikodama.wk      # → package:/data/app/.../base.apk
    adb pull <that path> installed.apk && apksigner verify --print-certs installed.apk | grep SHA-256
@@ -47,11 +47,11 @@ checklist below is kept for the record, with paths updated where they moved.
    Both must print `1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741`
    (CN=luksgrin, O=MojiMori). Checked on 2026-10-26: the new release APK and the Java release APK
    built from `durtles/` have this same certificate (and so did the release built after the key
-   moved to `web/android/`).
+   moved to `app/android/`).
 
 7. **Install over the Java app** (never uninstall first: that deletes the data to migrate):
    ```sh
-   adb install -r web/release/kanjikodama-<version>.apk
+   adb install -r app/release/kanjikodama-<version>.apk
    ```
    Or copy the APK to the phone and open it ("Update" in the installer).
    Android 7.0 (API 24) or newer is required.
@@ -106,9 +106,9 @@ To keep both apps installed (no migration, data separate), build the pre-cutover
 On an emulator (API 36): the Java debug app `app.kanjikodama.wk.debug` with the comparison progress
 restored → its own progress export → the TS debug build (same id `app.kanjikodama.wk.debug`, same
 debug key) installed over it with `adb install -r` → "Move" → the TS app's progress export compared
-with the Java export (`web/test/golden/progress-ts.golden.test.ts`'s semantic comparison: same
+with the Java export (`app/test/golden/progress-ts.golden.test.ts`'s semantic comparison: same
 keys, types and values; key and row order ignored). Unit and render tests:
-`web/test/app/legacyMigration.test.tsx`.
+`app/test/app/legacyMigration.test.tsx`.
 
 Widget, channel and audio (2026-10-26, same emulator): a Java widget (1×1, "R: 1034") placed on the
 Pixel launcher, 318 audio files in the Java app's `no_backup/pronunciation-audio`; after `adb install -r`

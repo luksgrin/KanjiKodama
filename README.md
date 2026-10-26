@@ -4,7 +4,7 @@ A personal, offline Android app for learning kanji with spaced repetition: radic
 vocabulary in WaniKani's level order, with extra notes on how phonetic components predict on'yomi
 readings. It began as a fork of [Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles)
 (Apache-2.0), a Java Android app. Since the cutover (issue #3, step 6) the Android app and the
-iPhone web app (PWA) are built from one TypeScript codebase in `web/` (React + Vite + Capacitor).
+iPhone web app (PWA) are built from one TypeScript codebase in `app/` (React + Vite + Capacitor).
 The Java app (`durtles/`) is retired and was removed from the repository after commit `94abf2e`;
 check out that commit to read or build it.
 
@@ -56,13 +56,13 @@ check out that commit to read or build it.
 
 ## Installing
 
-Android releases are built locally with `web/scripts/release-android.sh` (no GitHub Actions
+Android releases are built locally with `app/scripts/release-android.sh` (no GitHub Actions
 minutes; the workflows in `.github/workflows/` are manual only). It writes a signed
-`web/release/kanjikodama-<version>.apk` and prints the commands to install and publish it; it
+`app/release/kanjikodama-<version>.apk` and prints the commands to install and publish it; it
 never publishes anything itself.
 
 ```sh
-cd web
+cd app
 sh scripts/release-android.sh                  # versionCode 1000, id app.kanjikodama.wk
 adb install -r release/kanjikodama-0.6.0.apk   # or copy it to the phone and open it
 # Publishing is your call (private repository), e.g.:
@@ -87,7 +87,7 @@ Java APK (an earlier GitHub release, or built from commit `94abf2e`), and restor
 
 To move to another phone, save progress to a file on the old one and restore it on the new one.
 
-**iPhone:** the PWA (`web/`, `npm run build`, see `web/SPIKE.md`) is added to the home screen
+**iPhone:** the PWA (`app/`, `npm run build`, see `app/SPIKE.md`) is added to the home screen
 from Safari. It is not deployed anywhere publicly.
 
 ## Building
@@ -95,7 +95,7 @@ from Safari. It is not deployed anywhere publicly.
 Requirements: Node 22.18+, JDK 21 (`brew install openjdk@21`), the Android SDK.
 
 ```sh
-cd web
+cd app
 npm ci
 npm run check                 # typecheck, tests, leak check, build
 npm run build && npx cap sync android
@@ -111,25 +111,25 @@ Its data is separate from the Java app's, so it has nothing to migrate: use a pr
 
 ### Signing
 
-Release builds read `web/android/keystore.properties` (git-ignored; see
-`web/android/keystore.properties.example`). It points at the release key, `storeFile=release.jks`
-(relative to `web/android/`, so `web/android/release.jks`, also git-ignored). This is the key the
+Release builds read `app/android/keystore.properties` (git-ignored; see
+`app/android/keystore.properties.example`). It points at the release key, `storeFile=release.jks`
+(relative to `app/android/`, so `app/android/release.jks`, also git-ignored). This is the key the
 Java app was always signed with (it used to live in `durtles/`); the Java app's own properties file
-is kept next to it as `web/android/keystore.properties.legacy` (git-ignored, same passwords).
+is kept next to it as `app/android/keystore.properties.legacy` (git-ignored, same passwords).
 
-**Keep an offline backup of `web/android/release.jks` and its passwords** (for example on a USB
+**Keep an offline backup of `app/android/release.jks` and its passwords** (for example on a USB
 stick and in a password manager; not in the repository, not in a cloud folder you don't control).
 If the key is lost, no later release can ever install over the app on the phone: the only way
 forward would be uninstalling it (losing its data) after saving a progress file.
 
-Check a release with `apksigner verify --print-certs web/release/kanjikodama-<version>.apk`: the
+Check a release with `apksigner verify --print-certs app/release/kanjikodama-<version>.apk`: the
 SHA-256 digest must be `1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741`
 (`release-android.sh` prints it).
 
 ### Lesson content
 
-`cd web && npm run content` (also the first step of `npm run build`) builds the app's content file
-`web/public/content/content-<hash>.db` from:
+`cd app && npm run content` (also the first step of `npm run build`) builds the app's content file
+`app/public/content/content-<hash>.db` from:
 
 - `content/private/wk-content.db` (git-ignored, never committed): WaniKani's content (radicals,
   kanji, vocabulary, mnemonics, context sentences), used with permission for personal use, with
@@ -163,14 +163,14 @@ uv run pytest
 ### Golden tests
 
 The TypeScript core is tested against fixtures recorded from the Java app
-(`web/test/golden/`, `npx vitest run test/golden`, `npm run golden:coverage`). The Java app is
-gone, so the fixtures are frozen and can't be regenerated; see `web/test/golden/README.md`.
+(`app/test/golden/`, `npx vitest run test/golden`, `npm run golden:coverage`). The Java app is
+gone, so the fixtures are frozen and can't be regenerated; see `app/test/golden/README.md`.
 
 ### Logo
 
 `tools/make_logo.py` draws the pixel logo (a torii with a sprouting kodama under it) and writes the
 Android launcher icons, the monochrome themed-icon layer and the notification icon into
-`web/android/app/src/main/res/`, plus `tools/kanjikodama-logo.svg` / `kanjikodama-logo-512.png`:
+`app/android/app/src/main/res/`, plus `tools/kanjikodama-logo.svg` / `kanjikodama-logo-512.png`:
 
 ```sh
 uv run tools/make_logo.py
@@ -179,7 +179,7 @@ uv run tools/make_logo.py
 ## Repository layout
 
 ```
-web/                     The app: TypeScript (React + Vite), PWA and Capacitor Android
+app/                     The app: TypeScript (React + Vite), PWA and Capacitor Android
   src/                   core/ (logic, golden-tested against Java), app/, ui/, platform/,
                          progress/ (save, restore, legacy migration), storage/, sync/
   android/               Capacitor Android project (native plugins in app/src/main/java)

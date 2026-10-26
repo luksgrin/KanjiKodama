@@ -3,7 +3,7 @@
 
 The dump is in Smouldering Durtles' own table format. This script keeps only content
 (subjects and SRS systems), converts NULL timestamps to 0 (the app's "never"), and resets all
-progress so the app starts fresh (web/scripts/build-content.ts reads it). The output is git-ignored: WaniKani content is licensed to
+progress so the app starts fresh (app/scripts/build-content.ts reads it). The output is git-ignored: WaniKani content is licensed to
 the owner for internal use only and must never be committed.
 
 Without a local dump, the cleaned file is downloaded from the private KanjiKodamaData release

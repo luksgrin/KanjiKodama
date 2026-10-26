@@ -6,9 +6,9 @@ feeds #5 (which upstream screens to keep) and Step 5 (the settings screen in the
 Sources:
 - Keys, titles, types and defaults: `durtles/app/src/main/res/xml/preferences.xml` (the only preference
   XML; titles are inline there, not in `strings.xml`). Enum values: `res/values/array.xml`. Both were
-  removed with the Java app after commit `94abf2e`; snapshots are in `web/test/fixtures/java/`.
+  removed with the Java app after commit `94abf2e`; snapshots are in `app/test/fixtures/java/`.
 - What each key does: the `GlobalSettings` getter that reads it, plus the XML summary.
-- TS core: `web/src/core/settings/` plus the other core modules that read preferences
+- TS core: `app/src/core/settings/` plus the other core modules that read preferences
   (`core/anki/mode.ts`, `core/dashboard/settings.ts`, `core/session/session.ts`). "yes" = a getter with the
   Java default (and the `enable_advanced` gate where Java has it), covered by golden fixtures. "partial" =
   the behavior is ported but nothing reads the setting yet. "n/a (UI)" = a button or info row, not a value.
@@ -37,17 +37,17 @@ Sources:
 ## Port status (2026-10-26, step 5 wave 5)
 
 Every row the Java app shows is on the TS settings screen with Java's order, titles, summaries, keys,
-defaults and dialogs (`web/src/ui/screens/settings/schema.ts`; a test compares each sub-screen's
+defaults and dialogs (`app/src/ui/screens/settings/schema.ts`; a test compares each sub-screen's
 keys with `preferences.xml`). The "TS core" column below is the original draft. Rows ported in this
 round and where they act:
 
 - Font settings, all ten rows: "Select fonts for quiz questions" (`selected_fonts`, Java's JSON list;
-  the eight built-in fonts incl. the seven bundled quiz faces in `web/public/fonts/quiz/`, plus
+  the eight built-in fonts incl. the seven bundled quiz faces in `app/public/fonts/quiz/`, plus
   imported ones; one font per session item, chosen at random among those with glyphs for the
   subject, tap on the question toggles the default face), "Import fonts for quiz questions" (file
   picker; files kept in IndexedDB `kk-fonts`), and the eight size sliders, applied where Java applies
   them (lesson / quiz / item page title, 0 hides it; question text cap; answer field; subject info;
-  dashboard tables; Anki answer). `web/src/ui/theme/quizFonts.ts`, `fontCmap.ts`, `fontPrefs.ts`,
+  dashboard tables; Anki answer). `app/src/ui/theme/quizFonts.ts`, `fontCmap.ts`, `fontPrefs.ts`,
   `useQuizFont.ts`, `screens/settings/fontScreens.tsx`.
 - `notification_update_frequency`, `notification_priority`, `notification_category`: Android only
   (hidden on the web build, which has no notifications, as Java hides rows by API level); the native

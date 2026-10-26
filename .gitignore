@@ -33,7 +33,6 @@ tools/content/__pycache__/
 .ruff_cache/
 *.db
 *.db-journal
-!app/src/main/assets/content.db
 !content/inputs/sound-components.db
 !content/inputs/extra-kanji.db
 

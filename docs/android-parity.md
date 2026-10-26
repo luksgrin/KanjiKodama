@@ -5,7 +5,7 @@
 
 Side-by-side check (round 3) on emulator-5556 (Pixel-class, 1080×2400, density 420 = 2.625, Android 16 /
 API 36, Android System WebView 133) on 2026-10-26: the Java debug app `app.kanjikodama.wk.debug`
-(built from `durtles/`) next to the TS app `app.kanjikodama.wk.web` (`web/`, built with
+(built from `durtles/`) next to the TS app `app.kanjikodama.wk.web` (`app/`, built with
 `npm run build && npx cap sync android && ./gradlew assembleDebug`). Both had the same progress file
 restored ("Restore progress from a file": JLPT order, level 6, 1034 reviews due); the lesson screens and
 dialogs were also checked on fresh data (Reset database, level 1). Every screen was captured in the

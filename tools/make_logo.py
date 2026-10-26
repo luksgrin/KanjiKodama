@@ -5,7 +5,7 @@
 """Generate the KanjiKodama logo: a pixel torii with a sprouting kodama under it, pines, grass and
 sakura petals.
 
-Outputs (into web/android/app/src/main/res/): Android adaptive-icon layers (vector drawables), the
+Outputs (into app/android/app/src/main/res/): Android adaptive-icon layers (vector drawables), the
 notification icon, legacy PNG icons; and an SVG of the mark for design work (tools/).
 
 Run from the repo: uv run tools/make_logo.py
