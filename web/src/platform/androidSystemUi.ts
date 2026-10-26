@@ -28,8 +28,6 @@ export type ImeHints = AnswerKeyboard;
 export interface SystemUiPlugin {
   setBarColors(options: BarColors): Promise<void>;
   setImeHints(options: ImeHints): Promise<void>;
-  /** The navigation bar inset in dp (absent in tests). */
-  getNavigationBarHeight?(): Promise<{ bottom: number }>;
   /** The WebView's width in dp (absent in tests). */
   getViewWidth?(): Promise<{ width: number }>;
 }
@@ -216,10 +214,6 @@ export function startAndroidSystemUi(plugin: SystemUiPlugin = SystemUi, doc: Doc
 
   resync = () => send(true);
   schedule();
-  // --kk-nav-bar: the navigation bar height, for the quiz's keyboard gap (visibleViewport.ts).
-  void plugin.getNavigationBarHeight?.()
-    .then(({ bottom }) => { if (bottom > 0) doc.documentElement.style.setProperty('--kk-nav-bar', `${bottom}px`); })
-    .catch(() => undefined);
   stop = () => {
     mo.disconnect();
     win.removeEventListener('hashchange', schedule);

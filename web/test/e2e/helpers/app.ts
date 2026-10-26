@@ -453,3 +453,21 @@ export function keyboardTopFor(info: TestInfo): number | undefined {
     default: return undefined;
   }
 }
+
+/**
+ * Records, from now on, every appearance of the session screens' stand-in states (the empty states with
+ * their Dashboard button, "Loading…"); `seen` returns them. A session's end goes straight to the next
+ * screen (blank in between, like the start-up), so none of them shows as a transient frame.
+ */
+export async function watchSessionStandIns(page: Page): Promise<{ seen(): Promise<string[]> }> {
+  await page.evaluate(() => {
+    const w = window as Window & { __kkStandIns?: string[] };
+    w.__kkStandIns = [];
+    const ids = ['summary-none', 'session-empty', 'session-loading'];
+    const look = () => {
+      for (const id of ids) if (document.querySelector(`[data-testid="${id}"]`) && !w.__kkStandIns!.includes(id)) w.__kkStandIns!.push(id);
+    };
+    new MutationObserver(look).observe(document.body, { childList: true, subtree: true });
+  });
+  return { seen: () => page.evaluate(() => (window as Window & { __kkStandIns?: string[] }).__kkStandIns ?? []) };
+}

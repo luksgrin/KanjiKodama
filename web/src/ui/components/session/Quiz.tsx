@@ -8,7 +8,9 @@
  *   keyboard (`useVisibleViewport`: the Android WebView resizes, iOS / Chrome shrink the visual viewport);
  *   on a very short screen the question view gives up height first, so the row stays visible. Display
  *   settings: `stretch_quiz_question_view` (the question view takes the spacer's room),
- *   `quiz_question_view_height` (a fixed height in dp), `center_caret`;
+ *   `quiz_question_view_height` (a fixed height in dp), `center_caret`. With the keyboard open the row sits
+ *   8 px above it, and a tap beside the field keeps the keyboard (the owner's requests; Java leaves a
+ *   navigation bar height and hides the keyboard);
  * - answered (`fragment_answered_question.xml`): the question view grows by its Next button (bottom right,
  *   focused like Java's, the keyboard closes), the answer band, the messages and the item info scroll, and
  *   the second Next sits in Submit's place at the bottom of the screen;
@@ -48,7 +50,8 @@ import { SessionItemInfo } from './SessionItemInfo';
 import { useSessionMenu } from './SessionMenu';
 import { useToolbar } from '../../shell/toolbar';
 import { answerInputAttributes, ankiButtonsHeight, centerCaret, quizQuestionViewHeight, stretchQuestionView } from './displayPrefs';
-import { holdKeyboard } from './keyboardKeeper';
+import { holdKeyboard, useKeepAnswerFocus } from './keyboardKeeper';
+import { sessionDialogOpen } from './SessionDialog';
 import type { SessionRuntime, SessionSnapshot } from './runtime';
 import { useVisibleViewport } from './visibleViewport';
 
@@ -160,6 +163,8 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
   }, [answered, busy, floating.retryCount]);
 
   useVisibleViewport();
+  // The unanswered question: a tap beside the field leaves the keyboard open (owner's request).
+  useKeepAnswerFocus(!answered && !anki, sessionDialogOpen);
   const fixedHeight = quizQuestionViewHeight(prefs);
   // Font settings: the question text's cap, the answer field and the Anki answer sizes.
   const quizStyle = {
@@ -215,7 +220,8 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
 
   const input = answerInputAttributes(prefs, question.type, platform.capabilities.imeFlags === true);
   // Taps on the quiz buttons leave the focus (and the keyboard) in the answer field, like Java's buttons.
-  const keepFocus = (e: React.PointerEvent | React.MouseEvent) => e.preventDefault();
+  // Only the mousedown: cancelling a touch's pointerdown also drops its click in WebKit (iOS).
+  const keepFocus = (e: React.MouseEvent) => e.preventDefault();
   const stretch = !answered && stretchQuestionView(prefs);
 
   return (
@@ -258,11 +264,11 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
           <>
             {showDontKnow
               ? (
-                <button type="button" className="kk-btn" disabled={busy} data-testid="dont-know" onPointerDown={keepFocus} onMouseDown={keepFocus}
+                <button type="button" className="kk-btn" disabled={busy} data-testid="dont-know" onMouseDown={keepFocus}
                   onClick={() => { holdKeyboard(); void run(() => rt.dontKnow()); }}>Don&apos;t know</button>
               )
               : <span className="kk-quiz-actions-space" aria-hidden="true" />}
-            <button type="button" className="kk-btn" disabled={busy} data-testid="submit" onPointerDown={keepFocus} onMouseDown={keepFocus}
+            <button type="button" className="kk-btn" disabled={busy} data-testid="submit" onMouseDown={keepFocus}
               onClick={() => void submit()}>Submit</button>
           </>
         ) : (

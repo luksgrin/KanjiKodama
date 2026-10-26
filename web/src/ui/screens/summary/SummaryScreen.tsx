@@ -150,13 +150,19 @@ export function SummaryScreen() {
   // getToolbarTitle "Session summary" in the default toolbar colour.
   useToolbar({ title: 'Session summary', color: 'default', actions: menu.actions });
 
+  // Set once the screen is on its way out (Finish → the dashboard or the level test): it stays blank
+  // until the next screen shows, as the app's start-up does, instead of a frame of "No session to
+  // summarize" (going to the dashboard pops the app's history, which takes a moment).
+  const leaving = useRef(false);
   useEffect(() => {
     if (!snap.loaded || session === null) return;
     if (st === 'INACTIVE' && snap.finished !== null) {
       const to = snap.finished.levelTestRound !== 0 ? paths.levelTest() : paths.dashboard();
+      leaving.current = true;
       rt.clearFinished();
       navigate(to, { replace: true });
     } else if (st === 'ACTIVE' || st === 'IN_LESSON_PRESENTATION') {
+      leaving.current = true;
       navigate(sessionPath(session.type), { replace: true });
     }
   }, [snap.loaded, snap.finished, session, st, rt, navigate]);
@@ -164,7 +170,10 @@ export function SummaryScreen() {
   const counts = useMemo(() => (session ? summaryCounts(learner, session.items) : null), [learner, session, snap.version]);
   // `SummarySessionFragment.onResumeLocal`: Finish has the focus (Java's focus highlight).
   const finishRef = useRef<HTMLButtonElement>(null);
-  const showingSummary = snap.loaded && session !== null && st === 'FINISHING';
+  // Blank while leaving: Finish in progress (the session ended in place, not yet reported), done, or back
+  // to the quiz; also while the session's change to FINISHING is not reported yet.
+  const blank = leaving.current || st !== snap.state || (st === 'INACTIVE' && snap.finished !== null) || st === 'ACTIVE' || st === 'IN_LESSON_PRESENTATION';
+  const showingSummary = snap.loaded && session !== null && st === 'FINISHING' && !blank;
   useEffect(() => {
     if (showingSummary) finishRef.current?.focus({ preventScroll: true });
   }, [showingSummary]);
@@ -172,6 +181,10 @@ export function SummaryScreen() {
   const unlocks = useMemo(() => newUnlocks(learner, snap.meta.startedAt), [learner, snap.meta.startedAt, state.revision]);
 
   if (!snap.loaded || session === null) return <p className="kk-muted">Loading…</p>;
+  if (blank) {
+    return <div data-testid="summary-leaving" aria-busy="true" />;
+  }
+  // Only reached directly (e.g. a stale link): there is no session to summarize.
   if (st !== 'FINISHING' || counts === null) {
     return (
       <div className="kk-panel" data-testid="summary-none">

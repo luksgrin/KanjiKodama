@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
   answer, answerAllCorrect, checkQuickActions, checkScreen, dashboardCounts, enableUndoButton, keyboardTopFor, next,
-  openApp, questionInfo, quiz, restoreFile,
+  openApp, questionInfo, quiz, restoreFile, watchSessionStandIns,
 } from './helpers/app';
 import { writeReviewSeed } from './helpers/progress';
 
@@ -45,6 +45,7 @@ test('review session: correct, wrong, Don\'t know, undo, summary', async ({ page
   await next(page);
 
   // The rest correct (the Don't-know item comes back until it is answered).
+  const standIns = await watchSessionStandIns(page);
   await answerAllCorrect(page);
   await expect(page.getByTestId('summary')).toBeVisible();
   // 4 radicals: the undone wrong answer doesn't count, the Don't know one does.
@@ -57,4 +58,6 @@ test('review session: correct, wrong, Don\'t know, undo, summary', async ({ page
   await checkScreen(page, info, '10-review-summary-items');
   await page.getByTestId('summary-finish').click();
   await expect(page.getByTestId('reviews-count')).toHaveText('0');
+  // Quiz → summary → dashboard without a frame of "Loading…" or "No session to summarize" + Dashboard.
+  expect(await standIns.seen(), 'stand-in states shown on the way out of the session').toEqual([]);
 });

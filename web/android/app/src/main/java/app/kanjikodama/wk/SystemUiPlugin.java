@@ -12,9 +12,7 @@ import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.JSObject;
@@ -36,10 +34,6 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * paints behind the bars itself and only the icon colours matter.
  *
  * setImeHints: see KkWebView.
- *
- * getNavigationBarHeight: the navigation bar inset in dp. Java's quiz ends its quick-action row that
- * much above the keyboard (it pads the IME inset inside a view already above the navigation bar);
- * src/ui/components/session/visibleViewport.ts reproduces the gap.
  */
 @CapacitorPlugin(name = "KkSystemUi")
 public class SystemUiPlugin extends Plugin {
@@ -113,19 +107,6 @@ public class SystemUiPlugin extends Plugin {
             final float density = getActivity().getResources().getDisplayMetrics().density;
             final JSObject ret = new JSObject();
             ret.put("width", getBridge().getWebView().getWidth() / density);
-            call.resolve(ret);
-        });
-    }
-
-    @PluginMethod
-    public void getNavigationBarHeight(final PluginCall call) {
-        getBridge().executeOnMainThread(() -> {
-            final View decor = getActivity().getWindow().getDecorView();
-            final WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
-            final float density = getActivity().getResources().getDisplayMetrics().density;
-            final int px = insets == null ? 0 : insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom;
-            final JSObject ret = new JSObject();
-            ret.put("bottom", px / density);
             call.resolve(ret);
         });
     }

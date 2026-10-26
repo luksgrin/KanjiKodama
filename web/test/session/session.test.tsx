@@ -44,6 +44,13 @@ describe('lessons', () => {
     expect(q(el, 'session-progress')?.textContent).toBe('1/2');
     await click(q(el, 'lesson-next'));
     await click(q(el, 'lesson-next'));
+    // From here to the dashboard, no frame of the stand-in states ("Loading…", "No session to
+    // summarize" / the empty state with its Dashboard button): blank in between, like the start-up.
+    const standIns = new Set<string>();
+    const watch = new MutationObserver(() => {
+      for (const id of ['summary-none', 'session-empty', 'session-loading']) if (q(el, id) !== null) standIns.add(id);
+    });
+    watch.observe(el, { childList: true, subtree: true });
     // The quiz: both radical names.
     for (let i = 0; i < 2; i++) {
       await waitFor(() => q(el, 'submit'), 'question');
@@ -61,10 +68,13 @@ describe('lessons', () => {
     expect(q(el, 'summary-correct-radical')?.textContent).toBe('2');
     await click(q(el, 'summary-finish'));
     await waitFor(() => el.querySelector('[data-testid="lessons-count"]'), 'dashboard');
+    watch.disconnect();
+    expect([...standIns]).toEqual([]);
     const learner = app.requireLearner();
     expect(num(progressRow(learner, 1), 'startedAt')).not.toBe(0);
     expect(num(progressRow(learner, 2), 'startedAt')).not.toBe(0);
-    // After the session: auto backup and notifications.
+    // After the session (right after the dashboard shows): auto backup and notifications.
+    await waitFor(() => platform.backups.length > 0 && platform.scheduled.length > 0, 'auto backup and notifications');
     expect(platform.backups).toHaveLength(1);
     expect(platform.scheduled.length).toBeGreaterThan(0);
     expect(await new KkDb(app.db.name).session.count()).toBe(0);
@@ -452,5 +462,33 @@ describe('self-study and the level test', () => {
     await waitFor(() => q(el, 'self-study-running'), 'resume offer');
     await click([...el.querySelectorAll('button')].find((b) => b.textContent === 'Resume') as HTMLElement);
     await waitFor(() => q(el, 'submit'), 'back in the session');
+  });
+});
+
+describe('the unanswered question keeps the keyboard (owner\'s request)', () => {
+  it('presses beside the field keep its focus; buttons, menus and dialogs are the browser\'s', async () => {
+    const { keepAnswerFocus } = await import('../../src/ui/components/session/keyboardKeeper');
+    document.body.innerHTML = '<input class="kk-answer"><div id="plain"><span id="text">x</span></div><button id="b"><span id="bs">b</span></button>'
+      + '<ul role="menu"><li id="mi">m</li></ul><div role="alertdialog"><p id="dp">d</p></div><input class="kk-answer" id="ro" readonly>';
+    const field = document.querySelector<HTMLInputElement>('input.kk-answer')!;
+    const press = (id: string, button = 0, dialogOpen = false) => {
+      const e = new MouseEvent('mousedown', { bubbles: true, cancelable: true, button });
+      Object.defineProperty(e, 'target', { value: document.getElementById(id) });
+      return keepAnswerFocus(e, dialogOpen) && e.defaultPrevented;
+    };
+    field.focus();
+    expect(press('plain')).toBe(true);
+    expect(press('text')).toBe(true);
+    expect(press('bs')).toBe(false); // inside a button
+    expect(press('mi')).toBe(false); // a menu
+    expect(press('dp')).toBe(false); // a dialog
+    expect(press('text', 2)).toBe(false); // not the primary button
+    expect(press('text', 0, true)).toBe(false); // a session dialog is open
+    // Nothing to keep: the field isn't focused (keyboard closed) or is read-only (answered).
+    field.blur();
+    expect(press('text')).toBe(false);
+    document.querySelector<HTMLInputElement>('#ro')!.focus();
+    expect(press('text')).toBe(false);
+    document.body.innerHTML = '';
   });
 });

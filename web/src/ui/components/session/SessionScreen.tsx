@@ -91,11 +91,16 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
     if (state === 'INACTIVE' || state === 'FINISHING') setSessionLogOpen(false);
   }, [state]);
 
+  // Set once the screen is on its way out (to the summary, the dashboard, the level test or the running
+  // session's route): it stays blank until the next screen shows, as the app's start-up does, instead
+  // of a frame of "Loading…" or the empty state with its Dashboard button.
+  const leaving = useRef(false);
   useEffect(() => {
-    if (!snap.loaded || session === null) return;
+    if (!snap.loaded || session === null || leaving.current || (state === 'INACTIVE' && snap.state !== 'INACTIVE')) return;
     if (state === 'INACTIVE') {
       if (snap.finished !== null) {
         const to = snap.finished.levelTestRound !== 0 ? paths.levelTest() : paths.dashboard();
+        leaving.current = true;
         rt.clearFinished();
         navigate(to, { replace: true });
         return;
@@ -109,13 +114,23 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
       return;
     }
     if (state === 'FINISHING') {
+      leaving.current = true;
       navigate(paths.summary(), { replace: true });
       return;
     }
-    if (type !== kind) navigate(sessionPath(type), { replace: true });
-  }, [snap.loaded, snap.finished, session, state, type, kind, start, rt, navigate]);
+    if (type !== kind) {
+      leaving.current = true;
+      navigate(sessionPath(type), { replace: true });
+    }
+  }, [snap.loaded, snap.finished, snap.state, session, state, type, kind, start, rt, navigate]);
 
   if (!snap.loaded || session === null) return <p className="kk-muted" data-testid="session-loading">Loading…</p>;
+  // Blank while leaving: a session that ended in place (not yet reported: `snap.state` is still the old
+  // state), the end reported, the summary next, or another kind of session's route next.
+  const ending = state === 'INACTIVE' && snap.state !== 'INACTIVE';
+  if (leaving.current || ending || (state === 'INACTIVE' && snap.finished !== null) || state === 'FINISHING' || (state !== 'INACTIVE' && type !== kind)) {
+    return <div data-testid="session-leaving" aria-busy="true" />;
+  }
   if (state === 'INACTIVE') {
     return empty ? (
       <div className="kk-panel" data-testid="session-empty">
@@ -124,7 +139,6 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
       </div>
     ) : <p className="kk-muted" data-testid="session-loading">Loading…</p>;
   }
-  if (type !== kind || state === 'FINISHING') return <p className="kk-muted">Loading…</p>;
   if (logOpen) return <SessionLog rt={rt} session={session} />;
   let body: ReactNode;
   if (state === 'IN_LESSON_PRESENTATION') body = presentation?.(rt, snap, session);

@@ -36,6 +36,7 @@ import {
   type Question,
   type SessionHooks,
   type SessionKind,
+  type SessionState,
   type StoredSession,
 } from '../../../core/session';
 import { shakeOnMatchingKanji, type Preferences } from '../../../core/settings';
@@ -118,6 +119,12 @@ export interface SessionSnapshot {
   loaded: boolean;
   /** The live session (null before loading). */
   session: Session | null;
+  /**
+   * The session's state when this snapshot was taken. The live session changes in place during a write,
+   * before the snapshot that reports it: a screen that sees `session.state` differ from this is in the
+   * middle of a change (e.g. Finish), not in a state of its own.
+   */
+  state: SessionState;
   floating: FloatingState;
   meta: SessionMeta;
   /** Set when a session ended in this app run (cleared when a new one starts). */
@@ -195,7 +202,7 @@ export class SessionRuntime {
 
   private makeSnapshot(version: number): SessionSnapshot {
     return {
-      version, loaded: this.session !== null && this.loading !== null, session: this.session,
+      version, loaded: this.session !== null && this.loading !== null, session: this.session, state: this.session?.state ?? 'INACTIVE',
       floating: { ...this.floating, toasts: [...this.floating.toasts] }, meta: this.meta, finished: this.finished,
       error: this.error,
     };
@@ -304,8 +311,11 @@ export class SessionRuntime {
         throw e;
       }
       await saveSession(this.app.db, this.stored, this.meta);
-      if (wasActive && session.state === 'INACTIVE' && session === this.session) await this.afterSession();
+      const ended = wasActive && session.state === 'INACTIVE' && session === this.session;
+      // The screens move on first (the summary's Finish goes straight to the dashboard); the backup and
+      // the notifications follow before the next action runs.
       this.emit();
+      if (ended) await this.afterSession();
       return result;
     };
     const p = this.queue.then(task, task);

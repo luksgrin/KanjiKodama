@@ -6,8 +6,9 @@
  * - iOS Safari / WKWebView and Android Chrome (`interactive-widget=resizes-visual`) keep the layout
  *   viewport and shrink the visual viewport: `visualViewport.height` is the visible part.
  *
- * While a quiz is mounted, `--kk-visible-height` on `<html>` holds that height in px and
- * `kk-keyboard-open` is set when the keyboard (or anything else) covers more than 120 px of the window.
+ * While a quiz is mounted, `--kk-visible-height` on `<html>` holds that height in px,
+ * `kk-keyboard-open` is set when the keyboard (or anything else) covers more than 120 px of the window
+ * and `kk-ime-open` when the window itself got that much shorter (a resizing keyboard).
  * When the visual viewport is panned (iOS scrolls the page to show a focused field), the page is
  * scrolled back so the toolbar stays on screen, as in the Java app.
  */
@@ -22,19 +23,23 @@ export function visibleHeight(win: Window = window): number {
 
 let users = 0;
 let tallest = 0;
+let tallestWidth = 0;
 
 /**
- * The Android app (adjustResize): Java's quiz pads its content by the keyboard's inset although it is
- * already above the navigation bar, so the quick-action row ends one navigation bar height above the
- * keyboard (`--kk-nav-bar`, from androidSystemUi.ts). `kk-ime-open` marks the keyboard as open (the
- * WebView is then much shorter than it was); session.css adds the gap then.
+ * A keyboard that resizes the window (the Android app's WebView, adjustResize; browsers that resize the
+ * layout viewport): `kk-ime-open` while the window is more than 120 px shorter than it was at this width,
+ * as `kk-keyboard-open` marks a keyboard over the visual viewport. session.css then puts the quick-action
+ * row 8 px above the keyboard. (Java leaves a navigation bar height there; the owner wanted the row right
+ * on the keyboard on every phone: docs/android-parity.md.)
  */
 function updateImeGap(root: HTMLElement): void {
-  if (!root.classList.contains('kk-viewport-resizes')) return;
   const inner = window.innerHeight;
+  if (window.innerWidth !== tallestWidth) {
+    tallestWidth = window.innerWidth;
+    tallest = 0;
+  }
   tallest = Math.max(tallest, inner);
-  const open = tallest - inner > 120;
-  root.classList.toggle('kk-ime-open', open);
+  root.classList.toggle('kk-ime-open', tallest - inner > 120);
 }
 
 function update(): void {

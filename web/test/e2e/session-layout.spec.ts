@@ -63,3 +63,74 @@ test('quiz: Java placement with the keyboard open, dialogs keep the keyboard', a
   await expect(quiz(page)).toHaveAttribute('data-answered', 'false');
   await expect(answerField(page)).toBeFocused();
 });
+
+test('quiz: Don\'t know | Submit 8 px above the keyboard, taps beside the field keep the keyboard', async ({ page }, info) => {
+  const seed = await writeReviewSeed(info, { radicals: 2 });
+  await openApp(page);
+  await restoreFile(page, seed.path);
+  await page.getByTestId('start-reviews').click();
+  await expect(quiz(page)).toHaveAttribute('data-answered', 'false');
+  const vp = page.viewportSize()!;
+  const kb = keyboardTopFor(info) ?? Math.round(vp.height * 0.6);
+  const bottoms = async () => Promise.all(['dont-know', 'submit'].map(async (id) => {
+    const b = (await page.getByTestId(id).boundingBox())!;
+    return b.y + b.height;
+  }));
+
+  // Keyboard open (over the visual viewport: iOS / Chrome; resizing the window: the Android app): the
+  // buttons end 8 px above it (owner's request; Java: a navigation bar height above it).
+  for (const how of ['visual', 'resize'] as const) {
+    try {
+      await simulateKeyboard(page, kb, how, vp);
+      await settle(page);
+      for (const bottom of await bottoms()) {
+        expect(kb - bottom, `gap above the keyboard (${how})`).toBeGreaterThanOrEqual(7.5);
+        expect(kb - bottom, `gap above the keyboard (${how})`).toBeLessThanOrEqual(8.5);
+      }
+    } finally {
+      await simulateKeyboard(page, null, how, vp);
+    }
+  }
+  // Keyboard closed: at the bottom as before (4 px; no home indicator inset in the test browsers).
+  await settle(page);
+  for (const bottom of await bottoms()) expect(vp.height - bottom, 'gap at the bottom, keyboard closed').toBeCloseTo(4, 0);
+
+  // A tap beside the field (question, banner, empty space, toolbar title) leaves the focus (the keyboard) there.
+  const touch = info.project.use.hasTouch === true;
+  const press = async (target: ReturnType<typeof page.locator>) => (touch ? target.tap() : target.click());
+  await answerField(page).focus();
+  for (const target of [
+    page.getByTestId('question-type'), page.locator('.kk-quiz-spacer'), page.getByTestId('session-progress'), page.locator('.kk-toolbar-title'),
+  ]) {
+    await press(target);
+    await expect(answerField(page), 'answer field keeps the focus').toBeFocused();
+  }
+  // The question text still takes its tap (the font toggle) and the field keeps the focus.
+  const clicks = await page.getByTestId('question-text').evaluate((el) => {
+    const w = window as Window & { __kkClicks?: number };
+    w.__kkClicks = 0;
+    el.addEventListener('click', () => { w.__kkClicks!++; });
+    return 0;
+  });
+  await press(page.getByTestId('question-text'));
+  await expect(answerField(page)).toBeFocused();
+  expect(await page.evaluate(() => (window as Window & { __kkClicks?: number }).__kkClicks)).toBe(clicks + 1);
+  // Buttons, the menu and the session dialogs work by touch as before (the field keeps the focus).
+  await press(page.getByTestId('toolbar-overflow'));
+  await press(page.getByTestId('menu-wrapup_session'));
+  const dialog = page.getByTestId('wrapup-dialog');
+  await expect(dialog).toBeVisible();
+  await press(dialog.getByRole('button', { name: /^No$/ }));
+  await expect(dialog).toHaveCount(0);
+  await expect(answerField(page)).toBeFocused();
+  await press(page.getByTestId('dont-know'));
+  await expect(quiz(page)).toHaveAttribute('data-answered', 'true');
+
+  // Answered: presses beside the buttons are the browser's again (the keyboard may hide, as Java's).
+  const prevented = await page.getByTestId('question-type').evaluate((el) => {
+    const e = new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 });
+    el.dispatchEvent(e);
+    return e.defaultPrevented;
+  });
+  expect(prevented, 'answered screen: mousedown beside the buttons not prevented').toBe(false);
+});

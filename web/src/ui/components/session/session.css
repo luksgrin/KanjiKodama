@@ -307,8 +307,11 @@
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2) calc(var(--space-1) + var(--kk-bottom-inset));
 }
+/* With the keyboard open (Android app: kk-ime-open, web: kk-keyboard-open; visibleViewport.ts) the row's
+   buttons end 8 px above the keyboard on every phone (Java: a navigation bar height above it). */
 .kk-quiz { --kk-ime-gap: 0px; }
-:root.kk-ime-open .kk-quiz { --kk-ime-gap: var(--kk-nav-bar, 0px); }
+:root.kk-ime-open .kk-quiz,
+:root.kk-keyboard-open .kk-quiz { --kk-ime-gap: var(--space-1); --kk-bottom-inset: 0px; }
 .kk-quiz.unanswered .kk-quiz-actions { padding-bottom: calc(var(--space-1) + var(--kk-bottom-inset) + var(--kk-ime-gap)); }
 .kk-quiz.answered .kk-quiz-actions {
   position: sticky;

@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { subjectsAt } from './helpers/content';
 import {
   answer, answerAllCorrect, checkQuickActions, checkScreen, dashboardCounts, keyboardTopFor, next, openApp, quiz, throughPresentation,
+  watchSessionStandIns,
 } from './helpers/app';
 
 test('first start: content loads and the dashboard shows the counts', async ({ page }, info) => {
@@ -42,6 +43,7 @@ test('lesson batch: presentation, quiz, summary', async ({ page }, info) => {
   await checkQuickActions(page, 'lesson quiz answered');
   await checkScreen(page, info, '04-lesson-quiz-answered');
   await next(page);
+  const standIns = await watchSessionStandIns(page);
   await answerAllCorrect(page);
 
   await expect(page.getByTestId('summary')).toBeVisible();
@@ -54,4 +56,5 @@ test('lesson batch: presentation, quiz, summary', async ({ page }, info) => {
   await expect(page.getByTestId('lessons-count')).toHaveText(String(before.lessons - batch));
   await expect(page.getByTestId('reviews-count')).toHaveText('0');
   await expect(page.locator('.kk-dashboard')).toContainText(/Apprentice/);
+  expect(await standIns.seen(), 'stand-in states shown on the way out of the session').toEqual([]);
 });

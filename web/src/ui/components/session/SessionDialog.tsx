@@ -125,14 +125,15 @@ export function SessionDialog({
     };
   }, [open]);
 
-  const keepFocus = (e: React.PointerEvent | React.MouseEvent) => {
-    // A tap on the dialog doesn't take the focus from the answer field (the keyboard stays open).
+  const keepFocus = (e: React.MouseEvent) => {
+    // A tap on the dialog doesn't take the focus from the answer field (the keyboard stays open). Only the
+    // mousedown: cancelling a touch's pointerdown also drops its click in WebKit (iOS), i.e. Yes / No.
     const t = e.target as Element;
     if (t.closest('input, textarea, select') === null && isTextField(document.activeElement)) e.preventDefault();
   };
   const hasTitle = title !== undefined && title !== '';
   const overlay = open ? (
-    <div className="kk-sdialog-layer" onPointerDown={keepFocus} onMouseDown={keepFocus}
+    <div className="kk-sdialog-layer" onMouseDown={keepFocus}
       onClick={(e) => { if (e.target === e.currentTarget) cancel.current(); }}>
       <div ref={ref} role="alertdialog" aria-modal="false" tabIndex={-1} className="kk-dialog kk-sdialog"
         aria-labelledby={hasTitle ? titleId : undefined} aria-describedby={messageId} data-testid={testId}>
