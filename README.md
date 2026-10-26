@@ -64,9 +64,9 @@ never publishes anything itself.
 ```sh
 cd web
 sh scripts/release-android.sh                  # versionCode 1000, id app.kanjikodama.wk
-adb install -r release/kanjikodama-0.1.0.apk   # or copy it to the phone and open it
+adb install -r release/kanjikodama-0.6.0.apk   # or copy it to the phone and open it
 # Publishing is your call (private repository), e.g.:
-gh release create v0.1.0 release/kanjikodama-0.1.0.apk --title "KanjiKodama 0.1.0"
+gh release create v0.6.0 release/kanjikodama-0.6.0.apk --title "KanjiKodama 0.6.0"
 ```
 
 The APK has the Java app's id (`app.kanjikodama.wk`) and is signed with the same key, so it installs
