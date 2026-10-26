@@ -12,6 +12,7 @@
  * - the Resurrect / Burn buttons (`SubjectInfoView.java:731-745`, `ResurrectActivity`, `BurnActivity`)
  *   in local mode, and the star rating (`StarRatingView`, `enable_star_ratings`).
  */
+import { maxFontSizeBrowse } from '../../theme/fontPrefs';
 import { useCallback, useMemo, useState } from 'react';
 import { voicePreference } from '../../../core/audio';
 import type { ContentSubject } from '../../../core/content';
@@ -121,6 +122,7 @@ export function SubjectScreen() {
         content={content}
         progress={progress}
         settings={state.prefs}
+        maxFontSize={maxFontSizeBrowse(state.prefs)}
         level={level}
         levelOf={levelOf}
         audio={audio}

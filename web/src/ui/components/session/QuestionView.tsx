@@ -29,6 +29,8 @@ export function titleFor(type: QuestionType, subject: ContentSubject, prefs: Pre
   return questionTitle(type, indicateKanjiReadingType(prefs) ? kanjiAcceptedReadingType(subject) : null);
 }
 import type { SessionToast } from './runtime';
+import { useQuizFont } from '../../theme/useQuizFont';
+import { useTitleLongPress } from '../subject/TitleActionMode';
 import { SubjectChars, subjectGlyphCount } from '../subject/SubjectChars';
 
 /**
@@ -115,6 +117,14 @@ export function QuestionView({
     );
   };
   const len = subjectGlyphCount(subject, characters);
+  // Font settings → Select fonts (tap: back to the default face and again); long press: Copy title / search.
+  const quizFont = useQuizFont(session, subject.id, subject.characters ?? '', prefs);
+  const press = useTitleLongPress(subject, characters, prefs);
+  const glyphStyle = {
+    ['--len' as string]: len,
+    ...(quizFont.font.family !== null ? { fontFamily: `'${quizFont.font.family}', var(--font-ja)` } : {}),
+    ...(quizFont.font.padTop > 0 ? { paddingTop: `${quizFont.font.padTop / 100}em` } : {}),
+  };
   const s2 = special(2);
   const bottom = s2 !== null || next !== undefined;
   return (
@@ -127,7 +137,11 @@ export function QuestionView({
           <span className="kk-quiz-srs">{enableSrsIndicator(prefs) && srsStageName !== null ? srsStageName : ''}</span>
           {special(1)}
         </div>
-        <div className="kk-quiz-glyph" lang="ja" style={{ ['--len' as string]: len }} data-testid="question-text"><SubjectChars subject={subject} text={characters} /></div>
+        <div className="kk-quiz-glyph kk-longpress" lang="ja" style={glyphStyle} data-testid="question-text" data-font={quizFont.font.id}
+          {...press.handlers} onClick={() => { if (!press.consumeLongPress()) quizFont.toggle(); }}>
+          <SubjectChars subject={subject} text={characters} />
+        </div>
+        {press.node}
         <div className="kk-quiz-bottom">
           {s2}
           {next}

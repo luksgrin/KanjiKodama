@@ -1,0 +1,54 @@
+/*
+ * The subject title's action mode (TitleActionMode.tsx), measured on the Java app: a 54 dp #303030
+ * bar plus a 2 dp colorControlActivated line, inserted above the toolbar (everything below moves
+ * down 56 dp); the status bar area keeps the window background. White Done arrow, the actions in the
+ * toolbar's Silkscreen, upper case.
+ */
+:root.kk-action-mode .kk-shell { padding-top: calc(var(--safe-top) + 56px); }
+:root.kk-action-mode .kk-toolbar { top: calc(var(--safe-top) + 56px); padding-top: 0; }
+
+.kk-action-mode-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: var(--safe-top) var(--safe-right) 0 var(--safe-left);
+  background: var(--color-bg);
+}
+.kk-action-mode-inner {
+  height: 54px;
+  border-bottom: 2px solid var(--color-control-activated);
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  background: #303030;
+  color: #FFFFFF;
+  position: relative;
+  /* The Android status bar takes the colour at the page's top edge (androidSystemUi.ts, hit-tested):
+     let it see the bar's wrapper, the window background, as Java's status bar shows it. */
+  pointer-events: none;
+}
+.kk-action-mode-inner > * { pointer-events: auto; }
+.kk-action-mode-inner > .kk-toolbar-btn:first-child { width: 56px; height: 48px; }
+.kk-action-mode-space { flex: 1; min-width: 0; }
+.kk-action-mode-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  flex: none;
+  height: 48px;
+  min-width: 48px;
+  padding: 0 12px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.kk-action-mode-item:active { background: rgb(255 255 255 / 0.2); }
+.kk-action-mode-bar .kk-toolbar-menu { top: 0; }
+
+/* A long-pressable title: no text selection or iOS callout on the press. */
+.kk-longpress { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }

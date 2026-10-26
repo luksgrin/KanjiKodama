@@ -9,6 +9,7 @@
  *   (EditLimitedIntPreference: out of range → the Java toast, nothing stored);
  * - SeekBarPreference: the seek bar and its value under the title, saved when released;
  * - NumberRangePreference: "Min 3", "1 - 5", "Unlimited"; tap → the Min / Max dialog.
+ * - TaggedUrlPreference: the name as summary; tap → the Name / URL dialog.
  *
  * Changes go through `app.setPreference` (same keys and value types as Java's `SharedPreferences`);
  * the theme follows its keys by itself (App.tsx `ThemeSync`).
@@ -22,6 +23,7 @@ import { useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 import { toast } from '../../shell/toast';
 import { AlertDialog, ChoiceList } from './AlertDialog';
+import { FONT_IMPORT_SCREEN, FONT_SELECTION_SCREEN } from './fontScreens';
 import {
   ENABLE_ADVANCED_WARNING,
   NUMBER_RANGE_MESSAGE,
@@ -36,6 +38,7 @@ import {
   type Row,
   type SettingGroup,
   type SliderSetting,
+  type TaggedUrlSetting,
   type TextSetting,
 } from './schema';
 
@@ -222,6 +225,42 @@ function RangeRow({ def, prefs, disabled, write }: { def: RangeSetting; prefs: P
   );
 }
 
+/** `TaggedUrlPreferenceDialogFragment`'s message. */
+export const TAGGED_URL_MESSAGE = 'Search engines are shown when long-pressing on a subject title. In the URL, "%s" will be replaced'
+  + ' with the search query.';
+
+/** TaggedUrlPreference: `<key>_tag` (name, the summary) and `<key>` (URL), both saved on OK. */
+function TaggedUrlRow({ def, prefs, write }: { def: TaggedUrlSetting; prefs: Preferences; write: Write }) {
+  const [open, setOpen] = useState(false);
+  const tagRef = useRef<HTMLInputElement>(null);
+  const urlRef = useRef<HTMLInputElement>(null);
+  const storedTag = prefs[`${def.key}_tag`];
+  const storedUrl = prefs[def.key];
+  const tag = typeof storedTag === 'string' ? storedTag : def.defaultTag;
+  const url = typeof storedUrl === 'string' ? storedUrl : def.default;
+  const ok = () => {
+    setOpen(false);
+    write(`${def.key}_tag`, tagRef.current?.value ?? tag);
+    write(def.key, urlRef.current?.value ?? url);
+  };
+  return (
+    <>
+      <PrefRow title={def.title} summary={tag} testId={`setting-${def.key}`} onClick={() => setOpen(true)} />
+      <AlertDialog open={open} title={def.title} onCancel={() => setOpen(false)} testId={`dialog-${def.key}`}
+        negative={{ label: 'Cancel', onClick: () => setOpen(false) }} positive={{ label: 'OK', onClick: ok }}>
+        <form className="kk-alert-form kk-tagged-url" onSubmit={(e) => { e.preventDefault(); ok(); }}>
+          <p className="kk-alert-message">{TAGGED_URL_MESSAGE}</p>
+          <input ref={tagRef} className="kk-alert-field" type="text" defaultValue={tag} placeholder="Name" aria-label="Name"
+            autoComplete="off" data-testid={`${def.key}-name`} />
+          <input ref={urlRef} className="kk-alert-field" type="url" inputMode="url" defaultValue={url} placeholder="URL" aria-label="URL"
+            autoComplete="off" autoCapitalize="none" spellCheck={false} data-testid={`${def.key}-url`} />
+          <button type="submit" hidden />
+        </form>
+      </AlertDialog>
+    </>
+  );
+}
+
 function ActionRowView({ row, actions }: { row: ActionRow; actions: Actions }) {
   const run = actions[row.key];
   if (!run) return null;
@@ -240,6 +279,7 @@ export function SettingRow({ row, prefs, write, actions = {} }: { row: Row; pref
     case 'text': return <TextRow def={row} prefs={prefs} disabled={disabled} write={write} />;
     case 'slider': return <SliderRow def={row} prefs={prefs} disabled={disabled} write={write} />;
     case 'range': return <RangeRow def={row} prefs={prefs} disabled={disabled} write={write} />;
+    case 'taggedUrl': return <TaggedUrlRow def={row} prefs={prefs} write={write} />;
   }
 }
 
@@ -257,7 +297,7 @@ export function useSettingWriter(): { write: Write; dialog: ReactNode } {
       return;
     }
     void app.setPreference(key, value).then(() => {
-      if (key === 'enable_notifications') {
+      if (key === 'enable_notifications' || key.startsWith('notification_')) {
         void rescheduleReviewNotifications(platform.notifications, learner, app.get().prefs, app.clock.now()).catch(() => undefined);
       }
     });
@@ -284,6 +324,8 @@ export function useScreenLinkActions(): Actions {
   return {
     theme_customization: () => nav(paths.themeCustomization()),
     keyboard_help: () => nav(paths.keyboardHelp()),
+    font_selection: () => nav(`${paths.settings()}?screen=${FONT_SELECTION_SCREEN}`),
+    font_import: () => nav(`${paths.settings()}?screen=${FONT_IMPORT_SCREEN}`),
   };
 }
 

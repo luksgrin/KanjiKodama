@@ -14,21 +14,13 @@
  * capability, `advanced` marks a value the core getters ignore (default used) while
  * `enable_advanced` is off, and `enabledWhen` is Java's `android:dependency`.
  *
- * Not listed (Android-UI only, or the inventory's "Drop", `docs/settings-inventory.md`):
- * - API/audio plumbing: api_key_help, api_key (asked by the import / server screens instead),
- *   audio_location (one location here), use_audio_focus, web_password (resurrect via the WaniKani web
- *   site is not ported).
- * - Dashboard panels the TS dashboard does not have: show_post60_progression, show_post60_subsections,
- *   show_post60_reverse.
- * - Fonts (only font_size_live_subject_table is kept, the dashboard tables read it): font_selection,
- *   font_import, max_font_size_lesson, max_font_size_quiz, max_font_size_browse,
- *   max_font_size_quiz_text, font_size_question_edit, font_size_subject_info, font_size_anki_answer.
- * - Notification details (Android plumbing): notification_update_frequency, notification_priority,
- *   notification_category.
- * - search_engine_1 … search_engine_5 (inventory "Ask"; the tagged-URL editor and the item page's
- *   search links are not ported).
- * - Hidden experimental screen: experimental_status, exp_subject_card_layout_search,
- *   exp_subject_card_layout_grid. Hidden helper: not_always_hide_wk_mnemonic (enabledWhen below).
+ * Not listed (see `docs/settings-inventory.md`):
+ * - API plumbing: api_key_help, api_key (asked by the import / server screens instead),
+ *   audio_location (hidden in Java too: one location), web_password (resurrect through the WaniKani
+ *   web site is not ported).
+ * - Hidden experimental screen (`isPreferenceVisible="false"` in Java): experimental_status,
+ *   exp_subject_card_layout_search, exp_subject_card_layout_grid. Hidden helper:
+ *   not_always_hide_wk_mnemonic (enabledWhen below).
  * - Other actions: support_and_feedback (hidden in Java too), data_import_export, reset_database,
  *   backup_settings, restore_settings. (reset_tutorials is an action on the root screen.)
  */
@@ -68,10 +60,15 @@ export interface SliderSetting extends Base { type: 'slider'; default: number; m
 export interface RangeSetting extends Base { type: 'range' }
 /** InfoPreference: a text row. */
 export interface InfoRow { type: 'info'; key: string; text: string; advanced?: boolean }
+/**
+ * TaggedUrlPreference (search engines): `<key>_tag` holds the name, `<key>` the URL; the summary is
+ * the name. Defaults from the XML (`defaultTag`, `defaultValue`).
+ */
+export interface TaggedUrlSetting extends Base { type: 'taggedUrl'; default: string; defaultTag: string }
 /** A plain `Preference` that runs an action (the screen supplies the handler by key). */
 export interface ActionRow { type: 'action'; key: string; title: string; summary?: string; mode?: 'local' | 'server'; requires?: keyof Capabilities }
 
-export type SettingDef = BoolSetting | ListSetting | TextSetting | SliderSetting | RangeSetting;
+export type SettingDef = BoolSetting | ListSetting | TextSetting | SliderSetting | RangeSetting | TaggedUrlSetting;
 export type Row = SettingDef | InfoRow | ActionRow;
 
 /** A Java sub-`PreferenceScreen`: `id` is its key, `note` its summary on the parent screen. */
@@ -130,6 +127,16 @@ const CLOSE_ENOUGH_ACTIONS: Options = [
   ['ACCEPT_WITH_TOAST_NO_LM', 'Accept, show a toast, disable lightning mode for this question'],
   ['SHAKE_AND_RETRY', 'Shake and retry'], ['REJECT', 'Reject'],
 ];
+const NOTIFICATION_UPDATE_FREQUENCIES: Options = [
+  ['ONLY_NEW_REVIEWS', 'Only for new reviews'], ['ONCE_PER_HOUR', 'Once per hour'], ['CONTINUOUSLY', 'Continuously'],
+];
+const NOTIFICATION_PRIORITIES: Options = [['MIN', 'Minimum'], ['LOW', 'Low'], ['DEFAULT', 'Default'], ['HIGH', 'High'], ['MAX', 'Maximum']];
+const NOTIFICATION_CATEGORIES: Options = [
+  ['CALL', 'Incoming call'], ['NAVIGATION', 'Navigation'], ['MESSAGE', 'Incoming message'], ['EMAIL', 'Email'],
+  ['EVENT', 'Calendar event'], ['PROMO', 'Promotion / Ad'], ['ALARM', 'Alarm'], ['PROGRESS', 'Progress'],
+  ['SOCIAL', 'Social media'], ['ERROR', 'Error'], ['TRANSPORT', 'Media transport'], ['SYSTEM', 'System'],
+  ['SERVICE', 'Service'], ['REMINDER', 'Reminder'], ['RECOMMENDATION', 'Recommendation (default)'], ['STATUS', 'Status'],
+];
 const TIME_LINE_CHART_STYLES: Options = [['SRS_STAGE', 'SRS Stage'], ['NEXT_SRS_STAGE', 'Next SRS Stage'], ['ITEM_TYPE', 'Item type']];
 const TIME_LINE_CHART_GRID_STYLES: Options = [['OFF', 'Off'], ['FOR_BARS', 'Scaled for bars'], ['FOR_WATERFALL', 'Scaled for cumulative review count']];
 const TIME_LINE_CHART_SIZES: Options = [
@@ -157,6 +164,7 @@ const RANDOMIZE_INFLECTIONS = 'Works best with Anki mode. Random inflections wil
 
 const bool = (key: string, title: string, def: boolean, extra: Partial<BoolSetting> = {}): BoolSetting => ({ type: 'bool', key, title, default: def, ...extra });
 const list = (key: string, title: string, options: Options, def: string, extra: Partial<ListSetting> = {}): ListSetting => ({ type: 'list', key, title, options, default: def, ...extra });
+const taggedUrl = (key: string, title: string, def = '', defaultTag = ''): TaggedUrlSetting => ({ type: 'taggedUrl', key, title, default: def, defaultTag });
 const adv = <T extends SettingDef | InfoRow>(r: T): T => ({ ...r, advanced: true });
 
 export const ENABLE_ADVANCED: BoolSetting = bool('enable_advanced', 'Enable advanced settings', false, { summary: 'Only for experienced users!' });
@@ -241,6 +249,9 @@ export const ADVANCED_GROUPS: readonly SettingGroup[] = [
 
 const notAlwaysHideWkMnemonic = (p: Preferences): boolean => p.always_hide_wk_mnemonic !== true;
 
+/** The summary of the subject title size sliders. */
+const HIDE_TITLE = 'Set to 0 to hide the title';
+
 /** `PreferencesFragment`: shown on the web build only where a browser can honour it (`imeFlags`). */
 const VISIBLE_PASSWORD_SUMMARY = 'This may be necessary to prevent auto-suggest on some keyboards';
 
@@ -249,8 +260,9 @@ const VISIBLE_PASSWORD_SUMMARY = 'This may be necessary to prevent auto-suggest 
  * sub-screen without a visible value row is hidden (e.g. "Audio download settings" on the web build).
  * Keyboard input settings: the rows a browser can't honour (Android IME flags, set by `KkWebView`)
  * need `imeFlags`, as Java hides the language hints below Android 7 (`setVisibility`); the web build
- * keeps auto-correct (the `autocorrect` attribute) and the Next delay. Font settings has only the
- * dashboard table size.
+ * keeps auto-correct (the `autocorrect` attribute) and the Next delay. The notification rows need
+ * `notifications` (the web build has none) and "Request audio focus" `audioFocus` (Android), as Java
+ * hides rows its device can't use.
  */
 export const SETTINGS_SCREENS: readonly SettingGroup[] = [
   {
@@ -310,6 +322,13 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
         type: 'text', key: 'previous_level_progression_limit_amount', title: 'Number of previous levels to show progression bars for',
         default: '1', min: 0, max: 60, enabledWhen: (p) => p.previous_level_progression_limit === true,
       },
+      bool('show_post60_progression', 'Show post-60 progression bar', false, {
+        summary: "Can be used at any level, but intended for level 60! Does NOT include a legend, so only enable this if you're cool with that.",
+      }),
+      bool('show_post60_subsections', 'Show subsections in post-60 progression bar', false, {
+        summary: 'Show separate bar segments for the different Apprentice and Guru levels',
+      }),
+      bool('show_post60_reverse', 'Reverse post-60 progression bar', false),
       bool('show_joyo_progress', 'Show Jōyō progress', false),
       bool('show_jlpt_progress', 'Show JLPT progress', false),
       bool('show_recent_unlocks', 'Show recently unlocked items', true),
@@ -351,6 +370,9 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
       bool('autoplay_reviews', 'Autoplay audio during reviews', true, { requires: 'audioPlayback', summary: 'When answering a question correctly in a review/self-study session' }),
       bool('autoplay_anki_reveal', 'Autoplay audio when revealing in Anki mode', true, { requires: 'audioPlayback', summary: "When clicking the 'Show answer' button in Anki mode" }),
       list('voice_preference', 'Voice preference', VOICE_PREFERENCES, 'RANDOM', { requires: 'audioPlayback' }),
+      bool('use_audio_focus', 'Request audio focus when playing vocab audio', true, {
+        requires: 'audioFocus', summary: 'Asks other player apps to pause or lower their volume when playing vocab audio',
+      }),
     ],
   },
   {
@@ -412,10 +434,22 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
     id: 'font_settings',
     title: 'Font settings',
     rows: [
+      { type: 'action', key: 'font_selection', title: 'Select fonts for quiz questions' },
+      { type: 'action', key: 'font_import', title: 'Import fonts for quiz questions' },
+      { type: 'slider', key: 'max_font_size_lesson', title: 'Max font size of subject title in lesson presentation', default: 128, min: 0, max: 128, summary: HIDE_TITLE },
+      { type: 'slider', key: 'max_font_size_quiz', title: 'Max font size of subject title on the quiz screen', default: 28, min: 0, max: 128, summary: HIDE_TITLE },
+      { type: 'slider', key: 'max_font_size_browse', title: 'Max font size of subject title on the browse screen', default: 64, min: 0, max: 128, summary: HIDE_TITLE },
+      {
+        type: 'slider', key: 'max_font_size_quiz_text', title: 'Max font size of main quiz question text', default: 104, min: 0, max: 500,
+        summary: 'This is the large question text in the center of the quiz screen',
+      },
+      { type: 'slider', key: 'font_size_question_edit', title: 'Font size of answer input text box', default: 22, min: 10, max: 32 },
+      { type: 'slider', key: 'font_size_subject_info', title: 'Font size of subject info dump', default: 16, min: 10, max: 32 },
       {
         type: 'slider', key: 'font_size_live_subject_table', title: 'Font size of dashboard subject tables', default: 16, min: 10, max: 32,
         summary: 'Critical condition items, recent unlocks, and recently burned',
       },
+      { type: 'slider', key: 'font_size_anki_answer', title: 'Font size of Anki mode answers', default: 20, min: 10, max: 48 },
     ],
   },
   {
@@ -427,6 +461,14 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
         summary: 'Open system settings to allow this app to send notifications', requires: 'notifications',
       },
       bool('enable_notifications', 'Enable notifications for new reviews', true, { requires: 'notifications' }),
+      list('notification_update_frequency', 'Notification update frequency', NOTIFICATION_UPDATE_FREQUENCIES, 'ONLY_NEW_REVIEWS', { requires: 'notifications' }),
+      list('notification_priority', 'Notification priority', NOTIFICATION_PRIORITIES, 'DEFAULT', { requires: 'notifications' }),
+      list('notification_category', 'Notification category', NOTIFICATION_CATEGORIES, 'RECOMMENDATION', { requires: 'notifications' }),
+      taggedUrl('search_engine_1', 'Search engine 1', 'https://ja.wiktionary.org/w/index.php?search=%s', 'Wiktionary'),
+      taggedUrl('search_engine_2', 'Search engine 2', 'https://jisho.org/search/%s', 'Jisho'),
+      taggedUrl('search_engine_3', 'Search engine 3'),
+      taggedUrl('search_engine_4', 'Search engine 4'),
+      taggedUrl('search_engine_5', 'Search engine 5'),
       bool('enable_star_ratings', 'Enable star ratings for subjects', false, {
         summary: 'If enabled you can give star ratings to subjects and use those ratings as search filters',
       }),
@@ -511,6 +553,7 @@ export function storedKeys(groups: readonly SettingGroup[]): string[] {
     for (const r of g.rows) {
       if (r.type === 'info' || r.type === 'action') continue;
       if (r.type === 'range') { out.add(`${r.key}_min`); out.add(`${r.key}_max`); } else out.add(r.key);
+      if (r.type === 'taggedUrl') out.add(`${r.key}_tag`);
     }
   }
   return [...out];

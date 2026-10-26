@@ -5,6 +5,26 @@ import type { LearnerDb } from '../core/progression';
 import type { Preferences } from '../core/settings';
 import type { NotificationsApi } from './index';
 
+const pref = (prefs: Preferences, key: string, def: string, allowed: readonly string[]): string => {
+  const v = prefs[key];
+  return typeof v === 'string' && allowed.includes(v) ? v : def;
+};
+
+/**
+ * `GlobalSettings.Other.getNotificationUpdateFrequency` / `getNotificationPriority` /
+ * `getNotificationCategory` (enum values; an unknown value falls back to the default).
+ */
+export function notificationStyle(prefs: Preferences): { frequency: string; priority: string; category: string } {
+  return {
+    frequency: pref(prefs, 'notification_update_frequency', 'ONLY_NEW_REVIEWS', ['ONLY_NEW_REVIEWS', 'ONCE_PER_HOUR', 'CONTINUOUSLY']),
+    priority: pref(prefs, 'notification_priority', 'DEFAULT', ['MIN', 'LOW', 'DEFAULT', 'HIGH', 'MAX']),
+    category: pref(prefs, 'notification_category', 'RECOMMENDATION', [
+      'CALL', 'NAVIGATION', 'MESSAGE', 'EMAIL', 'EVENT', 'PROMO', 'ALARM', 'PROGRESS', 'SOCIAL', 'ERROR', 'TRANSPORT',
+      'SYSTEM', 'SERVICE', 'REMINDER', 'RECOMMENDATION', 'STATUS',
+    ]),
+  };
+}
+
 /**
  * Replace the scheduled review notifications with the plan at `now`, or cancel them when the user
  * turned notifications off (`enable_notifications`). No-op on the web build. Resolves with the
@@ -23,5 +43,7 @@ export async function rescheduleReviewNotifications(
     return 0;
   }
   const counts = planWidget(db, now, { ...(options.maxLevel === undefined ? {} : { maxLevel: options.maxLevel }), cap: 0 });
-  return api.scheduleReviews(planReviewNotifications(db, now, options), { now, current: { lessons: counts.lessons, reviews: counts.reviews } });
+  return api.scheduleReviews(planReviewNotifications(db, now, options), {
+    now, current: { lessons: counts.lessons, reviews: counts.reviews }, style: notificationStyle(prefs),
+  });
 }

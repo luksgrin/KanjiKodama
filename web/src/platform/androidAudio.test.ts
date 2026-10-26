@@ -8,8 +8,8 @@ const fs = vi.hoisted(() => ({ files: new Map<string, string>() }));
 const http = vi.hoisted(() => ({ request: vi.fn() }));
 
 vi.mock('@capacitor/core', () => ({
-  Capacitor: { convertFileSrc: (uri: string) => uri.replace('file://', 'https://localhost/_capacitor_file_') },
   CapacitorHttp: http,
+  registerPlugin: () => ({ play: async () => ({ played: true }) }),
 }));
 vi.mock('@capacitor/filesystem', () => {
   const children = (path: string) => {
@@ -150,11 +150,12 @@ describe('status and deleteAll', () => {
 });
 
 describe('play', () => {
-  it('plays the cached file through convertFileSrc', async () => {
-    const { audio, played } = setup();
+  it('plays the cached file natively by its file URI, with the audio focus option', async () => {
+    const { audio, player, played } = setup();
     fs.files.set('pronunciation-audio/1/21.mp3', 'AAAA');
-    await expect(audio.play(2, 'RANDOM')).resolves.toBe(true);
-    expect(played).toEqual(['https://localhost/_capacitor_file_/data/pronunciation-audio/1/21.mp3']);
+    await expect(audio.play(2, 'RANDOM', null, { audioFocus: false })).resolves.toBe(true);
+    expect(played).toEqual(['file:///data/pronunciation-audio/1/21.mp3']);
+    expect(player.play).toHaveBeenCalledWith('file:///data/pronunciation-audio/1/21.mp3', { audioFocus: false });
   });
 
   it('streams when not cached; false when that fails (offline) or there is no audio', async () => {

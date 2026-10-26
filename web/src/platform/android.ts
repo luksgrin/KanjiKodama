@@ -6,6 +6,7 @@ import { Share } from '@capacitor/share';
 import type { AutoBackupEntry, Capabilities, FilesApi, OpenedText, Platform, SaveResult } from './index';
 import { androidAudio } from './androidAudio';
 import { androidBackgroundSync } from './androidBackgroundSync';
+import { androidLegacy } from './androidLegacy';
 import { androidSecrets } from './androidSecrets';
 import { androidWidget } from './androidWidget';
 import { androidHttp } from './httpAndroid';
@@ -37,9 +38,10 @@ const capabilities: Capabilities = {
   backgroundSync: true, // BackgroundSyncWorker (WorkManager), server mode
   widget: true, // SessionWidgetProvider
   cleartextHttp: true,
-  legacyMigration: false, // step 6
+  legacyMigration: true, // LegacyMigrationPlugin: one-time move from the Java app
   autoBackup: true,
   imeFlags: true, // KkWebView (keyboard input settings)
+  audioFocus: true, // KkAudioPlugin (MediaPlayer + AudioFocusRequest)
 };
 
 /** The native Document plugin is missing (e.g. an APK built before it existed). */
@@ -148,4 +150,5 @@ export const androidPlatform: Platform = {
   secrets: androidSecrets,
   widget: androidWidget,
   backgroundSync: androidBackgroundSync,
+  legacy: androidLegacy,
 };

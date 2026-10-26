@@ -1,5 +1,7 @@
 name: Release APK (manual)
 
+# Manual only. Builds the old Java app (durtles/); the Capacitor app's release is
+# web/scripts/release-android.sh (local, no Actions minutes).
 on:
   workflow_dispatch:
     inputs:

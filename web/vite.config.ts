@@ -76,13 +76,19 @@ export default defineConfig({
         // Zen Maru Gothic TTF is 3.8 MB (full font, unsubsetted). Subsetting to the content's
         // character set / WOFF2 is a follow-up; until then allow it into the precache.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        globIgnores: ['content/**'],
+        // The optional quiz fonts (Font settings, ~17 MB) are fetched when chosen and cached at runtime.
+        globIgnores: ['content/**', 'fonts/quiz/**'],
         // The ~33 MB content file is too large for the precache manifest (and would make every
         // app update re-download it). It is cached at runtime on first fetch instead, in its
         // own cache that survives app (service-worker) updates. Its name carries its hash
         // (content-<hash>.db, named by content-manifest.json), so a new build is a new URL;
         // the manifest itself is network-first so updates are seen, with the cached copy offline.
         runtimeCaching: [
+          {
+            urlPattern: ({ url }) => /\/fonts\/quiz\/[^/]+\.ttf$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'kk-quiz-fonts-v1', expiration: { maxEntries: 8 }, cacheableResponse: { statuses: [200] } },
+          },
           {
             urlPattern: ({ url }) => /\/content\/content-manifest\.json$/.test(url.pathname),
             handler: 'NetworkFirst',

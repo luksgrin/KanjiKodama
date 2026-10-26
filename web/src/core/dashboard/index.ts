@@ -17,7 +17,7 @@ export {
   type TimeLineOptions,
 } from './timeLine';
 export { computeLevelProgress, type LevelProgressBar, type LevelProgressOptions } from './levelProgress';
-export { SRS_BREAKDOWN_BUCKETS, computeSrsBreakdown } from './srsBreakdown';
+export { SRS_BREAKDOWN_BUCKETS, computePost60Breakdown, computeSrsBreakdown } from './srsBreakdown';
 export {
   limitPreviousLevelProgression,
   previousLevelProgressionLimitedAmount,

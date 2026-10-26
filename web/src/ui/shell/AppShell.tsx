@@ -12,6 +12,7 @@ import { Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { handleBack } from '../../app/back';
 import { useApp, useAppState } from '../hooks/useApp';
 import { useLocation, useRoute } from '../hooks/useRoute';
+import { LegacyMigrationPrompt } from '../migration/LegacyMigrationPrompt';
 import { preloadScreen, SCREENS } from '../screens';
 import { StartupScreen } from './StartupScreen';
 import { ToolbarView } from './ToolbarView';
@@ -105,6 +106,8 @@ export function AppShell() {
           <Screen />
         </Suspense>
       </main>
+      {/* Android, once after installing over the Java app: move its progress (step 6). */}
+      <LegacyMigrationPrompt />
     </div>
   );
 }

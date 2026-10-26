@@ -87,4 +87,13 @@ test('main screens', async ({ page }, info) => {
   await checkScreen(page, info, 'L18-keyboard-help-full', { strict: true, fullPage: true });
   await openApp(page, '/settings/theme-customization');
   await checkScreen(page, info, 'L19-theme-customization-full', { strict: true, fullPage: true });
+  await openApp(page, '/settings?screen=font_settings');
+  await checkScreen(page, info, 'L20-settings-fonts-full', { strict: true, fullPage: true });
+  await openApp(page, '/settings?screen=font_selection');
+  await expect(page.getByTestId('font-row-8')).toBeVisible();
+  await checkScreen(page, info, 'L21-font-selection-full', { strict: true, fullPage: true });
+  await openApp(page, '/settings?screen=font_import');
+  await checkScreen(page, info, 'L22-font-import', { strict: true });
+  await openApp(page, '/settings?screen=other_settings');
+  await checkScreen(page, info, 'L23-settings-other-full', { strict: true, fullPage: true });
 });

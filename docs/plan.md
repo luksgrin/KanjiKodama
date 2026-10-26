@@ -1,5 +1,12 @@
 # KanjiKodama — Implementation Plan
 
+> **Current state (2026-10-26).** The one-codebase plan below ("Next: one codebase…", Kotlin
+> Multiplatform) was replaced by the TypeScript plan of GitHub issue #3 (React + Vite + Capacitor in
+> `web/`: PWA for the iPhone, Capacitor APK for Android). Steps 1–5 are done; step 6, the cutover,
+> is in [cutover.md](cutover.md): the Capacitor APK now has the Java app's id and key and migrates
+> its data once. `durtles/` and the Kotlin prototype stay in the repository for now (owner's call).
+> The sections below are kept as history.
+
 ## Pivot 2026-10-10: fork Smouldering Durtles
 
 WaniKani provided a full content dump (in Smouldering Durtles' own database format) with
@@ -71,6 +78,8 @@ app is superseded and kept for reference until those steps no longer need it.
 ---
 
 ## Next: one codebase for Android and iOS (planned 2026-10-12)
+
+> Superseded by issue #3 (TypeScript, `web/`); see the note at the top and [cutover.md](cutover.md).
 
 ### Stack
 

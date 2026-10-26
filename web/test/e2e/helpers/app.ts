@@ -286,6 +286,8 @@ export async function smallTapTargets(page: Page, min = 40): Promise<string[]> {
         ['add-synonym', 24, 22],
         // advanced_search.xml sortOrder Spinner (AppCompat, wrap_content): ~28 dp tall (measured 73 device px).
         ['adv-sort-order', 40, 27],
+        // font_selection_row_view.xml fontSwitch (SwitchCompat, wrap_content): 46 x 27 dp (122 x 71 device px).
+        ['font-switch-', 40, 26],
       ];
       const tid = el.getAttribute('data-testid') ?? '';
       const ex = exempt.find(([prefix]) => tid.startsWith(prefix));

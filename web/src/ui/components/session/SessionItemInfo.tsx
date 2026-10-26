@@ -6,6 +6,7 @@
  * notes are edited from the session menu's "My notes..." (`StudyMaterialsActivity`); a new synonym counts
  * for the next answer.
  */
+import { maxFontSizeQuiz } from '../../theme/fontPrefs';
 import { useMemo } from 'react';
 import { voicePreference } from '../../../core/audio';
 import { contentSubject, progressRow, tableRow } from '../../../core/progression';
@@ -26,8 +27,10 @@ export interface SessionItemInfoProps {
   maxFontSize?: number;
 }
 
-export function SessionItemInfo({ subjectId, visibility, revealLabel, onReveal, maxFontSize = 28 }: SessionItemInfoProps) {
+export function SessionItemInfo({ subjectId, visibility, revealLabel, onReveal, maxFontSize: maxFontSizeProp }: SessionItemInfoProps) {
   const { learner, content, platform, state } = useReady();
+  // `max_font_size_quiz` (Font settings) unless the caller gives the lesson size.
+  const maxFontSize = maxFontSizeProp ?? maxFontSizeQuiz(state.prefs);
   const navigate = useNavigate();
   const { onSave, error } = useSaveStudyMaterial();
   const cardProgress = useCardProgress();

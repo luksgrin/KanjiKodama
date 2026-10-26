@@ -1,11 +1,12 @@
 // Pronunciation audio on Android: native HTTP download (CapacitorHttp: no CORS) into the app's
-// files dir, playback from there through the WebView (<audio> with Capacitor.convertFileSrc).
+// files dir, native playback from there (or streamed) through the app's KkAudio plugin, a MediaPlayer
+// with Java's optional audio focus request (`use_audio_focus`, KkAudioPlugin.java).
 // Decisions (which recording, which files) are pure: core/audio/audio.ts.
 //
 // Layout as in the Java app's "Internal" location: files/pronunciation-audio/<level>/<sourceId>.mp3
 // (<level> is the WaniKani level from the content). Excluded from Android Auto Backup
 // (res/xml/backup_rules.xml, data_extraction_rules.xml): it can be downloaded again.
-import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import { CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Directory, Filesystem, type FileInfo } from '@capacitor/filesystem';
 import {
   AUDIO_DIR,
@@ -18,25 +19,28 @@ import {
   type VoicePreference,
 } from '../core/audio';
 import { JavaRandom, type Rng } from '../core/rng';
-import type { AudioApi, AudioCacheStatus, AudioDownloadResult, AudioLevelStatus } from './index';
+import type { AudioApi, AudioCacheStatus, AudioDownloadResult, AudioLevelStatus, AudioPlayOptions } from './index';
 
 /** Parallel downloads (the Java app ran one task at a time; ~14 000 small files make that slow). */
 const PARALLEL = 4;
 const AUDIO_FILE = /^\d+\.(mp3|ogg)$/;
 
-/** What plays a URL; swapped in tests. */
+/** What plays a URL; swapped in tests. Rejects when it could not play. */
 export interface AudioPlayer {
-  play(src: string): Promise<void>;
+  play(src: string, options?: AudioPlayOptions): Promise<void>;
 }
 
-let current: HTMLAudioElement | null = null;
+interface KkAudioPlugin {
+  /** `src`: a file:// URI or an http(s) URL. `played` false: audio focus refused. */
+  play(options: { src: string; audioFocus: boolean }): Promise<{ played: boolean }>;
+}
+const KkAudio = registerPlugin<KkAudioPlugin>('KkAudio');
 
-export const htmlAudioPlayer: AudioPlayer = {
-  async play(src: string): Promise<void> {
-    current?.pause();
-    const el = new Audio(src);
-    current = el;
-    await el.play(); // rejects when the source can't load (not cached and offline)
+/** MediaPlayer playback (AudioUtil.playAudioPost26), with the audio focus request when asked. */
+export const nativeAudioPlayer: AudioPlayer = {
+  async play(src: string, options: AudioPlayOptions = {}): Promise<void> {
+    const r = await KkAudio.play({ src, audioFocus: options.audioFocus !== false });
+    if (!r.played) throw new Error('Audio focus refused');
   },
 };
 
@@ -117,7 +121,7 @@ export interface AndroidAudioOptions {
 }
 
 export function createAndroidAudio(options: AndroidAudioOptions = {}): AudioApi {
-  const player = options.player ?? htmlAudioPlayer;
+  const player = options.player ?? nativeAudioPlayer;
   const rng = options.rng ?? new JavaRandom(Date.now());
   let catalog: AudioCatalog | null = null;
   let expected: Map<number, number> | null = null;
@@ -131,7 +135,7 @@ export function createAndroidAudio(options: AndroidAudioOptions = {}): AudioApi 
       expected = null;
     },
 
-    async play(subjectId: number, pref: VoicePreference, reading: string | null = null): Promise<boolean> {
+    async play(subjectId: number, pref: VoicePreference, reading: string | null = null, playOptions?: AudioPlayOptions): Promise<boolean> {
       const owner = catalog?.owner(subjectId) ?? null;
       if (owner === null) return false;
       const cached = await cachedFor([owner.level]);
@@ -142,11 +146,11 @@ export function createAndroidAudio(options: AndroidAudioOptions = {}): AudioApi 
         const dir = cached.get(owner.level)!;
         const name = cachedNames(choice.audio.sourceId).find((n) => dir.has(n))!;
         const { uri } = await Filesystem.getUri({ path: `${AUDIO_DIR}/${owner.level}/${name}`, directory: Directory.Data });
-        src = Capacitor.convertFileSrc(uri);
+        src = uri;
       }
       lastWasMale = choice.audio.gender === 'male'; // AudioUtil.playLocalAudio / playStreamingAudio
       try {
-        await player.play(src);
+        await player.play(src, playOptions);
         return true;
       } catch {
         return false;

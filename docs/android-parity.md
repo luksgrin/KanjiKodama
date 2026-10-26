@@ -68,6 +68,20 @@ Wave 5 leftovers also closed: the `visuals.spec.ts` browse-cell check on pixel-7
 `boundingBox()` calls in different frames of the screen's slide-in (−8 px); it now measures the grid in
 one evaluation and polls until it settles.
 
+## Remaining settings ported (wave 5, "remaining settings")
+
+Checked side by side on emulator-5556 (scratchpad `parity4/`, `j-*` / `t-*` / `pair-*`):
+
+| Area | Java | TS now |
+|---|---|---|
+| Font settings | Select fonts / Import fonts and the eight size sliders | the same ten rows (titles, summaries, ranges, defaults); the sizes apply where Java applies them: lesson / quiz / item page title (`max_font_size_*`, 0 hides it), question text cap, answer field, subject info, dashboard tables, Anki answer |
+| Font selection | intro text, eight built-in fonts + imported ones, "日本語の書体" in each, a switch; one font per item at random among those with glyphs, tap on the question toggles the default face | same screen; the seven bundled faces are Java's `res/font` files (`public/fonts/quiz/`, fetched when used, not precached); glyph coverage read from the font's cmap; sample line heights from the font's box as Android's `includeFontPadding` (within 1–2 px) |
+| Font import | hint, IMPORT (system document picker), rows with SAMPLE / DELETE, "Overwrite file?", "Delete file?", "Font sample", "File imported" | the same; the Android app's file input opens the same DocumentsUI picker, files kept in IndexedDB `kk-fonts` |
+| Notifications and other | update frequency, priority, category; Search engine 1–5 (TaggedUrlPreference dialog) | the same rows and dialog (Android build; the web build has no notifications, so those three are hidden like Java hides rows by API level); the native notification uses them (channel importance, compat priority, category, update frequency) |
+| Subject title long press | action mode bar above the toolbar (#303030, 2 dp accent line, content pushed down 56 dp): Done, COPY TITLE, the engines (2 + overflow on 411 dp), "Subject title copied"; image radicals: Java's toast | the same on the item page title and the quiz question (`TitleActionMode.tsx`); the engine URL opens in the browser |
+| Audio → Request audio focus | MediaPlayer with a transient may-duck focus request when on | vocab audio now plays natively (`KkAudioPlugin.java`, the Java code path); verified with `dumpsys audio` (GAIN_TRANSIENT_MAY_DUCK while playing, none with the switch off); hidden on the web build (a browser can't) |
+| Dashboard → post-60 progression | title + 24 dp bar of every subject by stage group, subsections / reverse options, % labels | the same (canvas, Java's label rules and colours); positions within 1–3 px |
+
 ## Per screen: what still differs
 
 Everything else matched in the three themes (positions within 1 dp, colours from the same tokens, texts
@@ -78,10 +92,7 @@ identical). What is left cannot match, with the reason:
 | Toolbar | Java debug build's label "KanjiKodama - Debug" | build label only; the release Java app says "KanjiKodama" like the TS app |
 | All long texts | a word occasionally wraps one word earlier or later than in Java (e.g. one line of the reading mnemonic) | Android's text layout rounds every glyph advance to whole device pixels (Pixelify Sans runs ~2 % wider than the same text in Chromium, which keeps fractional advances), and Android's line breaker (ICU, `breakStrategy=high_quality`) balances lines differently from Chromium's greedy breaker. Neither is exposed to CSS; a per-glyph spacing hack would change every text's width elsewhere. Line count and heights match in almost all paragraphs |
 | About | the open-source components list (React, Dexie.js, sql.js, Workbox, Capacitor vs Jackson, Lottie, JSoup, OkHttp, Pikolo) | deliberate: a different stack |
-| Settings → Font settings | only "Font size of dashboard subject tables"; Java also has quiz font selection/import and the seven max/size sliders | not ported (inventory "Drop" / owner scope: the TS app uses the system CJK face, as Java does by default); the sliders' getters are not read by the TS screens |
-| Settings → Notifications and other | no "Notification update frequency / priority / category" and no "Search engine 1–5" rows | not ported: the native notification (`ReviewNotifications.java`) uses Java's defaults; the item page's search-engine long-press menu is not ported (settings inventory "Ask") |
-| Settings → Audio | no "Request audio focus when playing vocab audio" | the WebView's media session always takes audio focus; the switch would do nothing |
-| Dashboard | no "Show post-60 progression" panels | not in the TS dashboard (settings inventory) |
+| Settings → API settings (server mode with wanikani.com) | no "Web site password" row | its only use is Java's resurrect / burn through a login to the WaniKani web site; the TS app resurrects and burns locally and makes no WaniKani web calls (not approved) |
 | Cold start | ~0.1–0.15 s slower to a dashboard with data | WebView start-up, see Start-up |
 
 ## Top remaining differences
@@ -89,5 +100,4 @@ identical). What is left cannot match, with the reason:
 1. Start-up ~0.1–0.15 s behind Java (WebView start-up; minor).
 2. Occasional one-word line-break differences in long texts (Android's integer glyph advances and ICU line
    breaking; minor).
-3. Settings rows for features that are not ported (font selection/import and sizes, notification details,
-   search engines, audio focus, post-60 panels) — scope decisions, not layout.
+3. "Web site password" (server mode against wanikani.com only), see above.

@@ -20,3 +20,6 @@ dev-dist/
 /test/e2e/screenshots/
 /test/e2e/results/
 /test/e2e/report/
+
+# Android release APKs (scripts/release-android.sh): contain the private WaniKani content, never commit
+/release/

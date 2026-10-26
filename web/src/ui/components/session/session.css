@@ -110,10 +110,10 @@
   text-overflow: clip;
   /* max_font_size_quiz_text 104; fits the width (Java: screen width - 10 dp, - 140 dp with the answer
      toast) for long words, and the room the question view has on short screens. */
-  font-size: min(104px, calc((100vw - 16px) / var(--len, 1)), calc((var(--content-max-width) - 16px) / var(--len, 1)), var(--kk-glyph-hcap));
+  font-size: min(var(--kk-quiz-text-max, 104px), calc((100vw - 16px) / var(--len, 1)), calc((var(--content-max-width) - 16px) / var(--len, 1)), var(--kk-glyph-hcap));
 }
 .kk-quiz-question.with-mark .kk-quiz-glyph {
-  font-size: min(104px, calc((100vw - 140px) / var(--len, 1)), calc((var(--content-max-width) - 140px) / var(--len, 1)), var(--kk-glyph-hcap));
+  font-size: min(var(--kk-quiz-text-max, 104px), calc((100vw - 140px) / var(--len, 1)), calc((var(--content-max-width) - 140px) / var(--len, 1)), var(--kk-glyph-hcap));
 }
 
 /* Java's focused-button highlight (?attr/colorControlHighlight over the button's bounds): the answered
@@ -243,8 +243,8 @@
   border-radius: 0;
   background: transparent;
   color: var(--color-text);
-  /* 22 sp (font_size_question_edit); ≥ 16 px keeps iOS from zooming into the field. */
-  font-size: 22px;
+  /* font_size_question_edit (22 sp by default, Font settings). */
+  font-size: var(--kk-answer-size, 22px);
   line-height: 1.25;
   font-family: var(--font-body);
 }
@@ -369,7 +369,7 @@
   padding: var(--space-2);
   background: var(--color-anki-answer-bg);
   color: var(--color-anki-text);
-  font-size: 20px;
+  font-size: var(--kk-anki-answer-size, 20px); /* font_size_anki_answer */
   white-space: pre-line;
 }
 

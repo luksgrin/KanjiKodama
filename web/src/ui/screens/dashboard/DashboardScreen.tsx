@@ -14,7 +14,7 @@
  */
 import { useMemo } from 'react';
 import { computeDashboard } from '../../../app/dashboardData';
-import { showLevelProgression, showSrsBreakdown, showTimeLine } from '../../../core/dashboard';
+import { computePost60Breakdown, showLevelProgression, showSrsBreakdown, showTimeLine } from '../../../core/dashboard';
 import { currentLevelDescription } from '../../../core/progression';
 import { prefBoolean } from '../../../core/settings';
 import { useReady } from '../../hooks/useApp';
@@ -39,6 +39,7 @@ import {
   timeLineDataSet,
 } from './panelData';
 import { JlptProgressTable, JoyoProgressTable, LessonReviewBreakdownTable } from './ProgressTables';
+import { Post60Progress } from './Post60Progress';
 import { SrsBreakdown } from './SrsBreakdown';
 import { SubjectTable } from './SubjectTable';
 import { TimeLineChart } from './TimeLineChart';
@@ -60,6 +61,8 @@ export function DashboardScreen() {
       burned: prefBoolean(prefs, 'show_burned_items', true) ? burnedItems(learner, now) : [],
       jlpt: prefBoolean(prefs, 'show_jlpt_progress', false) ? jlptProgress(learner) : null,
       joyo: prefBoolean(prefs, 'show_joyo_progress', false) ? joyoProgress(learner) : null,
+      post60: prefBoolean(prefs, 'show_post60_progression', false)
+        ? computePost60Breakdown(learner, prefBoolean(prefs, 'show_post60_subsections', false)) : null,
     };
   }, [learner, prefs, now, revision, data]);
 
@@ -88,6 +91,7 @@ export function DashboardScreen() {
       {showLevelProgression(prefs) && data.levelProgress.length > 0 && (
         <LevelProgress bars={data.levelProgress.flatMap((g) => g.bars)} userLevel={data.userLevel} />
       )}
+      {panels.post60 !== null && <Post60Progress counts={panels.post60} prefs={prefs} />}
       {panels.joyo !== null && <JoyoProgressTable counts={panels.joyo} />}
       {panels.jlpt !== null && <JlptProgressTable counts={panels.jlpt} />}
       <SubjectTable title="Recent unlocks in the last 30 days" rows={panels.recent} fontSize={tableFont} testId="recent-unlocks" />

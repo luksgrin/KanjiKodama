@@ -64,7 +64,8 @@ public class ReviewNotificationsPlugin extends Plugin {
         try {
             final JSArray entries = call.getArray("entries", new JSArray());
             final JSONObject current = call.getObject("current", null);
-            ReviewNotifications.schedule(getContext(), new JSONArray(entries.toString()), current);
+            final JSONObject style = call.getObject("style", null);
+            ReviewNotifications.schedule(getContext(), new JSONArray(entries.toString()), current, style);
             final JSObject ret = new JSObject();
             ret.put("scheduled", entries.length());
             call.resolve(ret);

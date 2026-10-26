@@ -295,7 +295,9 @@ export function createAppController(deps: AppDeps): AppController {
     if (platform.audio) {
       const audio = platform.audio;
       const play = audio.play.bind(audio);
-      audio.play = (id, pref, reading) => (isMuted(store.get().prefs) ? Promise.resolve(true) : play(id, pref, reading));
+      // `use_audio_focus` (default true) goes with every play (Android requests audio focus natively).
+      audio.play = (id, pref, reading, options) => (isMuted(store.get().prefs) ? Promise.resolve(true)
+        : play(id, pref, reading, options ?? { audioFocus: store.get().prefs.use_audio_focus !== false }));
     }
 
     const snapP = openDb().then(

@@ -1,11 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-// Side-by-side identity until the cutover (issue #3, step 6 preconditions): installs as
-// app.kanjikodama.wk.web next to the Java app (app.kanjikodama.wk / .debug) without touching its
-// data. The Gradle applicationId is app.kanjikodama.wk plus the ".web" suffix (android/app/build.gradle).
-// Step 6 ("Same identity"): appId 'app.kanjikodama.wk' and drop the release suffix there.
+// Same identity as the Java app (issue #3, step 6): app.kanjikodama.wk, so the release APK installs
+// over it (same key, android/keystore.properties) and the legacy migration finds its data. The Gradle
+// build types set the installed id: release app.kanjikodama.wk, debug app.kanjikodama.wk.debug, and
+// app.kanjikodama.wk.web for both with -PsideBySide (android/app/build.gradle).
 const config: CapacitorConfig = {
-  appId: 'app.kanjikodama.wk.web',
+  appId: 'app.kanjikodama.wk',
   appName: 'KanjiKodama',
   webDir: 'dist',
   android: {

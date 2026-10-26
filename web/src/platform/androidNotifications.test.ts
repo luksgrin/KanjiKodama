@@ -69,8 +69,8 @@ describe('scheduleReviews', () => {
     expect(plugin.schedule).toHaveBeenCalledTimes(1);
     expect(plugin.schedule.mock.calls[0]![0]).toEqual({
       entries: [
-        { at: H10, title: 'New reviews available', body: '3 reviews available' },
-        { at: H10 + HOUR, title: 'New lessons and reviews available', body: '5 lessons and 4 reviews available' },
+        { at: H10, lessons: 0, reviews: 3, title: 'New reviews available', body: '3 reviews available' },
+        { at: H10 + HOUR, lessons: 5, reviews: 4, title: 'New lessons and reviews available', body: '5 lessons and 4 reviews available' },
       ],
       current: { at: NOW, lessons: 5, reviews: 1, title: 'New lessons and reviews available', body: '5 lessons and 1 reviews available' },
     });
@@ -122,7 +122,14 @@ describe('rescheduleReviewNotifications', () => {
     const a2 = { ...androidNotifications, scheduleReviews: vi.fn().mockResolvedValue(1), cancelAll: vi.fn() };
     await expect(rescheduleReviewNotifications(a2, db, {}, NOW)).resolves.toBe(1);
     expect(a2.scheduleReviews).toHaveBeenCalledWith([{ at: H10, newReviews: 1, totalReviews: 1, lessons: 0 }],
-      { now: NOW, current: { lessons: 0, reviews: 0 } });
+      { now: NOW, current: { lessons: 0, reviews: 0 }, style: { frequency: 'ONLY_NEW_REVIEWS', priority: 'DEFAULT', category: 'RECOMMENDATION' } });
+  });
+
+  it('passes the Notification settings (unknown values: the Java defaults)', async () => {
+    const a2 = { ...androidNotifications, scheduleReviews: vi.fn().mockResolvedValue(1), cancelAll: vi.fn() };
+    const prefs = { notification_update_frequency: 'CONTINUOUSLY', notification_priority: 'HIGH', notification_category: 'BOGUS' };
+    await rescheduleReviewNotifications(a2, db, prefs, NOW);
+    expect(a2.scheduleReviews.mock.calls[0]![1]).toMatchObject({ style: { frequency: 'CONTINUOUSLY', priority: 'HIGH', category: 'RECOMMENDATION' } });
   });
 
   it('cancels when enable_notifications is off', async () => {

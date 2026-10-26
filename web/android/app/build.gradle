@@ -1,23 +1,33 @@
 apply plugin: 'com.android.application'
 
+// Release signing with the Java app's key (issue #3, step 6): web/android/keystore.properties
+// (git-ignored; keystore.properties.example) names the keystore, e.g. the Java app's
+// ../../durtles/release.jks, relative to that file. Without it, release builds are unsigned.
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
+// Side-by-side variant (-PsideBySide): every build type installs as app.kanjikodama.wk.web, next
+// to the Java app, as before the cutover. Without it: release app.kanjikodama.wk (replaces the Java
+// app), debug app.kanjikodama.wk.debug (replaces the Java debug app: the legacy migration test).
+def sideBySide = project.hasProperty('sideBySide')
+
+// versionName from web/package.json; versionCode 1000+ (the Java releases used 100 + run number).
+def webVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
+
 android {
     namespace = "app.kanjikodama.wk"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        // Identity (issue #3). The Java package and namespace are already the final
-        // app.kanjikodama.wk. Until the cutover (step 6) every build type installs as
-        // app.kanjikodama.wk.web, next to the Java app (app.kanjikodama.wk, debug
-        // app.kanjikodama.wk.debug) without touching its data.
-        // Step 6 ("Same identity"): drop the ".web" suffix from release so it becomes
-        // app.kanjikodama.wk, signed with the Java app's key (keystore.properties), versionCode
-        // above the installed one (start at 1000); debug keeps a suffix (".debug" to test the
-        // legacy migration against the Java debug app). Also set appId in capacitor.config.ts.
+        // Identity (issue #3, step 6): the Java app's id; the build types add the suffixes below.
         applicationId "app.kanjikodama.wk"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Same versionName as the Java app (durtles/app/build.gradle) and the same CI overrides.
-        versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 2
-        versionName project.hasProperty('versionName') ? project.property('versionName') : '0.1.0'
+        // Overridable like the Java app's: -PversionCode=1001 -PversionName=0.2.0.
+        versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 1000
+        versionName project.hasProperty('versionName') ? project.property('versionName') : webVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -29,12 +39,25 @@ android {
             noCompress 'db'
         }
     }
+    signingConfigs {
+        if (!keystoreProps.isEmpty()) {
+            release {
+                def store = new File(keystoreProps.getProperty('storeFile'))
+                storeFile store.isAbsolute() ? store : new File(keystorePropsFile.parentFile, keystoreProps.getProperty('storeFile'))
+                storePassword keystoreProps.getProperty('storePassword')
+                keyAlias keystoreProps.getProperty('keyAlias')
+                keyPassword keystoreProps.getProperty('keyPassword')
+            }
+        }
+    }
     buildTypes {
         debug {
-            applicationIdSuffix ".web"
+            // Same id and (default) debug key as the Java debug app; ".web" side by side.
+            applicationIdSuffix sideBySide ? ".web" : ".debug"
         }
         release {
-            applicationIdSuffix ".web" // step 6: remove
+            if (sideBySide) applicationIdSuffix ".web"
+            if (!keystoreProps.isEmpty()) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -56,6 +79,8 @@ dependencies {
     // Background sync (BackgroundSyncWorker) and its headless WebView's asset loader.
     implementation "androidx.work:work-runtime:2.11.0"
     implementation "androidx.webkit:webkit:$androidxWebkitVersion"
+    // LegacyMigrationPlugin reads the Java app's API token (same library and version as durtles/).
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

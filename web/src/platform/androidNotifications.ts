@@ -5,7 +5,8 @@
 // Like the Java app (services/NotificationWorker) there is ONE notification (id 1), posted or updated
 // at the planned review hours by a native inexact alarm, so several review hours without opening the
 // app never pile up notifications. Channel "NewReviewsChannel" only (the old plugin's "Default"
-// channel is deleted), public on the lock screen, category "recommendation", sound on new reviews.
+// channel is deleted), public on the lock screen, sound on new reviews; priority, category and when
+// a shown notification is updated follow the Notification settings (`style`).
 import { registerPlugin } from '@capacitor/core';
 import { MAX_REVIEW_NOTIFICATIONS, reviewNotificationText, type ReviewTime } from '../core/notifications';
 import type { NotificationPermission, NotificationsApi, ReviewScheduleOptions } from './index';
@@ -17,6 +18,9 @@ export interface PlannedNotification {
   at: number;
   title: string;
   body: string;
+  /** The counts it shows (the update frequency compares them). */
+  lessons?: number;
+  reviews?: number;
 }
 
 export interface ReviewNotificationsPlugin {
@@ -27,7 +31,12 @@ export interface ReviewNotificationsPlugin {
    * Store the plan and arm the alarm for its first entry. `current`: the counts now, to update a
    * shown notification silently (or cancel it when both are 0); null leaves it alone.
    */
-  schedule(options: { entries: PlannedNotification[]; current: (PlannedNotification & { lessons: number; reviews: number }) | null }): Promise<{ scheduled: number }>;
+  schedule(options: {
+    entries: PlannedNotification[];
+    current: (PlannedNotification & { lessons: number; reviews: number }) | null;
+    /** `notification_update_frequency` / `_priority` / `_category`; Java's defaults when absent. */
+    style?: { frequency: string; priority: string; category: string };
+  }): Promise<{ scheduled: number }>;
   /** Forget the plan, cancel the alarm and the shown notification. */
   cancelAll(): Promise<void>;
 }
@@ -64,10 +73,10 @@ export function createAndroidNotifications(plugin: ReviewNotificationsPlugin = R
       await plugin.cancelAll();
       return 0;
     }
-    const entries = times.filter((t) => t.at > now).slice(0, MAX_REVIEW_NOTIFICATIONS).map((t) => ({ at: t.at, ...reviewNotificationText(t) }));
+    const entries = times.filter((t) => t.at > now).slice(0, MAX_REVIEW_NOTIFICATIONS).map((t) => ({ at: t.at, lessons: t.lessons, reviews: t.totalReviews, ...reviewNotificationText(t) }));
     const c = opts.current;
     const current = c ? { at: now, lessons: c.lessons, reviews: c.reviews, ...reviewNotificationText({ lessons: c.lessons, totalReviews: c.reviews }) } : null;
-    await plugin.schedule({ entries, current });
+    await plugin.schedule({ entries, current, ...(opts.style ? { style: opts.style } : {}) });
     return entries.length;
   };
 

@@ -9,10 +9,12 @@
 import './subject.css';
 import { useState, type ReactNode } from 'react';
 import type { Content, ContentSubject } from '../../../core/content';
+import type { Preferences } from '../../../core/settings';
 import type { SrsSystem } from '../../../core/srs';
 import { PitchAccent } from './PitchAccent';
 import { SubjectChars, subjectGlyphCount } from './SubjectChars';
 import { pitchBlocks, type PitchInfo } from './pitchInfo';
+import { useTitleLongPress } from './TitleActionMode';
 import type { ContextSentence } from './subjectContent';
 import {
   hasReadingOfType,
@@ -43,9 +45,13 @@ export interface HeadlineProps {
   audio?: ReactNode;
   /** Base font size in px (`font_size_subject_info`, default 16). */
   fontSize?: number;
-  /** Largest tile glyph height in px; the tile also fits the screen width minus 80 px (SubjectInfoHeadlineView). */
+  /** Largest tile glyph height in px; the tile also fits the screen width minus 80 px (SubjectInfoHeadlineView). 0 hides the tile. */
   maxFontSize?: number;
+  /** The settings the tile's long press reads (search engines). */
+  prefs?: Preferences;
 }
+
+const NO_PREFS: Preferences = {};
 
 /** Title tile, "Level N kanji", meanings, readings (or pitch accent) and the audio slot. */
 export function Headline({
@@ -58,15 +64,20 @@ export function Headline({
   audio,
   fontSize = 16,
   maxFontSize = 64,
+  prefs = NO_PREFS,
 }: HeadlineProps) {
+  const press = useTitleLongPress(subject, null, prefs);
   const chars = subjectGlyphCount(subject);
   const tileStyle = { fontSize: `min(${maxFontSize}px, calc((100cqi - 112px) / ${chars}))` };
   const blocks = pitchInfo !== null && showReadingAnswers ? pitchBlocks(subject, pitchInfo) : [];
   return (
     <header className="kk-headline">
-      <div className={`kk-subject-tile kk-type--${subject.object}`} lang="ja" style={tileStyle}>
-        <span className="kk-ja"><SubjectChars subject={subject} /></span>
-      </div>
+      {maxFontSize > 0 && (
+        <div className={`kk-subject-tile kk-type--${subject.object} kk-longpress`} lang="ja" style={tileStyle} data-testid="subject-tile" {...press.handlers}>
+          <span className="kk-ja"><SubjectChars subject={subject} /></span>
+        </div>
+      )}
+      {press.node}
       <div className="kk-headline-text">
         <div className="kk-headline-title">{simpleInfoTitle(subject.object, level)}</div>
         {showMeaningAnswers && subject.meanings.length > 0 && (

@@ -197,6 +197,7 @@ export function ItemPage({
         audio={audio}
         fontSize={fontSize}
         maxFontSize={maxFontSize}
+        prefs={settings}
       />
 
       {v.readingAnswers && subject.object === 'kanji' && <KanjiReadings subject={subject} showOnInKatakana={katakana} />}

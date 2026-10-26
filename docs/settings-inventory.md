@@ -33,6 +33,39 @@ Sources:
 - Practical upshot: with the owner on all defaults, the TS app can ship with the defaults hard-wired and
   add only the settings the owner wants to keep (see the suggestions at the end).
 
+## Port status (2026-10-26, step 5 wave 5)
+
+Every row the Java app shows is on the TS settings screen with Java's order, titles, summaries, keys,
+defaults and dialogs (`web/src/ui/screens/settings/schema.ts`; a test compares each sub-screen's
+keys with `preferences.xml`). The "TS core" column below is the original draft. Rows ported in this
+round and where they act:
+
+- Font settings, all ten rows: "Select fonts for quiz questions" (`selected_fonts`, Java's JSON list;
+  the eight built-in fonts incl. the seven bundled quiz faces in `web/public/fonts/quiz/`, plus
+  imported ones; one font per session item, chosen at random among those with glyphs for the
+  subject, tap on the question toggles the default face), "Import fonts for quiz questions" (file
+  picker; files kept in IndexedDB `kk-fonts`), and the eight size sliders, applied where Java applies
+  them (lesson / quiz / item page title, 0 hides it; question text cap; answer field; subject info;
+  dashboard tables; Anki answer). `web/src/ui/theme/quizFonts.ts`, `fontCmap.ts`, `fontPrefs.ts`,
+  `useQuizFont.ts`, `screens/settings/fontScreens.tsx`.
+- `notification_update_frequency`, `notification_priority`, `notification_category`: Android only
+  (hidden on the web build, which has no notifications, as Java hides rows by API level); the native
+  notification uses them (`ReviewNotifications.java`: channel importance, compat priority, category,
+  and when a shown notification is updated).
+- `search_engine_1..5` (+ `_tag`): the TaggedUrlPreference dialog; used by the subject title's long
+  press (item page title, quiz question), Java's action mode with "Copy title" and the engines
+  (`components/subject/TitleActionMode.tsx`, `searchEngines.ts`).
+- `use_audio_focus`: Android only; vocab audio now plays natively (`KkAudioPlugin.java`, MediaPlayer)
+  with Java's transient may-duck focus request when on.
+- `show_post60_progression`, `show_post60_subsections`, `show_post60_reverse`: the post-60 bar on the
+  dashboard (`screens/dashboard/Post60Progress.tsx`, core `computePost60Breakdown`).
+
+Still not on the screen, as in Java: the hidden rows (`api_key_help`, `audio_location`, the
+experimental screen, `support_and_feedback`, the `not_always_hide_wk_mnemonic` helper). `api_key` is
+asked by the server and import screens. `web_password` (server mode against wanikani.com only) is not
+ported: its only use is resurrect/burn through a login to the WaniKani web site, which the TS app does
+not do (it resurrects and burns locally; no WaniKani network calls are approved).
+
 ## Inventory
 
 ### API and audio download settings
@@ -357,10 +390,11 @@ These are suggestions only. Nothing has been dropped.
   setting if wanted), `exp_subject_card_layout_*` (hidden experimental screen).
 - Theme customization and the upstream theme list (`theme`, `nightTheme`, Theme Customisation): keep only
   the KanjiKodama light/dark themes following the system setting.
-- Font import / font selection (`font_import`, `font_selection`, `selected_fonts`).
+- Font import / font selection (`font_import`, `font_selection`, `selected_fonts`). *(Ported after
+  all, 2026-10-26: see "Port status".)*
 - Notifications detail (`notification_priority`, `notification_category`, `notification_update_frequency`)
   and `use_audio_focus`, `audio_location`, `network_rule`, haptic feedback: Android plumbing; revisit
-  only with the native shell.
+  only with the native shell. *(Notification details and audio focus ported 2026-10-26.)*
 - `web_password` (resurrect via the WaniKani web site), `api_key_help`, `full_session_log`,
   settings backup/restore (`backup_settings`, `restore_settings`) if settings stay few.
 

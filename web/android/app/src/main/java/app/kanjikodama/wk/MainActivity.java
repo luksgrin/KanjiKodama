@@ -42,6 +42,8 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(BackgroundSyncPlugin.class);
         registerPlugin(SystemUiPlugin.class);
         registerPlugin(ReviewNotificationsPlugin.class);
+        registerPlugin(KkAudioPlugin.class);
+        registerPlugin(LegacyMigrationPlugin.class);
         super.onCreate(savedInstanceState);
         pollReady(SystemClock.uptimeMillis() + SPLASH_MAX_MS);
     }

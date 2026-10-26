@@ -4,6 +4,7 @@
  * LESSON_PRESENTATION), then the lesson quiz. The batch size and order come from the lesson settings
  * (`max_lesson_session_size`, `lesson_order`, … in core `settingsOrdering`).
  */
+import { maxFontSizeLesson } from '../../theme/fontPrefs';
 import { useEffect, useState } from 'react';
 import type { Session } from '../../../core/session';
 import { autoplayLessonPresentation, infoDumpFlags, infoDumpNextStage, infoDumpRevealLabel, infoDumpShowReveal, lessonInfoDump } from '../../../core/settings/sessionUi';
@@ -63,7 +64,7 @@ function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Sess
         visibility={infoDumpFlags(dump, null)}
         revealLabel={infoDumpShowReveal(dump) ? infoDumpRevealLabel(dump) : null}
         onReveal={() => setDump(infoDumpNextStage(dump))}
-        maxFontSize={128}
+        maxFontSize={maxFontSizeLesson(state.prefs)}
       />
       {menu.dialogs}
     </section>

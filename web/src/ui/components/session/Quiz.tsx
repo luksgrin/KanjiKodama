@@ -42,6 +42,7 @@ import type { RichText } from '../../../core/text/richText';
 import type { HapticKind } from '../../../platform';
 import { useReady } from '../../hooks/useApp';
 import { AnswerField, type AnswerFieldHandle } from './AnswerField';
+import { fontSizeAnkiAnswer, fontSizeQuestionEdit, maxFontSizeQuizText } from '../../theme/fontPrefs';
 import { QuestionView, buttonState, questionHint, titleFor } from './QuestionView';
 import { SessionItemInfo } from './SessionItemInfo';
 import { useSessionMenu } from './SessionMenu';
@@ -160,7 +161,13 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
 
   useVisibleViewport();
   const fixedHeight = quizQuestionViewHeight(prefs);
-  const quizStyle = fixedHeight > 0 ? ({ ['--kk-qv-fixed' as string]: `${fixedHeight}px` } as CSSProperties) : undefined;
+  // Font settings: the question text's cap, the answer field and the Anki answer sizes.
+  const quizStyle = {
+    ...(fixedHeight > 0 ? { ['--kk-qv-fixed' as string]: `${fixedHeight}px` } : {}),
+    ['--kk-quiz-text-max' as string]: `${maxFontSizeQuizText(prefs)}px`,
+    ['--kk-answer-size' as string]: `${fontSizeQuestionEdit(prefs)}px`,
+    ['--kk-anki-answer-size' as string]: `${fontSizeAnkiAnswer(prefs)}px`,
+  } as CSSProperties;
   const nextRef = useRef<HTMLButtonElement>(null);
   const goNext = () => {
     holdKeyboard();

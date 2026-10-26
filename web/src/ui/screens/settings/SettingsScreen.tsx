@@ -22,6 +22,7 @@ import { useFastTravelFlow } from '../fastTravel/fastTravelFlow';
 import { useImportFlow } from '../import/importFlow';
 import { DATA_IMPORT_EXPORT_SCREEN, DATA_IMPORT_EXPORT_TITLE, DataImportExportPage, OtherActionsCategory } from './OtherActions';
 import { ProgressCategory } from './ProgressSection';
+import { FONT_IMPORT_SCREEN, FONT_SCREEN_TITLES, FONT_SELECTION_SCREEN, FontImportPage, FontSelectionPage } from './fontScreens';
 import {
   ADVANCED_CATEGORY_TITLE,
   ADVANCED_GROUPS,
@@ -159,7 +160,8 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
   // The advanced sub-screens are hidden while advanced settings are off (`setVisibility`).
   if (group && ADVANCED_GROUPS.includes(group) && !advancedEnabled(state.prefs)) group = undefined;
   const dataPage = screenId === DATA_IMPORT_EXPORT_SCREEN;
-  const title = group ? groupTitle(group, state.mode) : dataPage ? DATA_IMPORT_EXPORT_TITLE : 'Settings';
+  const fontPage = screenId !== null ? FONT_SCREEN_TITLES[screenId] : undefined;
+  const title = group ? groupTitle(group, state.mode) : dataPage ? DATA_IMPORT_EXPORT_TITLE : fontPage ?? 'Settings';
   useToolbar({ title });
 
   const started = useRef(false);
@@ -179,6 +181,10 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
         <SettingGroupRows group={group} write={write} actions={actions} />
       ) : dataPage ? (
         <DataImportExportPage />
+      ) : screenId === FONT_SELECTION_SCREEN ? (
+        <FontSelectionPage />
+      ) : screenId === FONT_IMPORT_SCREEN ? (
+        <FontImportPage />
       ) : (
         <>
           <InstallHint />

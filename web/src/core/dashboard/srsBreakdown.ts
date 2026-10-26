@@ -22,3 +22,18 @@ export function computeSrsBreakdown(db: LearnerDb): number[] {
   }
   return out;
 }
+
+/**
+ * The post-60 progression bar's counts (`SrsBreakDown.getPost60ShallowCount(0..6)` /
+ * `getPost60DeepCount(0..10)`): every visible subject, locked and initial ones included
+ * (`SubjectViewsDao.getSrsBreakDownItems`).
+ */
+export function computePost60Breakdown(db: LearnerDb, deep: boolean): number[] {
+  const out = new Array<number>(deep ? 11 : 7).fill(0);
+  for (const s of db.content.subjects) {
+    if (db.table.get(s.id)!.hiddenAt !== 0) continue;
+    const stage = srsSystemOf(db, s.id).getStage(num(progressRow(db, s.id), 'srsStage'));
+    out[deep ? stage.findPost60DeepBucket() : stage.findPost60ShallowBucket()]!++;
+  }
+  return out;
+}

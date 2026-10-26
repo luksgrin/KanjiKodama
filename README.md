@@ -2,8 +2,11 @@
 
 A personal, offline Android app for learning kanji with spaced repetition: radicals, kanji and
 vocabulary in WaniKani's level order, with extra notes on how phonetic components predict on'yomi
-readings. It is a fork of [Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles)
-(Apache-2.0) and lives in `durtles/`.
+readings. It began as a fork of [Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles)
+(Apache-2.0, the Java app in `durtles/`). Since the cutover (issue #3, step 6) the Android app and
+the iPhone web app (PWA) are built from one TypeScript codebase in `web/` (React + Vite +
+Capacitor). The Java app stays in the repository for reference and rollback; it is no longer the
+daily build.
 
 ## Features
 
@@ -53,23 +56,72 @@ readings. It is a fork of [Smouldering Durtles](https://github.com/jerryhcooke/s
 
 ## Installing
 
-Releases are built by the **Release APK (manual)** workflow (Actions → Release APK (manual) → Run
-workflow). It produces a signed `kanjikodama-<version>.apk`, attached to a GitHub release of this
-repository and to the workflow run.
-
-On the phone, download the APK (signed in to GitHub, since the repository is private), open it, and
-allow installs from that source when Android asks. Or, from a computer:
+Android releases are built locally with `web/scripts/release-android.sh` (no GitHub Actions
+minutes; the workflows in `.github/workflows/` are manual only). It writes a signed
+`web/release/kanjikodama-<version>.apk` and prints the commands to install and publish it; it
+never publishes anything itself.
 
 ```sh
-gh release download v0.1.0 --pattern '*.apk'
-adb install -r kanjikodama-0.1.0.apk
+cd web
+sh scripts/release-android.sh                  # versionCode 1000, id app.kanjikodama.wk
+adb install -r release/kanjikodama-0.1.0.apk   # or copy it to the phone and open it
+# Publishing is your call (private repository), e.g.:
+gh release create v0.1.0 release/kanjikodama-0.1.0.apk --title "KanjiKodama 0.1.0"
 ```
 
-Every release is signed with the same key, so a newer APK installs over the old one and keeps your
-progress. To move to another phone, save progress to a file on the old one and restore it on the
-new one.
+The APK has the Java app's id (`app.kanjikodama.wk`) and is signed with the same key, so it installs
+over the Java app and keeps its data. `versionCode` starts at 1000, above every Java release
+(`100 + run number`); raise it for each later release (`--version-code 1001`). Android 7.0 (API 24)
+or newer is needed (Capacitor 8); the Java app ran on API 21.
+
+**First switch from the Java app:** follow [docs/cutover.md](docs/cutover.md). In short: save a
+progress file in the Java app first, install the new APK over it, and on the first start the app
+offers to move the Java app's progress, settings and API token ("Move progress from the old
+app?"). Removing the old app's data is offered afterwards and only done when you tap Remove.
+
+**Rollback:** Android doesn't install an older app (the Java APK, lower `versionCode`) over a newer
+one, so the progress file is the way back: save progress in the new app (to Google Drive or copy it
+off the phone: uninstalling deletes the app's own files in Downloads), uninstall it, install the
+Java APK, and restore the file there (Settings → Progress → Restore progress from a file). Files
+from either app restore in the other.
+
+To move to another phone, save progress to a file on the old one and restore it on the new one.
+
+**iPhone:** the PWA (`web/`, `npm run build`, see `web/SPIKE.md`) is added to the home screen
+from Safari. It is not deployed anywhere publicly.
 
 ## Building
+
+Requirements: Node 22.18+, JDK 21 (`brew install openjdk@21`), the Android SDK.
+
+```sh
+cd web
+npm ci
+npm run check                 # typecheck, tests, leak check, build
+npm run build && npx cap sync android
+cd android
+./gradlew assembleDebug       # id app.kanjikodama.wk.debug (same id and debug key as the Java debug app)
+./gradlew assembleRelease     # id app.kanjikodama.wk, signed with keystore.properties
+./gradlew assembleDebug -PsideBySide   # id app.kanjikodama.wk.web, installs next to the Java app
+```
+
+`-PsideBySide` builds the pre-cutover variant `app.kanjikodama.wk.web` (both build types, also
+`release-android.sh --side-by-side`), for keeping the Java app and the new app installed together.
+Its data is separate from the Java app's, so it has nothing to migrate: use a progress file.
+
+### Signing
+
+Release builds read `web/android/keystore.properties` (git-ignored; see
+`web/android/keystore.properties.example`). It points at the Java app's key,
+`storeFile=../../durtles/release.jks` (relative to `web/android/`), with the same passwords as
+`durtles/keystore.properties`. Both `durtles/release.jks` and the properties files are git-ignored.
+**Keep an offline backup of `durtles/release.jks` and its passwords** (not in the repository, not
+in a cloud folder you don't control): if the key is lost, no later release can update the
+installed app. Check a release with
+`apksigner verify --print-certs web/release/kanjikodama-<version>.apk`: the SHA-256 digest must be
+`1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741` (the Java release key).
+
+### Old Java app (`durtles/`, kept for reference)
 
 Requirements: JDK 17+ (Android Studio's bundled JBR works), the Android SDK, Python 3, and the `gh`
 CLI logged in to an account that can read
@@ -82,7 +134,12 @@ cd durtles
 ./gradlew assembleRelease    # id app.kanjikodama.wk
 ```
 
-The debug and release builds have different application ids, so both can be installed side by side.
+The debug and release builds have different application ids, so both can be installed side by
+side. Release builds use `durtles/keystore.properties` and `durtles/release.jks` (git-ignored, see
+`durtles/keystore.properties.example`); without them they are signed with the debug key. The manual
+**Release APK (manual)** workflow restores the same key from the `RELEASE_KEYSTORE_BASE64`,
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` secrets, and reads the
+lesson content with the `KANJIKODAMA_DATA_TOKEN` secret.
 
 ### Lesson content
 
@@ -116,16 +173,6 @@ uv run pytest
 
 App unit tests (JLPT order, placement, level test): `cd durtles && ./gradlew testDebugUnitTest`.
 
-### Signing
-
-Release builds use `durtles/keystore.properties` and `durtles/release.jks`. Both are git-ignored;
-see `durtles/keystore.properties.example`. Without them, release builds are signed with the debug
-key. The release workflow restores the same key from the `RELEASE_KEYSTORE_BASE64`,
-`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` secrets, and reads the
-lesson content with the `KANJIKODAMA_DATA_TOKEN` secret, a fine-grained token with read access to
-KanjiKodamaData's contents. Keep a backup of the keystore and its password: if the key is lost, later
-releases cannot update an installed app.
-
 ### Logo
 
 `durtles/tools/make_logo.py` draws the pixel logo (a torii with a sprouting kodama under it)
@@ -139,7 +186,12 @@ uv run durtles/tools/make_logo.py
 ## Repository layout
 
 ```
-durtles/                 The app (Smouldering Durtles fork, Java, Gradle)
+web/                     The app: TypeScript (React + Vite), PWA and Capacitor Android
+  src/                   core/ (logic, golden-tested against Java), app/, ui/, platform/,
+                         progress/ (save, restore, legacy migration), storage/, sync/
+  android/               Capacitor Android project (native plugins in app/src/main/java)
+  scripts/               check.sh, content build, release-android.sh
+durtles/                 The old Java app (Smouldering Durtles fork), kept for reference
   app/src/main/java/com/smouldering_durtles/wk/local/
                          KanjiKodama additions: offline mode, local progression, sound
                          components, curriculum orders, fast travel, level test, extra
@@ -152,7 +204,7 @@ content/                 Hand-authored component, mnemonic, sound-series and JLP
 docs/                    Spec and implementation plan
 app/, core/, feature/    Standalone Kotlin/Compose app built only from open data
                          (JLPT-ordered N5 and N4 content)
-.github/workflows/       CI (builds and tests on every push) and the manual release workflow
+.github/workflows/       CI and the Java release workflow, both manual only (workflow_dispatch)
 ```
 
 ## Credits

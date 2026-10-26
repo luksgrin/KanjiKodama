@@ -31,6 +31,14 @@ public class DocumentPlugin extends Plugin {
 
     private static final int MAX_BYTES = 20 * 1024 * 1024;
 
+    /**
+     * The text being saved, kept here instead of in the call: Capacitor stores a pending call's
+     * options in the activity's saved state when the picker covers it, and a real progress file
+     * (~750 KB, twice in the bundle) overflows the 1 MB binder limit: TransactionTooLargeException
+     * crashed the app as soon as the picker opened.
+     */
+    private String pendingText;
+
     @PluginMethod
     public void save(PluginCall call) {
         String text = call.getString("text");
@@ -38,6 +46,8 @@ public class DocumentPlugin extends Plugin {
             call.reject("text is required");
             return;
         }
+        pendingText = text;
+        call.getData().remove("text");
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType(call.getString("mimeType", "application/json"));
@@ -47,6 +57,8 @@ public class DocumentPlugin extends Plugin {
 
     @ActivityCallback
     private void onSaveResult(PluginCall call, ActivityResult result) {
+        final String text = pendingText;
+        pendingText = null;
         if (call == null) return;
         Intent data = result.getData();
         if (result.getResultCode() != Activity.RESULT_OK || data == null || data.getData() == null) {
@@ -56,9 +68,14 @@ public class DocumentPlugin extends Plugin {
             return;
         }
         Uri uri = data.getData();
+        if (text == null) {
+            // The app was restarted while the picker was open: the text is gone.
+            call.reject("The app was restarted while the file picker was open. Please save again.");
+            return;
+        }
         try (OutputStream out = getContext().getContentResolver().openOutputStream(uri, "wt")) {
             if (out == null) throw new IllegalStateException("Cannot open output stream");
-            out.write(call.getString("text", "").getBytes(StandardCharsets.UTF_8));
+            out.write(text.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             call.reject("Write failed: " + e.getMessage(), e);
             return;

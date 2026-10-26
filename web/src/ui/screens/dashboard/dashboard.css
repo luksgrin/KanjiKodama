@@ -186,3 +186,8 @@
 
 /* PWA banners after the session buttons. */
 .kk-dashboard > .kk-banner { margin-bottom: 0; }
+
+/* Post60ProgressView: the bold title centred with 4dp padding, then the 24dp bar (Post60ProgressBarView). */
+.kk-post60 { display: flex; flex-direction: column; }
+.kk-post60-title { margin: 0; padding: 4px; align-self: center; font-size: var(--text-md); font-weight: 700; line-height: normal; }
+.kk-post60-bar { display: block; width: 100%; height: 24px; }
