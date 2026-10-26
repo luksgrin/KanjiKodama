@@ -43,6 +43,22 @@ describe('runBackgroundSync', () => {
     expect(await kk.serverSubjects.count()).toBe(3);
   });
 
+  it('returns the review notification plan, or a cancel with notifications off', async () => {
+    const kk = await openDb();
+    await switchToServer(kk, { baseUrl: BASE, token: 'ignored', user: USER });
+    const clock = new FakeClock(NOW);
+    const r = await runBackgroundSync(bridge(), { kk, http: firstSyncRoutes(new FakeHttp()), now: () => NOW, retryDelay: 1, clock, limiter: limiterFor(clock) });
+    expect(r.notifications?.enabled).toBe(true);
+    expect(r.notifications?.current).toMatchObject({ at: NOW, lessons: r.widget!.lessons, reviews: expect.any(Number) });
+    expect(r.notifications!.current!.title).toMatch(/available$/);
+    expect(r.notifications!.entries.every((e) => e.at > NOW && typeof e.title === 'string')).toBe(true);
+
+    await kk.settings.put({ key: 'enable_notifications', value: false });
+    const clock2 = new FakeClock(NOW);
+    const r2 = await runBackgroundSync(bridge(), { kk, http: firstSyncRoutes(new FakeHttp()), now: () => NOW, retryDelay: 1, clock: clock2, limiter: limiterFor(clock2) });
+    expect(r2.notifications).toEqual({ enabled: false, entries: [], current: null });
+  });
+
   it('does nothing in local mode or without a token', async () => {
     const kk = await openDb();
     const http = new FakeHttp();

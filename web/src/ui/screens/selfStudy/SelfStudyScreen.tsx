@@ -57,7 +57,7 @@ export function useSelfStudySearch(): (type: SearchType, data: string) => number
 
 export function SelfStudyScreen() {
   const app = useApp();
-  const { learner, content, state } = useReady();
+  const { learner, state } = useReady();
   const navigate = useNavigate();
   const { rt, snap } = useSession();
   const { presets, save, remove } = useSearchPresets();
@@ -138,7 +138,6 @@ export function SelfStudyScreen() {
         systems={learner.srsSystems}
         starRatingsEnabled={enableStarRatings(state.prefs)}
         initial={defaults}
-        blocks={learner.progress.curriculum === 'JLPT' ? content.jlptBlocks : []}
         searchLabel="Start"
         showSortOrder={false}
         onSearch={(p) => void startSession(2, writeParameters(p), true)}

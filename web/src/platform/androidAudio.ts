@@ -84,6 +84,32 @@ async function downloadOne(item: AudioDownload): Promise<number> {
   return base64Bytes(b64);
 }
 
+/** Downloads the queue, `PARALLEL` at a time; failures are counted and the rest goes on. */
+async function runQueue(queue: readonly AudioDownload[], onProgress?: (done: number, total: number) => void, signal?: AbortSignal): Promise<AudioDownloadResult> {
+  const total = queue.length;
+  const result: AudioDownloadResult = { downloaded: 0, failed: 0, bytes: 0, aborted: false };
+  let done = 0;
+  let next = 0;
+  onProgress?.(0, total);
+  const worker = async (): Promise<void> => {
+    while (next < total && signal?.aborted !== true) {
+      const item = queue[next++]!;
+      try {
+        const bytes = await downloadOne(item); // not `+= await`: workers interleave
+        result.bytes += bytes;
+        result.downloaded++;
+      } catch {
+        result.failed++; // offline, 404, disk: counted, the rest goes on (the screen offers a retry)
+      }
+      done++;
+      onProgress?.(done, total);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(PARALLEL, total) }, worker));
+  result.aborted = done < total;
+  return result;
+}
+
 export interface AndroidAudioOptions {
   player?: AudioPlayer;
   /** Random tie-break between equally good recordings (`ObjectSupport.shuffle`); seeded in tests. */
@@ -131,29 +157,25 @@ export function createAndroidAudio(options: AndroidAudioOptions = {}): AudioApi 
       if (catalog === null) throw new Error('Audio catalog not loaded');
       const owners = catalog.owners(levels);
       const cached = await cachedFor(owners.map((o) => o.level));
-      const queue = planAudioDownloads(owners, cached);
-      const total = queue.length;
-      const result: AudioDownloadResult = { downloaded: 0, failed: 0, bytes: 0, aborted: false };
-      let done = 0;
-      let next = 0;
-      onProgress?.(0, total);
-      const worker = async (): Promise<void> => {
-        while (next < total && signal?.aborted !== true) {
-          const item = queue[next++]!;
-          try {
-            const bytes = await downloadOne(item); // not `+= await`: workers interleave
-            result.bytes += bytes;
-            result.downloaded++;
-          } catch {
-            result.failed++; // offline, 404, disk: counted, the rest goes on (the screen offers a retry)
-          }
-          done++;
-          onProgress?.(done, total);
-        }
-      };
-      await Promise.all(Array.from({ length: Math.min(PARALLEL, total) }, worker));
-      result.aborted = done < total;
-      return result;
+      return runQueue(planAudioDownloads(owners, cached), onProgress, signal);
+    },
+
+    async downloadSubjects(subjectIds, maxCount, signal): Promise<AudioDownloadResult> {
+      if (catalog === null) return { downloaded: 0, failed: 0, bytes: 0, aborted: true }; // not read yet: the next scan
+      const c = catalog;
+      const owners = [...new Set(subjectIds)].map((id) => c.owner(id)).filter((o): o is NonNullable<typeof o> => o !== null);
+      const cached = await cachedFor(owners.map((o) => o.level));
+      // `scheduleDownloadTasks`: the first `maxCount` subjects that miss a file.
+      const queue: AudioDownload[] = [];
+      let count = 0;
+      for (const o of owners) {
+        if (count >= maxCount) break;
+        const missing = planAudioDownloads([o], cached).filter((d) => !queue.some((q) => q.path === d.path));
+        if (missing.length === 0) continue;
+        queue.push(...missing);
+        count++;
+      }
+      return runQueue(queue, undefined, signal);
     },
 
     async status(): Promise<AudioCacheStatus> {

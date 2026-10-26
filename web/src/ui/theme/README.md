@@ -4,22 +4,23 @@ The Java app's KanjiKodama theme (`durtles/app/src/main/res/values/colors.xml` `
 `styles.xml` `KanjiKodamaLightTheme`/`KanjiKodamaDarkTheme`, `enums/ActiveTheme.java`) as CSS custom
 properties. `index.css` imports `fonts.css`, `tokens.css` and `base.css`; `main.tsx` imports it once.
 
-- **Light / dark:** tokens on `:root` are light; dark applies under `prefers-color-scheme: dark`,
-  unless `<html data-theme="light">`; `data-theme="dark"` forces dark. Set it with `applyTheme()`
-  (`src/app/theme.ts`, setting `kk_theme`: `system`/`light`/`dark`). Never hard-code colours in
-  components: use the tokens, so both themes work.
+- **Themes:** the Java app's eight (`themes.ts`, from `enums/ActiveTheme.java`, `styles.xml`,
+  `colors.xml`): the Light Theme (`theme`) applies while the system is light, the Dark Theme
+  (`nightTheme`) while it is dark (`GlobalSettings.Display.getTheme`). `src/app/theme.ts` `applyTheme`
+  sets `<html data-theme="light|dark">` (the AppCompat parent) and `data-kk-theme="<THEME>"`. The two
+  KanjiKodama themes are the token blocks below (light on `:root`, dark under `prefers-color-scheme:
+  dark` unless `data-theme="light"`, and for `data-theme="dark"`); the six upstream themes and the
+  Theme Customisation colours (`theme_customizations_<THEME>`) are inline custom properties on
+  `<html>`. Never hard-code colours in components: use the tokens, so every theme works.
 - **Fonts** (bundled, OFL, licenses in `public/licenses/`): `--font-body` Pixelify Sans (body Latin),
-  `--font-display` Silkscreen (headings, buttons, counters, tabs), `--font-ja` Zen Maru Gothic.
-  Japanese text: mark it `lang="ja"` (or class `ja`); both Latin stacks also fall back to Zen Maru
-  Gothic, so stray Japanese never renders in a system font.
+  `--font-display` Silkscreen (headings, buttons, counters, tabs), `--font-ja` the system CJK font
+  (Hiragino on Apple, Noto Sans CJK on Android), as the Java app. Japanese text: mark it `lang="ja"`
+  (or class `ja`); both Latin stacks fall back to `--font-ja`. Zen Maru Gothic stays bundled (About,
+  licence) but the Java app never draws with it.
 
 ## Tokens
 
-Contrast: every text/background pair the screens use meets WCAG AA (4.5:1) in both themes. A few
-Java colours were nudged for that: light `--color-text-muted` (#3E7F6B → #36735F), `--color-text-toned`
-(#5C8A7A → #4A7566), `--color-level-up` (#3FA383 → #2C7560), the light Anki fills (#909000 → #707000,
-#00A000 → #008000) and dark `--color-stage-initial` (#4A5F66 → #7D9399); coloured buttons (`danger`,
-`radical`, `kanji`) use `--color-on-subject` text. The raw `--kk-*` palette is unchanged.
+Colours are the Java app's exactly (no contrast tweaks).
 
 | Token | Use |
 |---|---|
@@ -54,6 +55,14 @@ Java colours were nudged for that: light `--color-text-muted` (#3E7F6B → #3673
 | `--color-answer-correct` / `--color-answer-incorrect` | answered field background |
 | `--color-anki-{show,next,correct,incorrect,text,answer-bg}` | Anki mode buttons and answer |
 | `--font-body` `--font-display` `--font-ja` | fonts (above) |
+| `--font-button` | `.kk-btn` (the body font in the KanjiKodama themes; Silkscreen in the upstream ones, which have no theme font) |
+| `--color-primary-light` | colorPrimaryLight: text on subject / browse-level colours |
+| `--color-primary-dark` | colorPrimaryDark: borderless buttons on the yellow tutorial boxes |
+| `--color-control-activated` | colorControlActivated: switches, seek bars |
+| `--color-pref-title` | preference titles (`textColorPrimary`) |
+| `--color-waterfall` | colorWaterfallLine (timeline waterfall) |
+| `--color-pitch-{heiban,odaka,nakadaka,atamadaka}` `--color-stroke-ghost` | pitch info, stroke diagram ghost |
+| `--color-radical-fg` `--color-kanji-fg` `--color-vocab-fg` | text on each subject colour; `.radical`/`.kk-type--radical` etc. set `--color-on-subject` from them (Breeze, Black and Nord colour the text, not the background) |
 | `--text-xs/sm/md/lg/xl/xxl` | 13/14/16/20/26/34 px (WK.TextView sizes) |
 | `--space-1` … `--space-6` | 4/8/12/16/24/32 px |
 | `--radius-sm/md/pill`, `--border-pixel` | 6/12/999 px, 3 px outlines |
@@ -72,7 +81,8 @@ Java colours were nudged for that: light `--color-text-muted` (#3E7F6B → #3673
 Colours are the Java app's exactly (no contrast tweaks, test/app/themeColors.test.ts). Headings use the
 body font in bold as Java; Silkscreen (`--font-display`) is for the toolbar, buttons and the quiz header.
 `.kk-btn.secondary` looks like `.kk-btn` (Java has one button style). Transitions: `.kk-slide-rtl` /
-`.kk-slide-ltr` (session fragment slides, 150 ms); screens slide in by themselves (AppShell).
+`.kk-slide-ltr` (session fragment slides, 150 ms; off with `slide_animations`, `<html
+data-slide-animations="off">`); screens slide in by themselves (AppShell).
 
 ## Toolbar and toasts (`ui/shell/`)
 

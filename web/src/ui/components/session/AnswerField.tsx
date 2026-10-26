@@ -11,11 +11,15 @@
  * - Enter / Go / Done: the field sits in a `<form>`, so the browser's implicit submission handles every
  *   keyboard's action key (Android keyboards send keyCode 229 on keydown); `insertLineBreak` /
  *   `insertParagraph` beforeinput events count too. An Enter that only commits a composition doesn't submit.
- * - The field is uncontrolled (React never rewrites it mid-composition); `lang="ja"` on reading fields,
- *   no autocomplete/autocorrect/autocapitalize/spellcheck (`TYPE_TEXT_FLAG_NO_SUGGESTIONS`).
+ * - The field is uncontrolled (React never rewrites it mid-composition); `lang="ja"` on reading fields;
+ *   the keyboard attributes follow the Keyboard input settings (`answerInputAttributes`: no
+ *   autocorrect/autocapitalize/spellcheck by default, Java's `TYPE_TEXT_FLAG_NO_SUGGESTIONS`).
+ * - While a session dialog is open the field doesn't submit (the dialog has Java's input focus).
  */
 import { forwardRef, useEffect, useImperativeHandle, useRef, type FormEvent } from 'react';
 import { FixupWatcher, newAnswerEditable, type SpanEditable } from '../../../core/kana';
+import type { AnswerInputAttributes } from './displayPrefs';
+import { sessionDialogOpen } from './SessionDialog';
 
 export interface AnswerFieldHandle {
   /** The field's text with any unconverted romaji converted (reading questions); what Submit sends. */
@@ -39,6 +43,8 @@ export interface AnswerFieldProps {
   centered?: boolean;
   /** Font size in px (`font_size_question_edit`). */
   fontSize?: number;
+  /** Keyboard attributes (Keyboard input settings); default: Java's defaults for the question kind. */
+  input?: AnswerInputAttributes;
   onChange(text: string): void;
   onSubmit(): void;
 }
@@ -59,7 +65,7 @@ export function replayEdit(ed: SpanEditable, after: string): string {
 }
 
 export const AnswerField = forwardRef<AnswerFieldHandle, AnswerFieldProps>(function AnswerField(
-  { kana, placeholder, label, questionKey, initial = '', readOnly = false, centered = false, fontSize, onChange, onSubmit },
+  { kana, placeholder, label, questionKey, initial = '', readOnly = false, centered = false, fontSize, input: attrs, onChange, onSubmit },
   ref,
 ) {
   const input = useRef<HTMLInputElement>(null);
@@ -119,6 +125,7 @@ export const AnswerField = forwardRef<AnswerFieldHandle, AnswerFieldProps>(funct
     if (readOnly) return;
     // The Enter that ends a composition (Safari fires keydown/submit before compositionend) only commits it.
     if (composing.current) return;
+    if (sessionDialogOpen()) return;
     onSubmit();
   };
 
@@ -131,13 +138,13 @@ export const AnswerField = forwardRef<AnswerFieldHandle, AnswerFieldProps>(funct
         aria-label={label}
         type="text"
         name="answer"
-        lang={kana ? 'ja' : 'en'}
+        lang={attrs?.lang ?? (kana ? 'ja' : 'en')}
         placeholder={placeholder}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="none"
-        spellCheck={false}
-        inputMode="text"
+        autoComplete={attrs?.autoComplete ?? 'off'}
+        autoCorrect={attrs?.autoCorrect ?? 'off'}
+        autoCapitalize={attrs?.autoCapitalize ?? 'none'}
+        spellCheck={attrs?.spellCheck ?? false}
+        inputMode={attrs?.inputMode ?? 'text'}
         enterKeyHint="done"
         readOnly={readOnly}
         onCompositionStart={() => {

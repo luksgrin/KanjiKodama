@@ -41,9 +41,9 @@ Sources:
 |---|---|---|---|---|---|---|
 | `api_key_help` | Caution | info, hidden |  | Hidden warning text shown above the token field. | n/a (UI) |  |
 | `api_key` | V2 API token | secret string |  | WaniKani v2 API token (used by server mode and the WaniKani import). | no | (encrypted store, not read) |
-| `network_rule` | Network access rule | enum | `DOWNLOAD_WIFI_ONLY` | When the app may use the network: always, downloads on Wi-Fi only, or everything on Wi-Fi only. | no |  |
+| `network_rule` | Network access rule | enum | `DOWNLOAD_WIFI_ONLY` | When the app may use the network: always, downloads on Wi-Fi only, or everything on Wi-Fi only. | yes (Android audio downloads, `src/sync/audioScan.ts`) |  |
 | `audio_location` | Audio files location | enum, hidden | `Internal` | Where downloaded vocab audio is stored (hidden; internal storage). | no |  |
-| `auto_download_audio` | Auto-download audio for upcoming reviews | bool | `true` | Download audio for upcoming reviews / the current self-study session automatically. | no |  |
+| `auto_download_audio` | Auto-download audio for upcoming reviews | bool | `true` | Download audio for upcoming reviews / the current self-study session automatically. | yes (Android: 12-hourly timeline scan and new sessions, `src/sync/audioScan.ts`; the web build streams) |  |
 | `enable_background_sync` | Allow background sync | bool | `false` | Run API sync tasks periodically in the background. | no |  |
 | `sync_on_open` | Sync when the app is opened | bool | `false` | Sync when the app is opened after being closed at least 3 minutes. | no |  |
 | `web_password` | Web site password | secret string |  | WaniKani web site password, only for resurrecting burned items. | no | (encrypted store, not read) |
@@ -100,7 +100,7 @@ Sources:
 | `always_hide_wk_mnemonic` | Always hide WaniKani's own mnemonics | bool | `false` | Always hide WaniKani's own mnemonics. | no |  |
 | `hide_meaning_mnemonic` | Hide WaniKani's meaning mnemonic if a user note is present | bool | `false` | Hide WaniKani's meaning mnemonic when you have a meaning note. | no |  |
 | `hide_reading_mnemonic` | Hide WaniKani's reading mnemonic if a user note is present | bool | `false` | Hide WaniKani's reading mnemonic when you have a reading note. | no |  |
-| `show_legacy` | Show old names and mnemonics for radicals from before the December 2018 content update | bool | `false` | Show pre-2018 radical names and mnemonics. | no |  |
+| `show_legacy` | Show old names and mnemonics for radicals from before the December 2018 content update | bool | `false` | Show pre-2018 radical names and mnemonics. | yes (`core/settings/subjectInfo.ts` `showLegacy`, `core/legacyRadicals.ts`, item page) |  |
 | `meaning_info_dump` | Show info dump after a correct meaning answer | enum | `ANSWERS_ONLY` | Subject info shown after a correct meaning answer (lightning off): nothing / answers / hide unquizzed / all. | no |  |
 | `reading_info_dump` | Show info dump after a correct reading answer | enum | `ANSWERS_ONLY` | Same, after a correct reading answer. | no |  |
 | `meaning_info_dump_incorrect` | Show info dump after an incorrect meaning answer | enum | `ANSWERS_ONLY` | Same, after an incorrect meaning answer. | no |  |
@@ -299,11 +299,11 @@ Sources:
 |---|---|---|---|---|---|---|
 | `about_this_app` | About this app | action |  | About screen (action). | n/a (UI) |  |
 | `support_and_feedback` | Support and feedback | action |  | Support/feedback screen (action). | n/a (UI) |  |
-| `data_import_export` | Data import / export | action |  | Data import/export screen (action). | n/a (UI) |  |
+| `data_import_export` | Data import / export | action |  | Data import/export screen (action). | n/a (UI): ported (search presets, star ratings; Java JSON) |  |
 | `reset_tutorials` | Reset UI confirmations and tutorials | action |  | Re-enable dismissed tutorials and UI confirmations (action). | n/a (UI) |  |
-| `reset_database` | Reset database | action |  | Clear all app data (action). | n/a (UI) |  |
-| `backup_settings` | Backup your settings | action |  | Export all settings to a file (action). | n/a (UI) |  |
-| `restore_settings` | Restore your settings | action |  | Import settings from a file (action). | n/a (UI) |  |
+| `reset_database` | Reset database | action |  | Clear all app data (action). | n/a (UI): ported (`src/progress/resetDatabase.ts`) |  |
+| `backup_settings` | Backup your settings | action |  | Export all settings to a file (action). | n/a (UI): ported, Java file format (`src/progress/settingsBackup.ts`) |  |
+| `restore_settings` | Restore your settings | action |  | Import settings from a file (action). | n/a (UI): ported, restores Java backups |  |
 
 ## Keys the code reads that are not in `preferences.xml`
 
@@ -341,6 +341,15 @@ These are suggestions only. Nothing has been dropped.
   save/restore progress, WaniKani import.
 
 **Drop (Android-specific or no longer meaningful in the TS app)**
+
+> Owner decision 2026-10-26 (step 5 wave 5): Display settings and Keyboard input settings are ported in
+> full after all: all eight themes (`theme`, `nightTheme`), Theme Customisation, `center_caret`,
+> `anki_buttons_height`, `quiz_question_view_height`, `slide_animations`, `stretch_quiz_question_view`,
+> every keyboard key and Keyboard help. The keyboard flags a browser can't honour (force ASCII,
+> 'visible password', the language hints, 'no personalized learning') are shown and applied on Android
+> only (`KkWebView`); the web build keeps auto-correct and the Next delay. The list below is the
+> original draft.
+
 - Keyboard/IME tweaks: `enable_auto_correct_*`, `force_ascii_*`, `force_visible_password_*`,
   `ime_hint_*`, `enable_no_learning`, `center_caret` (the TS answer field sets its own input attributes).
 - Layout knobs tied to Android views: `quiz_question_view_height`, `stretch_quiz_question_view`,

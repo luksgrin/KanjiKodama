@@ -20,7 +20,7 @@ import { prefBoolean } from '../../../core/settings';
 import { enableStarRatings, showOnInKatakana } from '../../../core/settings/subjectInfo';
 import type { SrsSystem } from '../../../core/srs';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { formatTimestamp, starsText, useStarRatings } from '../../components/subject';
+import { SubjectChars, formatTimestamp, starsText, useStarRatings } from '../../components/subject';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate, useRoute } from '../../hooks/useRoute';
 import { paths } from '../../routes';
@@ -240,7 +240,7 @@ export function SearchResultsScreen() {
       <div key={s.id} className="kk-card-cell" style={wide ? { gridColumn: `span ${wideSpan}` } : undefined}>
         <SubjectCard
           object={s.object}
-          characters={s.characters ?? s.slug ?? ''}
+          characters={<SubjectChars subject={s} />}
           meaning={s.meanings.length > 0 ? oneMeaning(s.meanings) : null}
           reading={s.object === 'radical' || reading === '' ? null : reading}
           progress={progress}
@@ -303,7 +303,6 @@ export function SearchResultsScreen() {
             systems={systems}
             starRatingsEnabled={starsOn}
             initial={run.parameters}
-            blocks={learner.ordering === 'JLPT' ? learner.blocks : []}
             onSearch={(p) => {
               setRefining(false);
               navigate(paths.searchResults(2, writeParameters(p)));

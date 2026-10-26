@@ -13,10 +13,10 @@
 
 .kk-item .kk-ja,
 .kk-item :lang(ja) {
-  font-family: var(--font-ja, 'Zen Maru Gothic', sans-serif);
-  font-weight: 500;
+  font-family: var(--font-ja);
+  font-weight: 400;
 }
-/* The Japanese face has one weight: draw <b> (the primary reading) heavier, as Android's fake bold.
+/* Android's CJK face has one weight: draw <b> (the primary reading) heavier, as Android's fake bold.
    Java's Pixelify Sans bold is fake bold too (same advances as regular), so long bold meanings wrap
    where Java's do; the section headers keep the real bold. */
 .kk-item .kk-headline b {
@@ -184,11 +184,13 @@
    (SubjectCardBinder.styleCardText), the same in light and dark. */
 .kk-link-grid {
   list-style: none;
-  margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
-  gap: 4px;
+  /* SubjectGridView: setChildMargin(2 dp) around cards with their own 2 dp margins; measured on the
+     Java app (420 dpi): 14 device px between cards, 28 px from the screen edge (8 dp gutter + 7 px). */
+  gap: 5.33px;
+  margin: 0 2.67px;
 }
 .kk-link {
   --kk-card-text: #7E1E40;

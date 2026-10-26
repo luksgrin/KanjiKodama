@@ -45,9 +45,12 @@ describe.skipIf(!HAS_WK_CONTENT)('ItemPage', () => {
     expect(render(radical, { settings: { show_stroke_order: true }, strokeOrder: false })).not.toContain('kk-stroke-diagram');
   });
 
-  it('renders a radical that only has an image with its slug', () => {
-    const radical = find((s) => s.object === 'radical' && s.characters === null);
-    expect(render(radical)).toContain(`<span class="kk-ja">${radical.slug}</span>`);
+  it('renders a radical that only has an image with its image (Subject.getTitleImageId), labelled with its slug', () => {
+    const radical = find((s) => s.object === 'radical' && s.characters === null && s.id === 8766);
+    const html = render(radical);
+    expect(html).toContain(`<span class="kk-ja"><svg class="kk-title-image"`);
+    expect(html).toContain(`aria-label="${radical.slug}"`);
+    expect(html).not.toContain(`<span class="kk-ja">${radical.slug}</span>`);
   });
 
   it("renders a kanji in Java's section order", () => {

@@ -71,3 +71,8 @@ export function fontSizeSubjectInfo(prefs: Preferences): number {
 export function enableStarRatings(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'enable_star_ratings', false);
 }
+
+/** `SubjectInfo.getShowLegacy`: `show_legacy` (old radical names and mnemonics), default false. */
+export function showLegacy(prefs: Preferences): boolean {
+  return prefBoolean(prefs, 'show_legacy', false);
+}

@@ -18,7 +18,7 @@ import type { ContentSubject } from '../../../core/content';
 import { isBurnable, isResurrectable } from '../../../core/progression';
 import { enableStarRatings } from '../../../core/settings/subjectInfo';
 import {
-  AudioButton, ItemPage, StarRating, infoTitle, useCardProgress, useSaveStudyMaterial, useStarRatings, type ItemProgress,
+  AudioButton, InfoTitle, ItemPage, StarRating, useCardProgress, useSaveStudyMaterial, useStarRatings, type ItemProgress,
 } from '../../components/subject';
 import { useSessionMenu } from '../../components/session/SessionMenu';
 import { useSession } from '../../components/session/useSession';
@@ -62,7 +62,7 @@ export function SubjectScreen() {
   const menu = useSessionMenu(rt, snap.session, subject?.id ?? null, { onSessionScreen: false });
   // Toolbar: "力 (level 3 kanji)" in the subject's colour (SubjectInfoHeadlineView.layoutSubject).
   useToolbar({
-    title: subject ? infoTitle(subject, level ?? subject.level) : undefined,
+    title: subject ? <InfoTitle subject={subject} level={level ?? subject.level} /> : undefined,
     color: subject?.object,
     actions: menu.actions,
   });

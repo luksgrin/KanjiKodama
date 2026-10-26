@@ -9,6 +9,7 @@ import type { ContentSubject } from '../../../core/content';
 import { burnLocal, isBurnable, isResurrectable, resurrectLocal } from '../../../core/progression';
 import type { AppController } from '../../../app/appController';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { SubjectChars } from '../../components/subject/SubjectChars';
 
 export type BurnResurrectKind = 'resurrect' | 'burn';
 
@@ -77,7 +78,7 @@ export function BurnResurrectDialog({ kind, subjects, run, onClose }: BurnResurr
       <p className="kk-small">{t.list}</p>
       <ul className="kk-burn-list">
         {subjects.map((s) => (
-          <li key={s.id} lang="ja">{s.characters ?? s.slug ?? s.id}</li>
+          <li key={s.id} lang="ja"><SubjectChars subject={s} /></li>
         ))}
       </ul>
     </ConfirmDialog>

@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ContentVariant } from '../../src/content/contentFile';
+import { TITLE_IMAGE_IDS } from '../../src/content/titleImages';
 import type { ContentInputs, InputFile } from './buildContent';
 
 /** The repository root (`web/..`). */
@@ -10,6 +11,7 @@ export const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
 export const ASSETS_DIR = join(REPO_ROOT, 'durtles/app/src/main/assets');
 export const RAW_DIR = join(REPO_ROOT, 'durtles/app/src/main/res/raw');
+export const DRAWABLE_DIR = join(REPO_ROOT, 'durtles/app/src/main/res/drawable');
 /** The private WaniKani content (git-ignored; internal use only). `KK_WK_CONTENT_DB` overrides it. */
 export const WK_CONTENT_PATH = process.env.KK_WK_CONTENT_DB ?? join(ASSETS_DIR, 'wk-content.db');
 export const WK_LOCK_PATH = join(REPO_ROOT, 'durtles/tools/wk-content.lock.json');
@@ -38,5 +40,6 @@ export function readInputs(variant: ContentVariant): ContentInputs {
     vocabJlptLevels: input(RAW_DIR, 'vocab_jlpt_levels.json'),
     kanjidicFreq: input(RAW_DIR, 'kanjidic_freq.json'),
     joyoGrades: input(RAW_DIR, 'wikipedia_joyo_grades.json'),
+    titleImages: TITLE_IMAGE_IDS.map((id) => ({ id, file: input(DRAWABLE_DIR, `radical_${id}.xml`) })),
   };
 }

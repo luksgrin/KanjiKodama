@@ -95,11 +95,16 @@ public class SystemUiPlugin extends Plugin {
 
     @PluginMethod
     public void setImeHints(final PluginCall call) {
-        final boolean noLearning = Boolean.TRUE.equals(call.getBoolean("noPersonalizedLearning", false));
-        final boolean ascii = Boolean.TRUE.equals(call.getBoolean("forceAscii", false));
+        final KkWebView.ImeHints hints = new KkWebView.ImeHints(
+                Boolean.TRUE.equals(call.getBoolean("answerField", false)),
+                Boolean.TRUE.equals(call.getBoolean("noPersonalizedLearning", false)),
+                Boolean.TRUE.equals(call.getBoolean("forceAscii", false)),
+                Boolean.TRUE.equals(call.getBoolean("autoCorrect", false)),
+                Boolean.TRUE.equals(call.getBoolean("visiblePassword", false)),
+                call.getString("hintLocale", ""));
         getBridge().executeOnMainThread(() -> {
             final WebView wv = getBridge().getWebView();
-            if (wv instanceof KkWebView) ((KkWebView) wv).setImeHints(noLearning, ascii);
+            if (wv instanceof KkWebView) ((KkWebView) wv).setImeHints(hints);
             call.resolve();
         });
     }

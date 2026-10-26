@@ -12,7 +12,7 @@ import { useReady } from '../../hooks/useApp';
 import { useToolbar } from '../../shell/toolbar';
 import { SessionItemInfo } from '../../components/session/SessionItemInfo';
 import { useSessionMenu } from '../../components/session/SessionMenu';
-import { infoTitle } from '../../components/subject/subjectText';
+import { InfoTitle } from '../../components/subject/SubjectChars';
 import { SessionScreen } from '../../components/session/SessionScreen';
 import type { SessionRuntime } from '../../components/session/runtime';
 
@@ -23,7 +23,7 @@ function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Sess
   const menu = useSessionMenu(rt, session, item?.id ?? null);
   // Toolbar: "一 (level 1 radical)" in the subject's colour (LessonSessionFragment.getToolbarTitle).
   useToolbar({
-    title: subject === null ? '' : infoTitle(subject, tableRow(learner, subject.id).level),
+    title: subject === null ? '' : <InfoTitle subject={subject} level={tableRow(learner, subject.id).level} />,
     color: subject?.object ?? 'default',
     actions: menu.actions,
   });

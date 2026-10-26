@@ -1,0 +1,16 @@
+/*
+ * Data import/export (`activity_data_import_export.xml`): 8 dp padding, a WK.TextView.Large (20 sp)
+ * line, a WK.TextView.Normal (16 sp) line 8 dp below, then four wrap_content WK.Button.Normal
+ * buttons stacked, the first 8 dp below the text.
+ */
+.kk-data-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px;
+  color: var(--color-text);
+}
+.kk-data-large { margin: 0; font-size: var(--text-lg); }
+.kk-data-normal { margin: 8px 0 0; font-size: var(--text-md); }
+.kk-data-buttons { display: flex; flex-direction: column; align-items: flex-start; margin-top: 8px; max-width: 100%; }
+.kk-data-buttons > .kk-btn { max-width: 100%; }

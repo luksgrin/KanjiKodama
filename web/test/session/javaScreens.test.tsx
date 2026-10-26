@@ -56,7 +56,7 @@ describe('quiz screen', () => {
     expect(dialog.querySelector('.kk-sdialog-icon')).not.toBeNull();
     await click(button(dialog, 'Yes')!);
     expect(document.querySelector('[data-testid="toast"]')?.textContent).toBe('Session wrapping up...');
-    expect(q(el, 'wrapup-dialog')?.hasAttribute('open')).toBe(false);
+    expect(q(el, 'wrapup-dialog')).toBeNull();
   });
 });
 
@@ -161,5 +161,126 @@ describe('item page', () => {
     expect(labels).not.toContain('Abandon session');
     // Cards with the progress line ("Used radicals:").
     expect(el.querySelector('.kk-links .kk-link.kk-type--radical .kk-link-meaning')?.textContent).toBe('Ground');
+  });
+});
+
+describe('Java placement and focus', () => {
+  it('puts Don\'t know | Submit after a spacer at the bottom, Next in the grown header and at the bottom', async () => {
+    const { el } = await renderApp('/reviews', { setup: dueReviews([10]), prefs: { enable_lightning_mode: false } });
+    await waitFor(() => q(el, 'submit'), 'question');
+    const quiz = el.querySelector('section.kk-quiz')!;
+    expect(quiz.className).toContain('unanswered');
+    const kids = [...quiz.children].map((c) => c.className || c.getAttribute('data-testid'));
+    expect(kids.indexOf('kk-quiz-spacer')).toBeLessThan(kids.findIndex((k) => k === 'kk-quiz-actions'));
+    expect(kids.indexOf('kk-quiz-spacer')).toBeGreaterThan(kids.findIndex((k) => k?.startsWith('kk-quiz-answer')));
+    await typeText(el, 'banana');
+    await click(q(el, 'submit'));
+    const next = await waitFor(() => q(el, 'next'), 'answered');
+    // nextButton in the question view, focused (Java's highlight); nextButton2 in the bottom row.
+    expect(q(el, 'question-view')?.contains(next)).toBe(true);
+    expect(next.className).toContain('kk-btn-focus');
+    expect(document.activeElement).toBe(next);
+    expect(q(el, 'quick-actions')?.contains(q(el, 'next-bottom'))).toBe(true);
+    await click(q(el, 'next-bottom'));
+    await waitFor(() => q(el, 'submit'), 'next question');
+    // The new question's field has the focus (taken over from the keyboard keeper).
+    expect(document.activeElement).toBe(el.querySelector('input.kk-answer'));
+  });
+
+  it('keeps the focus in the answer field while a session dialog is open, and Enter does not submit', async () => {
+    const { el } = await renderApp('/reviews', { setup: dueReviews([10, 11]), prefs: { enable_lightning_mode: false } });
+    await waitFor(() => q(el, 'submit'), 'question');
+    const input = el.querySelector<HTMLInputElement>('input.kk-answer')!;
+    act(() => input.focus());
+    await typeText(el, 'banana');
+    await openMenu(el);
+    act(() => input.focus()); // the toolbar menu leaves the keyboard open (tested in the shell)
+    await click(q(el, 'menu-wrapup_session'));
+    const dialog = q(el, 'wrapup-dialog')!;
+    expect(dialog.getAttribute('role')).toBe('alertdialog');
+    expect(dialog.getAttribute('aria-labelledby')).not.toBeNull();
+    expect(document.activeElement).toBe(input);
+    expect(el.querySelector('dialog[open]')).toBeNull();
+    // Enter in the field: nothing (the dialog has the input focus in Java).
+    await act(async () => {
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      input.form!.requestSubmit();
+    });
+    expect(q(el, 'next')).toBeNull();
+    // Tab goes into the dialog.
+    await act(async () => {
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    });
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    act(() => input.focus());
+    await click(button(dialog, 'No')!);
+    expect(q(el, 'wrapup-dialog')).toBeNull();
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('focuses Finish on the summary', async () => {
+    const { el } = await renderApp('/reviews', { setup: dueReviews([1]), prefs: { enable_lightning_mode: false } });
+    await waitFor(() => q(el, 'submit'), 'question');
+    await typeText(el, rightAnswer(el));
+    await click(q(el, 'submit'));
+    await waitFor(() => q(el, 'next'), 'answered');
+    await click(q(el, 'next'));
+    const finish = await waitFor(() => q(el, 'summary-finish'), 'summary');
+    expect(finish.className).toContain('kk-btn-focus');
+    expect(document.activeElement).toBe(finish);
+  });
+
+  it('applies the Display and Keyboard settings to the quiz', async () => {
+    const { el } = await renderApp('/reviews', {
+      setup: dueReviews([10]),
+      prefs: {
+        enable_lightning_mode: false, center_caret: true, quiz_question_view_height: 150, stretch_quiz_question_view: true,
+        enable_auto_correct_meaning: true, enable_auto_correct_reading: true,
+      },
+    });
+    await waitFor(() => q(el, 'submit'), 'question');
+    const quiz = el.querySelector<HTMLElement>('section.kk-quiz')!;
+    expect(quiz.className).toContain('stretch');
+    expect(quiz.style.getPropertyValue('--kk-qv-fixed')).toBe('150px');
+    expect(q(el, 'question-view')?.className).toContain('fixed');
+    const input = el.querySelector<HTMLInputElement>('input.kk-answer')!;
+    expect(input.className).toContain('centered');
+    expect(input.getAttribute('autocorrect')).toBe('on');
+    expect(input.getAttribute('spellcheck')).toBe('true');
+    expect(input.getAttribute('autocapitalize')).toBe('none');
+  });
+
+  it('pins the Anki buttons at the bottom, anki_buttons_height high', async () => {
+    const { el } = await renderApp('/reviews', {
+      setup: dueReviews([10]),
+      prefs: { enable_lightning_mode: false, enable_advanced: true, anki_mode_review_meaning: true, anki_mode_review_reading: true, anki_buttons_height: 80 },
+    });
+    await waitFor(() => q(el, 'anki-show'), 'anki question');
+    const bar = q(el, 'quick-actions')!;
+    expect(bar.className).toBe('kk-anki-bar');
+    expect(el.querySelector<HTMLElement>('section.kk-quiz.anki')!.style.getPropertyValue('--kk-anki-height')).toBe('80px');
+    expect(q(el, 'anki-show')?.className).not.toContain('kk-btn');
+  });
+});
+
+describe('full session log', () => {
+  it('lists the events newest first with the elapsed time', async () => {
+    const { el, clock } = await renderApp('/reviews', {
+      setup: dueReviews([10]),
+      prefs: { enable_lightning_mode: false, enable_advanced: true, full_session_log: true },
+    });
+    await waitFor(() => q(el, 'submit'), 'question');
+    await typeText(el, 'banana');
+    await click(q(el, 'submit'));
+    await waitFor(() => q(el, 'next'), 'answered');
+    clock.advance(12_000);
+    await openMenu(el);
+    await click(q(el, 'menu-session_log'));
+    await waitFor(() => q(el, 'session-log'), 'log');
+    expect(q(el, 'log-header-events')?.querySelector('.kk-log-details')?.textContent).toBe('2 events');
+    const rows = [...el.querySelectorAll('.kk-log-event')].map((r) => r.querySelector('.kk-pre-line')?.textContent);
+    expect(rows[0]).toMatch(/^Submit (Meaning|Reading|Name): .+\nIncorrect$/);
+    expect(rows[1]).toBe('Review session started');
+    expect(el.querySelector('.kk-log-event .kk-log-status')?.textContent).toMatch(/^12s ago/);
   });
 });

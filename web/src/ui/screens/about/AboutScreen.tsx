@@ -5,7 +5,7 @@
  * OkHttp, Pikolo; the quiz font list), then what Java has elsewhere or not at all: install steps
  * (web build), known limitations, version and storage.
  */
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { dateTime, megabytes } from '../../../app/format';
 import { useReady } from '../../hooks/useApp';
 import { useToolbar } from '../../shell/toolbar';
@@ -53,6 +53,11 @@ function StorageInfo() {
   );
 }
 
+/** The text with a line-break opportunity after every "/", as Android's line breaker has in URLs. */
+function breakAfterSlashes(text: string) {
+  return text.split('/').map((part, i, all) => (i < all.length - 1 ? <Fragment key={i}>{part}/<wbr /></Fragment> : part));
+}
+
 export function AboutScreen() {
   const { platform, content } = useReady();
   useToolbar({ title: 'About KanjiKodama' });
@@ -63,7 +68,7 @@ export function AboutScreen() {
       <h3 data-testid="about-title">KanjiKodama (<span lang="ja">漢字木霊</span>) {__APP_VERSION__}</h3>
       <p>
         KanjiKodama is a personal, offline kanji learning app, made by <b>luksgrin</b>{' '}
-        (<a href="https://github.com/luksgrin/KanjiKodama" {...ext}>github.com/luksgrin/KanjiKodama</a>).
+        (<a href="https://github.com/luksgrin/KanjiKodama" {...ext}>{breakAfterSlashes('github.com/luksgrin/KanjiKodama')}</a>).
       </p>
       <p>
         <b>Infinite thanks to <a href="https://github.com/jerryhcooke/smouldering_durtles" {...ext}>Smouldering Durtles</a></b>,

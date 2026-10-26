@@ -17,7 +17,7 @@
   padding: 16px 16px 16px 72px;
   font: inherit;
   text-align: left;
-  color: var(--color-text);
+  color: var(--color-pref-title);
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -28,8 +28,8 @@ button.kk-pref:focus-visible { outline: 2px solid var(--color-accent); outline-o
 .kk-pref:disabled, .kk-pref.is-disabled { cursor: default; }
 .kk-pref:disabled .kk-pref-text, .kk-pref:disabled .kk-switch, .kk-pref.is-disabled .kk-pref-text { opacity: 0.38; }
 .kk-pref-text { flex: 1; min-width: 0; display: block; }
-.kk-pref-title { display: block; font-size: var(--text-md); line-height: 1.21; overflow-wrap: anywhere; }
-.kk-pref-summary { display: block; font-size: var(--text-sm); line-height: 1.25; color: var(--color-pref-summary); overflow-wrap: anywhere; }
+.kk-pref-title { display: block; font-size: var(--text-md); line-height: var(--pref-title-line, 1.21); padding-block: var(--pref-line-pad, 0); overflow-wrap: anywhere; }
+.kk-pref-summary { display: block; font-size: var(--text-sm); line-height: var(--pref-summary-line, 1.25); padding-block: var(--pref-line-pad, 0); color: var(--color-pref-summary); overflow-wrap: anywhere; }
 .kk-pref-info { cursor: default; }
 .kk-pref-page { padding: var(--space-4) 16px var(--space-4) 72px; }
 
@@ -45,59 +45,76 @@ button.kk-pref:focus-visible { outline: 2px solid var(--color-accent); outline-o
   color: var(--color-accent);
 }
 
-/* Material switch (SwitchPreferenceCompat): 36×14 track, 20 dp thumb. */
+/* SwitchCompat as the Java app shows it (measured on Android 16): a 46 dp widget, the 23 × 14 dp
+   track 11 dp from its right edge, the 20 dp thumb hanging over both track ends. Off: track black
+   (white in dark themes) at 30 %, thumb #ECECEC (#BDBDBD); on: colorControlActivated, track at 30 %. */
 .kk-switch {
   flex: none;
   position: relative;
-  width: 36px;
+  width: 23px;
   height: 14px;
-  margin: 0 4px;
+  margin: 0 11px 0 12px;
   border-radius: 7px;
-  background: color-mix(in srgb, var(--color-text) 30%, transparent);
+  background: rgb(0 0 0 / 0.3);
 }
+:root[data-theme='dark'] .kk-switch { background: rgb(255 255 255 / 0.3); }
 .kk-switch-thumb {
   position: absolute;
   top: -3px;
-  left: -4px;
+  left: -8px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #f1f1f1;
+  background: #ECECEC;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
   transition: transform 120ms ease, background-color 120ms ease;
 }
-.kk-switch.on { background: color-mix(in srgb, var(--color-accent) 50%, transparent); }
-.kk-switch.on .kk-switch-thumb { transform: translateX(24px); background: var(--color-accent); }
+:root[data-theme='dark'] .kk-switch-thumb { background: #BDBDBD; }
+.kk-switch.on { background: color-mix(in srgb, var(--color-control-activated) 30%, transparent); }
+.kk-switch.on .kk-switch-thumb { transform: translateX(19px); background: var(--color-control-activated); }
 
-/* SeekBarPreference: the bar under the title, the value at its right. */
-.kk-pref-seekbar { cursor: default; padding-bottom: 8px; }
-.kk-seekbar-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
-.kk-seekbar-value { flex: none; min-width: 3ch; text-align: right; font-size: var(--text-md); }
+/* SeekBarPreference (preference_widget_seekbar): 8 dp above the title, the bar under it from the
+   text's left edge (the 12 dp thumb centred on the ends) to 36 dp before the value, the value
+   right-aligned 17 dp in from the row padding; 37 dp from the thumb's centre to the row's end.
+   Track: colorControlNormal at 30 %, the part before the thumb colorControlActivated. */
+.kk-pref-seekbar { cursor: default; padding-top: 8px; padding-bottom: 12px; }
+.kk-seekbar-row { display: flex; align-items: center; margin-top: 4px; }
+.kk-seekbar-value { flex: none; box-sizing: border-box; min-width: 53px; padding-right: 17px; text-align: right; font-size: var(--text-md); }
 .kk-seekbar {
+  --frac: 0;
+  --track: rgb(0 0 0 / 0.16);
   flex: 1;
   min-width: 0;
   height: 40px;
-  margin: 0;
+  margin: 0 -6px;
   background: transparent;
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
 }
-.kk-seekbar::-webkit-slider-runnable-track { height: 2px; background: color-mix(in srgb, var(--color-accent) 40%, transparent); border-radius: 1px; }
-.kk-seekbar::-moz-range-track { height: 2px; background: color-mix(in srgb, var(--color-accent) 40%, transparent); border-radius: 1px; }
-.kk-seekbar::-moz-range-progress { height: 2px; background: var(--color-accent); }
+:root[data-theme='dark'] .kk-seekbar { --track: rgb(255 255 255 / 0.21); }
+.kk-seekbar::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 1px;
+  /* Drawn between the thumb's centre positions only. */
+  --x: calc(6px + (100% - 12px) * var(--frac));
+  background: linear-gradient(to right, transparent 6px, var(--color-control-activated) 6px, var(--color-control-activated) var(--x),
+    var(--track) var(--x), var(--track) calc(100% - 6px), transparent calc(100% - 6px));
+}
+.kk-seekbar::-moz-range-track { height: 2px; background: var(--track); border-radius: 1px; }
+.kk-seekbar::-moz-range-progress { height: 2px; background: var(--color-control-activated); }
 .kk-seekbar::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
-  margin-top: -9px;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
   border: 0;
   border-radius: 50%;
-  background: var(--color-accent);
+  background: var(--color-control-activated);
 }
-.kk-seekbar::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--color-accent); }
-.kk-seekbar:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.kk-seekbar::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--color-control-activated); }
+.kk-seekbar:focus-visible { outline: 2px solid var(--color-control-activated); outline-offset: 2px; }
 .kk-seekbar:disabled { cursor: default; }
 
 .kk-install-steps { margin: 0 0 var(--space-2); padding-left: 1.4em; }

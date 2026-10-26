@@ -2,12 +2,8 @@
  * The advanced search form (`views/AdvancedSearchFormView`, layout `advanced_search.xml`) over core
  * `AdvancedSearchForm`: its fields, switches and sort order in the layout's order and texts, a Search
  * button above and below. Refine passes the current search's parameters (`injectParameters`).
- *
- * Added for the JLPT curriculum: a "JLPT block" choice (JLPT order only) that fills the level range
- * with the block's levels.
  */
-import { useId, useMemo, useRef, useState } from 'react';
-import { blockName } from '../../../core/curriculum';
+import { useId, useRef, useState } from 'react';
 import { AdvancedSearchForm, SEARCH_SORT_ORDERS, SORT_ORDER_DESCRIPTIONS, type AdvancedSearchParameters, type FormSwitch, type SearchSortOrder, type TextField } from '../../../core/search';
 import type { SrsSystem } from '../../../core/srs';
 import { starsText } from '../../components/subject';
@@ -41,32 +37,11 @@ const SWITCH_LABELS: Readonly<Record<string, string>> = {
   joyoGrade7: 'Middle school:',
 };
 
-/** A JLPT block's level range in the current JLPT order (`blocks[level-1]` is the block code). */
-export interface BlockRange {
-  block: number;
-  label: string;
-  first: number;
-  last: number;
-}
-
-/** The blocks of the JLPT order in level order ("N5": levels 1–5, …). */
-export function blockRanges(blocks: readonly number[]): BlockRange[] {
-  const out: BlockRange[] = [];
-  blocks.forEach((b, i) => {
-    const last = out[out.length - 1];
-    if (last && last.block === b) last.last = i + 1;
-    else out.push({ block: b, label: blockName(b), first: i + 1, last: i + 1 });
-  });
-  return out;
-}
-
 export interface AdvancedSearchFormViewProps {
   systems: readonly SrsSystem[];
   starRatingsEnabled: boolean;
   /** Fill the form from these (Refine). */
   initial?: AdvancedSearchParameters | null;
-  /** The JLPT order's blocks; empty in WaniKani order (no block choice). */
-  blocks?: readonly number[];
   onSearch: (parameters: AdvancedSearchParameters) => void;
   /** The two buttons' label (`setSearchButtonLabel`; the self-study screen: "Start"). */
   searchLabel?: string;
@@ -74,7 +49,7 @@ export interface AdvancedSearchFormViewProps {
   showSortOrder?: boolean;
 }
 
-export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, blocks = [], onSearch, searchLabel = 'Search', showSortOrder = true }: AdvancedSearchFormViewProps) {
+export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, onSearch, searchLabel = 'Search', showSortOrder = true }: AdvancedSearchFormViewProps) {
   const id = useId();
   const formRef = useRef<AdvancedSearchForm | null>(null);
   if (formRef.current === null) {
@@ -85,7 +60,6 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
   const form = formRef.current;
   const [, setVersion] = useState(0);
   const changed = (): void => setVersion((v) => v + 1);
-  const ranges = useMemo(() => blockRanges(blocks), [blocks]);
 
   const text = (field: TextField, label: string) => (
     <input
@@ -126,15 +100,6 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
   const search = () => onSearch(form.extractParameters());
   const leech = form.switches.find((s) => s.name === 'limitToLeeches');
 
-  const chooseBlock = (value: string): void => {
-    const r = ranges.find((x) => String(x.block) === value);
-    if (!r) return;
-    form.texts.minLevel = String(r.first);
-    form.texts.maxLevel = String(r.last);
-    changed();
-  };
-  const currentBlock = ranges.find((r) => form.texts.minLevel === String(r.first) && form.texts.maxLevel === String(r.last));
-
   return (
     <form
       className="kk-advanced-search"
@@ -147,19 +112,6 @@ export function AdvancedSearchFormView({ systems, starRatingsEnabled, initial, b
       <div className="kk-search-grid">
         <span>Level range:</span>
         <span className="kk-search-range">{text('minLevel', 'Min level')} - {text('maxLevel', 'Max level')}</span>
-        {ranges.length > 0 && (
-          <>
-            <label htmlFor={`${id}-block`}>JLPT block:</label>
-            <select id={`${id}-block`} value={currentBlock ? String(currentBlock.block) : ''} onChange={(e) => chooseBlock(e.target.value)}>
-              <option value="">Any</option>
-              {ranges.map((r) => (
-                <option key={r.block} value={String(r.block)}>
-                  {r.label} (levels {r.first}–{r.last})
-                </option>
-              ))}
-            </select>
-          </>
-        )}
         <span>Frequency range:</span>
         <span className="kk-search-range">{text('minFrequency', 'Min frequency')} - {text('maxFrequency', 'Max frequency')}</span>
         {leech && (

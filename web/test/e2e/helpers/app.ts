@@ -266,10 +266,24 @@ export async function smallTapTargets(page: Page, min = 40): Promise<string[]> {
       // (or through its wrapping <label>).
       const target = (el.matches('input[type="checkbox"], input[type="radio"]') && (el.closest('label') ?? el.closest('.kk-row'))) as HTMLElement | null;
       const box = target ? target.getBoundingClientRect() : r;
-      // Browse's level grid copies Java's column rule (round(width / 40), max 10), so on 390–393 px
-      // phones its cells are about 39 px wide, as in the Java app; allow 2 px there.
-      const slack = (el.getAttribute('data-testid') ?? '').startsWith('browse-level-') ? 2 : 0;
-      if (box.height < min - slack || box.width < min - slack) {
+      // Java sizes win over the floor where Java's element is smaller (owner decision, wave 5):
+      // [testid prefix, min width, min height] in px = dp.
+      const exempt: [string, number, number][] = [
+        // BrowseOverviewFragment level cells: 16 sp + 2 × 6 dp padding ≈ 31 dp tall, width = (screen −
+        // 16 dp − 2 dp per column) / columns (≈ 37 dp at 10 columns on 411 dp, ≈ 35 on 393 dp).
+        ['browse-level-', 30, 30],
+        // live_subject_table_row.xml (recent unlocks, critical, burned): 4 dp margins around a 24 dp
+        // line = 32 dp rows (≈ 36 dp pitch).
+        ['subject-row-', min, 31],
+        // activity_theme_customization.xml colour samples: 24 dp high (subject types 26 sp text), the
+        // width an equal share of the row (10 level progression cells ≈ 22 dp at 320 px).
+        ['tc-sample-', 16, 24],
+      ];
+      const tid = el.getAttribute('data-testid') ?? '';
+      const ex = exempt.find(([prefix]) => tid.startsWith(prefix));
+      const minW = ex ? ex[1] : min;
+      const minH = ex ? ex[2] : min;
+      if (box.height < minH || box.width < minW) {
         const name = (el.getAttribute('aria-label') ?? el.textContent ?? el.getAttribute('name') ?? '').trim().slice(0, 30);
         const id = el.getAttribute('data-testid') ?? el.className.toString().split(' ')[0] ?? el.tagName;
         out.push(`${el.tagName.toLowerCase()}[${id}] "${name}" ${Math.round(box.width)}x${Math.round(box.height)}`);
@@ -343,38 +357,87 @@ export async function shot(page: Page, info: TestInfo, screen: string, fullPage 
 }
 
 /**
- * The quick-action row (Don't know | Submit, or Next) directly under the answer field and inside the
- * viewport; on short phones inside the space left with the keyboard open (`keyboardTop`).
+ * Simulates the on-screen keyboard: the visible height becomes `height` (null: keyboard closed).
+ * `visual`: iOS Safari / WKWebView and Android Chrome keep the layout viewport and shrink the visual
+ * viewport (stubbed `window.visualViewport` + a resize event); `resize`: the Android app's WebView
+ * (adjustResize) shrinks the whole viewport.
+ */
+export async function simulateKeyboard(page: Page, height: number | null, how: 'visual' | 'resize', full?: { width: number; height: number }): Promise<void> {
+  if (how === 'resize') {
+    const vp = full ?? page.viewportSize()!;
+    await page.setViewportSize({ width: vp.width, height: height ?? vp.height });
+  } else {
+    await page.evaluate((h) => {
+      const w = window as Window & { __kkRealVV?: VisualViewport | null };
+      if (!('__kkRealVV' in w)) w.__kkRealVV = window.visualViewport;
+      const real = w.__kkRealVV ?? null;
+      const value = h === null ? real : {
+        height: h, width: window.innerWidth, offsetTop: 0, offsetLeft: 0, pageTop: 0, pageLeft: 0, scale: 1,
+        addEventListener: () => undefined, removeEventListener: () => undefined, dispatchEvent: () => true, onresize: null, onscroll: null,
+      };
+      Object.defineProperty(window, 'visualViewport', { value, configurable: true, writable: true });
+      window.dispatchEvent(new Event('resize'));
+    }, height);
+  }
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+}
+
+/**
+ * The quick-action row as Java places it (`fragment_unanswered_question.xml`: after a spacer, on the
+ * keyboard; answered: `nextButton2` pinned at the bottom): below the answer field, its bottom at the
+ * bottom of the visible area (±12 px), buttons ≥ 40 px. With `keyboardTop` the check runs with the
+ * keyboard simulated both ways (visual viewport and resize) and then closed again.
  */
 export async function checkQuickActions(page: Page, screen: string, keyboardTop?: number): Promise<void> {
-  await settle(page);
-  const frame = await page.getByTestId('answer-frame').boundingBox();
-  const row = await page.getByTestId('quick-actions').boundingBox();
   const vp = page.viewportSize();
-  if (!frame || !row || !vp) throw new Error(`${screen}: answer field or quick actions not laid out`);
-  const gap = row.y - (frame.y + frame.height);
-  expect(gap, `${screen}: quick actions not directly under the answer field (gap ${gap}px)`).toBeGreaterThanOrEqual(-1);
-  expect(gap, `${screen}: quick actions not directly under the answer field (gap ${gap}px)`).toBeLessThanOrEqual(24);
-  expect(row.x, `${screen}: quick actions start left of the screen`).toBeGreaterThanOrEqual(0);
-  expect(row.x + row.width, `${screen}: quick actions past the right edge`).toBeLessThanOrEqual(vp.width + 0.5);
-  expect(row.y + row.height, `${screen}: quick actions below the viewport`).toBeLessThanOrEqual(vp.height);
-  if (keyboardTop !== undefined) {
-    expect(row.y + row.height, `${screen}: quick actions hidden by the keyboard (bottom ${Math.round(row.y + row.height)} > ${keyboardTop})`)
-      .toBeLessThanOrEqual(keyboardTop);
+  if (!vp) throw new Error('no viewport');
+  const check = async (visible: number, label: string) => {
+    await settle(page);
+    const frame = await page.getByTestId('answer-frame').boundingBox();
+    const row = await page.getByTestId('quick-actions').boundingBox();
+    if (!frame || !row) throw new Error(`${label}: answer field or quick actions not laid out`);
+    const bottom = row.y + row.height;
+    expect(row.y, `${label}: quick actions above the answer field`).toBeGreaterThanOrEqual(frame.y + frame.height - 1);
+    expect(row.x, `${label}: quick actions start left of the screen`).toBeGreaterThanOrEqual(0);
+    expect(row.x + row.width, `${label}: quick actions past the right edge`).toBeLessThanOrEqual(vp.width + 0.5);
+    expect(bottom, `${label}: quick actions hidden (bottom ${Math.round(bottom)} > visible ${visible})`).toBeLessThanOrEqual(visible + 0.5);
+    expect(bottom, `${label}: quick actions not at the bottom (bottom ${Math.round(bottom)}, visible ${visible})`).toBeGreaterThanOrEqual(visible - 12 - 34);
+    const buttons = page.getByTestId('quick-actions').getByRole('button');
+    for (let i = 0; i < (await buttons.count()); i++) {
+      const b = await buttons.nth(i).boundingBox();
+      expect(b?.height ?? 0, `${label}: quick action button under 40 px high`).toBeGreaterThanOrEqual(40);
+      expect((b?.y ?? 0) + (b?.height ?? 0), `${label}: quick action button hidden`).toBeLessThanOrEqual(visible + 0.5);
+    }
+  };
+  await check(vp.height, screen);
+  if (keyboardTop === undefined) return;
+  try {
+    await simulateKeyboard(page, keyboardTop, 'visual');
+    await check(keyboardTop, `${screen} (keyboard, visual viewport)`);
+  } finally {
+    await simulateKeyboard(page, null, 'visual');
   }
-  const buttons = page.getByTestId('quick-actions').getByRole('button');
-  for (let i = 0; i < (await buttons.count()); i++) {
-    const b = await buttons.nth(i).boundingBox();
-    expect(b?.height ?? 0, `${screen}: quick action button under 40 px high`).toBeGreaterThanOrEqual(40);
+  try {
+    await simulateKeyboard(page, keyboardTop, 'resize', vp);
+    await check(keyboardTop, `${screen} (keyboard, resized viewport)`);
+  } finally {
+    await simulateKeyboard(page, null, 'resize', vp);
   }
 }
 
 /**
- * The visible height with the on-screen keyboard open, for the phones the owner named (iPhone SE: ≈410)
- * and the smallest Android phone (320×568 with a ~260 px keyboard: ≈300).
+ * The visible height with the on-screen keyboard open: iPhone SE ≈410 (owner), the smallest Android phone
+ * (320×568 with a ~260 px keyboard: ≈300), Pixel 7 (839 − Gboard ~330), iPhone 15 (852 − ~336 with the
+ * QuickType bar), iPad portrait (1180 − ~400), Firefox at 390×844 (− ~300).
  */
 export function keyboardTopFor(info: TestInfo): number | undefined {
-  if (info.project.name === 'iphone-se') return 410;
-  if (info.project.name === 'android-small-320') return 300;
-  return undefined;
+  switch (info.project.name) {
+    case 'iphone-se': return 410;
+    case 'android-small-320': return 300;
+    case 'pixel-7': case 'pixel-7-dark': return 510;
+    case 'iphone-15': case 'iphone-15-dark': return 516;
+    case 'ipad': return 780;
+    case 'firefox-390': case 'firefox-390-dark': return 544;
+    default: return undefined;
+  }
 }

@@ -25,6 +25,11 @@ export interface Capabilities {
   legacyMigration: boolean;
   /** Rolling automatic progress backup after each session (Android). False: show the "last saved" reminder. */
   autoBackup: boolean;
+  /**
+   * The answer field's Android IME flags can be set (`KkWebView`): force ASCII, 'visible password',
+   * keyboard language hint, 'no personalized learning'. Browsers have no equivalent.
+   */
+  imeFlags?: boolean;
 }
 
 export type { ReviewTime } from '../core/notifications';
@@ -104,6 +109,11 @@ export interface AudioApi {
   play(subjectId: number, pref: VoicePreference, reading?: string | null): Promise<boolean>;
   /** Download the missing files of these levels; `onProgress(done, total)` after each file. */
   download(levels: readonly number[], onProgress?: (done: number, total: number) => void, signal?: AbortSignal): Promise<AudioDownloadResult>;
+  /**
+   * `AudioUtil.scheduleDownloadTasks(subjects, maxCount)`: download the missing files of these
+   * subjects, at most `maxCount` subjects that miss files (auto-download). Android only.
+   */
+  downloadSubjects?(subjectIds: readonly number[], maxCount: number, signal?: AbortSignal): Promise<AudioDownloadResult>;
   /** Files and bytes per level. */
   status(): Promise<AudioCacheStatus>;
   deleteAll(): Promise<void>;
@@ -160,6 +170,11 @@ export interface FilesApi {
   saveText(name: string, text: string): Promise<SaveResult>;
   /** Let the user pick a text file; null when cancelled. */
   openText(): Promise<OpenedText | null>;
+  /**
+   * Hand a text file to another app through the share sheet (Java `ACTION_SEND`, the data
+   * import/export screen). Absent: use `saveText`.
+   */
+  shareText?(name: string, text: string): Promise<SaveResult>;
   /** Android only: write `text` to files/backups/ with a timestamped name and keep the newest 5. */
   writeAutoBackup?(text: string, now?: Date): Promise<AutoBackupEntry>;
   /** Android only: the auto backups, newest first. */

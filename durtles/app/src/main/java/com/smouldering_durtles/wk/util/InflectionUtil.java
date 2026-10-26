@@ -45,7 +45,9 @@ public class InflectionUtil {
                 switch (this.stemForm) {
                     case DICTIONARY: return prefix + "する";
                     case CONJUNCTIVE: return prefix + "し";
-                    case NAI: return prefix + "しな";
+                    // KanjiKodama: the NAI endings already start with な (ない, なかった...), so the stem is し,
+                    // not しな (that gave 運転しなない).
+                    case NAI: return prefix + "し";
                     case IMPERATIVE: return prefix + "しろ";
                     case VOLITIONAL: return prefix + "しよう";
                     case TE: return prefix + "して";

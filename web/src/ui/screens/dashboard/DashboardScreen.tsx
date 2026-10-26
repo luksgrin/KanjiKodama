@@ -21,6 +21,7 @@ import { useReady } from '../../hooks/useApp';
 import { InstallHint } from '../about/InstallHint';
 import { AvailableSessions, SessionButtons } from './AvailableSessions';
 import { BackupReminderBanner } from './BackupReminderBanner';
+import { KeyboardHelpBanner } from './KeyboardHelpBanner';
 import { LevelProgress } from './LevelProgress';
 import {
   burnedItems,
@@ -70,6 +71,7 @@ export function DashboardScreen() {
 
   return (
     <div className="kk-dashboard">
+      <KeyboardHelpBanner />
       <p className="kk-level-duration" data-testid="level-duration">
         You are level {level}{block === null ? '' : ` (${block})`}. Your time on this level is {days} days.
       </p>

@@ -592,9 +592,8 @@ Notes per area:
   generator of its own, not `ObjectSupport`'s), the TS port `SessionEnv.inflectionRng` (`new JavaRandom(seed)` in the
   replay). With the setting on, `SessionDriver` calls `getCharacters` before every answer (skips included) and lists
   `characters`; the revealed Anki answer appends `" (<form>)"`. Typed answers are still checked against the
-  dictionary form. **Java bug kept (display only, not fixed):** for する verbs the NAI stem is `しな`, and the NAI
-  endings start with `な` again, so `運転する` + negative shows `運転しなない` (`しななくて`, `しなかった` is
-  `しななかった`, ...); also for kana-only `する` and `サービス` (noun + する verb, no する ending: `サービスしなない`).
+  dictionary form. The する-verb NAI stem is `し` (fix 28 below: it was `しな`, which doubled the `な` of every NAI
+  ending, `運転しなない`); bare `する` gives `しない`, `サービス` (noun + する verb, no する ending) `サービスしない`.
 - **Overdue** (`session-order-overdue-boundary`): `Subject.isOverdue` is false while `now - availableAt <= 0` (a review
   due exactly now is not overdue), then compares the double ratio elapsed / interval with the float threshold widened
   to double: at exactly 20 % (the default 0.2f = 0.20000000298…) the ratio 0.2 is below it, 1 ms later it is overdue;
@@ -696,6 +695,14 @@ synonyms) and has no romaji-to-kana conversion. These are upstream design choice
    to fold `kana_vocabulary` into the vocabulary bar, but `setTotalCount`/`setNumPassed` assigned, so the
    vocabulary row overwrote it, and the bar's stage buckets read `vocabulary` only. The counts now add
    up and the buckets include kana-only items. Display only; levelling up never used these bars.
+28. **する verbs showed a doubled な in the negative forms** with randomized inflections (2026-10-26):
+   `運転しなない`, `しななくて`, `しななかった`, `しなないで(ください)`, `しななきゃ`, `しななくてはいけない`.
+   `InflectionUtil`'s SURU NAI stem was `しな` while every NAI ending already starts with `な`; it is now `し`.
+   Display only (typed answers are checked against the dictionary form). `anki/inflection-random.json` was
+   regenerated (Tier A); in the Tier B files `anki/answer-inflection.json` and
+   `scenarios/anki-randomize-inflections-{review,self-study}.json` the only change is the same `しなな` → `しな` in
+   the shown characters, which is exactly what the Tier A regeneration produced (old text with that one
+   replacement is byte-identical to the new output); they were not re-run on a device.
 
 
 ## Behavior-neutral Java test seams

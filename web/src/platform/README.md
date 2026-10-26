@@ -9,11 +9,11 @@ never check `platform.name`.
 
 | Part | Members |
 |---|---|
-| `capabilities` | `notifications`, `audio`, `haptics`, `backgroundSync`, `widget`, `cleartextHttp`, `legacyMigration`, `autoBackup` |
+| `capabilities` | `notifications`, `audio`, `haptics`, `backgroundSync`, `widget`, `cleartextHttp`, `legacyMigration`, `autoBackup`, `imeFlags` (Android: the answer field IME flags) |
 | `storage` | `persist()`, `persisted()`, `estimate()` → `{usage, quota} \| null` |
-| `files` | `saveText(name, text)` → `'saved' \| 'cancelled'`; `openText()` → `{name, text} \| null`; Android only: `writeAutoBackup(text, now?)`, `listAutoBackups()` (newest first) |
+| `files` | `saveText(name, text)` → `'saved' \| 'cancelled'`; `openText()` → `{name, text} \| null`; Android only: `shareText(name, text)` (share sheet, Java `ACTION_SEND`), `writeAutoBackup(text, now?)`, `listAutoBackups()` (newest first) |
 | `notifications` | `supported`, `permission()` → `'granted' \| 'denied' \| 'prompt'`, `requestPermission()`, `scheduleReviews(ReviewTime[])` → number scheduled, `cancelAll()`; `schedule(at, title, body)` is the deprecated spike test |
-| `audio` | `supported`, `setCatalog(catalog)`, `play(subjectId, voicePref, reading?)` → played, `download(levels, onProgress?, signal?)`, `status()` (per level: files, bytes, expected), `deleteAll()` |
+| `audio` | `supported`, `setCatalog(catalog)`, `play(subjectId, voicePref, reading?)` → played, `download(levels, onProgress?, signal?)`, Android: `downloadSubjects(ids, maxCount, signal?)` (auto-download, `src/sync/audioScan.ts`), `status()` (per level: files, bytes, expected), `deleteAll()` |
 | `haptics` | `supported`, `feedback('correct' \| 'wrong' \| 'retry' \| 'tap')` |
 | `lifecycle` | `onResume(cb)`, `onPause(cb)`, Android only: `onBackButton(cb → handled)`; each returns an unsubscribe function |
 | `systemBars` | Android only: `setTheme('light' \| 'dark' \| 'system')` (status/navigation bar icon colours) |
@@ -45,7 +45,7 @@ recording, which files) are pure too: `src/core/audio/`; `readAudioCatalog(db)` 
 | Haptics | `navigator.vibrate` in the WebView (VIBRATE permission): 100 / 300 / 200 ms for correct / wrong / retry, the Java `HapticUtil` fallback. Both Java settings are off by default, so no `@capacitor/haptics` dependency. | None (iOS Safari has no vibrate). |
 | Lifecycle, back button | `@capacitor/app`: `resume` / `pause` events; `backButton` runs the handlers newest first, else `history.back()`, else `App.minimizeApp()` (state kept, like Android 12+ for a root activity). | `visibilitychange`; no back button. |
 | Edge-to-edge, bar colours | `capacitor.config.ts` `SystemBars.insetsHandling: 'css'`: the page sets `viewport-fit=cover`, so with WebView 140+ it draws behind the bars (`--safe-area-inset-*` padding); older WebViews stay inside them and the decor view's padding shows. `androidSystemUi.ts` (native `KkSystemUi`, `SystemUiPlugin.java`, started by the first `systemBars.setTheme`) samples the page colour at its top and bottom edge (a modal dialog's backdrop included) and paints that padding with it, with matching icon colours, like the Java app's status bar in its toolbar colour. | Browser handles it. |
-| Answer field IME flags | `KkWebView` (via `res/layout/capacitor_bridge_layout_main.xml`) adds the Java answer field's `IME_FLAG_NO_PERSONALIZED_LEARNING` and, for meanings, `IME_FLAG_FORCE_ASCII` (Java defaults of `enable_no_learning` / `force_ascii_*`) while an `input.kk-answer` has focus (`androidSystemUi.ts` reports it). | Not possible. |
+| Answer field IME flags | `KkWebView` (via `res/layout/capacitor_bridge_layout_main.xml`) sets the Java answer field's EditorInfo from the Keyboard input settings (`answerKeyboard.ts`): `IME_FLAG_NO_PERSONALIZED_LEARNING`, `IME_FLAG_FORCE_ASCII`, `TYPE_TEXT_FLAG_AUTO_CORRECT`, `TYPE_TEXT_VARIATION_VISIBLE_PASSWORD` and the language hint, while an `input.kk-answer` has focus (`androidSystemUi.ts` reports it). Capability `imeFlags`. | Only auto-correct (the field's `autocorrect` attribute, `answerKeyboard.ts`); the other rows are hidden. |
 | Splash | `MainActivity` keeps the system splash until `.kk-shell` (or the start-up error) is in the page, at most 6 s, so the app goes from the splash to the dashboard like the Java app; `adb logcat -s KkStartup` prints the time from process start. | — |
 | Storage persistence | `navigator.storage.*` in the WebView (data lives in the app's private dir anyway). | `navigator.storage.persist()`; still not a guarantee (see below). |
 

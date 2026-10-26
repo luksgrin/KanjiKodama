@@ -22,7 +22,6 @@ body {
 
 :lang(ja), .ja {
   font-family: var(--font-ja);
-  font-weight: 500;
 }
 
 /* Java headings are the body font in bold (WK.TextView.*.Bold); Silkscreen is only on the
@@ -237,6 +236,16 @@ button { font: inherit; color: inherit; }
 .kk-slide-ltr { animation: kk-slide-ltr 150ms cubic-bezier(0, 0, 0.2, 1); }
 @keyframes kk-slide-rtl { from { transform: translateX(100%); } }
 @keyframes kk-slide-ltr { from { transform: translateX(-100%); } }
+/* Display settings "Use slide animations to transition between quiz questions" off
+   (SessionActivity: no FragmentTransitionAnimation). app/theme.ts sets the attribute. */
+:root[data-slide-animations='off'] .kk-slide-rtl,
+:root[data-slide-animations='off'] .kk-slide-ltr { animation: none; }
+
+/* Text on a subject colour: per type, so the Breeze / Black / Nord themes (subject colours as text
+   on a dark background, ActiveTheme.hasIdentBackground false) colour each type's text. */
+.radical, .kk-type--radical { --color-on-subject: var(--color-radical-fg); }
+.kanji, .kk-type--kanji { --color-on-subject: var(--color-kanji-fg); }
+.vocabulary, .kana_vocabulary, .kk-type--vocabulary, .kk-type--kana_vocabulary { --color-on-subject: var(--color-vocab-fg); }
 
 /* Toast (shell/toast.ts): the Android 12+ text toast, a rounded box 64dp above the bottom. */
 .kk-toast {
@@ -279,7 +288,7 @@ button { font: inherit; color: inherit; }
   color: var(--btn-text);
   box-shadow: inset 0 -5px 0 var(--btn-shade), 0 4px 0 var(--btn-outline);
   margin-bottom: 4px;
-  font-family: var(--font-body);
+  font-family: var(--font-button);
   font-size: 15px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

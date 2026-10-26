@@ -19,6 +19,7 @@ import androidx.webkit.WebViewAssetLoader;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -47,8 +48,9 @@ import java.util.concurrent.TimeUnit;
  * (HttpURLConnection, like CapacitorHttp), the token from {@link SecretStore} and the app version.
  *
  * Skipped while the app is in the foreground (it syncs itself on resume) and more than once in the
- * same hour (Java's lastBackgroundSync top-of-hour check). Notifications are rescheduled by the app
- * on its next resume/pause (ReviewNotifications takes the plan from the app's JS).
+ * same hour (Java's lastBackgroundSync top-of-hour check). After the sync the review notification is
+ * rescheduled with the plan the page computed (the counts may have changed), like the app does after
+ * its own syncs; without notification permission it is only cancelled, as the app's plugin does.
  */
 public final class BackgroundSyncWorker extends Worker {
     private static final String TAG = "KKBackgroundSync";
@@ -129,14 +131,24 @@ public final class BackgroundSyncWorker extends Worker {
         return result[0];
     }
 
-    /** The widget counts from the sync (the app would have done this itself). */
-    private static void applyResult(final Context context, final String json) {
+    /** The widget counts and the review notification plan from the sync (the app would have done this itself). */
+    static void applyResult(final Context context, final String json) {
         try {
             final JSONObject o = new JSONObject(json);
             final JSONObject widget = o.optJSONObject("widget");
             if (widget != null) {
                 WidgetStore.save(context, widget);
                 SessionWidgetProvider.refresh(context);
+            }
+            final JSONObject notifications = o.optJSONObject("notifications");
+            if (notifications != null) {
+                if (!notifications.optBoolean("enabled", true) || !ReviewNotifications.notificationsAllowed(context)) {
+                    ReviewNotifications.cancelAll(context);
+                } else {
+                    final JSONArray entries = notifications.optJSONArray("entries");
+                    ReviewNotifications.schedule(context, entries == null ? new JSONArray() : entries,
+                            notifications.optJSONObject("current"));
+                }
             }
         } catch (final Exception e) {
             Log.w(TAG, "bad result: " + e);

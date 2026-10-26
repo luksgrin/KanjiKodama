@@ -7,6 +7,7 @@
  */
 import { useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
+import { SubjectChars } from '../../components/subject/SubjectChars';
 import type { TableSubject } from './panelData';
 
 export function SubjectTable({ title, rows, fontSize, testId }: { title: string; rows: TableSubject[]; fontSize: number; testId: string }) {
@@ -16,9 +17,9 @@ export function SubjectTable({ title, rows, fontSize, testId }: { title: string;
     <section className="kk-dash-panel kk-subject-table" data-testid={testId}>
       <h2 className="kk-subject-table-title" style={{ fontSize }}>{title}</h2>
       {rows.map(({ subject: s, extra }) => (
-        <button key={s.id} type="button" className={`kk-subject-row ${s.object}`} style={{ fontSize }}
+        <button key={s.id} type="button" className={`kk-subject-row ${s.object}`} style={{ fontSize }} data-testid={`subject-row-${s.id}`}
           onClick={() => navigate(paths.subject(s.id))}>
-          <span className="kk-subject-row-text" lang="ja">{s.characters ?? s.slug ?? ''}</span>
+          <span className="kk-subject-row-text" lang="ja"><SubjectChars subject={s} /></span>
           <span className="kk-subject-row-extra">{extra}</span>
         </button>
       ))}

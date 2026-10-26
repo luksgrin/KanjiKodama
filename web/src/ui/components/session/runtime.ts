@@ -81,6 +81,29 @@ export interface FloatingState {
   toasts: SessionToast[];
 }
 
+/**
+ * One entry of the full session log's "Events" list (`adapter/sessionlog/EventItem`): newest first, in
+ * memory only (cleared when a session starts, loads or ends), as Java's `SessionLogAdapter`.
+ */
+export interface SessionEvent {
+  id: number;
+  /** The session item the event is about (null: session-wide). */
+  itemId: number | null;
+  text: string;
+  /** `System.currentTimeMillis()` when it happened. */
+  at: number;
+}
+
+/** `SessionType.getDescription`. */
+function typeDescription(type: string): string {
+  return type === 'LESSON' ? 'Lesson' : type === 'REVIEW' ? 'Review' : type === 'SELF_STUDY' ? 'Self-study' : 'None';
+}
+
+/** `Question.canUndo`. */
+function questionCanUndo(q: Question): boolean {
+  return q.item.state !== 'REPORTED' && q.item.state !== 'ABANDONED';
+}
+
 /** How the last session ended, for the screen that was showing it. */
 export interface FinishedSession {
   type: SessionKind;
@@ -126,6 +149,7 @@ function kanjiByCharacters(db: LearnerDb, characters: string): ContentSubject | 
 }
 
 let toastSeq = 0;
+let eventSeq = 0;
 
 export class SessionRuntime {
   private stored: StoredSession = emptyStoredSession();
@@ -143,6 +167,7 @@ export class SessionRuntime {
   private now: number;
   private lastQuestion: Question | null = null;
   private audioPlayed = false;
+  private eventList: SessionEvent[] = [];
   private unsubscribe: () => void;
 
   constructor(readonly app: AppController, private readonly deps: SessionRuntimeDeps = {}) {
@@ -190,6 +215,7 @@ export class SessionRuntime {
     this.meta = NO_META;
     this.floating = freshFloating();
     this.lastQuestion = null;
+    this.eventList = [];
     this.emit();
     void this.ready().catch(() => undefined);
   }
@@ -212,7 +238,11 @@ export class SessionRuntime {
     this.meta = meta;
     const session = this.newSession(learner);
     this.session = session;
-    await this.write(session, (s) => s.load());
+    await this.write(session, (s) => {
+      s.load();
+      this.eventList = [];
+      if (s.state !== 'INACTIVE') this.addEvent(null, `${typeDescription(s.type)} session re-loaded on app startup`);
+    });
     return session;
   }
 
@@ -355,6 +385,21 @@ export class SessionRuntime {
     if (this.mode === 'server') void app.flushUploads().catch(() => null);
   }
 
+  // --- the session log's events ----------------------------------------------------------------
+
+  /** The full session log's events, newest first (`SessionLogAdapter.events`). */
+  events(): readonly SessionEvent[] {
+    return this.eventList;
+  }
+
+  private addEvent(itemId: number | null, text: string): void {
+    this.eventList = [{ id: ++eventSeq, itemId, text, at: this.app.clock.now() }, ...this.eventList];
+  }
+
+  private questionEvent(q: Question | null, text: (shortTitle: string) => string): void {
+    if (q !== null) this.addEvent(q.item.id, text(QUESTION_TYPE_INFO[q.type].shortTitle));
+  }
+
   private toast(kind: SessionToast['kind'], text: string): void {
     this.floating.toasts = [...this.floating.toasts, { id: ++toastSeq, kind, text }].slice(-3);
   }
@@ -388,6 +433,8 @@ export class SessionRuntime {
       const learner = this.app.requireLearner();
       this.meta = { startedAt: this.now, startLevel: learner.progress.userLevel, levelTestRound: options.levelTestRound ?? 0 };
       s.start(type, ids.map((id) => sessionSubject(learner, id)));
+      this.eventList = [];
+      this.addEvent(null, `${typeDescription(type)} session started`);
     });
     return true;
   }
@@ -422,6 +469,8 @@ export class SessionRuntime {
       const matching = lookup === null ? null : kanjiByCharacters(learner, lookup);
       const stageBefore = q.item.srsStageId;
       const verdict = s.submit(matching);
+      // `addEventSubmitTypedAnswer`: not for a retry.
+      if (!verdict.retry) this.questionEvent(q, (t) => `Submit ${t}: ${s.currentAnswer}\n${verdict.ok ? 'Correct' : 'Incorrect'}`);
       this.floating.lastVerdict = verdict;
       this.floating.shownAnswer = s.currentAnswer;
       if (verdict.retry) {
@@ -471,6 +520,7 @@ export class SessionRuntime {
   /** Don't know (`Session.submitDontKnow`). */
   dontKnow(): Promise<void> {
     return this.act((s) => {
+      if (!s.answered && s.currentQuestion !== null) this.questionEvent(s.currentQuestion, (t) => `Submit: ${t}\n'"Don't know" incorrect`);
       s.submitDontKnow();
       this.floating.lastVerdict = null;
       this.floating.shownAnswer = '';
@@ -496,6 +546,7 @@ export class SessionRuntime {
       if (q === null || s.answered) return;
       const stageBefore = q.item.srsStageId;
       this.floating.ankiShowingAnswer = false;
+      this.questionEvent(q, (t) => `Submit: ${t}\nAnki ${correct ? 'correct' : 'incorrect'}`);
       if (correct) {
         s.submitAnkiCorrect();
         this.afterCorrect(s, q, stageBefore, null, contentSubject(this.app.requireLearner(), q.item.id));
@@ -515,17 +566,29 @@ export class SessionRuntime {
           const q = s.currentQuestion;
           const stageBefore = q?.item.srsStageId ?? 0;
           s.ignore();
+          this.questionEvent(s.currentQuestion, (t) => `Ignore and mark correct: ${t}`);
           if (q !== null) this.afterCorrect(s, q, stageBefore, null, contentSubject(this.app.requireLearner(), q.item.id));
           break;
         }
         case 'UNDO_AND_RETRY_NOW':
-          if (s.canUndo()) s.undoAndRetry();
+          if (s.canUndo()) {
+            s.undoAndRetry();
+            this.questionEvent(s.currentQuestion, (t) => `Undo and retry immediately: ${t}`);
+          }
           break;
         case 'UNDO_AND_PUT_BACK':
-          if (s.canUndo()) s.undoAndPutBack();
+          if (s.canUndo()) {
+            const cur = s.currentQuestion;
+            const target = cur !== null && s.answered && questionCanUndo(cur) ? cur : s.history[0] ?? null;
+            s.undoAndPutBack();
+            this.questionEvent(target, (t) => `Undo and put back: ${t}`);
+          }
           break;
         case 'SKIP':
-          if (s.isActive() && !s.answered) s.skip();
+          if (s.isActive() && !s.answered) {
+            this.questionEvent(s.currentQuestion, (t) => `Skip: ${t}`);
+            s.skip();
+          }
           break;
         case 'TOGGLE_LIGHTNING_MODE':
           if (s.isActive()) s.toggleLightningMode();
@@ -558,8 +621,12 @@ export class SessionRuntime {
   presentationNext(): Promise<void> {
     return this.act((s) => {
       if (s.state !== 'IN_LESSON_PRESENTATION' || s.currentItem === null) return;
-      if (s.items.indexOf(s.currentItem) === s.items.length - 1) s.startQuiz();
-      else s.moveToNextLessonItem();
+      if (s.items.indexOf(s.currentItem) === s.items.length - 1) {
+        s.startQuiz();
+        this.addEvent(null, 'Started lesson quiz');
+      } else {
+        s.moveToNextLessonItem();
+      }
     });
   }
 
@@ -568,7 +635,11 @@ export class SessionRuntime {
   }
 
   backToPresentation(): Promise<void> {
-    return this.act((s) => s.goBackToPresentation());
+    return this.act((s) => {
+      const before = s.state;
+      s.goBackToPresentation();
+      if (before !== 'IN_LESSON_PRESENTATION' && s.state === 'IN_LESSON_PRESENTATION') this.addEvent(null, 'Jumped back to lesson presentation');
+    });
   }
 
   // --- ending ----------------------------------------------------------------------------------
@@ -584,6 +655,7 @@ export class SessionRuntime {
       if (s.state === 'INACTIVE') return;
       this.finished = { type: s.type as SessionKind, levelTestRound: this.meta.levelTestRound, abandoned: true };
       s.finish();
+      this.eventList = [];
       this.meta = NO_META;
     });
   }
@@ -595,6 +667,7 @@ export class SessionRuntime {
       this.finished = { type: s.type as SessionKind, levelTestRound: this.meta.levelTestRound, abandoned: false };
       if (s.isDelayed()) s.reportPending();
       s.finish();
+      this.eventList = [];
       this.meta = NO_META;
     });
   }

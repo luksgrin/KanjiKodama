@@ -1,7 +1,8 @@
 /**
  * Layout on every device: each main screen without sideways scroll, tap targets ≥ 40 px, no clipped
- * text (soft failures, so one run lists them all), and the quiz's quick-action row directly under the
- * answer field, inside the viewport, and above the keyboard on the iPhone SE (top 410 px).
+ * text (soft failures, so one run lists them all), and the quiz's quick-action row where Java has it: at
+ * the bottom, on the keyboard (simulated: iPhone SE 410 px visible, 320 px Android 300 px, …); answered,
+ * Java closes the keyboard and Next is pinned at the bottom of the screen.
  */
 import { expect, test } from '@playwright/test';
 import { answer, checkQuickActions, checkScreen, keyboardTopFor, openApp, quiz, restoreFile, tab } from './helpers/app';
@@ -26,7 +27,7 @@ test('main screens', async ({ page }, info) => {
   info.annotations.push({ type: 'quick-actions', description: `bottom at ${Math.round((row?.y ?? 0) + (row?.height ?? 0))}px of ${page.viewportSize()?.height}px` });
   await checkScreen(page, info, 'L02-quiz', { strict: true });
   await answer(page, 'wrong');
-  await checkQuickActions(page, 'review quiz answered', keyboardTopFor(info));
+  await checkQuickActions(page, 'review quiz answered');
   await checkScreen(page, info, 'L03-quiz-answered', { strict: true });
   await checkScreen(page, info, 'L03-quiz-answered-full', { strict: true, fullPage: true });
   await page.getByTestId('toolbar-overflow').click();
@@ -70,4 +71,20 @@ test('main screens', async ({ page }, info) => {
   await checkScreen(page, info, 'L12-level-test', { strict: true });
   await openApp(page, '/settings/fast-travel');
   await checkScreen(page, info, 'L13-fast-travel', { strict: true });
+  await openApp(page, '/settings?screen=data_import_export');
+  await expect(page.getByTestId('data-import-export')).toBeVisible();
+  await checkScreen(page, info, 'L14-data-import-export', { strict: true });
+  await openApp(page, '/settings');
+  await page.getByTestId('reset-database').click();
+  await expect(page.getByTestId('dialog-reset-database')).toBeVisible();
+  await checkScreen(page, info, 'L15-reset-database-dialog', { strict: true });
+  await page.getByTestId('dialog-reset-database').getByRole('button', { name: /^No$/ }).click();
+  await openApp(page, '/settings?screen=display_settings');
+  await checkScreen(page, info, 'L16-settings-display-full', { strict: true, fullPage: true });
+  await openApp(page, '/settings?screen=keyboard_settings');
+  await checkScreen(page, info, 'L17-settings-keyboard', { strict: true });
+  await openApp(page, '/settings/keyboard-help');
+  await checkScreen(page, info, 'L18-keyboard-help-full', { strict: true, fullPage: true });
+  await openApp(page, '/settings/theme-customization');
+  await checkScreen(page, info, 'L19-theme-customization-full', { strict: true, fullPage: true });
 });

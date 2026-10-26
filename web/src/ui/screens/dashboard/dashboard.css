@@ -164,8 +164,9 @@
   font-family: var(--font-body);
   cursor: pointer;
   text-shadow: 0.4px 0.4px 1.15px #000;
-  line-height: 1.2;
-  min-height: 40px;
+  /* live_subject_table_row.xml: 4 dp margins around a 16 sp line (Japanese face: 24 dp): 32 dp rows,
+     4 dp apart (Java ~36 dp pitch; below the 40 px tap floor, e2e exemption in test/e2e/helpers/app.ts). */
+  line-height: 1.5;
 }
 .kk-subject-row.radical { background: var(--color-radical); }
 .kk-subject-row.kanji { background: var(--color-kanji); }

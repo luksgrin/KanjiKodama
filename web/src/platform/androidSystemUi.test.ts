@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setAnswerKeyboardPrefs } from './answerKeyboard';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@capacitor/core', () => ({ registerPlugin: () => ({}) }));
@@ -45,14 +46,21 @@ describe('imeHintsFor', () => {
     el.lang = lang;
     return el;
   };
-  it('answer fields: no personalized learning; ASCII for meanings only (Java defaults)', () => {
-    expect(imeHintsFor(input('kk-answer', 'en'))).toEqual({ noPersonalizedLearning: true, forceAscii: true });
-    expect(imeHintsFor(input('kk-answer kana', 'ja'))).toEqual({ noPersonalizedLearning: true, forceAscii: false });
+  it('answer fields follow the keyboard input settings (Java getter defaults when unset)', () => {
+    expect(imeHintsFor(input('kk-answer', 'en'))).toMatchObject({ answerField: true, noPersonalizedLearning: true, forceAscii: false, hintLocale: '' });
+    setAnswerKeyboardPrefs({ force_ascii_meaning: true, enable_no_learning: false, enable_auto_correct_reading: true, ime_hint_meaning: true });
+    expect(imeHintsFor(input('kk-answer', 'en'))).toEqual({
+      answerField: true, noPersonalizedLearning: false, forceAscii: true, autoCorrect: false, visiblePassword: false, hintLocale: 'en',
+    });
+    expect(imeHintsFor(input('kk-answer kana', 'ja'))).toEqual({
+      answerField: true, noPersonalizedLearning: false, forceAscii: false, autoCorrect: true, visiblePassword: false, hintLocale: '',
+    });
+    setAnswerKeyboardPrefs({});
   });
   it('other fields get no flags', () => {
-    expect(imeHintsFor(input('', 'en'))).toEqual({ noPersonalizedLearning: false, forceAscii: false });
-    expect(imeHintsFor(document.body)).toEqual({ noPersonalizedLearning: false, forceAscii: false });
-    expect(imeHintsFor(null)).toEqual({ noPersonalizedLearning: false, forceAscii: false });
+    for (const el of [input('', 'en'), document.body, null]) {
+      expect(imeHintsFor(el)).toMatchObject({ answerField: false, noPersonalizedLearning: false, forceAscii: false });
+    }
   });
 });
 
@@ -78,16 +86,31 @@ describe('startAndroidSystemUi', () => {
     expect(plugin.setBarColors).toHaveBeenCalledTimes(2);
     expect(plugin.setBarColors.mock.calls[1]![0]).toMatchObject({ top: '#2e4756', lightTop: false });
 
+    // The keyboard input settings as the settings screen leaves them (XML defaults) plus two changes.
+    setAnswerKeyboardPrefs({ force_ascii_meaning: true, force_visible_password_meaning: true, ime_hint_reading: true });
     const field = document.createElement('input');
     field.className = 'kk-answer';
     field.lang = 'en';
     document.body.append(field);
     field.focus();
     await vi.advanceTimersByTimeAsync(10);
-    expect(plugin.setImeHints).toHaveBeenLastCalledWith({ noPersonalizedLearning: true, forceAscii: true });
+    expect(plugin.setImeHints).toHaveBeenLastCalledWith({
+      answerField: true, noPersonalizedLearning: true, forceAscii: true, autoCorrect: false, visiblePassword: true, hintLocale: '',
+    });
     field.blur();
     await vi.advanceTimersByTimeAsync(10);
-    expect(plugin.setImeHints).toHaveBeenLastCalledWith({ noPersonalizedLearning: false, forceAscii: false });
-    expect(plugin.setImeHints).toHaveBeenCalledTimes(2);
+    expect(plugin.setImeHints).toHaveBeenLastCalledWith({
+      answerField: false, noPersonalizedLearning: false, forceAscii: false, autoCorrect: false, visiblePassword: false, hintLocale: '',
+    });
+    const kana = document.createElement('input');
+    kana.className = 'kk-answer kana';
+    document.body.append(kana);
+    kana.focus();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(plugin.setImeHints).toHaveBeenLastCalledWith({
+      answerField: true, noPersonalizedLearning: true, forceAscii: false, autoCorrect: false, visiblePassword: false, hintLocale: 'ja',
+    });
+    expect(plugin.setImeHints).toHaveBeenCalledTimes(3);
+    setAnswerKeyboardPrefs({});
   });
 });

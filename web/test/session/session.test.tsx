@@ -348,37 +348,34 @@ describe('question title', () => {
 });
 
 describe('layout', () => {
-  it('puts the field and the quick-action row right after the question, before the item info', async () => {
+  it('lays the quiz out as the Java fragments: spacer before the row; answered: the info, then the pinned row', async () => {
     const { el } = await renderApp('/reviews', { setup: dueReviews([1]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
     const quiz = el.querySelector('.kk-quiz')!;
     const order = [...quiz.children].map((c) => (c as HTMLElement).dataset.testid ?? c.className);
-    expect(order.slice(0, 4)).toEqual(['question-view', 'question-type', 'answer-frame', 'quick-actions']);
+    expect(order.slice(0, 5)).toEqual(['question-view', 'question-type', 'answer-frame', 'kk-quiz-spacer', 'quick-actions']);
     expect([...q(el, 'quick-actions')!.children].map((b) => b.textContent)).toEqual(["Don't know", 'Submit']);
     await answer(el, 'banana');
     await waitFor(() => q(el, 'next'), 'answered');
     const after = [...quiz.children].map((c) => (c as HTMLElement).dataset.testid ?? c.className);
-    expect(after.slice(0, 4)).toEqual(['question-view', 'question-type', 'answer-frame', 'quick-actions']);
-    expect(after.indexOf('kk-quiz-info')).toBeGreaterThan(3);
+    expect(after.slice(0, 3)).toEqual(['question-view', 'question-type', 'answer-frame']);
+    expect(after.indexOf('kk-quiz-info')).toBeLessThan(after.indexOf('quick-actions'));
     expect([...q(el, 'quick-actions')!.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Next']);
-    // Next sits in Submit's half (the left half is a spacer).
+    // nextButton2 sits in Submit's half (the left half is a spacer).
     expect(q(el, 'quick-actions')!.firstElementChild?.classList.contains('kk-quiz-actions-space')).toBe(true);
   });
 
-  it('uses a static layout sized by the small viewport height (no visualViewport)', async () => {
-    const { readFileSync, readdirSync } = await import('node:fs');
-    const dir = `${process.cwd()}/src/ui/components/session/`;
-    const css = readFileSync(`${dir}session.css`, 'utf8');
-    expect(css).toMatch(/--kk-qv-height: clamp\(88px, min\(calc\(100svh - 474px\), 34svh\), 260px\)/);
-    expect(css).toMatch(/\.kk-quiz-question \{[^}]*height: var\(--kk-qv-height\)/);
-    expect(css).toMatch(/\.kk-quiz-actions \{[^}]*display: flex/);
-    expect(css).not.toMatch(/position: (fixed|sticky)/);
-    for (const f of readdirSync(dir)) expect(readFileSync(`${dir}${f}`, 'utf8')).not.toMatch(/visualViewport\s*[.?]/);
-    // Budgets: toolbar 56 + question view + banner 34 + field 52 + row 56; 320×568 (keyboard ~260 px):
-    // the row ends by 300 px; iPhone SE 375×667 (≈ 410 px visible): by 410 px.
-    const qv = (h: number) => Math.min(Math.max(88, Math.min(h - 474, 0.34 * h)), 260);
-    expect(56 + qv(568) + 34 + 48 + 60).toBeLessThanOrEqual(300);
-    expect(56 + qv(667) + 34 + 48 + 60).toBeLessThanOrEqual(410);
+  it('sizes the quiz by the height above the keyboard', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync(`${process.cwd()}/src/ui/components/session/session.css`, 'utf8');
+    expect(css).toMatch(/--kk-quiz-height: calc\(var\(--kk-visible-height, 100dvh\) - var\(--safe-top\) - var\(--toolbar-height\)\)/);
+    expect(css).toMatch(/\.kk-quiz\.unanswered \{[^}]*height: var\(--kk-quiz-height\)/);
+    expect(css).toMatch(/\.kk-quiz-spacer \{ flex: 1 1 0/);
+    expect(css).toMatch(/\.kk-quiz\.answered \.kk-quiz-actions \{[^}]*position: sticky/);
+    // The row's budget: toolbar 56 + question view (shrinks) + banner 34 + field 48 + row 60 fits 300 px
+    // (320×568 with the keyboard) with a question view of at least 56 px; iPhone SE (410 px): the full 132 px.
+    expect(56 + 56 + 34 + 48 + 60).toBeLessThanOrEqual(300);
+    expect(56 + 132 + 34 + 48 + 60).toBeLessThanOrEqual(410);
   });
 });
 

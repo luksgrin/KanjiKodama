@@ -5,7 +5,12 @@
  * the summary. The download replaces local progress through core `applyWaniKaniImport`
  * (`persist: 'replace'`: rows of subjects the content lacks are dropped too, as
  * `ProgressStore.resetProgress` does). Local mode only, so the server is WaniKani's, as Java's
- * `ApiTask.getBaseUrl()` returns in local mode. The token is not stored.
+ * `ApiTask.getBaseUrl()` returns in local mode.
+ *
+ * The token field shows the saved token (`GlobalSettings.Api.getApiKey()`, blanks removed); a token
+ * WaniKani accepts is saved (`WaniKaniImporter.checkToken` keeps it, a rejected one is not). It is
+ * the same token as server mode's, kept in the platform secrets (`app.tokenStore()`), never in the
+ * progress database, files or logs.
  */
 import { useRef } from 'react';
 import { applyWaniKaniImport } from '../../../core/importer';
@@ -27,6 +32,21 @@ export function useImportFlow(alerts: Alerts): (onDone?: () => void) => void {
   const { platform } = useReady();
   const tokenRef = useRef<HTMLInputElement>(null);
 
+  const savedToken = async (): Promise<string> => {
+    try {
+      return ((await app.tokenStore().get()) ?? '').replace(/\s+/g, '');
+    } catch {
+      return '';
+    }
+  };
+  const saveToken = async (key: string): Promise<void> => {
+    try {
+      await app.tokenStore().set(key);
+    } catch {
+      // no secrets store: the import still runs, only the prefill is lost
+    }
+  };
+
   const importAll = async (key: string, user: Awaited<ReturnType<typeof checkWaniKaniToken>>, done: () => void) => {
     if (await sessionRunning(app)) { alerts.message(null, SESSION_RUNNING, done); return; }
     const summary = await alerts.run('Importing from WaniKani…', async () => {
@@ -39,7 +59,11 @@ export function useImportFlow(alerts: Alerts): (onDone?: () => void) => void {
   };
 
   const checkToken = async (key: string, done: () => void) => {
-    const user = await alerts.run('Checking the token…', async () => checkWaniKaniToken({ http: await getHttp(), token: key, appVersion: __APP_VERSION__ }));
+    const user = await alerts.run('Checking the token…', async () => {
+      const u = await checkWaniKaniToken({ http: await getHttp(), token: key, appVersion: __APP_VERSION__ });
+      await saveToken(key);
+      return u;
+    });
     if (!user) return;
     const cancel = () => { alerts.close(); done(); };
     alerts.show({
@@ -52,7 +76,8 @@ export function useImportFlow(alerts: Alerts): (onDone?: () => void) => void {
     });
   };
 
-  return (onDone) => {
+  return (onDone) => void (async () => {
+    const saved = await savedToken();
     const done = () => onDone?.();
     const cancel = () => { alerts.close(); done(); };
     const next = () => {
@@ -69,10 +94,10 @@ export function useImportFlow(alerts: Alerts): (onDone?: () => void) => void {
       positive: { label: 'Next', onClick: next, testId: 'import-next' },
       children: (
         <form className="kk-alert-form" onSubmit={(e) => { e.preventDefault(); next(); }}>
-          <input ref={tokenRef} className="kk-alert-field" type="text" placeholder="API token" aria-label="API token"
+          <input ref={tokenRef} className="kk-alert-field" type="text" placeholder="API token" aria-label="API token" defaultValue={saved}
             autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} data-testid="import-token" />
         </form>
       ),
     });
-  };
+  })();
 }

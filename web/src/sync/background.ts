@@ -2,7 +2,9 @@
  * Background sync, the JavaScript half (Android). `BackgroundSyncWorker` (WorkManager, hourly like
  * the Java app's) loads the app's own `index.html?kk-background-sync` in a headless WebView on the
  * same origin (`https://localhost`), so it sees the same IndexedDB. `main.tsx` then runs only this:
- * one sync with the same engine as the app, then the widget's counts, handed back to the worker.
+ * one sync with the same engine as the app, then the widget's counts and the review notification
+ * plan (what `rescheduleReviewNotifications` would schedule), handed back to the worker, which
+ * updates the widget and reschedules the notification as the app does after its own syncs.
  *
  * No Capacitor bridge runs in that WebView, so the worker injects `window.KKBackground`: native HTTP
  * (like CapacitorHttp: no CORS, `http://` LAN servers allowed), the token from the Keystore store
@@ -10,7 +12,14 @@
  * not read the queue or write the progress (see src/platform/README.md).
  */
 import { makeContent } from '../core/content';
-import { planWidget } from '../core/notifications';
+import {
+  MAX_REVIEW_NOTIFICATIONS,
+  enableNotifications,
+  planReviewNotifications,
+  planWidget,
+  reviewNotificationText,
+} from '../core/notifications';
+import type { Preferences, PreferenceValue } from '../core/settings';
 import { HttpNetworkError, type HttpApi, type HttpRequest, type HttpResponse } from '../platform';
 import { db as defaultDb, type KkDb } from '../storage/db';
 import { hydrateLearnerDb, readSnapshot } from '../storage/progressRepo';
@@ -33,6 +42,42 @@ export interface BackgroundResult {
   message: string | null;
   pending: number;
   widget: ReturnType<typeof planWidget> | null;
+  /**
+   * The review notification after the sync (`ReviewNotificationsPlugin.schedule`'s arguments), or
+   * `enabled: false` to cancel it (`enable_notifications` off). Null: leave it alone.
+   */
+  notifications: BackgroundNotifications | null;
+}
+
+export interface PlannedEntry { at: number; title: string; body: string }
+
+export interface BackgroundNotifications {
+  enabled: boolean;
+  entries: PlannedEntry[];
+  current: (PlannedEntry & { lessons: number; reviews: number }) | null;
+}
+
+async function readPrefs(kk: KkDb): Promise<Preferences> {
+  const out: Record<string, PreferenceValue> = {};
+  for (const r of await kk.settings.toArray()) {
+    const v = r.value;
+    if (v === null || typeof v === 'boolean' || typeof v === 'number' || typeof v === 'string') out[r.key] = v;
+  }
+  return out;
+}
+
+/** `rescheduleReviewNotifications` + `androidNotifications.scheduleReviews`, as data for the worker. */
+export function planBackgroundNotifications(
+  learner: Parameters<typeof planWidget>[0], prefs: Preferences, now: number, o: { maxLevel: number; vacationMode: boolean },
+): BackgroundNotifications {
+  if (!enableNotifications(prefs)) return { enabled: false, entries: [], current: null };
+  const entries = planReviewNotifications(learner, now, o)
+    .filter((t) => t.at > now)
+    .slice(0, MAX_REVIEW_NOTIFICATIONS)
+    .map((t) => ({ at: t.at, ...reviewNotificationText(t) }));
+  const c = planWidget(learner, now, { maxLevel: o.maxLevel, cap: 0 });
+  const current = { at: now, lessons: c.lessons, reviews: c.reviews, ...reviewNotificationText({ lessons: c.lessons, totalReviews: c.reviews }) };
+  return { enabled: true, entries, current };
 }
 
 type Pending = { resolve: (r: HttpResponse) => void; reject: (e: Error) => void };
@@ -76,7 +121,7 @@ export function bridgeHttp(bridge: BackgroundBridge, target: Record<string, unkn
 export async function runBackgroundSync(bridge: BackgroundBridge, o: { kk?: KkDb; http?: HttpApi; now?: () => number } & Partial<Pick<EngineDeps, 'clock' | 'limiter' | 'tries' | 'retryDelay'>> = {}): Promise<BackgroundResult> {
   const kk = o.kk ?? defaultDb;
   const now = o.now ?? (() => Date.now());
-  const result: BackgroundResult = { ok: false, message: null, pending: 0, widget: null };
+  const result: BackgroundResult = { ok: false, message: null, pending: 0, widget: null, notifications: null };
   try {
     if (!kk.isOpen()) await kk.open();
     const engine = new SyncEngine({
@@ -107,6 +152,9 @@ export async function runBackgroundSync(bridge: BackgroundBridge, o: { kk?: KkDb
       const content = await loadServerContent(kk, makeContent([], []));
       const learner = hydrateLearnerDb(content, new Map(), await readSnapshot(kk));
       result.widget = planWidget(learner, now(), { maxLevel: status.maxLevelGranted });
+      result.notifications = planBackgroundNotifications(learner, await readPrefs(kk), now(), {
+        maxLevel: status.maxLevelGranted, vacationMode: status.vacation,
+      });
     }
   } catch (e) {
     result.message = e instanceof Error ? e.message : String(e);

@@ -53,6 +53,7 @@ CREATE TABLE jlpt_block (level INTEGER PRIMARY KEY, block INTEGER NOT NULL);
 CREATE TABLE jlpt_kanji (characters TEXT PRIMARY KEY, level INTEGER NOT NULL);
 CREATE TABLE stroke_data (id INTEGER PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE pitch_info (id INTEGER PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE title_image (id INTEGER PRIMARY KEY, data TEXT NOT NULL);
 `;
 
 /** Parts/Sound tables copied from `sound-components.db` with their own DDL, in this order. */

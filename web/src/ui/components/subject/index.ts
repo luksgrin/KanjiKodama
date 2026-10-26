@@ -45,5 +45,6 @@ export {
 } from './starRatings';
 export { NotesDialog } from './NotesDialog';
 export { infoTitle, subjectTitle, simpleInfoTitle } from './subjectText';
+export { InfoTitle, SubjectChars, TitleImageSvg, hasTitleImage, subjectGlyphCount } from './SubjectChars';
 export { AudioButton } from './AudioButton';
 export { cardProgressText, shortWaitTime, useCardProgress } from './cardProgress';

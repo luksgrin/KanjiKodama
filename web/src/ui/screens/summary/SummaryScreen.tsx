@@ -7,7 +7,7 @@
  * The plan's additions, not in the Java screen, at the end: the level-ups and the new unlocks of the
  * session (subjects unlocked since it started).
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ContentSubject } from '../../../core/content';
 import { isResurrectable, num, progressRow, srsSystemOf, tableRow, type LearnerDb } from '../../../core/progression';
 import { TYPE_ORDER, type Session, type SessionItem } from '../../../core/session';
@@ -162,6 +162,12 @@ export function SummaryScreen() {
   }, [snap.loaded, snap.finished, session, st, rt, navigate]);
 
   const counts = useMemo(() => (session ? summaryCounts(learner, session.items) : null), [learner, session, snap.version]);
+  // `SummarySessionFragment.onResumeLocal`: Finish has the focus (Java's focus highlight).
+  const finishRef = useRef<HTMLButtonElement>(null);
+  const showingSummary = snap.loaded && session !== null && st === 'FINISHING';
+  useEffect(() => {
+    if (showingSummary) finishRef.current?.focus({ preventScroll: true });
+  }, [showingSummary]);
   const lists = useMemo(() => (session && showItems ? summaryLists(learner, session) : null), [learner, session, showItems, snap.version]);
   const unlocks = useMemo(() => newUnlocks(learner, snap.meta.startedAt), [learner, snap.meta.startedAt, state.revision]);
 
@@ -196,7 +202,7 @@ export function SummaryScreen() {
     <div className="kk-summary" data-testid="summary">
       <div className="kk-summary-buttons">
         {!showItems && <button type="button" className="kk-btn" onClick={() => setShowItems(true)} data-testid="summary-show">Show items</button>}
-        <button type="button" className="kk-btn" disabled={busy} onClick={finish} data-testid="summary-finish">Finish</button>
+        <button ref={finishRef} type="button" className="kk-btn kk-btn-focus" disabled={busy} onClick={finish} data-testid="summary-finish">Finish</button>
       </div>
       {busy && session.isDelayed() && (
         <progress className="kk-summary-progress" aria-label={`Reporting ${session.numPending()} items`} />

@@ -39,6 +39,7 @@ const capabilities: Capabilities = {
   cleartextHttp: true,
   legacyMigration: false, // step 6
   autoBackup: true,
+  imeFlags: true, // KkWebView (keyboard input settings)
 };
 
 /** The native Document plugin is missing (e.g. an APK built before it existed). */
@@ -73,6 +74,11 @@ async function saveText(name: string, text: string): Promise<SaveResult> {
     if (isUnimplemented(err)) return saveViaShare(name, text);
     throw err;
   }
+}
+
+/** `DataImportExportActivity`: `ACTION_SEND` with the file (the share sheet). */
+async function shareText(name: string, text: string): Promise<SaveResult> {
+  return saveViaShare(name, text);
 }
 
 async function openText(): Promise<OpenedText | null> {
@@ -126,7 +132,7 @@ async function writeAutoBackup(text: string, now: Date = new Date()): Promise<Au
   return entry;
 }
 
-const files: FilesApi = { saveText, openText, writeAutoBackup, listAutoBackups };
+const files: FilesApi = { saveText, openText, shareText, writeAutoBackup, listAutoBackups };
 
 export const androidPlatform: Platform = {
   name: 'android',

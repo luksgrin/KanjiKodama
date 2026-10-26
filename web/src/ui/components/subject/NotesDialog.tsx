@@ -10,7 +10,7 @@ import { contentSubject, progressRow, tableRow } from '../../../core/progression
 import { useReady } from '../../hooks/useApp';
 import { useBackHandler } from '../../hooks/useRoute';
 import { StudyMaterialsEditor } from './StudyMaterials';
-import { infoTitle } from './subjectText';
+import { InfoTitle } from './SubjectChars';
 import { useSaveStudyMaterial } from './useSaveStudyMaterial';
 
 const text = (v: unknown): string | null => (typeof v === 'string' ? v : v === null || v === undefined ? null : String(v));
@@ -46,7 +46,7 @@ export function NotesDialog({ subjectId, onClose }: { subjectId: number | null; 
     }
     body = (
       <>
-        <h2 id={titleId} className="kk-sdialog-title"><span>{`My notes for ${infoTitle(subject, tableRow(learner, subjectId).level)}:`}</span></h2>
+        <h2 id={titleId} className="kk-sdialog-title"><span><InfoTitle subject={subject} level={tableRow(learner, subjectId).level} prefix="My notes for " suffix=":" /></span></h2>
         {error !== null && <p className="kk-banner error" role="alert">{error}</p>}
         <div className="kk-item kk-notes-dialog-body">
           <StudyMaterialsEditor

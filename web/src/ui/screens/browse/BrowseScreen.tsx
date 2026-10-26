@@ -160,7 +160,6 @@ export function BrowseScreen() {
       <AdvancedSearchFormView
         systems={learner.srsSystems}
         starRatingsEnabled={enableStarRatings(state.prefs)}
-        blocks={learner.ordering === 'JLPT' ? learner.blocks : []}
         onSearch={(p) => navigate(paths.searchResults(2, writeParameters(p)))}
       />
 

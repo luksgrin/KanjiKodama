@@ -2,7 +2,7 @@
  * Bundled fonts only (no network), all SIL OFL 1.1; licenses in public/licenses/:
  * - Pixelify Sans: body text (Latin)                     OFL-pixelifysans.txt
  * - Silkscreen 400/700: headings, buttons, counters      OFL-silkscreen.txt
- * - Zen Maru Gothic Medium: all Japanese text            OFL-zenmarugothic.txt
+ * - Zen Maru Gothic Medium: bundled as in the Java app, which never uses it (Japanese is the system font)
  * Same files as the Java app (durtles/app/src/main/res/font/).
  */
 @font-face {

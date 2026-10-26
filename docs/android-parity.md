@@ -78,65 +78,84 @@ core changes), and the cold asset-loader delay before the first responses.
 
 | Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Keyboard hints banner | yellow "Please take a moment to review some hints for your keyboard settings" DISMISS / VIEW until dismissed; VIEW opens Keyboard help | missing | noticeable | The TS app has no Keyboard help screen and no Keyboard input settings (the IME flags are fixed to the Java defaults in `KkWebView`; a browser can't set them at all). Deliberate until those settings exist |
-| Recent-unlocks rows | ~36 dp | 40 px | minor | deliberate: 40 px tap-target floor (`test/e2e/layout.spec.ts`) |
+| Keyboard hints banner | yellow "Please take a moment to review some hints for your keyboard settings" DISMISS / VIEW until dismissed; VIEW opens Keyboard help | same box (first on the dashboard, `keyboard_help_dismissed`, reset by "Reset UI confirmations and tutorials"); Android build only: the hints are about Android keyboard flags a browser can't set | — | fixed (wave 5, `dashboard/KeyboardHelpBanner.tsx`) |
+| Recent-unlocks rows | 32 dp rows, 4 dp apart | same (wave 5; e2e exemption `subject-row-*`) | — | fixed |
 | App label in the toolbar | "KanjiKodama - Debug" (debug build) | "KanjiKodama" | — | build label only |
 
 ### Lesson presentation and quiz (`pair-lesson-pres`, `pair-lesson-last`, `pair-lesson-quiz`)
 
-| Difference | Java | TS | Severity | Why / file |
-|---|---|---|---|---|
-| Don't know / Submit position | at the bottom, above the keyboard | directly under the field | minor | deliberate (owner decision: must fit the iPhone SE with the keyboard open) |
-| Card grid gaps | slightly larger | slightly smaller | minor | `subject.css` |
-
-(The headline tile, buttons, toolbar and session menu now match; checked on the emulator before the
-restore and in the e2e screenshots after the fix.)
+Wave 5 closed the remaining differences:
+- Don't know / Submit at the bottom, on the keyboard (Java's spacer + quickActionRow). The quiz fills the
+  height above the keyboard (`visibleViewport.ts`: `visualViewport.height` on iOS / Chrome, the resized
+  viewport in the Android app); on very short screens (320 × 568 with the keyboard: 300 px visible) the
+  question view gives up height first, so the row stays visible. Checked with the keyboard simulated both
+  ways in WebKit, Chromium and Firefox (`checkQuickActions`, `session-layout.spec.ts`).
+- Subject card grid: 4 dp apart across, 6 dp down, 2 dp from the edges (`subject_card_*_compact.xml`
+  margins; `session.css` for the session screens).
+- Fragment slides between questions and lesson items (`slide_animations`, Java's `getAnimation`).
 
 ### Review question, wrong answer, item info (`pair-review-meaning-kb`, `pair-review-reading-kb`, `pair-wrong`, `pair-info-more`)
 
-| Difference | Java | TS | Severity | Why / file |
-|---|---|---|---|---|
-| NEXT after answering | in the coloured header (and one at the bottom); the header grows to ~193 dp | under the answer band (and one at the bottom); header stays 136 px | minor | deliberate (owner decision: Next replaces Submit under the field) |
-| Keyboard under dialogs | a dialog (wrap-up, abandon) leaves the keyboard open | the modal dialog takes the focus, the keyboard closes; the field gets the focus back on close | minor | web `<dialog>` makes the page inert |
+Wave 5: NEXT after answering is in the coloured header (bottom right, focused with Java's highlight; the
+header grows to ~193 px) and pinned at the bottom (`nextButton2`); the keyboard closes as in Java and
+opens again for the next question (`keyboardKeeper.tsx`). Session dialogs (wrap-up, abandon, level
+test, self-study, summary) are an overlay that leaves the focus in the answer field, so the keyboard stays
+open (`SessionDialog.tsx`; Enter/typing don't reach the field while it is open, Tab moves into it).
+Anki mode: the flat full-width button bar pinned at the bottom, `anki_buttons_height` dp high. Display
+settings read: `center_caret`, `anki_buttons_height`, `quiz_question_view_height`,
+`stretch_quiz_question_view`, `slide_animations`; Keyboard settings: `enable_auto_correct_*` →
+`autocorrect`/`spellcheck`, `lang` per question kind (the other IME flags are native, `KkWebView`).
 
-### Session menu, wrap-up / abandon dialogs, summary (`pair-session-menu`, `pair-wrapup-dialog`, `pair-summary`)
+### Session menu, wrap-up / abandon dialogs, summary, session log (`pair-session-menu`, `pair-wrapup-dialog`, `pair-summary`)
 
-Match (entries and order, dialog look and texts, summary blocks and buttons). Java's FINISH shows the
-focus highlight; TS doesn't (minor).
+Match (entries and order, dialog look and texts, summary blocks and buttons, FINISH focused with Java's
+highlight). The full session log (`full_session_log`) has Java's "Events" list (session started /
+re-loaded, lesson quiz started, back to presentation, every submit, Anki grade, Don't know, undo, skip,
+ignore; "12s ago"; in memory only, as Java).
 
 ### Item pages (`pair-item-radical`, `pair-item-kanji`, `pair-item-vocab`)
 
 | Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Radicals without characters (e.g. "Yurt") | the radical's image | the slug as text ("yurt") | noticeable | no image data in the built content (`content/`); listed in `ItemPage.tsx` "Not ported" |
-| Japanese face in plain text rows (dashboard tables) | system CJK font | Zen Maru Gothic | minor | one bundled Japanese font for all platforms |
+| Radicals without characters (e.g. "Yurt") | the radical's image | same: the Java drawables converted into the content file's `title_image` table, drawn by `SubjectChars` (headline, cards, results, toolbar title, dashboard tables, session question and log) | — | fixed (wave 5) |
+| Japanese face | system CJK font everywhere (the bundled Zen Maru Gothic is never used) | same (`--font-ja` = system CJK stack) | — | fixed (wave 5) |
 
 ### Browse and search results (`pair-browse`, `pair-browse-level`, `pair-search`, `pair-search-open`)
 
 | Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Advanced search | Level range, Frequency range, Only leeches… | also a "JLPT block" row | minor | deliberate (JLPT curriculum addition, `AdvancedSearchFormView.tsx`) |
-| Level cells | ~35 × 31 dp | 40 px tall (gaps drawn inside), grid half a gutter wider | minor | deliberate: tap-target floor |
-| DISMISS on the results tutorial | grey pressed/focus background | flat | minor | — |
+| Advanced search | Level range, Frequency range, Only leeches… | same (JLPT block row removed, wave 5) | — | fixed |
+| Level cells | ~37 × 31 dp, 2 dp / 8 dp apart | same (wave 5; e2e exemption `browse-level-*`) | — | fixed |
+| DISMISS on the results tutorial | grey pressed/focus background | same state layer on press / keyboard focus (the Java capture showed it focused because adb key input leaves touch mode) | — | fixed (wave 5) |
+| Results list | edge to edge (headers full width, cards 2 dp from the screen edge) | same (wave 5) | — | fixed |
 
 ### Settings (`pair-settings-main`, `pair-settings-display`, `pair-list-dialog`, `pair-advanced-warning`, `pair-advanced`, `pair-curriculum`, `pair-restore-confirm`, `pair-restore-done`)
 
 | Difference | Java | TS | Severity | Why / file |
 |---|---|---|---|---|
-| Keyboard input settings | own sub-screen | missing | noticeable | see the dashboard banner; Android flags fixed to Java's defaults |
-| Display settings | Light Theme / Dark Theme lists (8 themes), Theme customisation, centre caret, Anki button size, fixed question height, slide animations, stretch question view | Theme (Follow the system / Light / Dark), swap Anki buttons | noticeable | deliberate: the TS app has the KanjiKodama light/dark themes only; the other rows are not ported (`settings/schema.ts`) |
-| Other actions | Data import / export, Reset database, Backup / Restore your settings | Known limitations (TS only) | minor | not ported / deliberate |
-| Sub-screen back stack | the root keeps its scroll position when you come back | the root starts at the top again | minor | `AppShell.tsx` scroll reset |
+| Keyboard input settings | own sub-screen, 11 rows | same rows, titles, summaries, defaults (`force_ascii_meaning` XML default written when settings open); Android sets every flag natively (`KkWebView`: no personalized learning, force ASCII, auto-correct, visible password, language hint; checked with `dumpsys input_method`). Web: only auto-correct and the Next delay (the other rows are hidden, as Java hides the language hints below Android 7) | — | fixed (wave 5) |
+| Display settings | Light Theme / Dark Theme lists (8 themes), Theme customisation, centre caret, Anki button size, fixed question height, slide animations, stretch question view | same rows, order, summaries ("… theme is currently selected", "… is used in system wide dark mode"), defaults; all 8 themes with Java's colours (`ui/theme/themes.ts`, compared on the emulator in Wanikani and Nord); Theme customization screen with the 33 samples and the HSL picker; switch and seek bar geometry measured from Java | — | fixed (wave 5) |
+| Sub-screen back stack | the root keeps its scroll position when you come back | same: Back restores every screen's scroll position (`AppShell.tsx`) | — | fixed (wave 5) |
 
 List dialogs, the advanced warning, the curriculum dialog and the restore dialogs match (texts, layout,
 colours).
+
+Other actions (wave 5): About this app, Data import / export, Reset UI confirmations and tutorials,
+Reset database, Backup your settings, Restore your settings, in Java's order with Java's summaries,
+warning dialogs (No / Yes) and toasts. "Known limitations" stays on the web build only (Android has
+none, so the row is hidden there). Data import/export is Java's screen (title "Data import/export",
+the two texts, four buttons; search presets and star ratings as Java's JSON, shared through the share
+sheet on Android). Settings backups use the Java file format (`smouldering_durtles_<date>.json`): a
+backup made by the Java app restores in the new app and the other way round. The API settings screen
+has "Network access rule" again (it gates the Android audio auto-download, `auto_download_audio`, as
+Java does); `show_legacy` shows the old radical names and mnemonics on the item page.
 
 ### About (`pair-about`)
 
 | Difference | Java | TS | Severity | Why |
 |---|---|---|---|---|
 | Open-source components | Jackson, Lottie, JSoup, OkHttp, Pikolo | React, Dexie.js, sql.js, Workbox, Capacitor | — | deliberate: different stack |
-| URL wrapping | the GitHub link breaks at "/" | moves to the next line whole | minor | browser line breaking |
+| URL wrapping | the GitHub link breaks at "/" | same (`<wbr>` after each "/"); paragraph spacing one empty line as Java | — | fixed (wave 5) |
 
 ### Kanji level test start (`pair-leveltest`)
 
@@ -152,9 +171,8 @@ Matches (dialog over the dashboard, toolbar, texts, buttons).
 
 ## Top remaining differences
 
-1. Keyboard help banner + Keyboard input settings sub-screen missing — noticeable (no keyboard settings in the TS app).
-2. Display settings: TS has only Theme (system/light/dark) and the Anki swap — noticeable, deliberate.
-3. Radicals without characters show their slug instead of the image — noticeable (no image data).
-4. Next under the answer band instead of in the header after answering — minor, owner decision.
+1. ~~Keyboard help banner + Keyboard input settings sub-screen missing~~ — fixed in wave 5.
+2. ~~Display settings: TS has only Theme (system/light/dark) and the Anki swap~~ — fixed in wave 5 (all 8 themes, Theme customization).
+3. ~~Radicals without characters show their slug~~ — fixed in wave 5.
 5. Start-up still ~0.05–0.15 s behind Java — minor.
-6. 40 px tap-target floor makes recent-unlock rows and browse level cells a little taller — minor, deliberate.
+6. ~~40 px tap-target floor on recent-unlock rows and browse level cells~~ — fixed in wave 5 (Java sizes, documented e2e exemptions).

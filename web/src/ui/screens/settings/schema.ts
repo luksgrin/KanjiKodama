@@ -16,17 +16,10 @@
  *
  * Not listed (Android-UI only, or the inventory's "Drop", `docs/settings-inventory.md`):
  * - API/audio plumbing: api_key_help, api_key (asked by the import / server screens instead),
- *   network_rule, audio_location, use_audio_focus, web_password (resurrect via the WaniKani web
+ *   audio_location (one location here), use_audio_focus, web_password (resurrect via the WaniKani web
  *   site is not ported).
- * - Display: theme, nightTheme, theme_customization (the KanjiKodama themes only: `kk_theme` instead),
- *   center_caret, anki_buttons_height, quiz_question_view_height, slide_animations,
- *   stretch_quiz_question_view.
  * - Dashboard panels the TS dashboard does not have: show_post60_progression, show_post60_subsections,
  *   show_post60_reverse.
- * - Keyboard/IME: keyboard_help, enable_auto_correct_meaning, enable_auto_correct_reading,
- *   force_ascii_meaning, force_ascii_reading, force_visible_password_meaning,
- *   force_visible_password_reading, ime_hint_meaning, ime_hint_reading, enable_no_learning,
- *   next_button_delay.
  * - Fonts (only font_size_live_subject_table is kept, the dashboard tables read it): font_selection,
  *   font_import, max_font_size_lesson, max_font_size_quiz, max_font_size_browse,
  *   max_font_size_quiz_text, font_size_question_edit, font_size_subject_info, font_size_anki_answer.
@@ -39,7 +32,7 @@
  * - Other actions: support_and_feedback (hidden in Java too), data_import_export, reset_database,
  *   backup_settings, restore_settings. (reset_tutorials is an action on the root screen.)
  */
-import { THEME_PREF_KEY } from '../../../app/theme';
+import { DARK_THEME_KEY, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LIGHT_THEME_KEY, THEME_OPTIONS } from '../../theme/themes';
 import type { Capabilities } from '../../../platform';
 import type { Preferences, PreferenceValue } from '../../../core/settings';
 
@@ -59,9 +52,16 @@ interface Base {
 }
 
 export interface BoolSetting extends Base { type: 'bool'; default: boolean }
-export interface ListSetting extends Base { type: 'list'; default: string; options: readonly (readonly [value: string, label: string])[] }
-/** EditTextPreference with a number keyboard; stored as the typed string. `min`/`max`: EditLimitedIntPreference. */
-export interface TextSetting extends Base { type: 'text'; default: string; min?: number; max?: number }
+export interface ListSetting extends Base {
+  type: 'list'; default: string; options: readonly (readonly [value: string, label: string])[];
+  /** A summary provider around the chosen entry (`%s` = the entry), e.g. the theme lists. */
+  entrySummary?: string;
+}
+/**
+ * EditTextPreference with a number keyboard; stored as the typed string. `min`/`max`:
+ * EditLimitedIntPreference. `decimal`: `setDecimalNumberInputType` (a decimal point allowed).
+ */
+export interface TextSetting extends Base { type: 'text'; default: string; min?: number; max?: number; decimal?: boolean }
 /** SeekBarPreference: an int. */
 export interface SliderSetting extends Base { type: 'slider'; default: number; min: number; max: number }
 /** NumberRangePreference: `<key>_min` and `<key>_max` ints, -1 = no rule. */
@@ -103,6 +103,11 @@ const REVIEW_ORDERS: Options = [
 // "Femminine" is the Java app's spelling.
 const VOICE_PREFERENCES: Options = [
   ['RANDOM', 'Random'], ['MALE', 'Masculine'], ['FEMALE', 'Femminine'], ['ALTERNATE', 'Alternate between voices'],
+];
+const NETWORK_RULES: Options = [
+  ['ALWAYS', 'Download audio on any connection'],
+  ['DOWNLOAD_WIFI_ONLY', 'Download audio only on unmetered connections (WiFi)'],
+  ['WIFI_ONLY', 'Download audio only on unmetered connections (WiFi), same as above'],
 ];
 const SUBJECT_INFO_DUMPS: Options = [
   ['NOTHING', 'Show nothing'], ['ANSWERS_ONLY', 'Show only answers'], ['HIDE_UNQUIZZED', 'Hide information not quizzed yet'],
@@ -236,14 +241,16 @@ export const ADVANCED_GROUPS: readonly SettingGroup[] = [
 
 const notAlwaysHideWkMnemonic = (p: Preferences): boolean => p.always_hide_wk_mnemonic !== true;
 
-/** The KanjiKodama light/dark themes (Java's `theme` / `nightTheme` lists hold only upstream themes here). */
-const THEMES: Options = [['system', 'Follow the system setting'], ['light', 'Light'], ['dark', 'Dark']];
+/** `PreferencesFragment`: shown on the web build only where a browser can honour it (`imeFlags`). */
+const VISIBLE_PASSWORD_SUMMARY = 'This may be necessary to prevent auto-suggest on some keyboards';
 
 /**
  * Java's root `PreferenceScreen` children before the "Advanced settings" category, in XML order. A
  * sub-screen without a visible value row is hidden (e.g. "Audio download settings" on the web build).
- * Keyboard input settings is not here: its keys are the inventory's "Drop" (the Android keyboard
- * flags use the Java defaults, set by `KkWebView`). Font settings has only the dashboard table size.
+ * Keyboard input settings: the rows a browser can't honour (Android IME flags, set by `KkWebView`)
+ * need `imeFlags`, as Java hides the language hints below Android 7 (`setVisibility`); the web build
+ * keeps auto-correct (the `autocorrect` attribute) and the Next delay. Font settings has only the
+ * dashboard table size.
  */
 export const SETTINGS_SCREENS: readonly SettingGroup[] = [
   {
@@ -252,6 +259,7 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
     title: 'Audio download settings',
     serverTitle: 'API and audio download settings',
     rows: [
+      list('network_rule', 'Network access rule', NETWORK_RULES, 'DOWNLOAD_WIFI_ONLY', { requires: 'audioDownload' }),
       bool('auto_download_audio', 'Auto-download audio for upcoming reviews', true, {
         requires: 'audioDownload',
       }),
@@ -265,8 +273,18 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
     id: 'display_settings',
     title: 'Display settings',
     rows: [
-      list(THEME_PREF_KEY, 'Theme', THEMES, 'system'),
+      list(LIGHT_THEME_KEY, 'Light Theme', THEME_OPTIONS, DEFAULT_LIGHT_THEME, { entrySummary: '%s theme is currently selected' }),
+      list(DARK_THEME_KEY, 'Dark Theme', THEME_OPTIONS, DEFAULT_DARK_THEME, { entrySummary: '%s is used in system wide dark mode' }),
+      { type: 'action', key: 'theme_customization', title: 'Theme Customisation', summary: 'Customise colors in the current theme' },
+      bool('center_caret', 'Center caret in quiz answer box', false),
+      { type: 'slider', key: 'anki_buttons_height', title: 'Vertical size of the Anki mode buttons', default: 50, min: 10, max: 250 },
+      {
+        type: 'slider', key: 'quiz_question_view_height', title: 'Fix height of main quiz question view', default: 0, min: 0, max: 500,
+        summary: 'Set to 0 to not force a fixed size',
+      },
       bool('swap_anki_buttons', 'Swap the correct/incorrect Anki mode buttons', false),
+      bool('slide_animations', 'Use slide animations to transition between quiz questions', true),
+      bool('stretch_quiz_question_view', 'Stretch the question view to fill the screen when keyboard input is active', false),
     ],
   },
   {
@@ -364,6 +382,33 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
     ],
   },
   {
+    id: 'keyboard_settings',
+    title: 'Keyboard input settings',
+    rows: [
+      { type: 'action', key: 'keyboard_help', title: 'Tap here to read some hints for keyboard settings', requires: 'imeFlags' },
+      bool('enable_auto_correct_meaning', 'Allow keyboard auto-correct for meanings', false),
+      bool('enable_auto_correct_reading', 'Allow keyboard auto-correct for readings', false),
+      bool('force_ascii_meaning', 'Force ASCII keyboard for meanings', true, { requires: 'imeFlags' }),
+      bool('force_ascii_reading', 'Force ASCII keyboard for readings', false, { requires: 'imeFlags' }),
+      bool('force_visible_password_meaning', "Force 'visible password' setting for meanings", false, {
+        requires: 'imeFlags', summary: VISIBLE_PASSWORD_SUMMARY,
+      }),
+      bool('force_visible_password_reading', "Force 'visible password' setting for readings", false, {
+        requires: 'imeFlags', summary: VISIBLE_PASSWORD_SUMMARY,
+      }),
+      bool('ime_hint_meaning', 'Set keyboard language hint to English for meanings', false, {
+        requires: 'imeFlags', summary: 'Enable this to suggest a keyboard language for meaning questions',
+      }),
+      bool('ime_hint_reading', 'Set keyboard language hint to Japanese for readings', false, {
+        requires: 'imeFlags', summary: 'Enable this to suggest a keyboard language for reading questions',
+      }),
+      bool('enable_no_learning', "Enable 'no personalized learning' option", true, {
+        requires: 'imeFlags', summary: 'Disable this to get rid of the annoying incognito icon in Swiftkey',
+      }),
+      { type: 'text', key: 'next_button_delay', title: 'Delay in seconds to disable the next/submit button after typing an incorrect answer', default: '0', decimal: true },
+    ],
+  },
+  {
     id: 'font_settings',
     title: 'Font settings',
     rows: [
@@ -400,7 +445,7 @@ export const ADVANCED_CATEGORY_TITLE = 'Advanced settings';
  * Java app behaves as the XML says; the settings screen does the same for these (see
  * `persistShownDefaults`).
  */
-export const XML_DEFAULT_DIFFERS_FROM_GETTER: readonly string[] = ['hide_sentence_translations'];
+export const XML_DEFAULT_DIFFERS_FROM_GETTER: readonly string[] = ['hide_sentence_translations', 'force_ascii_meaning'];
 
 // ---- Helpers ------------------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@ import type { RouteDef } from '../app/router';
 export type RouteName =
   | 'dashboard' | 'lessons' | 'reviews' | 'summary' | 'subject' | 'browse' | 'selfStudy'
   | 'settings' | 'curriculum' | 'fastTravel' | 'levelTest' | 'import' | 'server' | 'audio' | 'about'
-  | 'advancedSettings' | 'searchResults' | 'selfStudyQuiz';
+  | 'advancedSettings' | 'searchResults' | 'selfStudyQuiz' | 'keyboardHelp' | 'themeCustomization';
 
 export interface AppRoute extends RouteDef<RouteName> {
   /** Top bar title. */
@@ -35,6 +35,8 @@ export const ROUTES: readonly AppRoute[] = [
   { name: 'audio', pattern: '/settings/audio', title: 'Audio' },
   { name: 'about', pattern: '/settings/about', title: 'About' },
   { name: 'advancedSettings', pattern: '/settings/advanced', title: 'Advanced settings' },
+  { name: 'keyboardHelp', pattern: '/settings/keyboard-help', title: 'Keyboard help' },
+  { name: 'themeCustomization', pattern: '/settings/theme-customization', title: 'Theme customization' },
 ];
 
 export const ROUTE_BY_NAME = Object.fromEntries(ROUTES.map((r) => [r.name, r])) as Readonly<Record<RouteName, AppRoute>>;
@@ -57,6 +59,8 @@ export const paths = {
   audio: () => '/settings/audio',
   about: () => '/settings/about',
   advancedSettings: () => '/settings/advanced',
+  keyboardHelp: () => '/settings/keyboard-help',
+  themeCustomization: () => '/settings/theme-customization',
   /** The running self-study session (also the level test rounds). */
   selfStudyQuiz: () => '/self-study/quiz',
   /** `t`: 0 level, 1 keyword, 2 advanced (JSON); `q`: the level, query or parameters; `preset`: its name. */

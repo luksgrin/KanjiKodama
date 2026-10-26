@@ -162,7 +162,7 @@ describe('settings screen', () => {
     const { el, app } = await render('/settings', { caps: { audioPlayback: true } });
     const rows = [...$(el, 'settings-root')!.querySelectorAll(':scope > li > .kk-pref .kk-pref-title')].map((t) => t.textContent);
     // The web build has nothing to download: no "Audio download settings".
-    expect(rows).toEqual(['Display settings', 'Dashboard settings', 'Subject Info settings', 'Audio settings', 'Lesson/review settings', 'Font settings', 'Notifications and other settings']);
+    expect(rows).toEqual(['Display settings', 'Dashboard settings', 'Subject Info settings', 'Audio settings', 'Lesson/review settings', 'Keyboard input settings', 'Font settings', 'Notifications and other settings']);
     expect([...el.querySelectorAll('.kk-pref-category-title')].map((t) => t.textContent)).toEqual(['Advanced settings', 'Progress', 'Other actions']);
     expect($(el, 'category-progress')!.textContent).toContain('Save progress to a file');
     expect($(el, 'link-server')!.textContent).toContain('Local (offline). Tap to connect to a WaniKani-compatible server such as OpenKani.');
@@ -241,12 +241,18 @@ describe('settings screen', () => {
     app.dispose();
 
     const r2 = await render('/settings?screen=display_settings');
-    await click($(r2.el, 'setting-kk_theme'));
-    await click($(r2.el, 'choice-kk_theme-dark'));
-    expect(r2.app.get().prefs.kk_theme).toBe('dark');
-    expect(document.documentElement.dataset.theme).toBe('dark');
-    await click($(r2.el, 'setting-kk_theme'));
-    await click($(r2.el, 'choice-kk_theme-system'));
+    expect($(r2.el, 'setting-theme')!.textContent).toContain('KanjiKodama theme is currently selected');
+    await click($(r2.el, 'setting-theme'));
+    await click($(r2.el, 'choice-theme-LIGHT'));
+    expect(r2.app.get().prefs.theme).toBe('LIGHT');
+    await flush();
+    expect(document.documentElement.dataset.kkTheme).toBe('LIGHT');
+    expect(document.documentElement.style.getPropertyValue('--color-toolbar-bg')).toBe('#E80092');
+    await click($(r2.el, 'setting-theme'));
+    await click($(r2.el, 'choice-theme-KANJIKODAMA_LIGHT'));
+    await flush();
+    expect(document.documentElement.dataset.kkTheme).toBe('KANJIKODAMA_LIGHT');
+    expect(document.documentElement.style.getPropertyValue('--color-toolbar-bg')).toBe('');
     r2.app.dispose();
   });
 

@@ -21,6 +21,7 @@ import { useCurriculumFlow } from '../curriculum/curriculumFlow';
 import { useFastTravelFlow } from '../fastTravel/fastTravelFlow';
 import { useImportFlow } from '../import/importFlow';
 import { KnownLimitations } from './KnownLimitations';
+import { DATA_IMPORT_EXPORT_SCREEN, DATA_IMPORT_EXPORT_TITLE, DataImportExportPage, LIMITATIONS_SCREEN, OtherActionsCategory } from './OtherActions';
 import { ProgressCategory } from './ProgressSection';
 import {
   ADVANCED_CATEGORY_TITLE,
@@ -35,12 +36,11 @@ import {
   type BoolSetting,
   type SettingGroup,
 } from './schema';
-import { PrefCategory, PrefRow, SettingGroupRows, SettingRow, useSettingWriter, type Actions } from './SettingRows';
+import { PrefCategory, PrefRow, SettingGroupRows, SettingRow, useScreenLinkActions, useSettingWriter, type Actions } from './SettingRows';
 import { useAlerts, type Alerts } from './useAlerts';
 import './settings.css';
 
-/** The TS-only sub-screen with this build's known limitations. */
-export const LIMITATIONS_SCREEN = 'known_limitations';
+export { LIMITATIONS_SCREEN };
 
 /** `Constants.RESET_TUTORIALS_WARNING`. */
 export const RESET_TUTORIALS_WARNING = 'This will re-enable all UI confirmations and reinstate all tutorial messages.'
@@ -138,12 +138,7 @@ function Root({ alerts, flows, write }: {
         ))}
       </PrefCategory>
       <ProgressCategory alerts={alerts} flows={flows} />
-      <PrefCategory title="Other actions" testId="category-about">
-        <PrefRow title="About this app" testId="link-about" onClick={() => nav(paths.about())} />
-        <PrefRow title="Reset UI confirmations and tutorials" testId="reset-tutorials" onClick={resetTutorials} />
-        <PrefRow title="Known limitations" summary="What this build of the app cannot do" testId="link-limitations"
-          onClick={() => nav(`${paths.settings()}?screen=${LIMITATIONS_SCREEN}`)} />
-      </PrefCategory>
+      <OtherActionsCategory alerts={alerts} onResetTutorials={resetTutorials} />
     </ul>
   );
 }
@@ -154,7 +149,7 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
   const { state, platform } = useReady();
   const { write, dialog } = useSettingWriter();
   const alerts = useAlerts();
-  const actions = useNotificationActions();
+  const actions = { ...useNotificationActions(), ...useScreenLinkActions() };
   const flows = {
     curriculum: useCurriculumFlow(alerts),
     fastTravel: useFastTravelFlow(alerts),
@@ -167,7 +162,8 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
   // The advanced sub-screens are hidden while advanced settings are off (`setVisibility`).
   if (group && ADVANCED_GROUPS.includes(group) && !advancedEnabled(state.prefs)) group = undefined;
   const limitations = screenId === LIMITATIONS_SCREEN;
-  const title = group ? groupTitle(group, state.mode) : limitations ? 'Known limitations' : 'Settings';
+  const dataPage = screenId === DATA_IMPORT_EXPORT_SCREEN;
+  const title = group ? groupTitle(group, state.mode) : limitations ? 'Known limitations' : dataPage ? DATA_IMPORT_EXPORT_TITLE : 'Settings';
   useToolbar({ title });
 
   const started = useRef(false);
@@ -187,6 +183,8 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
         <SettingGroupRows group={group} write={write} actions={actions} />
       ) : limitations ? (
         <div className="kk-pref-page"><KnownLimitations capabilities={platform.capabilities} /></div>
+      ) : dataPage ? (
+        <DataImportExportPage />
       ) : (
         <>
           <InstallHint />

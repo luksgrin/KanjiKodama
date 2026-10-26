@@ -11,6 +11,7 @@ import { useState, type ReactNode } from 'react';
 import type { Content, ContentSubject } from '../../../core/content';
 import type { SrsSystem } from '../../../core/srs';
 import { PitchAccent } from './PitchAccent';
+import { SubjectChars, subjectGlyphCount } from './SubjectChars';
 import { pitchBlocks, type PitchInfo } from './pitchInfo';
 import type { ContextSentence } from './subjectContent';
 import {
@@ -26,7 +27,6 @@ import {
   partsOfSpeechHtml,
   regularReadingHtml,
   simpleInfoTitle,
-  subjectTitle,
 } from './subjectText';
 import { WkMarkup } from './WkMarkup';
 
@@ -59,14 +59,13 @@ export function Headline({
   fontSize = 16,
   maxFontSize = 64,
 }: HeadlineProps) {
-  const title = subjectTitle(subject);
-  const chars = Math.max(1, [...(title ?? '')].length);
+  const chars = subjectGlyphCount(subject);
   const tileStyle = { fontSize: `min(${maxFontSize}px, calc((100cqi - 112px) / ${chars}))` };
   const blocks = pitchInfo !== null && showReadingAnswers ? pitchBlocks(subject, pitchInfo) : [];
   return (
     <header className="kk-headline">
       <div className={`kk-subject-tile kk-type--${subject.object}`} lang="ja" style={tileStyle}>
-        <span className="kk-ja">{title}</span>
+        <span className="kk-ja"><SubjectChars subject={subject} /></span>
       </div>
       <div className="kk-headline-text">
         <div className="kk-headline-title">{simpleInfoTitle(subject.object, level)}</div>
@@ -197,7 +196,7 @@ export function SubjectCards({ subjects, showReading = true, showMeaning = true,
         const progress = progressOf?.(s) ?? null;
         const body = (
           <>
-            <span className="kk-link-chars kk-ja" lang="ja">{subjectTitle(s)}</span>
+            <span className="kk-link-chars kk-ja" lang="ja"><SubjectChars subject={s} /></span>
             <span className="kk-link-text">
               {meaning !== null && (
                 <span className="kk-link-meaning" style={{ ['--mlen' as string]: Math.max(4, [...meaning].length) }}>{meaning}</span>

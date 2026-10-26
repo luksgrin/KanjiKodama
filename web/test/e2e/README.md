@@ -46,8 +46,12 @@ npx playwright show-report test/e2e/report        # HTML report, traces of failu
   only loaded into the local test browser, never printed).
 - `offline.spec.ts`: service worker on, load, go offline, reload, review.
 - `layout.spec.ts`: every main screen with strict checks (soft failures, so one run lists all):
-  no sideways scroll, tap targets ≥ 40 px, no clipped text; the quick-action row directly under the
-  answer field, inside the viewport, and in the top 410 px on the iPhone SE.
+  no sideways scroll, tap targets ≥ 40 px (Java-sized exemptions by testid), no clipped text; the
+  quick-action row where Java has it: at the bottom of the visible area, also with the keyboard simulated
+  (`simulateKeyboard`: visual viewport as iOS / Chrome, or a resized viewport as the Android WebView;
+  iPhone SE 410 px visible, 320 px Android 300 px, Pixel 7, iPad, Firefox).
+- `session-layout.spec.ts`: the question view's height (unanswered ~133, answered ~193 with Next in it),
+  the answered Next focused, a session dialog leaving the focus (keyboard) in the answer field.
 
 The flow specs run the same checks but only record tap-target and clipping findings (annotations
 and `screenshots/<project>/findings.txt`); a sideways scroll always fails.

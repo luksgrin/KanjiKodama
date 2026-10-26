@@ -1,0 +1,22 @@
+/*
+ * Keyboard help (activity_keyboard_help.xml): WK.TextView.Normal blocks inside 8 dp padding (.kk-main's
+ * gutter). Html.fromHtml spacing: one blank line (16sp × 1.2) after each heading, between paragraphs and
+ * around lists; every block after the intro starts with a blank line (<br/>). Tokens only.
+ */
+.kk-kbh { --kbh-line: 19px; overflow-wrap: anywhere; user-select: text; }
+.kk-kbh-doc h3,
+.kk-kbh-doc h4 { font-family: var(--font-body); font-weight: 700; line-height: 1.2; margin: 0 0 var(--kbh-line); }
+.kk-kbh-doc h3 { font-size: 1.3em; }
+.kk-kbh-doc h4 { font-size: 1.2em; }
+.kk-kbh-doc.kk-kbh-gap { padding-top: var(--kbh-line); }
+.kk-kbh-doc p { margin: 0; line-height: 1.2; }
+.kk-kbh-doc p + p,
+.kk-kbh-doc ul + p { margin-top: var(--kbh-line); }
+.kk-kbh-doc ul { list-style: none; margin: var(--kbh-line) 0; padding: 0; line-height: 1.2; }
+/* "• text": the bullet and a non-breaking space, wrapped lines under the text. */
+.kk-kbh-doc li { padding-left: 0.7em; text-indent: -0.7em; }
+.kk-kbh-doc li::before { content: '\2022\00a0'; }
+/* keyboardSettingsButton1: android:padding="8dp" instead of WK.Button.Normal's 22 dp sides. */
+.kk-btn.kk-kbh-padded { padding-left: 8px; padding-right: 8px; }
+/* The Do it / Keyboard settings rows: wrap_content, padding 8dp, buttons side by side. */
+.kk-kbh-row { display: flex; flex-wrap: wrap; padding: 8px; }

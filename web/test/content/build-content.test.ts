@@ -14,6 +14,7 @@ import { buildContent, type BuiltContent } from '../../scripts/content/buildCont
 import { RAW_DIR, readInputs, WK_CONTENT_PATH } from '../../scripts/content/inputs';
 import { CONTENT_MANIFEST_FILE, loadContentFile, pitchInfo, readContentFile, strokeData, type LoadedContent } from '../../src/content/contentFile';
 import { withReferenceData, type ReferenceTables } from '../../src/content/referenceData';
+import { TITLE_IMAGE_IDS, titleImageOf } from '../../src/content/titleImages';
 import { curriculumLayout } from '../../src/core/curriculum';
 import { buildJlptPlan, type JlptPlanRow } from '../../src/core/curriculum/jlptPlan';
 import { loadContentWithExtras } from '../golden/content';
@@ -103,6 +104,17 @@ describe.skipIf(!HAS_WK)('content builder: private variant', () => {
     }
   });
 
+  it('stores the radical images of Subject.getTitleImageId (res/drawable/radical_<id>.xml)', () => {
+    expect(built.manifest.counts.titleImages).toBe(TITLE_IMAGE_IDS.length);
+    expect([...loaded.titleImages!.keys()]).toEqual([...TITLE_IMAGE_IDS]);
+    const yurt = loaded.titleImages!.get(8787)!;
+    expect(yurt.size).toBe(1000);
+    expect(yurt.paths.length).toBeGreaterThan(0);
+    expect(yurt.paths.every((p) => p.w === 68)).toBe(true);
+    expect(titleImageOf({ id: 8787, object: 'radical' })).toEqual(yurt);
+    expect(titleImageOf({ id: 1, object: 'radical' })).toBeNull();
+  });
+
   it('stores the WaniKani order as the subject table holds it', () => {
     for (const s of loaded.content.subjects) {
       expect(loaded.wkOrder.get(s.id)).toEqual([s.level, s.lessonPosition]);
@@ -190,6 +202,8 @@ describe('content builder: public variant', () => {
     expect(built.manifest.counts.kanjiPart).toBe(13529);
     expect(loaded.jlptOrder.size).toBe(435);
     expect(Buffer.from(built.bytes).includes('wanikani.com')).toBe(false);
+    expect(built.manifest.counts.titleImages).toBe(0);
+    expect(loaded.titleImages!.size).toBe(0);
   });
 
   it('passes the leak check', () => {

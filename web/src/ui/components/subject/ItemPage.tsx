@@ -11,8 +11,8 @@
  * Visibility follows `SubjectInfoView.layoutSubjectImpl` with the four info-dump flags (all on, as in
  * the browse screen, unless `visibility` says otherwise: lessons and answered questions pass theirs).
  * The Resurrect / Burn buttons (`subject_info.xml`, below the details table) and the star rating go in
- * the `extras` slot (the subject screen fills it). Not ported: legacy radical names (no data), the image
- * titles of the 19 image-only radicals (the slug is shown).
+ * the `extras` slot (the subject screen fills it). The image-only
+ * radicals show their image (`SubjectChars`, from the content file's `title_image` table).
  */
 import { useMemo, type ReactNode } from 'react';
 import type { Database } from 'sql.js';
@@ -26,12 +26,14 @@ import {
   hideSentenceTranslations,
   highlightSubjectTags,
   showOnInKatakana as showOnInKatakanaSetting,
+  showLegacy,
   showPitchInfo,
   showStrokeOrder,
   strokeOrderAnimated,
   strokeOrderSize,
   swapSimilarAndAmalgamations,
 } from '../../../core/settings/subjectInfo';
+import { isLegacyRadical, legacyMnemonic, legacyName } from '../../../core/legacyRadicals';
 import { findSrsSystem, srsSystemFromData } from '../../../core/srs';
 import { hasPitchInfo } from './pitchInfo';
 import { dbSoundLookup, soundComponentsHtml } from './soundComponents';
@@ -207,6 +209,12 @@ export function ItemPage({
       )}
       {v.meaningRelated && !isEmpty(texts.meaningHint) && showMeaningMnemonic && (
         <WkMarkup as="p" className="kk-subject-line kk-hint" html={texts.meaningHint ?? ''} highlight={highlight} />
+      )}
+      {v.meaningRelated && showMeaningMnemonic && showLegacy(settings) && isLegacyRadical(subject.id) && (
+        <>
+          <WkMarkup as="p" className="kk-subject-line kk-legacy" html={`<b>Old name</b>: ${legacyName(subject.id) ?? ''}`} highlight={highlight} />
+          <WkMarkup as="p" className="kk-subject-line kk-legacy" html={`<b>Old mnemonic</b>: ${legacyMnemonic(subject.id) ?? ''}`} highlight={highlight} />
+        </>
       )}
       {v.meaningRelated && hasMeaningNote && (
         <WkMarkup as="p" className="kk-subject-line kk-note-text" html={noteHtml('meaning', meaningNote)} highlight={highlight} />

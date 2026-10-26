@@ -5,22 +5,32 @@
 import { useEffect } from 'react';
 import type { AppController } from './app/appController';
 import type { HashLocation } from './app/router';
-import { THEME_PREF_KEY, applyTheme, parseThemeChoice } from './app/theme';
+import { applySlideAnimations, applyTheme, isThemePrefKey, storedThemePrefs, themePrefsFrom } from './app/theme';
+import { setAnswerKeyboardPrefs } from './platform/answerKeyboard';
 import { AppProvider, useAppState } from './ui/hooks/useApp';
 import { RouterProvider } from './ui/hooks/useRoute';
 import { AppShell } from './ui/shell/AppShell';
 
+/** Light / Dark Theme and their customisations (app/theme.ts), re-applied when the system switches. */
 function ThemeSync() {
-  const pref = useAppState().prefs[THEME_PREF_KEY];
+  const state = useAppState();
+  const prefs = state.prefs;
+  // Until the settings are loaded, the theme painted from localStorage (main.tsx) stays.
+  const loaded = state.status.kind === 'ready';
+  const key = loaded ? JSON.stringify(Object.keys(prefs).filter(isThemePrefKey).sort().map((k) => [k, prefs[k]])) : null;
+  const slide = prefs.slide_animations;
   useEffect(() => {
-    const choice = parseThemeChoice(pref);
-    if (pref !== undefined) applyTheme(choice);
+    const p = key === null ? storedThemePrefs() : themePrefsFrom(Object.fromEntries(JSON.parse(key) as [string, unknown][]));
+    if (key !== null) applyTheme(p);
     if (typeof window.matchMedia !== 'function') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => applyTheme(choice);
+    const onChange = () => applyTheme(p);
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
-  }, [pref]);
+  }, [key]);
+  useEffect(() => applySlideAnimations({ slide_animations: slide }), [slide]);
+  // Keyboard input settings for the Android answer field's IME flags (platform/answerKeyboard.ts).
+  useEffect(() => setAnswerKeyboardPrefs(prefs), [prefs]);
   return null;
 }
 

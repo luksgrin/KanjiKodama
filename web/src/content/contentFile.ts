@@ -18,12 +18,15 @@
  * - `stroke_data`, `pitch_info`: `id` → JSON text, exactly what the Java app stores in
  *   `subject.strokeData`/`subject.pitchInfo` (`ReferenceDataUtil.getStrokeData`/`getPitchInfo`); only
  *   subjects that have one. Kept out of `subject` so loading the subjects stays small.
+ * - `title_image`: `id` → JSON `TitleImage` (`content/titleImages.ts`), the radicals the Java app draws
+ *   as an image (`Subject.getTitleImageId`); optional (older files lack it: the slug is shown instead).
  * - `kanji_part`, `kanji_sound`, `series`, `series_member`: `sound-components.db` (Parts/Sound), as is.
  * - `content_meta`: `key` → `value` (`schemaVersion`, `variant`, source versions).
  */
 import type { Database, SqlJsStatic } from 'sql.js';
 import type { Content } from '../core/content';
 import { readContent } from './readContent';
+import { readTitleImages, registerTitleImages, type TitleImage } from './titleImages';
 
 export const CONTENT_SCHEMA_VERSION = 1;
 export const CONTENT_MANIFEST_FILE = 'content-manifest.json';
@@ -68,6 +71,8 @@ export interface LoadedContent {
   jlptBlocks: number[];
   /** `jlpt-kanji.tsv`: kanji → N-level. */
   jlptKanji: Map<string, number>;
+  /** Radical images by subject id (also registered for `titleImageOf`). */
+  titleImages?: Map<number, TitleImage>;
 }
 
 function all(db: Database, sql: string, params: (string | number)[] = []): unknown[][] {
@@ -100,6 +105,8 @@ export function readContentFile(db: Database, manifest: ContentManifest | null =
     wkOrder.set(Number(id), [Number(wl), Number(wp)]);
     jlptOrder.set(Number(id), [Number(jl), Number(jp)]);
   }
+  const titleImages = readTitleImages(db);
+  registerTitleImages(titleImages);
   return {
     manifest,
     db,
@@ -108,6 +115,7 @@ export function readContentFile(db: Database, manifest: ContentManifest | null =
     jlptOrder,
     jlptBlocks: all(db, 'SELECT block FROM jlpt_block ORDER BY level').map(([b]) => Number(b)),
     jlptKanji: new Map(all(db, 'SELECT characters, level FROM jlpt_kanji ORDER BY characters').map(([c, l]) => [String(c), Number(l)])),
+    titleImages,
   };
 }
 

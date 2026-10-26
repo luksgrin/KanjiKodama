@@ -28,7 +28,8 @@ export function AutoFitLine({ children, className, max = 14, min = 9 }: { childr
 
 export interface SubjectCardProps {
   object: string;
-  characters: string;
+  /** The characters, or the radical's image (`SubjectChars`). */
+  characters: ReactNode;
   meaning: string | null;
   reading: string | null;
   progress: string | null;

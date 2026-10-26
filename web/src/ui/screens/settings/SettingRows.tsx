@@ -10,14 +10,16 @@
  * - SeekBarPreference: the seek bar and its value under the title, saved when released;
  * - NumberRangePreference: "Min 3", "1 - 5", "Unlimited"; tap → the Min / Max dialog.
  *
- * Changes go through `app.setPreference` (same keys and value types as Java's `SharedPreferences`).
+ * Changes go through `app.setPreference` (same keys and value types as Java's `SharedPreferences`);
+ * the theme follows its keys by itself (App.tsx `ThemeSync`).
  * Turning on `enable_advanced` asks first, like `PreferencesFragment`.
  */
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
-import { THEME_PREF_KEY, applyTheme, parseThemeChoice } from '../../../app/theme';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { advancedEnabled, javaParseInt, type Preferences, type PreferenceValue } from '../../../core/settings';
 import { rescheduleReviewNotifications } from '../../../platform/reviewNotifications';
 import { useApp, useReady } from '../../hooks/useApp';
+import { useNavigate } from '../../hooks/useRoute';
+import { paths } from '../../routes';
 import { toast } from '../../shell/toast';
 import { AlertDialog, ChoiceList } from './AlertDialog';
 import {
@@ -80,12 +82,14 @@ function BoolRow({ def, prefs, disabled, write }: { def: BoolSetting; prefs: Pre
 
 function ListRow({ def, prefs, disabled, write }: { def: ListSetting; prefs: Preferences; disabled: boolean; write: Write }) {
   const [open, setOpen] = useState(false);
-  const raw = shownValue(def, prefs);
-  const value = def.key === THEME_PREF_KEY ? parseThemeChoice(prefs[def.key]) : raw;
+  const stored = shownValue(def, prefs);
+  // The theme lists: an unknown stored value means the default theme (`GlobalSettings.Display.getTheme`).
+  const value = def.options.some(([v]) => v === stored) || def.entrySummary === undefined ? stored : def.default;
   const entry = def.options.find(([v]) => v === value)?.[1];
+  const summary = def.summary ?? (entry !== undefined && def.entrySummary !== undefined ? def.entrySummary.replace('%s', entry) : entry ?? '');
   return (
     <>
-      <PrefRow title={def.title} summary={def.summary ?? entry ?? ''} testId={`setting-${def.key}`} disabled={disabled} onClick={() => setOpen(true)} />
+      <PrefRow title={def.title} summary={summary} testId={`setting-${def.key}`} disabled={disabled} onClick={() => setOpen(true)} />
       <AlertDialog open={open} title={def.title} onCancel={() => setOpen(false)} testId={`dialog-${def.key}`}
         negative={{ label: 'Cancel', onClick: () => setOpen(false) }}>
         <ChoiceList label={def.title} checked={entry === undefined ? null : value}
@@ -97,8 +101,8 @@ function ListRow({ def, prefs, disabled, write }: { def: ListSetting; prefs: Pre
 }
 
 /** The field of an EditText / range dialog: number keyboard, focused when the dialog opens. */
-function DialogField({ fieldRef, initial, label, placeholder, small }: {
-  fieldRef: RefObject<HTMLInputElement | null>; initial: string; label: string; placeholder?: string; small?: boolean;
+function DialogField({ fieldRef, initial, label, placeholder, small, decimal }: {
+  fieldRef: RefObject<HTMLInputElement | null>; initial: string; label: string; placeholder?: string; small?: boolean; decimal?: boolean;
 }) {
   useEffect(() => {
     const f = fieldRef.current;
@@ -108,7 +112,7 @@ function DialogField({ fieldRef, initial, label, placeholder, small }: {
     try { f.setSelectionRange(n, n); } catch { /* not a text field */ }
   }, [fieldRef]);
   return (
-    <input ref={fieldRef} className={`kk-alert-field${small ? ' small' : ''}`} type="text" inputMode="numeric" defaultValue={initial}
+    <input ref={fieldRef} className={`kk-alert-field${small ? ' small' : ''}`} type="text" inputMode={decimal ? 'decimal' : 'numeric'} defaultValue={initial}
       aria-label={label} placeholder={placeholder} autoComplete="off" />
   );
 }
@@ -137,7 +141,7 @@ function TextRow({ def, prefs, disabled, write }: { def: TextSetting; prefs: Pre
       <AlertDialog open={open} title={def.title} onCancel={() => setOpen(false)} testId={`dialog-${def.key}`}
         negative={{ label: 'Cancel', onClick: () => setOpen(false) }} positive={{ label: 'OK', onClick: ok }}>
         <form className="kk-alert-form" onSubmit={(e) => { e.preventDefault(); ok(); }}>
-          <DialogField fieldRef={ref} initial={stored} label={def.title} />
+          <DialogField fieldRef={ref} initial={stored} label={def.title} decimal={def.decimal} />
         </form>
       </AlertDialog>
     </>
@@ -158,6 +162,7 @@ function SliderRow({ def, prefs, disabled, write }: { def: SliderSetting; prefs:
           {def.summary !== undefined && <span className="kk-pref-summary">{def.summary}</span>}
           <span className="kk-seekbar-row">
             <input className="kk-seekbar" type="range" min={def.min} max={def.max} step={1} value={draft} disabled={disabled}
+              style={{ '--frac': def.max > def.min ? (draft - def.min) / (def.max - def.min) : 0 } as CSSProperties}
               aria-label={def.title} onChange={(e) => setDraft(Number(e.currentTarget.value))}
               onPointerUp={commit} onKeyUp={commit} onBlur={commit} onTouchEnd={commit} />
             <span className="kk-seekbar-value">{draft}</span>
@@ -229,7 +234,7 @@ export function SettingRow({ row, prefs, write, actions = {} }: { row: Row; pref
 }
 
 /**
- * The write path for settings rows: `setPreference`, the theme, the `enable_advanced` confirmation
+ * The write path for settings rows: `setPreference`, the `enable_advanced` confirmation
  * and the notification reschedule after `enable_notifications` changes. Render `dialog` once.
  */
 export function useSettingWriter(): { write: Write; dialog: ReactNode } {
@@ -241,7 +246,6 @@ export function useSettingWriter(): { write: Write; dialog: ReactNode } {
       setAskAdvanced(true);
       return;
     }
-    if (key === THEME_PREF_KEY) applyTheme(parseThemeChoice(value));
     void app.setPreference(key, value).then(() => {
       if (key === 'enable_notifications') {
         void rescheduleReviewNotifications(platform.notifications, learner, app.get().prefs, app.clock.now()).catch(() => undefined);
@@ -262,6 +266,15 @@ export function useSettingWriter(): { write: Write; dialog: ReactNode } {
     </AlertDialog>
   );
   return { write, dialog };
+}
+
+/** The `Preference` rows that open another screen (`setOnClickGoToActivity`). */
+export function useScreenLinkActions(): Actions {
+  const nav = useNavigate();
+  return {
+    theme_customization: () => nav(paths.themeCustomization()),
+    keyboard_help: () => nav(paths.keyboardHelp()),
+  };
 }
 
 /** A sub-screen's rows. */

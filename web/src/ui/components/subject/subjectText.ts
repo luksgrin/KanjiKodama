@@ -139,7 +139,7 @@ export function jlptLevelString(level: number): string {
   return level >= 1 && level <= 5 ? `N${level}` : 'None';
 }
 
-/** The subject's title text: characters, else the slug (the 19 image-only radicals; the Java app draws an image). */
+/** The subject's title as text: characters, else the slug. Where an image can show, use `SubjectChars`/`InfoTitle`. */
 export function subjectTitle(subject: Pick<ContentSubject, 'characters' | 'slug' | 'id'>): string {
   return subject.characters ?? subject.slug ?? String(subject.id);
 }

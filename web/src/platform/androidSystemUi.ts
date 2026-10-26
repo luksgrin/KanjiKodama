@@ -7,12 +7,12 @@
  *   colours. This samples the colours at the top and bottom edge of the page (whatever the UI draws
  *   there, including a modal dialog's backdrop) and hands them to the native side whenever the page
  *   changes. On WebView 140+ the page draws behind the bars and only the icon colours matter.
- * - IME flags of the Java answer field (fragments/UnansweredSessionFragment): "no personalized
- *   learning" (`enable_no_learning`, default on) and force-ASCII for meanings
- *   (`force_ascii_meaning`, default on; `force_ascii_reading` default off). The Java defaults are
- *   used: these keyboard settings are not in the settings screens yet (docs/settings-inventory.md).
+ * - IME flags of the Java answer field (fragments/UnansweredSessionFragment) from the Keyboard
+ *   input settings (`answerKeyboard.ts`): "no personalized learning", force ASCII, auto-correct,
+ *   'visible password' and the keyboard language hint, for the focused `input.kk-answer`.
  */
 import { registerPlugin } from '@capacitor/core';
+import { answerKeyboardFor, type AnswerKeyboard } from './answerKeyboard';
 
 export interface BarColors {
   top: string;
@@ -22,10 +22,8 @@ export interface BarColors {
   lightBottom: boolean;
 }
 
-export interface ImeHints {
-  noPersonalizedLearning: boolean;
-  forceAscii: boolean;
-}
+/** KkWebView.setImeHints: what Java's questionEdit sets (`answerField` false: Chromium's own EditorInfo). */
+export type ImeHints = AnswerKeyboard;
 
 export interface SystemUiPlugin {
   setBarColors(options: BarColors): Promise<void>;
@@ -136,13 +134,9 @@ export function barColors(e: EdgeColors): BarColors {
   return { top: toHex(e.top), bottom: toHex(e.bottom), lightTop: isLight(e.top), lightBottom: isLight(e.bottom) };
 }
 
-/** The Java answer field's IME flags for the focused element (defaults of the keyboard settings). */
+/** The Java answer field's IME flags for the focused element (the Keyboard input settings). */
 export function imeHintsFor(el: Element | null): ImeHints {
-  if (!(el instanceof HTMLInputElement) || !el.classList.contains('kk-answer')) {
-    return { noPersonalizedLearning: false, forceAscii: false };
-  }
-  const reading = el.classList.contains('kana') || (el.lang ?? '').toLowerCase().startsWith('ja');
-  return { noPersonalizedLearning: true, forceAscii: !reading };
+  return answerKeyboardFor(el);
 }
 
 let stop: (() => void) | undefined;

@@ -8,7 +8,7 @@
  * reading: black, Java's hint colours, 22 sp) with `Question.getTitle()`. The session menu is in the
  * toolbar (`useSessionMenu`).
  */
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { QUESTION_TYPE_INFO, type QuestionType } from '../../../core/answer/questionType';
 import type { ContentSubject } from '../../../core/content';
 import type { Session } from '../../../core/session';
@@ -29,6 +29,7 @@ export function titleFor(type: QuestionType, subject: ContentSubject, prefs: Pre
   return questionTitle(type, indicateKanjiReadingType(prefs) ? kanjiAcceptedReadingType(subject) : null);
 }
 import type { SessionToast } from './runtime';
+import { SubjectChars, subjectGlyphCount } from '../subject/SubjectChars';
 
 /**
  * `QuestionType.getTitle(indicateKanjiReadingType, kanjiAcceptedReadingType)`: the banner and toolbar
@@ -84,6 +85,10 @@ export interface QuestionViewProps {
   answerMark?: 'ok' | 'bad' | null;
   /** Anki mode keeps a smaller glyph margin (`setQuizMargins` only without Anki). */
   anki?: boolean;
+  /** The answered fragment's Next button (bottom right of the question view, `nextButton`). */
+  next?: ReactNode;
+  /** `quiz_question_view_height` is set (the height comes from `--kk-qv-fixed`). */
+  fixedHeight?: boolean;
 }
 
 function Toast({ toast, onDone }: { toast: SessionToast; onDone(id: number): void }) {
@@ -97,6 +102,7 @@ function Toast({ toast, onDone }: { toast: SessionToast; onDone(id: number): voi
 
 export function QuestionView({
   session, subject, characters, questionType, prefs, srsStageName, toasts, onToastDone, onSpecial, answerMark = null, anki = false,
+  next, fixedHeight = false,
 }: QuestionViewProps) {
   const state = buttonState(session);
   const special = (n: 1 | 2 | 3) => {
@@ -108,20 +114,23 @@ export function QuestionView({
       </button>
     );
   };
-  const text = characters ?? subject.slug ?? '';
-  const len = Math.max(1, [...text].length);
+  const len = subjectGlyphCount(subject, characters);
+  const s2 = special(2);
+  const bottom = s2 !== null || next !== undefined;
   return (
     <>
-      <div className={`kk-quiz-question kk-type--${subject.object}${anki ? ' anki' : ''}${answerMark !== null ? ' with-mark' : ''}`} data-testid="question-view">
+      <div className={`kk-quiz-question kk-type--${subject.object}${anki ? ' anki' : ''}${answerMark !== null ? ' with-mark' : ''}${bottom ? ' with-bottom' : ''}${fixedHeight ? ' fixed' : ''}`}
+        data-testid="question-view">
         <div className="kk-quiz-top">
           <span className="kk-quiz-progress" data-testid="session-progress">{session.progressText()}</span>
           {special(3)}
           <span className="kk-quiz-srs">{enableSrsIndicator(prefs) && srsStageName !== null ? srsStageName : ''}</span>
           {special(1)}
         </div>
-        <div className="kk-quiz-glyph" lang="ja" style={{ ['--len' as string]: len }} data-testid="question-text">{text}</div>
+        <div className="kk-quiz-glyph" lang="ja" style={{ ['--len' as string]: len }} data-testid="question-text"><SubjectChars subject={subject} text={characters} /></div>
         <div className="kk-quiz-bottom">
-          {special(2)}
+          {s2}
+          {next}
         </div>
         {answerMark !== null && (
           <span className={`kk-quiz-mark ${answerMark}`} aria-hidden="true" data-testid="answer-mark">{answerMark === 'ok' ? '✓' : '✗'}</span>

@@ -52,6 +52,22 @@
   --color-shadow: #9CCDB8;
   --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
   --btn-secondary-text: #2E4756; /* Java has one button style (mm_btn): .kk-btn.secondary = .kk-btn */
+  /* Theme attributes the upstream themes change (ui/theme/themes.ts maps them) */
+  --color-primary-light: #3E7F6B; /* colorPrimaryLight: text on subject / browse-level colours */
+  --color-primary-dark: #2E4756; /* colorPrimaryDark: borderless buttons on the yellow tutorial boxes */
+  --color-control-activated: #7CC8AC; /* colorControlActivated: switches, seek bars */
+  --color-pref-title: #2E4756; /* preference titles: android:textColorPrimary (mmInk) */
+  --color-waterfall: #D80088; /* colorWaterfallLine (WKLightTheme) */
+  --color-pitch-heiban: #D20CA3;
+  --color-pitch-odaka: #0CD24D;
+  --color-pitch-nakadaka: #27A2FF;
+  --color-pitch-atamadaka: #EA9316;
+  --color-stroke-ghost: #D0D0D0;
+  /* Per-type text on the subject colours (= --color-on-subject here; the Breeze/Black/Nord themes colour the text instead) */
+  --color-radical-fg: #2E4756;
+  --color-kanji-fg: #2E4756;
+  --color-vocab-fg: #2E4756;
+  --font-button: var(--font-body);
   /* Subject types (ActiveTheme KANJIKODAMA_*) */
   --color-radical: #9EC9F0;
   --color-kanji: #F5A9B8;
@@ -94,10 +110,12 @@
   --color-anki-text: #FFFFFF;
   --color-anki-answer-bg: #909000;
 
-  /* Fonts: pixel for Latin, Zen Maru Gothic for Japanese (fallback in every stack, and :lang(ja)). */
-  --font-body: 'Pixelify Sans', 'Zen Maru Gothic', system-ui, sans-serif;
-  --font-display: 'Silkscreen', 'Zen Maru Gothic', system-ui, sans-serif;
-  --font-ja: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
+  /* Fonts: pixel for Latin; Japanese in the system CJK font, as the Java app (its TextViews fall back
+     from Pixelify Sans/Silkscreen to the system font, Noto Sans CJK on Android; the bundled Zen Maru
+     Gothic is never used there). */
+  --font-ja: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
+  --font-body: 'Pixelify Sans', var(--font-ja);
+  --font-display: 'Silkscreen', var(--font-ja);
 
   /* Type scale (WK.TextView.*: 13/14/16/20/26/34 sp) */
   --text-xs: 13px;
@@ -181,6 +199,20 @@
     --color-shadow: #0A1418;
     --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
     --btn-secondary-text: #2E4756;
+    /* Theme attributes the upstream themes change (ui/theme/themes.ts) */
+    --color-primary-light: #A9C9BC;
+    --color-primary-dark: #1E3139;
+    --color-control-activated: #8EE3C8;
+    --color-pref-title: #E3F4EA;
+    --color-waterfall: #1D99F3; /* WKDarkTheme */
+    --color-pitch-heiban: #D20CA3;
+    --color-pitch-odaka: #0CD24D;
+    --color-pitch-nakadaka: #27A2FF;
+    --color-pitch-atamadaka: #EA9316;
+    --color-stroke-ghost: #404040;
+    --color-radical-fg: #0F1C22;
+    --color-kanji-fg: #0F1C22;
+    --color-vocab-fg: #0F1C22;
     /* Subject types (ActiveTheme KANJIKODAMA_*) */
     --color-radical: #7FB2E6;
     --color-kanji: #E98BA4;
@@ -272,6 +304,20 @@
   --color-shadow: #0A1418;
   --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
   --btn-secondary-text: #2E4756;
+  /* Theme attributes the upstream themes change (ui/theme/themes.ts) */
+  --color-primary-light: #A9C9BC;
+  --color-primary-dark: #1E3139;
+  --color-control-activated: #8EE3C8;
+  --color-pref-title: #E3F4EA;
+  --color-waterfall: #1D99F3; /* WKDarkTheme */
+  --color-pitch-heiban: #D20CA3;
+  --color-pitch-odaka: #0CD24D;
+  --color-pitch-nakadaka: #27A2FF;
+  --color-pitch-atamadaka: #EA9316;
+  --color-stroke-ghost: #404040;
+  --color-radical-fg: #0F1C22;
+  --color-kanji-fg: #0F1C22;
+  --color-vocab-fg: #0F1C22;
   /* Subject types (ActiveTheme KANJIKODAMA_*) */
   --color-radical: #7FB2E6;
   --color-kanji: #E98BA4;

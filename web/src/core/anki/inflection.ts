@@ -82,7 +82,8 @@ function verbStem(verb: string, verbType: VerbType, stemForm: StemForm): string 
     const suru: Record<StemForm, string> = {
       DICTIONARY: 'する',
       CONJUNCTIVE: 'し',
-      NAI: 'しな',
+      // KanjiKodama fix (also in Java): the NAI endings already start with な, so the stem is し, not しな.
+      NAI: 'し',
       IMPERATIVE: 'しろ',
       VOLITIONAL: 'しよう',
       TE: 'して',

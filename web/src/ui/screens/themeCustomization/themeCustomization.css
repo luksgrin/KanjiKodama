@@ -1,0 +1,47 @@
+/*
+ * activity_theme_customization.xml. The sample panel's black (#000000), its #D0D0D0 labels and the
+ * dashed highlight_border (1 dp #D0D0D0, dash 6 gap 4, radius 2) are fixed colours in the Java layout.
+ * Content padding 8 dp = .kk-main's gutter.
+ */
+.kk-tc-panel { background: #000; color: #D0D0D0; }
+.kk-tc-label { margin: 0; padding: 9.5px 8px 0; text-align: center; font-size: 14px; line-height: 1.2; }
+.kk-tc-row { display: flex; margin: 2px 4px 0; }
+.kk-tc-cell { flex: 1 1 0; min-width: 0; border: 1px dashed transparent; border-radius: 2px; }
+.kk-tc-cell.subject { margin: 0 4px; }
+.kk-tc-cell.selected { border-color: #D0D0D0; }
+.kk-tc-sample {
+  display: block;
+  width: calc(100% - 6px);
+  height: 24px;
+  margin: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.kk-tc-cell.subject .kk-tc-sample { height: 38px; font-size: 26px; line-height: 38px; }
+.kk-tc-sample:focus-visible { outline: 2px solid #D0D0D0; outline-offset: 1px; }
+.kk-tc-description { margin: 0; padding: 8px; font-size: 14px; line-height: 1.2; white-space: pre-line; }
+
+/* The FrameLayout: Reset top left, RGB values top right, the 300 dp picker centred over both. */
+.kk-tc-picker { position: relative; margin-top: 4px; height: 300px; }
+.kk-tc-reset {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  min-width: 88px;
+  min-height: 48px;
+  padding: 4px 4px 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kk-tc-reset:disabled { cursor: default; }
+.kk-tc-rgb { position: absolute; top: 4px; right: 0; z-index: 1; margin: 0; padding: 4px 4px 0; font-size: 16px; line-height: 1.2; }
+.kk-hsl-picker { display: block; width: 100%; height: 300px; touch-action: none; position: relative; }

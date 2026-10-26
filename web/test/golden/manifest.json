@@ -1,8 +1,8 @@
 {
   "generatorVersion": 1,
-  "generatedAt": "2026-10-25T06:11:11.213Z",
-  "durtlesCommit": "980fb104331839d794424d5d39a05c1606e9367b",
-  "durtlesDirty": false,
+  "generatedAt": "2026-10-26T01:13:56.773Z",
+  "durtlesCommit": "c80d4e100bdc3b4b093b375fa986ec6a7d51b27f",
+  "durtlesDirty": true,
   "contentDbSha256": "a81e44da1bba8e09f2384a458ec97fff06da4024e94499443dd687c5d603a512",
   "totalCases": 387986,
   "files": [
@@ -11,8 +11,8 @@
       "area": "anki.answerInflection",
       "javaSource": "model/Question.getAnkiAnswerRichText and getCharacters with review_randomize_inflections",
       "cases": 292,
-      "bytes": 118575,
-      "sha256": "6155335b3304ec2935d428f58188a7a909fd2af4037a88d6ffda5a23323f040d"
+      "bytes": 118491,
+      "sha256": "cc8b95508d3eba443fe75ac827135cd90f0de8eb1c315fc51522bfc648f520ff"
     },
     {
       "path": "anki/answer-text.jsonl",
@@ -27,8 +27,8 @@
       "area": "anki.inflectionRandom",
       "javaSource": "util/InflectionUtil.getRandomVerbConjugation, getRandomAdjectiveDeclension (setRandomSourceForTesting)",
       "cases": 11,
-      "bytes": 31408,
-      "sha256": "20071e79f543bdc744c80c5440453497fb28420335c7c01b20fc72a6fa425c72"
+      "bytes": 31321,
+      "sha256": "1ea072921ea06319a36a9c004db236749769df32d68558d8f943622338cc0acf"
     },
     {
       "path": "anki/mode-settings.json",
@@ -475,16 +475,16 @@
       "area": "scenario",
       "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
       "cases": 4,
-      "bytes": 193478,
-      "sha256": "6073efab01587639a71e5077a8e64ee754955a407153fe5fd08ca89eac5860bd"
+      "bytes": 193472,
+      "sha256": "f8bc22df6f859c5490ecc46172af3e151affb0f8898f28e68cee3b116766d359"
     },
     {
       "path": "scenarios/anki-randomize-inflections-self-study.json",
       "area": "scenario",
       "javaSource": "local/LocalProgression, local/Curriculum, local/FastTravel, local/LevelTest, local/ProgressStore, jobs/ReportSessionItemJob, tasks/WaniKaniImporter.apply",
       "cases": 6,
-      "bytes": 197694,
-      "sha256": "949d340903d2c7732aa0685af980f37658e70d16ebfbc5972e3c4a328cbde140"
+      "bytes": 197688,
+      "sha256": "e9cf8a77ac303d660caf3791002ece461254a7657d4035884c098dbd2d690b0b"
     },
     {
       "path": "scenarios/anki-review-advanced-off.json",

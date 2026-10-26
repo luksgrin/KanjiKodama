@@ -27,6 +27,7 @@ import {
 } from '../../src/content/contentFile';
 import { SCHEMA_SQL, SOUND_TABLES, SRS_SYSTEM_COLUMNS, SUBJECT_COLUMNS, type SubjectColumn } from './schema';
 import { STROKE_DATA_OVERRIDE } from './strokeOverrides';
+import { parseVectorDrawable } from './titleImages';
 
 /** One input file: its name (for the manifest) and bytes. */
 export interface InputFile {
@@ -49,6 +50,8 @@ export interface ContentInputs {
   vocabJlptLevels: InputFile;
   kanjidicFreq: InputFile;
   joyoGrades: InputFile;
+  /** `res/drawable/radical_<id>.xml` of every `Subject.getTitleImageId` radical (`src/content/titleImages.ts`). */
+  titleImages: { id: number; file: InputFile }[];
 }
 
 export interface BuiltContent {
@@ -227,6 +230,12 @@ export function buildContent(SQL: SqlJsStatic, inputs: ContentInputs): BuiltCont
       return d === null ? [] : [[s.id, d]];
     }));
 
+    // Radical images (`Subject.getTitleImageId`): only for subjects in this variant (none in public).
+    const titleImageCount = insertAll(out, 'title_image', ['id', 'data'], inputs.titleImages.flatMap(({ id, file }) => {
+      const s = content.byId.get(id);
+      return s === undefined || s.object !== 'radical' ? [] : [[id, JSON.stringify(parseVectorDrawable(text(file), file.name))]];
+    }));
+
     // --- both orders --------------------------------------------------------------------------
     const jlptKanji = parseJlptKanjiTsv(text(inputs.jlptKanjiTsv));
     const wkOrder = new Map<number, readonly [number, number]>(content.subjects.map((s) => [s.id, [s.level, s.lessonPosition]]));
@@ -288,6 +297,17 @@ export function buildContent(SQL: SqlJsStatic, inputs: ContentInputs): BuiltCont
       inputs.kanjidicFreq, inputs.joyoGrades]) {
       sources[f.name] = sourceInfo(f);
     }
+    // The radical drawables as one source: their names and bytes, concatenated.
+    const drawables = inputs.titleImages.map(({ file }) => file);
+    const joined = new Uint8Array(drawables.reduce((n, f) => n + f.name.length + 1 + f.bytes.byteLength, 0));
+    let at = 0;
+    for (const f of drawables) {
+      joined.set(new TextEncoder().encode(`${f.name}\n`), at);
+      at += f.name.length + 1;
+      joined.set(f.bytes, at);
+      at += f.bytes.byteLength;
+    }
+    sources['radical-drawables'] = sourceInfo({ name: 'radical-drawables', bytes: joined });
     const manifest: ContentManifest = {
       schemaVersion: CONTENT_SCHEMA_VERSION,
       variant: inputs.variant,
@@ -303,6 +323,7 @@ export function buildContent(SQL: SqlJsStatic, inputs: ContentInputs): BuiltCont
         srsSystems: content.srsSystems.length,
         strokeData: strokeCount,
         pitchInfo: pitchCount,
+        titleImages: titleImageCount,
         jlptLevels: layout.blocks.length,
         jlptKanji: jlptKanjiCount,
         ...Object.fromEntries(Object.entries(soundCounts).map(([k, v]) => [k.replace(/_(\w)/g, (_m, c: string) => c.toUpperCase()), v])),

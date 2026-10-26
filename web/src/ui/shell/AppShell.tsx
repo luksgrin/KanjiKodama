@@ -8,7 +8,7 @@
  * Screen changes slide in briefly (forward from the right, back from the left: a short version of
  * the Android activity transition); none with `prefers-reduced-motion`.
  */
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { handleBack } from '../../app/back';
 import { useApp, useAppState } from '../hooks/useApp';
 import { useLocation, useRoute } from '../hooks/useRoute';
@@ -18,6 +18,9 @@ import { ToolbarView } from './ToolbarView';
 
 /** Screens likely next from the dashboard: their chunks are fetched when the browser is idle. */
 const PRELOAD_AFTER_START = ['reviews', 'lessons', 'summary', 'subject', 'settings', 'browse', 'searchResults'] as const;
+
+/** Last scroll position per screen (path + query), restored when Back returns to it (Java's back stack). */
+const scrollPositions = new Map<string, number>();
 
 export function AppShell() {
   const app = useApp();
@@ -61,10 +64,32 @@ export function AppShell() {
   }
 
   // A new screen starts at the top; settings sub-screens (`?screen=`) are screens of their own too.
+  // Back (history depth going down) returns to where the screen was scrolled, as Java's back stack
+  // does (e.g. the settings root after a sub-screen).
   const query = route.query.toString();
-  useEffect(() => {
-    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
-  }, [route.path, query]);
+  const scrollKey = `${route.path}?${query}`;
+  const keyDepthRef = useRef(location.depth());
+  useLayoutEffect(() => {
+    const el = document.scrollingElement;
+    const d = location.depth();
+    const back = d < keyDepthRef.current;
+    keyDepthRef.current = d;
+    const saved = back ? scrollPositions.get(scrollKey) : undefined;
+    if (!back) scrollPositions.delete(scrollKey);
+    if (el) el.scrollTop = saved ?? 0;
+    // Lazy screens may lay out a frame later: try once more.
+    const raf = saved === undefined ? 0 : requestAnimationFrame(() => {
+      if (el && el.scrollTop !== saved) el.scrollTop = saved;
+    });
+    const onScroll = () => {
+      if (el) scrollPositions.set(scrollKey, el.scrollTop);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [scrollKey]);
 
   if (!ready) return <StartupScreen status={state.status} onRetry={() => void app.start()} />;
 

@@ -8,7 +8,9 @@
  * - on resume: `tick`, re-count, notifications rescheduled, sync (server mode); on pause:
  *   notifications rescheduled; after writes, syncs and lifecycle events: the home-screen widget's
  *   counts (Android);
- * - background sync (Android): the periodic worker on in server mode with "Allow background sync".
+ * - background sync (Android): the periodic worker on in server mode with "Allow background sync";
+ * - auto-download audio (Android, `auto_download_audio`): the timeline scan every 12 hours (start,
+ *   resume, after a sync) and a new session's subjects (after writes), see `audioScan.ts`.
  *
  * Everything device-related is fire-and-forget: a failure never breaks a write or start-up.
  */
@@ -18,9 +20,17 @@ import type { LoadedContent } from '../content/contentFile';
 import { LOCAL_MAX_LEVEL_GRANTED } from '../core/dashboard';
 import { planWidget } from '../core/notifications';
 import { prefBoolean } from '../core/settings';
-import type { Platform } from '../platform';
+import type { AudioApi, Platform } from '../platform';
 import { rescheduleReviewNotifications } from '../platform/reviewNotifications';
 import type { KkDb } from '../storage/db';
+import {
+  AUDIO_SCAN_MAX,
+  LAST_AUDIO_SCAN_META_KEY,
+  audioScanDue,
+  autoDownloadAudio,
+  canDownloadAudio,
+  timelineScanSubjects,
+} from './audioScan';
 import { realClock } from './client';
 import { SyncEngine, type EngineDeps, type SyncResult } from './engine';
 import { secretsTokenStore } from './secretsTokenStore';
@@ -41,6 +51,10 @@ export interface DeviceSyncDeps {
   tick(): void;
   /** Widget redraw delay after a write (ms). Default 1 s. */
   widgetDelayMs?: number;
+  /** Delay before looking for a new session's audio after a write (ms). Default 1.5 s. */
+  sessionAudioDelayMs?: number;
+  /** The connection type for the network access rule (default: `navigator.connection.type`). */
+  connectionType?(): string | undefined;
 }
 
 export interface DeviceSync {
@@ -90,6 +104,9 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
   let engine: SyncEngine | null = null;
   let unsubscribe: (() => void)[] = [];
   let widgetTimer: ReturnType<typeof setTimeout> | undefined;
+  let audioTimer: ReturnType<typeof setTimeout> | undefined;
+  let audioRunning = false;
+  let lastSessionAudio = '';
   let disposed = false;
 
   const mode = () => deps.get().mode;
@@ -161,10 +178,69 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
     quiet(bg.configure(mode() === 'server' && prefBoolean(deps.get().prefs, BACKGROUND_SYNC_PREF, false)));
   }
 
+  /** The audio API when auto-download may run now (setting on, Android, connection allowed). */
+  function audioForAutoDownload(): AudioApi | null {
+    const s = deps.get();
+    const audio = platform?.audio;
+    if (!platform?.capabilities.audioDownload || !audio?.downloadSubjects || !s.learner || s.status.kind !== 'ready') return null;
+    if (!autoDownloadAudio(s.prefs)) return null;
+    const nav = globalThis.navigator as (Navigator & { connection?: { type?: string } }) | undefined;
+    const type = deps.connectionType ? deps.connectionType() : nav?.connection?.type;
+    return canDownloadAudio(s.prefs, type, nav?.onLine !== false) ? audio : null;
+  }
+
+  /** One download at a time (Java's one task queue); a scan while one runs is skipped. */
+  async function downloadAudio(audio: AudioApi, ids: readonly number[]): Promise<boolean> {
+    if (audioRunning) return false;
+    if (ids.length === 0) return true;
+    audioRunning = true;
+    try {
+      return !(await audio.downloadSubjects!(ids, AUDIO_SCAN_MAX)).aborted;
+    } finally {
+      audioRunning = false;
+    }
+  }
+
+  /** `LiveTimeLine.updateLocal`'s audio scan, at most every 12 hours. */
+  async function timelineAudioScan(): Promise<void> {
+    const audio = audioForAutoDownload();
+    if (!audio) return;
+    const now = deps.clock.now();
+    const last = (await deps.kk.meta.get(LAST_AUDIO_SCAN_META_KEY))?.value;
+    if (!audioScanDue(typeof last === 'number' ? last : 0, now)) return;
+    const o = await limits();
+    const s = deps.get();
+    if (!s.learner) return;
+    // The scan time is kept once the downloads ran (not while the catalog is still loading).
+    if (await downloadAudio(audio, timelineScanSubjects(s.learner, s.prefs, now, o))) {
+      await deps.kk.meta.put({ key: LAST_AUDIO_SCAN_META_KEY, value: now });
+    }
+  }
+
+  /** `Session.startNewSession`'s download: the subjects of a session not seen before. */
+  async function sessionAudioScan(): Promise<void> {
+    const audio = audioForAutoDownload();
+    if (!audio) return;
+    const ids = (await deps.kk.session.toArray()).filter((r) => r.kind !== 'properties' && r.subjectId > 0).map((r) => r.subjectId);
+    const key = ids.join(',');
+    if (key === lastSessionAudio) return;
+    if (await downloadAudio(audio, ids)) lastSessionAudio = key;
+  }
+
+  function scheduleSessionAudio(): void {
+    if (disposed || !platform?.capabilities.audioDownload) return;
+    if (audioTimer !== undefined) clearTimeout(audioTimer);
+    audioTimer = setTimeout(() => {
+      audioTimer = undefined;
+      quiet(sessionAudioScan());
+    }, deps.sessionAudioDelayMs ?? 1500);
+  }
+
   async function afterSync(r: SyncResult): Promise<SyncResult> {
     const wrote = wroteData(r);
     if (wrote.any) await deps.reload({ content: wrote.content, inPlace: true });
     await refresh();
+    quiet(timelineAudioScan());
     return r;
   }
 
@@ -191,6 +267,7 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
     } else {
       quiet(refresh());
     }
+    quiet(timelineAudioScan());
     configureBackground();
   }
 
@@ -226,6 +303,7 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
         quiet(flushUploads());
       }
       scheduleWidget();
+      scheduleSessionAudio();
     },
 
     preferenceChanged(key) {
@@ -238,6 +316,7 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
       configureBackground();
       if (mode() === 'server') quiet(syncNow());
       else quiet(refresh());
+      quiet(timelineAudioScan());
     },
 
     refresh,
@@ -245,6 +324,7 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
     dispose() {
       disposed = true;
       if (widgetTimer !== undefined) clearTimeout(widgetTimer);
+      if (audioTimer !== undefined) clearTimeout(audioTimer);
       for (const u of unsubscribe) u();
       unsubscribe = [];
     },

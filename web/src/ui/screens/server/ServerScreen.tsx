@@ -298,6 +298,14 @@ function ServerModeView({ note, setNote }: { note: Note; setNote(n: Note): void 
   const [busy, setBusy] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [newToken, setNewToken] = useState('');
+  // Java's "V2 API token" (`api_key`) edit dialog opens with the saved token: prefill the field the same way.
+  const keyRejected = status?.apiState === 'API_KEY_REJECTED';
+  useEffect(() => {
+    if (!keyRejected) return;
+    let live = true;
+    app.tokenStore().get().then((t) => { if (live) setNewToken((cur) => (cur === '' ? (t ?? '') : cur)); }, () => undefined);
+    return () => { live = false; };
+  }, [app, keyRejected]);
 
   async function work<T>(label: string, run: () => Promise<T>): Promise<T | undefined> {
     setBusy(label);

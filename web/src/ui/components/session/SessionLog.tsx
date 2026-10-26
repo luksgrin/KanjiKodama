@@ -6,8 +6,9 @@
  *
  * Restricted mode (the default) as Java: the tutorial text with Dismiss (`session_log_dismissed`),
  * not-started items show "?" instead of the subject, started items are not clickable. With
- * `full_session_log` (advanced) every row shows its subject and opens the item page. Not ported: the
- * full log's "Events" list (Java keeps it in memory only).
+ * `full_session_log` (advanced) every row shows its subject and opens the item page, and the "Events"
+ * header lists what happened in this app run, newest first (`EventItemViewHolder`: the subject, "12s ago"
+ * and the event text, e.g. "Submit Meaning: two\nCorrect"; in memory only, like Java).
  *
  * Shown in place of the quiz (it is a fragment of the same activity); back or the toolbar arrow close it.
  */
@@ -20,8 +21,8 @@ import { useApp, useReady } from '../../hooks/useApp';
 import { useBackHandler, useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 import { useToolbar } from '../../shell/toolbar';
-import { subjectTitle } from '../subject/subjectText';
-import type { SessionRuntime } from './runtime';
+import { SubjectChars } from '../subject/SubjectChars';
+import type { SessionEvent, SessionRuntime } from './runtime';
 import { useSessionMenu } from './SessionMenu';
 import { setSessionLogOpen } from './sessionLogStore';
 
@@ -74,6 +75,36 @@ export function sessionLogGroups(session: Session): LogGroup[] {
   return groups.filter((g) => g.items.length > 0);
 }
 
+/** `TextUtil.formatElapsedTime`: "12s", "3:05", "1:02:03". */
+export function formatElapsedTime(elapsed: number): string {
+  const ms = Math.max(0, Math.floor(elapsed));
+  const sec = Math.floor(ms / 1000);
+  const two = (n: number) => String(n).padStart(2, '0');
+  if (ms < 60_000) return `${sec}s`;
+  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}:${two(sec % 60)}`;
+  return `${Math.floor(ms / 3_600_000)}:${two(Math.floor((ms % 3_600_000) / 60_000))}:${two(sec % 60)}`;
+}
+
+function EventRow({ learner, event, now, onOpen }: { learner: LearnerDb; event: SessionEvent; now: number; onOpen(id: number): void }) {
+  const subject = event.itemId === null ? null : learner.content.byId.get(event.itemId) ?? null;
+  const body = (
+    <>
+      {subject !== null && <span className="kk-log-chars" lang="ja"><SubjectChars subject={subject} /></span>}
+      <span className="kk-log-status">
+        <span>{`${formatElapsedTime(now - event.at)} ago`}</span>
+        <span className="kk-pre-line">{event.text}</span>
+      </span>
+    </>
+  );
+  return (
+    <li className={`kk-log-item kk-log-event kk-type--${subject?.object ?? 'kanji'}`} data-testid={`log-event-${event.id}`}>
+      {subject !== null
+        ? <button type="button" className="kk-log-row" onClick={() => onOpen(subject.id)}>{body}</button>
+        : <div className="kk-log-row">{body}</div>}
+    </li>
+  );
+}
+
 /** The collapsed headers survive closing the log (`SessionLogAdapter.collapsedTags`). */
 const collapsedTags = new Set<string>();
 
@@ -85,7 +116,7 @@ function LogRow({ learner, item, group, full, onOpen }: { learner: LearnerDb; it
   const body = (
     <>
       {showButton
-        ? <span className="kk-log-chars" lang="ja">{subjectTitle(subject)}</span>
+        ? <span className="kk-log-chars" lang="ja"><SubjectChars subject={subject} /></span>
         : <span className="kk-log-chars kk-log-unknown">?</span>}
       <span className="kk-log-status">
         {lines.map((l) => <span key={l}>{l}</span>)}
@@ -112,6 +143,8 @@ export function SessionLog({ rt, session }: { rt: SessionRuntime; session: Sessi
   useToolbar({ title: 'Session log', color: 'default', back: () => setSessionLogOpen(false), actions: menu.actions });
   useBackHandler(() => { setSessionLogOpen(false); return true; }, true);
   const groups = sessionLogGroups(session);
+  const events = full ? rt.events() : [];
+  const now = app.clock.now();
   const showTutorial = !full && !prefBoolean(prefs, 'session_log_dismissed', false);
 
   return (
@@ -147,6 +180,28 @@ export function SessionLog({ rt, session }: { rt: SessionRuntime; session: Sessi
           </div>
         );
       })}
+      {events.length > 0 && (() => {
+        const collapsed = collapsedTags.has('events');
+        return (
+          <div className="kk-log-group">
+            <button type="button" className="kk-log-header" aria-expanded={!collapsed} data-testid="log-header-events"
+              onClick={() => {
+                if (collapsed) collapsedTags.delete('events');
+                else collapsedTags.add('events');
+                bump((n) => n + 1);
+              }}>
+              <span className={`kk-log-arrow${collapsed ? ' collapsed' : ''}`} aria-hidden="true" />
+              <span className="kk-log-title">Events</span>
+              <span className="kk-log-details">{events.length === 1 ? '1 event' : `${events.length} events`}</span>
+            </button>
+            {!collapsed && (
+              <ul className="kk-log-list">
+                {events.map((e) => <EventRow key={e.id} learner={learner} event={e} now={now} onOpen={(id) => navigate(paths.subject(id))} />)}
+              </ul>
+            )}
+          </div>
+        );
+      })()}
       {menu.dialogs}
     </section>
   );

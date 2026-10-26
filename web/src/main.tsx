@@ -6,7 +6,7 @@ import { createAppController } from './app/appController';
 import { loadBrowserContent } from './app/contentLoader';
 import { handleBack } from './app/back';
 import { createHashLocation } from './app/router';
-import { applyTheme, onThemeApplied, storedThemeChoice } from './app/theme';
+import { appliedThemeKind, applyTheme, onThemeApplied, storedThemePrefs } from './app/theme';
 import { getPlatform } from './platform';
 import { db } from './storage/db';
 import './ui/theme/index.css';
@@ -27,7 +27,7 @@ if (BACKGROUND_SYNC) {
   if (Capacitor.getPlatform() === 'android') document.documentElement.classList.add('kk-viewport-resizes');
 
   // Paint the remembered theme before anything else.
-  applyTheme(storedThemeChoice());
+  applyTheme(storedThemePrefs());
 
   const app = createAppController({ db, platform: getPlatform, loadContent: loadBrowserContent });
   const location = createHashLocation();
@@ -40,8 +40,8 @@ if (BACKGROUND_SYNC) {
     p.lifecycle?.onBackButton?.(() => handleBack(() => location.back()));
     if (p.systemBars) {
       const bars = p.systemBars;
-      onThemeApplied((choice) => void bars.setTheme(choice).catch(() => undefined));
-      void bars.setTheme(storedThemeChoice()).catch(() => undefined);
+      onThemeApplied((kind) => void bars.setTheme(kind).catch(() => undefined));
+      void bars.setTheme(appliedThemeKind()).catch(() => undefined);
     }
   });
 

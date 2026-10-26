@@ -12,7 +12,7 @@
   margin-bottom: 12px;
 }
 /* fragment_search_result.xml: the tutorial box has no outer margin (edge to edge under the toolbar). */
-.kk-tip.bleed { margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) 12px; }
+.kk-tip.bleed { margin: calc(-1 * var(--main-gutter)) 0 12px; }
 .kk-tip-text { margin: 0; font-size: 16px; white-space: pre-line; }
 .kk-tip-actions { display: flex; }
 .kk-tip-btn {
@@ -28,6 +28,16 @@
   text-transform: uppercase;
   cursor: pointer;
 }
+/* Widget.AppCompat.Button.Borderless: ?selectableItemBackground, the colorControlHighlight state layer
+   (#1F000000 in the light theme, #33FFFFFF in the dark ones) while pressed or focused. */
+.kk-tip-btn:active,
+.kk-tip-btn:focus-visible { background: rgb(0 0 0 / 0.12); outline: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .kk-tip-btn:active,
+  :root:not([data-theme='light']) .kk-tip-btn:focus-visible { background: rgb(255 255 255 / 0.2); }
+}
+:root[data-theme='dark'] .kk-tip-btn:active,
+:root[data-theme='dark'] .kk-tip-btn:focus-visible { background: rgb(255 255 255 / 0.2); }
 
 /* Browse overview */
 .kk-browse-heading {
@@ -45,22 +55,22 @@
 
 .kk-browse-levels {
   display: grid;
-  gap: 0;
-  /* Half the gutter outside, so the cells keep a ≥ 38 px tap area on 390 px phones (10 columns). */
-  margin: 8px calc(-0.5 * var(--main-gutter)) 0;
+  /* BrowseOverviewFragment.render: a stretched TableLayout inside the 8 dp padding; each cell has a 2 dp
+     left and top margin, each row a 6 dp top margin (8 dp between rows); the table 8 dp below the
+     text, ending 2 dp short of the right padding (measured). Cells ~37 x 31 dp on a 411 dp phone: smaller than the 40 px tap floor, as in Java (e2e
+     exemption in test/e2e/helpers/app.ts). */
+  gap: 8px 2px;
+  margin: 16px 2px 0;
 }
 .kk-browse-level {
   appearance: none;
-  min-height: 40px;
   min-width: 0;
-  padding: 2px 0;
-  /* Java's cells: ~35 x 31 dp, 2 dp apart side by side and ~7 dp apart row to row; the gaps are drawn
-     inside the 40 px tap area. */
-  border: solid var(--color-bg);
-  border-width: 4px 1px;
+  /* setPadding(6 dp); 16 sp text: 31 px tall. */
+  padding: 6px 0;
+  line-height: 1.17; /* Pixelify Sans at 16 sp on Android: 49 device px at 420 dpi */
+  border: 0;
   border-radius: 0;
   background: var(--kk-bar);
-  background-clip: padding-box;
   color: var(--kk-muted);
   font-family: var(--font-body);
   font-size: 16px;
@@ -136,7 +146,9 @@
 .kk-search-switch input,
 .kk-search-grid input[type='checkbox'] { width: 24px; height: 24px; margin: 8px; accent-color: var(--color-accent); justify-self: start; }
 
-/* Results */
+/* Results: fragment_search_result.xml has no padding: the headers span the screen and the cards
+   (2 dp margins) start 2 dp from its edges, so the screen bleeds out of .kk-main's gutter. */
+.kk-search-results { margin: 0 calc(-1 * var(--main-gutter)); }
 .kk-num-hits { margin: 4px 8px; font-size: 20px; color: var(--color-text); }
 .kk-results-form { padding: 0 8px 8px; }
 
