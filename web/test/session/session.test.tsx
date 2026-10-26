@@ -491,4 +491,68 @@ describe('the unanswered question keeps the keyboard (owner\'s request)', () => 
     expect(press('text')).toBe(false);
     document.body.innerHTML = '';
   });
+
+  it('Android: a touch\'s pointerdown beside the field is cancelled too (its long press moves the focus without a mousedown)', async () => {
+    const { keepAnswerFocusOnTouch, touchPointerDownCancellable } = await import('../../src/ui/components/session/keyboardKeeper');
+    expect(touchPointerDownCancellable('Mozilla/5.0 (Linux; Android 16; SM-S931B; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/141.0.0.0 Mobile Safari/537.36')).toBe(true);
+    expect(touchPointerDownCancellable('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1')).toBe(false);
+    document.body.innerHTML = '<input class="kk-answer"><div id="plain"></div><button id="b"></button>';
+    document.querySelector<HTMLInputElement>('input.kk-answer')!.focus();
+    const down = (id: string, pointerType = 'touch', engine = true, isPrimary = true) => {
+      let prevented = false;
+      const e = { pointerType, isPrimary, button: 0, target: document.getElementById(id), preventDefault: () => { prevented = true; } };
+      return keepAnswerFocusOnTouch(e, false, engine) && prevented;
+    };
+    expect(down('plain')).toBe(true);
+    expect(down('b')).toBe(false); // a button: its own pointerdown
+    expect(down('plain', 'mouse')).toBe(false); // the mousedown covers a mouse
+    expect(down('plain', 'touch', false)).toBe(false); // WebKit would drop the click
+    expect(down('plain', 'touch', true, false)).toBe(false); // a second finger
+    document.body.innerHTML = '';
+  });
+
+  it('a long press beside the field starts no selection there, on text either (nothing selects on the unanswered question)', async () => {
+    const { keepAnswerSelection } = await import('../../src/ui/components/session/keyboardKeeper');
+    document.body.innerHTML = '<input class="kk-answer"><div id="spacer"></div><p id="q">質問</p>';
+    document.querySelector<HTMLInputElement>('input.kk-answer')!.focus();
+    const start = (target: EventTarget | null) => {
+      const e = new Event('selectstart', { cancelable: true });
+      Object.defineProperty(e, 'target', { value: target });
+      return keepAnswerSelection(e, false) && e.defaultPrevented;
+    };
+    expect(start(document.getElementById('spacer'))).toBe(true);
+    expect(start(document.getElementById('q')!.firstChild)).toBe(true); // a text node: the question's text
+    expect(start(document.querySelector('input'))).toBe(false); // in the field
+    document.body.innerHTML = '';
+  });
+
+  it('the answer field takes the focus back when a press beside it lost it, and the selection when it left the field', async () => {
+    const { restoreAnswerFocus, restoreAnswerSelection } = await import('../../src/ui/components/session/keyboardKeeper');
+    document.body.innerHTML = '<input class="kk-answer" value="abc"><div id="spacer">x</div><button id="b">b</button>';
+    const field = document.querySelector<HTMLInputElement>('input.kk-answer')!;
+    const lose = (pressing: boolean, related: Element | null = null, dialogOpen = false) => {
+      field.focus();
+      field.blur();
+      return restoreAnswerFocus({ target: field, relatedTarget: related }, pressing, dialogOpen) && document.activeElement === field;
+    };
+    expect(lose(true)).toBe(true);
+    expect(lose(false)).toBe(false); // no press beside the field (Back, the app going away, script)
+    expect(lose(true, document.getElementById('b'))).toBe(false); // the focus went somewhere on purpose
+    expect(lose(true, null, true)).toBe(false); // a session dialog
+    // The selection put in the empty space with the field still focused: back into the field.
+    field.focus();
+    field.setSelectionRange(1, 2);
+    getSelection()!.collapse(document.getElementById('spacer')!, 0);
+    const refocused: HTMLInputElement[] = [];
+    expect(restoreAnswerSelection(false, (f) => refocused.push(f))).toBe(true);
+    expect(refocused).toEqual([field]);
+    expect([field.selectionStart, field.selectionEnd], 'the caret / selection the field had').toEqual([1, 2]);
+    // A text range the user selected stays.
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('spacer')!);
+    getSelection()!.removeAllRanges();
+    getSelection()!.addRange(range);
+    expect(restoreAnswerSelection(false, () => undefined)).toBe(false);
+    document.body.innerHTML = '';
+  });
 });

@@ -607,3 +607,8 @@ button.kk-log-row { cursor: pointer; }
    2 dp margin above the first row. */
 .kk-lesson .kk-link-grid,
 .kk-quiz .kk-link-grid { gap: 4px; padding: 2px; margin: 4px 0 0; }
+
+/* The unanswered question (keyboardKeeper.tsx `useKeepAnswerFocus`): nothing but the fields selects, so a
+   long press anywhere (banner, counter, toolbar title, empty space) leaves the keyboard open. */
+:root.kk-keep-answer .kk-shell, :root.kk-keep-answer .kk-shell * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+:root.kk-keep-answer .kk-shell input, :root.kk-keep-answer .kk-shell textarea { -webkit-user-select: text; user-select: text; }

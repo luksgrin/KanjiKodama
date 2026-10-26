@@ -105,6 +105,39 @@ test('quiz: Don\'t know | Submit 8 px above the keyboard, taps beside the field 
     await press(target);
     await expect(answerField(page), 'answer field keeps the focus').toBeFocused();
   }
+  // Chromium (Android): a long press beside the field neither focuses the body (its focus change comes
+  // without a mousedown) nor puts a caret there (the field would lose the selection and the WebView
+  // hides the keyboard with the focus unchanged).
+  if (page.context().browser()?.browserType().name() === 'chromium' && touch) {
+    const cdp = await page.context().newCDPSession(page);
+    for (const target of [page.locator('.kk-quiz-spacer'), page.locator('.kk-quiz-answer')]) {
+      const b = (await target.boundingBox())!;
+      await cdp.send('Input.synthesizeTapGesture', { x: b.x + 8, y: b.y + b.height / 2, duration: 900, tapCount: 1, gestureSourceType: 'touch' });
+      await expect(answerField(page), 'long press: the answer field keeps the focus').toBeFocused();
+      expect(await page.evaluate(() => {
+        const field = document.activeElement!;
+        const sel = document.getSelection()!;
+        return sel.rangeCount > 0 && sel.anchorNode !== null && sel.anchorNode.contains(field);
+      }), 'long press: the selection stays in the answer field').toBe(true);
+    }
+    // Nothing selects on the unanswered question (owner's request): a long press on text keeps the keyboard too.
+    for (const target of [page.getByTestId('question-type'), page.getByTestId('session-progress'), page.locator('.kk-toolbar-title')]) {
+      const t = (await target.boundingBox())!;
+      await cdp.send('Input.synthesizeTapGesture', { x: t.x + t.width / 2, y: t.y + t.height / 2, duration: 900, tapCount: 1, gestureSourceType: 'touch' });
+      await expect(answerField(page), 'long press on text: the answer field keeps the focus').toBeFocused();
+      expect(await page.evaluate(() => document.getSelection()?.type), 'long press on text: nothing selected').not.toBe('Range');
+    }
+    await cdp.detach();
+  }
+  // Every engine: nothing but the fields is selectable while the question is unanswered.
+  const userSelect = (sel: string) => page.locator(sel).first().evaluate((el) => {
+    const cs = getComputedStyle(el) as CSSStyleDeclaration & { webkitUserSelect?: string };
+    return cs.userSelect || cs.webkitUserSelect;
+  });
+  for (const sel of ['[data-testid=question-type]', '[data-testid=session-progress]', '.kk-toolbar-title', '.kk-quiz-spacer']) {
+    expect(await userSelect(sel), `${sel} not selectable`).toBe('none');
+  }
+  expect(await userSelect('input.kk-answer'), 'the answer field selects').not.toBe('none');
   // The question text still takes its tap (the font toggle) and the field keeps the focus.
   const clicks = await page.getByTestId('question-text').evaluate((el) => {
     const w = window as Window & { __kkClicks?: number };
@@ -133,4 +166,27 @@ test('quiz: Don\'t know | Submit 8 px above the keyboard, taps beside the field 
     return e.defaultPrevented;
   });
   expect(prevented, 'answered screen: mousedown beside the buttons not prevented').toBe(false);
+});
+
+test('quiz: a correct answer keeps Don\'t know | Submit in their normal look until the next question', async ({ page }, info) => {
+  const seed = await writeReviewSeed(info, { radicals: 3 });
+  await openApp(page);
+  await restoreFile(page, seed.path);
+  await page.getByTestId('start-reviews').click();
+  await expect(quiz(page)).toHaveAttribute('data-answered', 'false');
+  // Every quiz button that turns disabled (the live fragment or its exiting copy) while the answer goes in.
+  await page.evaluate(() => {
+    const w = window as Window & { __kkDisabled?: string[] };
+    w.__kkDisabled = [];
+    const look = () => {
+      for (const b of document.querySelectorAll<HTMLButtonElement>('section.kk-quiz button.kk-btn')) {
+        if (b.disabled || b.matches(':disabled')) w.__kkDisabled!.push(b.textContent ?? '');
+      }
+    };
+    new MutationObserver(look).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+  });
+  const r = await answer(page, 'correct');
+  expect(r.advanced, 'lightning mode: on to the next question').toBe(true);
+  await expect(quiz(page)).toHaveAttribute('data-answered', 'false');
+  expect(await page.evaluate(() => (window as Window & { __kkDisabled?: string[] }).__kkDisabled), 'no disabled look between the answer and the next question').toEqual([]);
 });

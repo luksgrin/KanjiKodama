@@ -134,14 +134,20 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
     }
   });
 
+  // One action at a time. Don't know / Submit / Next ignore taps while one runs but keep their look (the
+  // owner's request; Java's disableInteraction() shows them pale until the next question, and the exiting
+  // copy of the fragment would slide out pale). Next is disabled only by next_button_delay (`frozen`).
+  const busyRef = useRef(false);
   const run = async (f: () => Promise<unknown>): Promise<void> => {
-    if (busy) return;
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     try {
       await f();
     } catch {
       // shown through snap.error
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   };
@@ -198,7 +204,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
       anki={anki}
       fixedHeight={fixedHeight > 0}
       next={answered && !anki ? (
-        <button ref={nextRef} type="button" className="kk-btn kk-quiz-next kk-btn-focus" disabled={busy || frozen} data-testid="next"
+        <button ref={nextRef} type="button" className="kk-btn kk-quiz-next kk-btn-focus" disabled={frozen} data-testid="next"
           onClick={goNext}>Next</button>
       ) : undefined}
     />
@@ -264,18 +270,18 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
           <>
             {showDontKnow
               ? (
-                <button type="button" className="kk-btn" disabled={busy} data-testid="dont-know" onMouseDown={keepFocus}
+                <button type="button" className="kk-btn" data-testid="dont-know" onMouseDown={keepFocus}
                   onClick={() => { holdKeyboard(); void run(() => rt.dontKnow()); }}>Don&apos;t know</button>
               )
               : <span className="kk-quiz-actions-space" aria-hidden="true" />}
-            <button type="button" className="kk-btn" disabled={busy} data-testid="submit" onMouseDown={keepFocus}
+            <button type="button" className="kk-btn" data-testid="submit" onMouseDown={keepFocus}
               onClick={() => void submit()}>Submit</button>
           </>
         ) : (
           <>
             {/* nextButton2 takes Submit's place (fragment_answered_question.xml: Space | nextButton2). */}
             <span className="kk-quiz-actions-space" aria-hidden="true" />
-            <button type="button" className="kk-btn" disabled={busy || frozen} data-testid="next-bottom" onClick={goNext}>Next</button>
+            <button type="button" className="kk-btn" disabled={frozen} data-testid="next-bottom" onClick={goNext}>Next</button>
           </>
         )}
       </div>
