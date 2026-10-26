@@ -20,7 +20,7 @@ function render(node: ReactNode): { container: HTMLElement; unmount(): void } {
 }
 
 // jsdom: no file: import.meta.url, so not scripts/content/inputs.ts (vitest runs from web/).
-const DRAWABLE_DIR = join(process.cwd(), '../durtles/app/src/main/res/drawable');
+const DRAWABLE_DIR = join(process.cwd(), '../content/inputs/drawable');
 
 afterEach(() => {
   for (const { root, el } of roots.splice(0)) {

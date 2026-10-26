@@ -5,7 +5,8 @@ feeds #5 (which upstream screens to keep) and Step 5 (the settings screen in the
 
 Sources:
 - Keys, titles, types and defaults: `durtles/app/src/main/res/xml/preferences.xml` (the only preference
-  XML; titles are inline there, not in `strings.xml`). Enum values: `res/values/array.xml`.
+  XML; titles are inline there, not in `strings.xml`). Enum values: `res/values/array.xml`. Both were
+  removed with the Java app after commit `94abf2e`; snapshots are in `web/test/fixtures/java/`.
 - What each key does: the `GlobalSettings` getter that reads it, plus the XML summary.
 - TS core: `web/src/core/settings/` plus the other core modules that read preferences
   (`core/anki/mode.ts`, `core/dashboard/settings.ts`, `core/session/session.ts`). "yes" = a getter with the

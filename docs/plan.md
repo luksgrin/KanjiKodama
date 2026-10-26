@@ -4,8 +4,12 @@
 > Multiplatform) was replaced by the TypeScript plan of GitHub issue #3 (React + Vite + Capacitor in
 > `web/`: PWA for the iPhone, Capacitor APK for Android). Steps 1–5 are done; step 6, the cutover,
 > is in [cutover.md](cutover.md): the Capacitor APK now has the Java app's id and key and migrates
-> its data once. `durtles/` and the Kotlin prototype stay in the repository for now (owner's call).
-> The sections below are kept as history.
+> its data once. The Java app (`durtles/`) was removed on 2026-10-26 after commit `94abf2e` (owner:
+> only the Capacitor APK is used now); its content inputs moved to `content/inputs/`, the private
+> `wk-content.db` to `content/private/` (git-ignored), its tools to `tools/` and the release key to
+> `web/android/release.jks` (git-ignored; see README "Signing"). The Kotlin prototype (`app/`,
+> `core/`, `feature/`) stays for now (owner's call). The sections below are kept as history, so
+> their `durtles/` paths refer to commit `94abf2e`.
 
 ## Pivot 2026-10-10: fork Smouldering Durtles
 

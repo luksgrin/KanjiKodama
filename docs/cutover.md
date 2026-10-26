@@ -2,8 +2,10 @@
 
 Issue #3, step 6. The release APK built from `web/` has the Java app's id (`app.kanjikodama.wk`)
 and key, so it installs **over** the Java app. Android keeps the Java app's data on such an update,
-and the new app moves it once on its first start. The old code (`durtles/`, the Kotlin prototype)
-stays in the repository.
+and the new app moves it once on its first start. The cutover is done: the owner uses only the new
+app, and the Java app's code (`durtles/`) was removed from the repository after commit `94abf2e`
+(2026-10-26; check that commit out to read or build it). The Kotlin prototype stays for now. The
+checklist below is kept for the record, with paths updated where they moved.
 
 ## Checklist
 
@@ -15,15 +17,17 @@ stays in the repository.
    Settings → Backup your settings. This file is the rollback path. Keep a copy outside Downloads
    (Drive or a computer): Android deletes an app's own files in Downloads when the app is uninstalled.
 
-3. **Back up the signing key** if not done yet: `durtles/release.jks` and the passwords in
-   `durtles/keystore.properties`, offline (USB stick, password manager). They are git-ignored, so
-   they exist only on this Mac. Without them no later release can update the installed app.
+3. **Back up the signing key** if not done yet: `web/android/release.jks` (until 2026-10-26
+   `durtles/release.jks`) and the passwords in `web/android/keystore.properties`, offline (USB
+   stick, password manager). They are git-ignored, so they exist only on this Mac. Without them no
+   later release can update the installed app.
 
 4. **Build the release:**
    ```sh
    cd web && sh scripts/release-android.sh
    ```
-   It needs `web/android/keystore.properties` (git-ignored, points at `../../durtles/release.jks`).
+   It needs `web/android/keystore.properties` (git-ignored, `storeFile=release.jks`, i.e.
+   `web/android/release.jks`).
    Output: `web/release/kanjikodama-<version>.apk`.
 
 5. **versionCode check.** The new APK's `versionCode` must be higher than the installed one:
@@ -42,7 +46,8 @@ stays in the repository.
    ```
    Both must print `1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741`
    (CN=luksgrin, O=MojiMori). Checked on 2026-10-26: the new release APK and the Java release APK
-   built from `durtles/` have this same certificate.
+   built from `durtles/` have this same certificate (and so did the release built after the key
+   moved to `web/android/`).
 
 7. **Install over the Java app** (never uninstall first: that deletes the data to migrate):
    ```sh
@@ -85,7 +90,7 @@ the Java app goes through the progress file:
    and **copy it off the phone or into Google Drive**: uninstalling an app also deletes the files it
    created in Downloads (seen on the test emulator).
 2. Uninstall KanjiKodama.
-3. Install the Java APK (`durtles/`, e.g. the last GitHub release).
+3. Install the Java APK (e.g. the last GitHub release, or built from `durtles/` at commit `94abf2e`).
 4. In the Java app: Settings → Progress → Restore progress from a file.
 
 Progress files saved by either app restore in the other.

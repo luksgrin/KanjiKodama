@@ -69,7 +69,7 @@ function dialogButton(el: ParentNode, label: string): HTMLButtonElement {
 const ANDROID: Partial<Capabilities> = { audio: true, audioPlayback: true, audioDownload: true, notifications: true, audioFocus: true, imeFlags: true };
 
 describe('schema: every visible preferences.xml row, in XML order', () => {
-  const xml = readFileSync(join(process.cwd(), '../durtles/app/src/main/res/xml/preferences.xml'), 'utf8');
+  const xml = readFileSync(join(process.cwd(), 'test/fixtures/java/preferences.xml'), 'utf8');
   // Hidden in Java too (isPreferenceVisible=false / LocalMode), or asked on their own screens.
   const NOT_LISTED = ['api_key_help', 'api_key', 'audio_location', 'web_password', 'not_always_hide_wk_mnemonic'];
   for (const g of SETTINGS_SCREENS) {

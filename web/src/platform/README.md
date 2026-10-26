@@ -61,7 +61,7 @@ line `DocumentPlugin.java` (`web/android/app/src/main/java/app/kanjikodama/wk/`,
 
 Since the cutover (issue #3, step 6) the app has the Java app's identity: `appId:
 'app.kanjikodama.wk'` (`capacitor.config.ts`), release `app.kanjikodama.wk` signed with the Java
-app's key (`android/keystore.properties` → `durtles/release.jks`), debug `app.kanjikodama.wk.debug`
+app's key (`android/keystore.properties` → `android/release.jks`), debug `app.kanjikodama.wk.debug`
 (same id and debug key as the Java debug app), `versionCode` 1000, `versionName` from
 `package.json`. `-PsideBySide` builds the old side-by-side id `app.kanjikodama.wk.web` for both
 build types. `minSdk` is 24 (Capacitor 8); the Java app's is 21.

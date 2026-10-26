@@ -102,14 +102,16 @@ npm run golden:coverage                    # per fixture: adapter? pass/fail cou
 npm run check                              # typecheck, tests, core imports, build
 ```
 
-## Where the Java lives
+## Where the Java lived
 
+The Java app was removed from the repository after commit `94abf2e` (read it with
+`git show 94abf2e:durtles/...` or `git worktree add /tmp/java 94abf2e`). It was in
 `durtles/app/src/main/java/com/smouldering_durtles/wk/`: `local/` (KanjiKodama's offline logic:
 `LocalProgression`, `JlptPlan`, `Placement`, `Curriculum`, `FastTravel`, `LevelTest`,
 `ProgressStore`, `ServerMode`), `model/` (`Session`, `Question`, `SrsSystem`, `SubmitPrecheck`,
 `SubmitFeedback`, `SubjectSelectionRules`), `util/` (`PseudoIme`, `KanaUtil`, `FuzzyMatching`,
 `OptimalStringAlignmentDistance`, `SearchUtil`, `StudyMaterialsSupport`), `enums/` (`QuestionType`,
 `SubjectType`), `jobs/` (`ReportSessionItemJob`), `tasks/` (`WaniKaniImporter`). The fixture
-generators are in `durtles/app/src/test/java/.../golden/` (Tier A) and
+generators were in `durtles/app/src/test/java/.../golden/` (Tier A) and
 `durtles/app/src/androidTest/java/.../test/golden/` (Tier B); read them to see exactly what each
 case's input and output mean. Each module's `index.ts` lists its Java sources and fixtures.

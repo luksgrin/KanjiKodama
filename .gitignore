@@ -13,6 +13,7 @@ captures/
 
 # Signing (never commit)
 keystore.properties
+keystore.properties.legacy
 *.jks
 *.keystore
 
@@ -33,8 +34,8 @@ tools/content/__pycache__/
 *.db
 *.db-journal
 !app/src/main/assets/content.db
-!durtles/app/src/main/assets/sound-components.db
-!durtles/app/src/main/assets/extra-kanji.db
+!content/inputs/sound-components.db
+!content/inputs/extra-kanji.db
 
 # Private inputs: seed word lists are personal and never committed
 content/seed_words/*
@@ -46,3 +47,5 @@ content/seed_words/*
 
 # Private WaniKani data dump (internal use only, never committed)
 wani-data/
+# Private WaniKani content DB (tools/build_wk_asset.py output; internal use only, never committed)
+content/private/

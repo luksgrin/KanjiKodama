@@ -1,4 +1,4 @@
-"""Export the JLPT kanji WaniKani does not teach, for the offline app (durtles/).
+"""Export the JLPT kanji WaniKani does not teach, for the app (content/inputs/extra-kanji.db).
 
 Kanji: meanings and readings from KANJIDIC2; the primary meaning, primary reading and the
 mnemonics come from content/mnemonics/extra-*.yaml (hand-written). Vocabulary: up to three common
@@ -198,10 +198,10 @@ def _inputs(log=print):
     from .sources import jmdict, kanjidic2
 
     fetch_all(["kanjidic2", "jmdict"])
-    assets = REPO_DIR / "durtles/app/src/main/assets"
-    wk_db = assets / "wk-content.db"
+    assets = REPO_DIR / "content/inputs"
+    wk_db = REPO_DIR / "content/private/wk-content.db"
     if not wk_db.exists():
-        raise SystemExit("export-extra needs durtles/app/src/main/assets/wk-content.db (run a durtles build first)")
+        raise SystemExit("export-extra needs content/private/wk-content.db (run tools/build_wk_asset.py first)")
     wk = load_wk(wk_db)
     jlpt = load_jlpt(assets / "jlpt-kanji.tsv")
     kd = kanjidic2.parse(cache_path("kanjidic2"))

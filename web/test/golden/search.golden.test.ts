@@ -45,7 +45,7 @@ import { goldenSuite } from './harness';
 
 // --- Test-side content: search texts, reference data, extras ---
 
-const RAW_DIR = fileURLToPath(new URL('../../../durtles/app/src/main/res/raw/', import.meta.url));
+const RAW_DIR = fileURLToPath(new URL('../../../content/inputs/raw/', import.meta.url));
 
 function readTable(name: string): Record<string, number> {
   return JSON.parse(readFileSync(`${RAW_DIR}${name}`, 'utf8')) as Record<string, number>;

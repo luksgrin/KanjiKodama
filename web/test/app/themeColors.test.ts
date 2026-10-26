@@ -1,5 +1,5 @@
-// The theme tokens are the Java app's colours (durtles res/values/colors.xml mm*, styles.xml
-// KanjiKodama*Theme, enums/ActiveTheme KANJIKODAMA_*): no contrast tweaks (owner decision, wave 4).
+// The theme tokens are the Java app's colours (res/values/colors.xml mm*, styles.xml KanjiKodama*Theme,
+// enums/ActiveTheme KANJIKODAMA_*; XML snapshots in test/fixtures/java/): no contrast tweaks (owner decision, wave 4).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';

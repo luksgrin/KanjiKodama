@@ -1,4 +1,4 @@
-"""Export component roles and phonetic series for the offline app (durtles/).
+"""Export component roles and phonetic series for the app (content/inputs/sound-components.db).
 
 The output, sound-components.db, is built from open data only (KANJIDIC2, KanjiVG, JLPT lists)
 and covers every kanji the pipeline classifies, so the app can look up any WaniKani kanji.

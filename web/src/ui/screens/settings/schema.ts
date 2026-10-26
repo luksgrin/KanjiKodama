@@ -1,7 +1,8 @@
 /**
  * The settings rows as data: keys, types, defaults, titles, summaries and choices exactly as
- * `durtles/app/src/main/res/xml/preferences.xml` and `res/values/array.xml` have them, so a value
- * stored here means the same as in the Java app's `SharedPreferences`. `SettingRows.tsx` renders them
+ * the Java app's `res/xml/preferences.xml` (snapshot: `test/fixtures/java/preferences.xml`) and
+ * `res/values/array.xml` have them, so a value stored here means the same as in the Java app's
+ * `SharedPreferences`. `SettingRows.tsx` renders them
  * as AndroidX rows: `SETTINGS_SCREENS` are the root's sub-screens, `ADVANCED_GROUPS` the four
  * advanced sub-screens shown while `enable_advanced` is on.
  *

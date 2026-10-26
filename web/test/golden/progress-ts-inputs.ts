@@ -2,7 +2,7 @@
  * Progress files written by the TypeScript core, for the TS export → Java restore → Java export
  * round trip (`progress/ts-roundtrip.json`, `ScenarioGoldenTest#progressTsExports`). Each file is
  * `exportFromDb` of a state the TS core reached; `progress-ts-inputs.test.ts` writes them to
- * `progress/ts-export/` (committed inputs, pushed to the device by `durtles/golden/run.sh`) and
+ * `progress/ts-export/` (committed inputs; the retired Java app's `durtles/golden/run.sh` pushed them to the device) and
  * checks that the committed files are still what the core produces.
  *
  * Every file is settled: restoring it with the TS core (which, like `ProgressStore.restore`,

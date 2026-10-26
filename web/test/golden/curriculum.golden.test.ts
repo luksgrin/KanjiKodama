@@ -64,7 +64,7 @@ goldenSuite<{ kanjiTotal: number[]; kanjiPassed: number[] }, unknown>('curriculu
 
 describe('curriculum helpers', () => {
   it('parses jlpt-kanji.tsv into the map JlptPlanGolden recorded', () => {
-    const tsv = readFileSync(new URL('../../../durtles/app/src/main/assets/jlpt-kanji.tsv', import.meta.url), 'utf8');
+    const tsv = readFileSync(new URL('../../../content/inputs/jlpt-kanji.tsv', import.meta.url), 'utf8');
     const content = readFixture('curriculum/jlpt-plan-content.json');
     const first = [...content.cases][0]!.input as JlptPlanInput;
     expect(Object.fromEntries(parseJlptKanjiTsv(tsv))).toEqual(first.jlpt);

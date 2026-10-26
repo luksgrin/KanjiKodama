@@ -1,6 +1,7 @@
 /*
  * Pixel Forest theme tokens (light and dark), ported from the Java app's KanjiKodamaLightTheme /
- * KanjiKodamaDarkTheme (durtles/app/src/main/res/values/{colors,styles}.xml, enums/ActiveTheme.java).
+ * KanjiKodamaDarkTheme (the Java app's res/values/{colors,styles}.xml, snapshot in
+ * test/fixtures/java/; enums/ActiveTheme.java).
  * Dark: the system setting, unless <html data-theme="light|dark"> overrides it (app/theme.ts).
  * See README.md for what each token is for.
  */

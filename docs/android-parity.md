@@ -1,5 +1,8 @@
 # Android parity: TS app vs Java app
 
+> **History.** The Java app is retired: `durtles/` was removed from the repository after commit
+> `94abf2e` (2026-10-26). This document records the parity checks made before that.
+
 Side-by-side check (round 3) on emulator-5556 (Pixel-class, 1080×2400, density 420 = 2.625, Android 16 /
 API 36, Android System WebView 133) on 2026-10-26: the Java debug app `app.kanjikodama.wk.debug`
 (built from `durtles/`) next to the TS app `app.kanjikodama.wk.web` (`web/`, built with

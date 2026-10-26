@@ -3,7 +3,7 @@
  * - Pixelify Sans: body text (Latin)                     OFL-pixelifysans.txt
  * - Silkscreen 400/700: headings, buttons, counters      OFL-silkscreen.txt
  * - Zen Maru Gothic Medium: bundled as in the Java app, which never uses it (Japanese is the system font)
- * Same files as the Java app (durtles/app/src/main/res/font/).
+ * Same files as the Java app (its res/font/).
  */
 @font-face {
   font-family: 'Pixelify Sans';

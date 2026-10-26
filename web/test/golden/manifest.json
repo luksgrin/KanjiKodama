@@ -3,6 +3,7 @@
   "generatedAt": "2026-10-26T02:00:54.935Z",
   "durtlesCommit": "fce990f5a087ce390ffb95ebee354d7f85e358de",
   "durtlesDirty": false,
+  "frozen": "The Java app (durtles/) was removed after commit 94abf2e1d81296945ec1d2e9201317d510e22bca; these fixtures come from durtlesCommit (its last change) and can no longer be regenerated.",
   "contentDbSha256": "a81e44da1bba8e09f2384a458ec97fff06da4024e94499443dd687c5d603a512",
   "totalCases": 387986,
   "files": [

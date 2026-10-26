@@ -21,7 +21,7 @@ const config: CapacitorConfig = {
       style: 'DEFAULT',
     },
     LocalNotifications: {
-      // Status-bar icon of the Java app (durtles/tools/make_logo.py → res/drawable/ic_stat_name.xml).
+      // Status-bar icon of the Java app (tools/make_logo.py → res/drawable/ic_stat_name.xml).
       smallIcon: 'ic_stat_name',
     },
   },

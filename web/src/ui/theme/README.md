@@ -1,6 +1,6 @@
 # Theme: Pixel Forest
 
-The Java app's KanjiKodama theme (`durtles/app/src/main/res/values/colors.xml` `mm*`,
+The Java app's KanjiKodama theme (its `res/values/colors.xml` `mm*`,
 `styles.xml` `KanjiKodamaLightTheme`/`KanjiKodamaDarkTheme`, `enums/ActiveTheme.java`) as CSS custom
 properties. `index.css` imports `fonts.css`, `tokens.css` and `base.css`; `main.tsx` imports it once.
 

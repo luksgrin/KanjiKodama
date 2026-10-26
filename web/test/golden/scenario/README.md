@@ -1,10 +1,10 @@
 # Scenario replay
 
 `scenarios.golden.test.ts` replays every `scenarios/*.json` fixture on the TypeScript core. The
-fixtures were recorded by the Java `ScenarioRunner` and `SessionDriver`
-(`durtles/app/src/androidTest/java/com/smouldering_durtles/wk/test/golden/`); the scenario
-definitions (the DSL) are in `durtles/app/src/androidTest/assets/golden-scenarios/` and are read for
-the one option a fixture doesn't carry (`exportMode`).
+fixtures were recorded by the Java `ScenarioRunner` and `SessionDriver` of the retired Java app
+(`durtles/app/src/androidTest/java/com/smouldering_durtles/wk/test/golden/`, removed after commit
+94abf2e; see `../README.md`). The scenario definitions (the DSL) moved to `web/test/golden-scenarios/`
+and are read for the one option a fixture doesn't carry (`exportMode`).
 
 ## How it works
 

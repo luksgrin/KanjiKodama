@@ -3,10 +3,10 @@
 A personal, offline Android app for learning kanji with spaced repetition: radicals, kanji and
 vocabulary in WaniKani's level order, with extra notes on how phonetic components predict on'yomi
 readings. It began as a fork of [Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles)
-(Apache-2.0, the Java app in `durtles/`). Since the cutover (issue #3, step 6) the Android app and
-the iPhone web app (PWA) are built from one TypeScript codebase in `web/` (React + Vite +
-Capacitor). The Java app stays in the repository for reference and rollback; it is no longer the
-daily build.
+(Apache-2.0), a Java Android app. Since the cutover (issue #3, step 6) the Android app and the
+iPhone web app (PWA) are built from one TypeScript codebase in `web/` (React + Vite + Capacitor).
+The Java app (`durtles/`) is retired and was removed from the repository after commit `94abf2e`;
+check out that commit to read or build it.
 
 ## Features
 
@@ -81,9 +81,9 @@ app?"). Removing the old app's data is offered afterwards and only done when you
 
 **Rollback:** Android doesn't install an older app (the Java APK, lower `versionCode`) over a newer
 one, so the progress file is the way back: save progress in the new app (to Google Drive or copy it
-off the phone: uninstalling deletes the app's own files in Downloads), uninstall it, install the
-Java APK, and restore the file there (Settings → Progress → Restore progress from a file). Files
-from either app restore in the other.
+off the phone: uninstalling deletes the app's own files in Downloads), uninstall it, install a
+Java APK (an earlier GitHub release, or built from commit `94abf2e`), and restore the file there
+(Settings → Progress → Restore progress from a file). Files from either app restore in the other.
 
 To move to another phone, save progress to a file on the old one and restore it on the new one.
 
@@ -112,55 +112,44 @@ Its data is separate from the Java app's, so it has nothing to migrate: use a pr
 ### Signing
 
 Release builds read `web/android/keystore.properties` (git-ignored; see
-`web/android/keystore.properties.example`). It points at the Java app's key,
-`storeFile=../../durtles/release.jks` (relative to `web/android/`), with the same passwords as
-`durtles/keystore.properties`. Both `durtles/release.jks` and the properties files are git-ignored.
-**Keep an offline backup of `durtles/release.jks` and its passwords** (not in the repository, not
-in a cloud folder you don't control): if the key is lost, no later release can update the
-installed app. Check a release with
-`apksigner verify --print-certs web/release/kanjikodama-<version>.apk`: the SHA-256 digest must be
-`1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741` (the Java release key).
+`web/android/keystore.properties.example`). It points at the release key, `storeFile=release.jks`
+(relative to `web/android/`, so `web/android/release.jks`, also git-ignored). This is the key the
+Java app was always signed with (it used to live in `durtles/`); the Java app's own properties file
+is kept next to it as `web/android/keystore.properties.legacy` (git-ignored, same passwords).
 
-### Old Java app (`durtles/`, kept for reference)
+**Keep an offline backup of `web/android/release.jks` and its passwords** (for example on a USB
+stick and in a password manager; not in the repository, not in a cloud folder you don't control).
+If the key is lost, no later release can ever install over the app on the phone: the only way
+forward would be uninstalling it (losing its data) after saving a progress file.
 
-Requirements: JDK 17+ (Android Studio's bundled JBR works), the Android SDK, Python 3, and the `gh`
-CLI logged in to an account that can read
-[luksgrin/KanjiKodamaData](https://github.com/luksgrin/KanjiKodamaData).
-
-```sh
-export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"   # macOS example
-cd durtles
-./gradlew assembleDebug      # "KanjiKodama - Debug", id app.kanjikodama.wk.debug
-./gradlew assembleRelease    # id app.kanjikodama.wk
-```
-
-The debug and release builds have different application ids, so both can be installed side by
-side. Release builds use `durtles/keystore.properties` and `durtles/release.jks` (git-ignored, see
-`durtles/keystore.properties.example`); without them they are signed with the debug key. The manual
-**Release APK (manual)** workflow restores the same key from the `RELEASE_KEYSTORE_BASE64`,
-`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` secrets, and reads the
-lesson content with the `KANJIKODAMA_DATA_TOKEN` secret.
+Check a release with `apksigner verify --print-certs web/release/kanjikodama-<version>.apk`: the
+SHA-256 digest must be `1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741`
+(`release-android.sh` prints it).
 
 ### Lesson content
 
-The lesson database `durtles/app/src/main/assets/wk-content.db` is generated before every build by
-`durtles/tools/build_wk_asset.py` and is git-ignored. It contains WaniKani's content (radicals,
-kanji, vocabulary, mnemonics, context sentences), used with permission for personal use, with every
-progress field cleared.
+`cd web && npm run content` (also the first step of `npm run build`) builds the app's content file
+`web/public/content/content-<hash>.db` from:
 
-- If a WaniKani data dump is present in `wani-data/` (git-ignored, never committed), the script
-  builds the asset from it.
-- Otherwise it downloads the cleaned asset from the private release pinned in
-  `durtles/tools/wk-content.lock.json` and checks its sha256.
-- Without either, the app still builds, but has no lessons.
+- `content/private/wk-content.db` (git-ignored, never committed): WaniKani's content (radicals,
+  kanji, vocabulary, mnemonics, context sentences), used with permission for personal use, with
+  every progress field cleared. `tools/build_wk_asset.py` writes it: from a WaniKani data dump in
+  `wani-data/` (git-ignored, never committed) if present, otherwise by downloading the cleaned file
+  from the private release pinned in `tools/wk-content.lock.json` (needs the `gh` CLI logged in to
+  an account that can read [luksgrin/KanjiKodamaData](https://github.com/luksgrin/KanjiKodamaData))
+  and checking its sha256. `KK_WK_CONTENT_DB` points the build at another copy.
+  `npm run content:public` builds without it (no WaniKani lessons).
+- `content/inputs/` (committed, open data): `sound-components.db` (components and sound series),
+  `jlpt-kanji.tsv` (the JLPT level of each kanji, with corrections in `content/jlpt_overrides.yaml`),
+  `extra-kanji.db` (the JLPT kanji WaniKani lacks: KANJIDIC2 meanings and readings, JMdict words,
+  Tatoeba sentences, and the mnemonics in `content/mnemonics/extra-*.yaml`), `raw/` (stroke order,
+  pitch accent, JLPT levels, frequency and Jōyō grades, from the Java app; `reference-data/` holds
+  the upstream scripts that made them) and `drawable/` (the radical images WaniKani has no
+  character for).
 
-Three committed assets come from the content pipeline:
-`durtles/app/src/main/assets/sound-components.db` (components and sound series),
-`durtles/app/src/main/assets/jlpt-kanji.tsv` (the JLPT level of each kanji, with corrections in
-`content/jlpt_overrides.yaml`) and `durtles/app/src/main/assets/extra-kanji.db` (the JLPT kanji
-WaniKani lacks: KANJIDIC2 meanings and readings, JMdict words, Tatoeba sentences, and the
-mnemonics in `content/mnemonics/extra-*.yaml`). `export-extra` also reads the lesson content to
-know which kanji are missing, and `export-extra --brief FILE` writes what a mnemonic writer needs:
+The first three come from the content pipeline. `export-extra` also reads
+`content/private/wk-content.db` to know which kanji are missing, and `export-extra --brief FILE`
+writes what a mnemonic writer needs:
 
 ```sh
 cd tools/content
@@ -171,16 +160,20 @@ uv run kanjikodama-content export-extra
 uv run pytest
 ```
 
-App unit tests (JLPT order, placement, level test): `cd durtles && ./gradlew testDebugUnitTest`.
+### Golden tests
+
+The TypeScript core is tested against fixtures recorded from the Java app
+(`web/test/golden/`, `npx vitest run test/golden`, `npm run golden:coverage`). The Java app is
+gone, so the fixtures are frozen and can't be regenerated; see `web/test/golden/README.md`.
 
 ### Logo
 
-`durtles/tools/make_logo.py` draws the pixel logo (a torii with a sprouting kodama under it)
-and writes the launcher icons, the monochrome themed-icon layer, the notification icon, and
-`kanjikodama-logo.svg` / `kanjikodama-logo-512.png`:
+`tools/make_logo.py` draws the pixel logo (a torii with a sprouting kodama under it) and writes the
+Android launcher icons, the monochrome themed-icon layer and the notification icon into
+`web/android/app/src/main/res/`, plus `tools/kanjikodama-logo.svg` / `kanjikodama-logo-512.png`:
 
 ```sh
-uv run durtles/tools/make_logo.py
+uv run tools/make_logo.py
 ```
 
 ## Repository layout
@@ -191,28 +184,27 @@ web/                     The app: TypeScript (React + Vite), PWA and Capacitor A
                          progress/ (save, restore, legacy migration), storage/, sync/
   android/               Capacitor Android project (native plugins in app/src/main/java)
   scripts/               check.sh, content build, release-android.sh
-durtles/                 The old Java app (Smouldering Durtles fork), kept for reference
-  app/src/main/java/com/smouldering_durtles/wk/local/
-                         KanjiKodama additions: offline mode, local progression, sound
-                         components, curriculum orders, fast travel, level test, extra
-                         kanji, progress save / restore
-  tools/                 Content asset builder, logo generator, content lock file
+  test/golden/           Frozen fixtures recorded from the retired Java app
+tools/                   build_wk_asset.py (private content DB), wk-content.lock.json,
+                         make_logo.py
 tools/content/           Python pipeline for open kanji data (KANJIDIC2, KRADFILE, JMdict,
-                         KanjiVG, JLPT lists) that produces sound-components.db and
-                         jlpt-kanji.tsv
+                         KanjiVG, JLPT lists) that produces sound-components.db,
+                         jlpt-kanji.tsv and extra-kanji.db
 content/                 Hand-authored component, mnemonic, sound-series and JLPT overrides
+  inputs/                Committed content-build inputs (open data)
+  private/               wk-content.db (git-ignored, never committed)
 docs/                    Spec and implementation plan
 app/, core/, feature/    Standalone Kotlin/Compose app built only from open data
                          (JLPT-ordered N5 and N4 content)
-.github/workflows/       CI and the Java release workflow, both manual only (workflow_dispatch)
+.github/workflows/       CI, manual only (workflow_dispatch)
 ```
 
 ## Credits
 
 KanjiKodama is made by luksgrin. Infinite thanks to
 [Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles) by Jerry Cooke, and to
-Flaming Durtles by Ernst Jan Plugge, on which it is based. The app's About screen lists everything
-else: content from WaniKani (Tofugu), open data from EDRDG and KanjiVG, and the fonts Silkscreen,
+Flaming Durtles by Ernst Jan Plugge, on which it is based (both Apache License 2.0). The app's
+About screen lists everything else: content from WaniKani (Tofugu), open data from EDRDG and KanjiVG, and the fonts Silkscreen,
 Pixelify Sans and Zen Maru Gothic (SIL Open Font License).
 
 KanjiKodama is not affiliated with or endorsed by Tofugu or WaniKani.

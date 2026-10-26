@@ -39,7 +39,7 @@ export interface ContentInputs {
   variant: ContentVariant;
   /** `wk-content.db`; required for `private`, never read for `public`. */
   wkContent?: InputFile;
-  /** `durtles/tools/wk-content.lock.json` (optional): its tag goes into the manifest. */
+  /** `tools/wk-content.lock.json` (optional): its tag goes into the manifest. */
   wkLock?: InputFile;
   soundComponents: InputFile;
   extraKanji: InputFile;

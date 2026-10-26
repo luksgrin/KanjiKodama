@@ -13,7 +13,8 @@
 #   --side-by-side    build app.kanjikodama.wk.web instead (installs next to the Java app)
 #
 # Needs web/android/keystore.properties (git-ignored, see keystore.properties.example) pointing at the
-# Java app's key (durtles/release.jks), so the APK installs over the Java app.
+# release key web/android/release.jks (git-ignored; the Java app's key, so updates install over the
+# app on the phone; keep an offline backup, see README.md).
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -32,8 +33,8 @@ done
 VERSION="$(node -p "require('./package.json').version")"
 
 if [ ! -f android/keystore.properties ]; then
-  echo "web/android/keystore.properties is missing: copy android/keystore.properties.example and point it at durtles/release.jks." >&2
-  echo "Without the Java app's key the APK can't install over the Java app." >&2
+  echo "web/android/keystore.properties is missing: copy android/keystore.properties.example and point it at release.jks." >&2
+  echo "Without the release key (the Java app's) the APK can't install over the app on the phone." >&2
   exit 1
 fi
 

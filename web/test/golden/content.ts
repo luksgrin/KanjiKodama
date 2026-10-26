@@ -10,10 +10,10 @@ import type { Content } from '../../src/core/content';
 import { readContent } from '../../src/content/readContent';
 import { mergeExtraContent } from '../../src/content/extraContent';
 
-/** `durtles/app/src/main/assets/wk-content.db`, or `GOLDEN_CONTENT_DB` if set. */
+/** `content/private/wk-content.db` (git-ignored), or `GOLDEN_CONTENT_DB` if set. */
 export const CONTENT_DB_PATH =
   process.env.GOLDEN_CONTENT_DB ??
-  fileURLToPath(new URL('../../../durtles/app/src/main/assets/wk-content.db', import.meta.url));
+  fileURLToPath(new URL('../../../content/private/wk-content.db', import.meta.url));
 
 export function hasContentDb(): boolean {
   return existsSync(CONTENT_DB_PATH);
@@ -40,8 +40,8 @@ export function loadContent(): Promise<Content> {
   return contentPromise;
 }
 
-/** `durtles/app/src/main/assets/extra-kanji.db` (private like the content DB). */
-export const EXTRA_DB_PATH = fileURLToPath(new URL('../../../durtles/app/src/main/assets/extra-kanji.db', import.meta.url));
+/** `content/inputs/extra-kanji.db` (committed open data: the JLPT kanji WaniKani doesn't teach). */
+export const EXTRA_DB_PATH = fileURLToPath(new URL('../../../content/inputs/extra-kanji.db', import.meta.url));
 
 let extrasPromise: Promise<Content> | undefined;
 

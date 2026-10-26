@@ -1,6 +1,7 @@
 /**
  * Replays the golden scenarios (`scenarios/*.json`, recorded by the Java `ScenarioRunner` and
- * `SessionDriver` in `durtles/app/src/androidTest/.../golden/`) on the TypeScript core.
+ * `SessionDriver` of the retired Java app, `durtles/app/src/androidTest/.../golden/`, last in commit
+ * 94abf2e) on the TypeScript core. The scenario definitions are in `web/test/golden-scenarios/`.
  *
  * One fixture case per step: case "00-start" restores the start file into a fresh learner database
  * (the Java base reset: seeded randomness, clock at T0, empty WaniKani-order progress), every later
@@ -101,14 +102,14 @@ export interface RunnerResources {
 
 const REPO = new URL('../../../../', import.meta.url);
 
-/** The `jlpt-kanji.tsv` asset of the Java app (committed, not private). */
+/** `content/inputs/jlpt-kanji.tsv` (committed, not private; the Java app's asset). */
 export function loadJlptKanji(): Map<string, number> {
-  return parseJlptKanjiTsv(readFileSync(new URL('durtles/app/src/main/assets/jlpt-kanji.tsv', REPO), 'utf8'));
+  return parseJlptKanjiTsv(readFileSync(new URL('content/inputs/jlpt-kanji.tsv', REPO), 'utf8'));
 }
 
 /** The scenario definition (the DSL the fixture was recorded from), for options the fixture doesn't carry. */
 export function scenarioDefinition(name: string): Record<string, unknown> | null {
-  const url = new URL(`durtles/app/src/androidTest/assets/golden-scenarios/${name}.json`, REPO);
+  const url = new URL(`web/test/golden-scenarios/${name}.json`, REPO);
   return existsSync(url) ? (JSON.parse(readFileSync(url, 'utf8')) as Record<string, unknown>) : null;
 }
 

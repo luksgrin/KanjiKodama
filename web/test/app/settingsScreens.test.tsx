@@ -150,7 +150,7 @@ describe('settings schema', () => {
   });
 
   it('lists the sub-screens in preferences.xml order', () => {
-    const xml = readFileSync(join(process.cwd(), '../durtles/app/src/main/res/xml/preferences.xml'), 'utf8');
+    const xml = readFileSync(join(process.cwd(), 'test/fixtures/java/preferences.xml'), 'utf8');
     const javaOrder = [...xml.matchAll(/<PreferenceScreen\s+app:key="(\w+)"/g)].map((m) => m[1]!);
     const ours = [...SETTINGS_SCREENS, ...ADVANCED_GROUPS].map((g) => g.id);
     expect(javaOrder.filter((k) => ours.includes(k))).toEqual(ours);

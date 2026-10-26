@@ -83,7 +83,7 @@ def export_sound(
     from .config import REPO_DIR
     from .export_sound import export
 
-    export(out or REPO_DIR / "durtles/app/src/main/assets/sound-components.db")
+    export(out or REPO_DIR / "content/inputs/sound-components.db")
 
 
 @app.command("export-jlpt")
@@ -94,7 +94,7 @@ def export_jlpt(
     from .config import REPO_DIR
     from .export_jlpt import export
 
-    export(out or REPO_DIR / "durtles/app/src/main/assets/jlpt-kanji.tsv")
+    export(out or REPO_DIR / "content/inputs/jlpt-kanji.tsv")
 
 
 @app.command("export-extra")
@@ -110,7 +110,7 @@ def export_extra(
     if brief:
         write_brief(brief)
     else:
-        export(out or REPO_DIR / "durtles/app/src/main/assets/extra-kanji.db")
+        export(out or REPO_DIR / "content/inputs/extra-kanji.db")
 
 
 if __name__ == "__main__":
