@@ -56,23 +56,32 @@ check out that commit to read or build it.
 
 ## Installing
 
-Android releases are built locally with `app/scripts/release-android.sh` (no GitHub Actions
-minutes; the workflows in `.github/workflows/` are manual only). It writes a signed
-`app/release/kanjikodama-<version>.apk` and prints the commands to install and publish it; it
-never publishes anything itself.
+**Releases** come from the manual **Release** workflow (`.github/workflows/release.yml`: GitHub →
+Actions → Release (manual) → Run workflow, or `gh workflow run release.yml -f version=0.6.1`). It
+publishes a GitHub release `v<version>` with the signed APK (`kanjikodama-<version>.apk`) and the web
+app build (`kanjikodama-<version>-pwa.zip`). Both contain the private WaniKani content, so the
+workflow only runs while the repository is private. To release:
+
+1. Raise `version` in `app/package.json` (`npm version 0.6.1 --no-git-tag-version` in `app/`),
+   commit and push.
+2. Run the workflow with that same version. It refuses a version that differs from
+   `package.json`'s, or that isn't higher than the latest `v*` tag (versions only grow;
+   `app/scripts/release/version.ts`, tested in `app/test/release/`).
+
+The Android `versionCode` is derived from the version: 1000 + major·1,000,000 + minor·1,000 +
+patch (0.6.0 → 7000, 0.6.1 → 7001), so it grows with every release and stays above 1000, the
+first local 0.6.0 build, and every Java release (`100 + run number`).
+
+Local builds (for testing; nothing is published):
 
 ```sh
 cd app
-sh scripts/release-android.sh                  # versionCode 1000, id app.kanjikodama.wk
+sh scripts/release-android.sh                  # id app.kanjikodama.wk, versionCode from the version
 adb install -r release/kanjikodama-0.6.0.apk   # or copy it to the phone and open it
-# Publishing is your call (private repository), e.g.:
-gh release create v0.6.0 release/kanjikodama-0.6.0.apk --title "KanjiKodama 0.6.0"
 ```
 
 The APK has the Java app's id (`app.kanjikodama.wk`) and is signed with the same key, so it installs
-over the Java app and keeps its data. `versionCode` starts at 1000, above every Java release
-(`100 + run number`); raise it for each later release (`--version-code 1001`). Android 7.0 (API 24)
-or newer is needed (Capacitor 8); the Java app ran on API 21.
+over the Java app and keeps its data. Android 7.0 (API 24) or newer is needed (Capacitor 8).
 
 **First switch from the Java app:** follow [docs/cutover.md](docs/cutover.md). In short: save a
 progress file in the Java app first, install the new APK over it, and on the first start the app
@@ -82,7 +91,7 @@ app?"). Removing the old app's data is offered afterwards and only done when you
 **Rollback:** Android doesn't install an older app (the Java APK, lower `versionCode`) over a newer
 one, so the progress file is the way back: save progress in the new app (to Google Drive or copy it
 off the phone: uninstalling deletes the app's own files in Downloads), uninstall it, install a
-Java APK (an earlier GitHub release, or built from commit `94abf2e`), and restore the file there
+Java APK (an earlier GitHub release, v0.5.0 or older), and restore the file there
 (Settings → Progress → Restore progress from a file). Files from either app restore in the other.
 
 To move to another phone, save progress to a file on the old one and restore it on the new one.

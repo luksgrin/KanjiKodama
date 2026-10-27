@@ -1,0 +1,148 @@
+name: Release (manual)
+
+# Builds the TypeScript app (app/) and publishes a GitHub release v<version> with:
+#   kanjikodama-<version>.apk      the signed Android app (app.kanjikodama.wk, installs over the phone's)
+#   kanjikodama-<version>-pwa.zip  the web app (PWA) build, app/dist
+# Manual only. The version must equal app/package.json's and be higher than every v* tag, so a
+# release can never reuse or go back to an old version (app/scripts/release/version.ts, tested in
+# app/test/release/). The Android versionCode is derived from the version.
+#
+# Both assets contain the private WaniKani content (internal use only): the job refuses to run
+# unless this repository is private, and the assets must never be uploaded anywhere public.
+#
+# Secrets: RELEASE_KEYSTORE_BASE64, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD
+# (the release key, app/android/release.jks) and KANJIKODAMA_DATA_TOKEN or MOJIMORI_DATA_TOKEN
+# (read access to luksgrin/KanjiKodamaData, which holds the content file pinned in
+# tools/wk-content.lock.json).
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.6.0 (must equal app/package.json's and be higher than the last release)"
+        required: true
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: app
+    env:
+      # The release key's certificate (docs/cutover.md): an APK signed with any other key can't
+      # update the app on the phone.
+      EXPECTED_CERT_SHA256: 1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # all tags, for the version check
+
+      - name: Refuse to run in a public repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          visibility="$(gh repo view "$GITHUB_REPOSITORY" --json visibility -q .visibility)"
+          if [ "$visibility" != "PRIVATE" ]; then
+            echo "::error::The release contains private WaniKani content; this repository is $visibility."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Check the version
+        id: version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: node --import ./scripts/ts-hooks.mjs scripts/release-version.ts "$VERSION"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch the private content
+        env:
+          GH_TOKEN: ${{ secrets.KANJIKODAMA_DATA_TOKEN || secrets.MOJIMORI_DATA_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secret KANJIKODAMA_DATA_TOKEN is missing; a release without content would be useless."
+            exit 1
+          fi
+          python3 ../tools/build_wk_asset.py
+          test -s ../content/private/wk-content.db
+
+      - name: Restore the signing key
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "::error::Signing secrets are missing; an APK signed with another key can't update the app."
+            exit 1
+          fi
+          umask 077
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > android/release.jks
+          {
+            echo "storeFile=release.jks"
+            echo "storePassword=$RELEASE_STORE_PASSWORD"
+            echo "keyAlias=$RELEASE_KEY_ALIAS"
+            echo "keyPassword=$RELEASE_KEY_PASSWORD"
+          } > android/keystore.properties
+
+      - run: npm ci
+
+      - name: Check (typecheck, tests, leak check, build)
+        run: npm run check
+
+      - name: Build the APK
+        env:
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+        run: sh scripts/release-android.sh --version-code "$VERSION_CODE"
+
+      - name: Verify the signing certificate
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          cert="$("$apksigner" verify --print-certs "release/kanjikodama-$VERSION.apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          if [ "$cert" != "$EXPECTED_CERT_SHA256" ]; then
+            echo "::error::The APK is signed with certificate $cert, not the release key's."
+            exit 1
+          fi
+
+      - name: Package the web app
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: (cd dist && zip -qr "../release/kanjikodama-$VERSION-pwa.zip" .)
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+        run: |
+          gh release create "v$VERSION" \
+            "release/kanjikodama-$VERSION.apk" \
+            "release/kanjikodama-$VERSION-pwa.zip" \
+            --target "$GITHUB_SHA" \
+            --title "KanjiKodama $VERSION" \
+            --notes "Android versionCode $VERSION_CODE. Private build with the WaniKani content: never share these files publicly." \
+            --generate-notes
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f android/release.jks android/keystore.properties

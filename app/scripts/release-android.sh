@@ -9,7 +9,8 @@
 # publish; it never publishes anything itself.
 #
 # Usage: sh scripts/release-android.sh [--version-code N] [--side-by-side]
-#   --version-code N  default 1000 (must be higher than the installed app's; the Java releases used 100 + run number)
+#   --version-code N  default: derived from the version (scripts/release/version.ts: 0.6.0 -> 7000), so it
+#                     grows with every version; it must be higher than the installed app's
 #   --side-by-side    build app.kanjikodama.wk.web instead (installs next to the Java app)
 #
 # Needs app/android/keystore.properties (git-ignored, see keystore.properties.example) pointing at the
@@ -20,7 +21,7 @@ set -eu
 cd "$(dirname "$0")/.."
 WEB="$(pwd)"
 
-VERSION_CODE=1000
+VERSION_CODE=""
 SIDE_BY_SIDE=""
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -31,6 +32,7 @@ while [ $# -gt 0 ]; do
 done
 
 VERSION="$(node -p "require('./package.json').version")"
+[ -n "$VERSION_CODE" ] || VERSION_CODE="$(node --import ./scripts/ts-hooks.mjs scripts/release-version.ts --local --code)"
 
 if [ ! -f android/keystore.properties ]; then
   echo "app/android/keystore.properties is missing: copy android/keystore.properties.example and point it at release.jks." >&2
@@ -69,5 +71,4 @@ fi
 echo
 echo "Built $WEB/$OUT"
 echo "Install:  adb install -r $OUT"
-echo "Publish (private repo, your call; not run by this script):"
-echo "  gh release create v$VERSION $OUT --title \"KanjiKodama $VERSION\" --notes \"Capacitor build, versionCode $VERSION_CODE\""
+echo "Publish: run the manual \"Release\" workflow (.github/workflows/release.yml) for $VERSION."

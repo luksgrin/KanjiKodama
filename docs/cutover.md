@@ -34,8 +34,9 @@ checklist below is kept for the record, with paths updated where they moved.
    ```sh
    adb shell dumpsys package app.kanjikodama.wk | grep versionCode
    ```
-   The Java releases used `100 + run number`; the new app starts at **1000**
-   (`--version-code N` to change it; every later release needs a higher number).
+   The Java releases used `100 + run number`; the first local 0.6.0 build used **1000**. Builds
+   now derive it from the version (0.6.0 → 7000; see README "Installing"), so it grows with every
+   release (`--version-code N` overrides it for a local build).
 
 6. **Signature check.** The new APK must be signed with the same key as the installed app:
    ```sh
