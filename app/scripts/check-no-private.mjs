@@ -128,7 +128,7 @@ for (const dir of dirs) {
 }
 
 if (problems.length > 0) {
-  console.error(`check-no-private: WaniKani-derived data found (internal use only: never commit, upload or deploy):`);
+  console.error(`check-no-private: WaniKani-derived data found (never commit it):`);
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }

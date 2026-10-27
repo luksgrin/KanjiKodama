@@ -60,8 +60,9 @@ check out that commit to read or build it.
 Actions → Release (manual) → Run workflow, or `gh workflow run release.yml -f version=0.6.1`). It
 publishes a GitHub release `v<version>` with the signed APK (`kanjikodama-<version>.apk`), the
 side-by-side APK (`kanjikodama-<version>-web.apk`, id `app.kanjikodama.wk.web`) and the web app build
-(`kanjikodama-<version>-pwa.zip`). Both contain the private WaniKani content, so the
-workflow only runs while the repository is private. To release:
+(`kanjikodama-<version>-pwa.zip`), and deploys the web app to GitHub Pages at
+<https://luksgrin.xyz/KanjiKodama/>. The builds contain the WaniKani content, which the owner has
+WaniKani's permission to publish. To release:
 
 1. Raise `version` in `app/package.json` (`npm version 0.6.1 --no-git-tag-version` in `app/`),
    commit and push.
@@ -97,8 +98,9 @@ Java APK (an earlier GitHub release, v0.5.0 or older), and restore the file ther
 
 To move to another phone, save progress to a file on the old one and restore it on the new one.
 
-**iPhone:** the PWA (`app/`, `npm run build`, see `app/SPIKE.md`) is added to the home screen
-from Safari. It is not deployed anywhere publicly.
+**iPhone:** open <https://luksgrin.xyz/KanjiKodama/> in Safari, then Share → Add to Home Screen.
+It works offline after the first start; each release deploys a new version, which the app picks up
+the next time it starts online.
 
 ## Building
 

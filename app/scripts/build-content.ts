@@ -3,8 +3,9 @@
 // Usage (from app/): npm run content                       (private variant into public/content/)
 //                    node --import ./scripts/ts-hooks.mjs scripts/build-content.ts --variant public --out <dir>
 //
-// The private variant holds WaniKani content: internal use only. Its output (public/content/, dist/,
-// the Android assets copy) is git-ignored. Never commit, upload or deploy it.
+// The private variant holds WaniKani content (published with WaniKani's permission, 2026-10-27: the
+// APK and GitHub Pages). Its output (public/content/, dist/, the Android assets copy) is git-ignored:
+// never commit it.
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
@@ -52,4 +53,4 @@ console.log(
   + ` (${c.wanikaniSubjects} WaniKani, ${c.extraSubjects} extra), ${c.jlptLevels} JLPT levels,`
   + ` ${((performance.now() - t0) / 1000).toFixed(1)} s -> ${out}`,
 );
-if (variant === 'private') console.log('Private WaniKani content: internal use only. Never commit, upload or deploy it.');
+if (variant === 'private') console.log('Private WaniKani content: never commit it.');

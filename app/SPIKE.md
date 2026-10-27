@@ -21,7 +21,7 @@ The font is Zen Maru Gothic Medium from `durtles/app/src/main/res/font/`, bundle
 
 ## Private data
 
-`wk-content.db` is internal-use WaniKani data. `npm run content` (also run by `npm run build`) builds the private content file from it into `app/public/content/`, which `app/.gitignore` ignores. Vite then copies it into `dist/content/`, which is also ignored, and Capacitor copies it into `android/app/src/main/assets/public/`, which is ignored too. `git status --ignored` was checked and the DB shows only as ignored. **Never deploy `dist/` to a public host** (GitHub Pages, Netlify, a public tunnel), because it contains the DB. `node scripts/check-no-private.mjs` (part of `npm run check`) fails if WaniKani-derived data is tracked by git; add `--dir dist` to check a build output.
+`wk-content.db` is internal-use WaniKani data. `npm run content` (also run by `npm run build`) builds the private content file from it into `app/public/content/`, which `app/.gitignore` ignores. Vite then copies it into `dist/content/`, which is also ignored, and Capacitor copies it into `android/app/src/main/assets/public/`, which is ignored too. `git status --ignored` was checked and the DB shows only as ignored. `dist/` contains the DB; the owner has WaniKani's permission to publish it (2026-10-27), and the release workflow deploys it to GitHub Pages. `node scripts/check-no-private.mjs` (part of `npm run check`) fails if WaniKani-derived data is tracked by git; add `--dir dist` to check a build output.
 
 ## Running
 

@@ -5,7 +5,7 @@
 #   content (private WaniKani build) -> npm run build -> npx cap sync android -> ./gradlew :app:assembleRelease
 #
 # Output: app/release/kanjikodama-<version>.apk (git-ignored; it contains the private WaniKani content:
-# never commit, upload publicly or deploy it). Prints the certificate and the commands to install and
+# never commit it). Prints the certificate and the commands to install and
 # publish; it never publishes anything itself.
 #
 # Usage: sh scripts/release-android.sh [--version-code N] [--side-by-side]
