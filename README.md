@@ -58,8 +58,9 @@ check out that commit to read or build it.
 
 **Releases** come from the manual **Release** workflow (`.github/workflows/release.yml`: GitHub →
 Actions → Release (manual) → Run workflow, or `gh workflow run release.yml -f version=0.6.1`). It
-publishes a GitHub release `v<version>` with the signed APK (`kanjikodama-<version>.apk`) and the web
-app build (`kanjikodama-<version>-pwa.zip`). Both contain the private WaniKani content, so the
+publishes a GitHub release `v<version>` with the signed APK (`kanjikodama-<version>.apk`), the
+side-by-side APK (`kanjikodama-<version>-web.apk`, id `app.kanjikodama.wk.web`) and the web app build
+(`kanjikodama-<version>-pwa.zip`). Both contain the private WaniKani content, so the
 workflow only runs while the repository is private. To release:
 
 1. Raise `version` in `app/package.json` (`npm version 0.6.1 --no-git-tag-version` in `app/`),

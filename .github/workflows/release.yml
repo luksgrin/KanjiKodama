@@ -2,6 +2,7 @@ name: Release (manual)
 
 # Builds the TypeScript app (app/) and publishes a GitHub release v<version> with:
 #   kanjikodama-<version>.apk      the signed Android app (app.kanjikodama.wk, installs over the phone's)
+#   kanjikodama-<version>-web.apk  the same app as app.kanjikodama.wk.web, installs next to it
 #   kanjikodama-<version>-pwa.zip  the web app (PWA) build, app/dist
 # Manual only. The version must equal app/package.json's and be higher than every v* tag, so a
 # release can never reuse or go back to an old version (app/scripts/release/version.ts, tested in
@@ -108,21 +109,25 @@ jobs:
       - name: Check (typecheck, tests, leak check, build)
         run: npm run check
 
-      - name: Build the APK
+      - name: Build the APKs
         env:
           VERSION_CODE: ${{ steps.version.outputs.version_code }}
-        run: sh scripts/release-android.sh --version-code "$VERSION_CODE"
+        run: |
+          sh scripts/release-android.sh --version-code "$VERSION_CODE"
+          sh scripts/release-android.sh --version-code "$VERSION_CODE" --side-by-side
 
       - name: Verify the signing certificate
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
-          cert="$("$apksigner" verify --print-certs "release/kanjikodama-$VERSION.apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-          if [ "$cert" != "$EXPECTED_CERT_SHA256" ]; then
-            echo "::error::The APK is signed with certificate $cert, not the release key's."
-            exit 1
-          fi
+          for apk in "release/kanjikodama-$VERSION.apk" "release/kanjikodama-$VERSION-web.apk"; do
+            cert="$("$apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            if [ "$cert" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::$apk is signed with certificate $cert, not the release key's."
+              exit 1
+            fi
+          done
 
       - name: Package the web app
         env:
@@ -137,6 +142,7 @@ jobs:
         run: |
           gh release create "v$VERSION" \
             "release/kanjikodama-$VERSION.apk" \
+            "release/kanjikodama-$VERSION-web.apk" \
             "release/kanjikodama-$VERSION-pwa.zip" \
             --target "$GITHUB_SHA" \
             --title "KanjiKodama $VERSION" \
