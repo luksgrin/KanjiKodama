@@ -471,3 +471,25 @@ export async function watchSessionStandIns(page: Page): Promise<{ seen(): Promis
   });
   return { seen: () => page.evaluate(() => (window as Window & { __kkStandIns?: string[] }).__kkStandIns ?? []) };
 }
+
+/**
+ * The item headline follows Java's SubjectInfoHeadlineView rule: the wide layout (tile on its own row)
+ * when the tile's text is at least 40 % of the screen width minus 80 px (15 % with pitch accent), else
+ * the tile at the left; and the text column never shrinks to a sliver.
+ */
+export async function expectJavaHeadline(page: Page, label: string): Promise<void> {
+  // The last one: a screen sliding out (Java's 150 ms transition) may still show the previous item.
+  const head = page.locator('.kk-headline').last();
+  await expect(head).toBeVisible();
+  const measure = () => head.evaluate((el) => {
+    const text = (el.querySelector('.kk-subject-tile > .kk-ja') as HTMLElement | null)?.offsetWidth ?? 0;
+    const pitch = el.querySelector('.kk-pitch-diagram') !== null;
+    const col = (el.querySelector('.kk-headline-text') as HTMLElement | null)?.offsetWidth ?? 0;
+    const max = window.innerWidth - 80;
+    const javaWide = text * 10 >= max * 4 || (pitch && text * 20 >= max * 3);
+    return { text, col, head: (el as HTMLElement).offsetWidth, screen: window.innerWidth, wide: el.classList.contains('kk-headline--wide'), javaWide };
+  });
+  await expect.poll(async () => { const m = await measure(); return m.wide === m.javaWide; }, { message: `${label}: Java's narrow/wide layout`, timeout: 3000 }).toBe(true);
+  const m = await measure();
+  expect(m.col / m.head, `${label}: headline text column (tile text ${m.text} px, screen ${m.screen} px)`).toBeGreaterThanOrEqual(0.25);
+}

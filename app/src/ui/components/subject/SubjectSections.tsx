@@ -7,7 +7,7 @@
  * subjects).
  */
 import './subject.css';
-import { useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { Content, ContentSubject } from '../../../core/content';
 import type { Preferences } from '../../../core/settings';
 import type { SrsSystem } from '../../../core/srs';
@@ -53,6 +53,47 @@ export interface HeadlineProps {
 
 const NO_PREFS: Preferences = {};
 
+/**
+ * SubjectInfoHeadlineView.layoutSubject: the wide layout (title, then the tile centred on its own row,
+ * then meanings and readings beside the buttons column) when the tile's text is at least 40 % of the
+ * screen width minus 80 dp, or 15 % with pitch accent; else the narrow one (the tile at the left).
+ */
+export function isWideHeadline(textWidthPx: number, screenWidthPx: number, withPitch: boolean): boolean {
+  const maxWidthPx = screenWidthPx - 80;
+  return textWidthPx * 10 >= maxWidthPx * 4 || (withPitch && textWidthPx * 20 >= maxWidthPx * 3);
+}
+
+/**
+ * Measures the tile's text (its size doesn't depend on the layout: it comes from the page width), from
+ * the header, which stays the same element in both layouts (the tile is re-created when the layout
+ * changes). `offsetWidth` ignores the screen transitions' transforms; 0 (not laid out) is skipped.
+ */
+function useWideHeadline(enabled: boolean, withPitch: boolean, key: string) {
+  const headRef = useRef<HTMLElement>(null);
+  const [wide, setWide] = useState(false);
+  useLayoutEffect(() => {
+    const head = headRef.current;
+    if (!enabled || head === null) {
+      setWide(false);
+      return;
+    }
+    const update = () => {
+      const text = head.querySelector<HTMLElement>('.kk-subject-tile > .kk-ja');
+      if (text === null || text.offsetWidth === 0) return;
+      setWide(isWideHeadline(text.offsetWidth, window.innerWidth, withPitch));
+    };
+    update();
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+    ro?.observe(head);
+    window.addEventListener('resize', update);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [enabled, withPitch, key]);
+  return { headRef, wide };
+}
+
 /** Title tile, "Level N kanji", meanings, readings (or pitch accent) and the audio slot. */
 export function Headline({
   subject,
@@ -70,29 +111,51 @@ export function Headline({
   const chars = subjectGlyphCount(subject);
   const tileStyle = { fontSize: `min(${maxFontSize}px, calc((100cqi - 112px) / ${chars}))` };
   const blocks = pitchInfo !== null && showReadingAnswers ? pitchBlocks(subject, pitchInfo) : [];
-  return (
-    <header className="kk-headline">
-      {maxFontSize > 0 && (
-        <div className={`kk-subject-tile kk-type--${subject.object} kk-longpress`} lang="ja" style={tileStyle} data-testid="subject-tile" {...press.handlers}>
-          <span className="kk-ja"><SubjectChars subject={subject} /></span>
-        </div>
+  const { headRef, wide } = useWideHeadline(maxFontSize > 0, blocks.length > 0, `${subject.id} ${maxFontSize}`);
+  const title = <div className="kk-headline-title">{simpleInfoTitle(subject.object, level)}</div>;
+  const tile = maxFontSize > 0 && (
+    <div className={`kk-subject-tile kk-type--${subject.object} kk-longpress`} lang="ja" style={tileStyle} data-testid="subject-tile" {...press.handlers}>
+      <span className="kk-ja"><SubjectChars subject={subject} /></span>
+    </div>
+  );
+  const answers = (
+    <>
+      {showMeaningAnswers && subject.meanings.length > 0 && (
+        <WkMarkup as="div" className="kk-headline-meaning" html={meaningHtml(subject)} />
       )}
+      {blocks.length > 0
+        ? blocks.map((b, i) => <PitchAccent key={i} kana={b.kana} infos={b.infos} fontSize={fontSize + 4} />)
+        : showReadingAnswers &&
+          subject.readings.length > 0 && (
+            <div className="kk-headline-reading kk-ja" lang="ja">
+              <WkMarkup html={regularReadingHtml(subject, showOnInKatakana)} />
+            </div>
+          )}
+    </>
+  );
+  const buttons = audio !== undefined && audio !== null && <div className="kk-headline-buttons">{audio}</div>;
+  if (wide) {
+    return (
+      <header ref={headRef} className="kk-headline kk-headline--wide" data-testid="headline-wide">
+        {title}
+        {tile}
+        {press.node}
+        <div className="kk-headline-row">
+          <div className="kk-headline-text">{answers}</div>
+          {buttons}
+        </div>
+      </header>
+    );
+  }
+  return (
+    <header ref={headRef} className="kk-headline">
+      {tile}
       {press.node}
       <div className="kk-headline-text">
-        <div className="kk-headline-title">{simpleInfoTitle(subject.object, level)}</div>
-        {showMeaningAnswers && subject.meanings.length > 0 && (
-          <WkMarkup as="div" className="kk-headline-meaning" html={meaningHtml(subject)} />
-        )}
-        {blocks.length > 0
-          ? blocks.map((b, i) => <PitchAccent key={i} kana={b.kana} infos={b.infos} fontSize={fontSize + 4} />)
-          : showReadingAnswers &&
-            subject.readings.length > 0 && (
-              <div className="kk-headline-reading kk-ja" lang="ja">
-                <WkMarkup html={regularReadingHtml(subject, showOnInKatakana)} />
-              </div>
-            )}
+        {title}
+        {answers}
       </div>
-      {audio !== undefined && audio !== null && <div className="kk-headline-buttons">{audio}</div>}
+      {buttons}
     </header>
   );
 }

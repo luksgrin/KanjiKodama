@@ -84,6 +84,13 @@
 .kk-headline-reading { font-size: 1.25em; line-height: 1.25; padding: var(--fp-top) 0 var(--fp-bottom); }
 .kk-headline-buttons { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2, 8px); max-width: 45%; }
 .kk-headline-buttons .kk-reveal-btn { white-space: nowrap; }
+/* subject_info_headline_wide.xml: the title and the tile centred (tile 4 dp below the title), then the
+   meanings and readings at the left and the buttons column at the right, 8 dp below the tile. */
+.kk-headline--wide { flex-direction: column; align-items: stretch; gap: 0; }
+.kk-headline--wide > .kk-headline-title { align-self: center; text-align: center; }
+.kk-headline--wide > .kk-subject-tile { align-self: center; margin-top: 4px; }
+.kk-headline-row { display: flex; align-items: flex-start; gap: var(--space-2, 8px); margin-top: 8px; }
+.kk-headline-row > .kk-headline-buttons { margin-right: -4px; }
 
 /* The headline's audio button: a flat grey chip with the speaker icon. */
 .kk-audio-btn {

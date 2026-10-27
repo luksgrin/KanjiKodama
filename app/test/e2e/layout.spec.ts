@@ -5,7 +5,8 @@
  * Java closes the keyboard and Next is pinned at the bottom of the screen.
  */
 import { expect, test } from '@playwright/test';
-import { answer, checkQuickActions, checkScreen, keyboardTopFor, openApp, quiz, restoreFile, tab } from './helpers/app';
+import { answer, checkQuickActions, checkScreen, expectJavaHeadline, keyboardTopFor, openApp, quiz, restoreFile, tab } from './helpers/app';
+import { subjectsAt } from './helpers/content';
 import { writeReviewSeed } from './helpers/progress';
 
 test('main screens', async ({ page }, info) => {
@@ -96,4 +97,14 @@ test('main screens', async ({ page }, info) => {
   await checkScreen(page, info, 'L22-font-import', { strict: true });
   await openApp(page, '/settings?screen=other_settings');
   await checkScreen(page, info, 'L23-settings-other-full', { strict: true, fullPage: true });
+});
+
+test('item headline: Java narrow/wide layout, text never a sliver', async ({ page }) => {
+  await openApp(page);
+  const vocab = (await subjectsAt(1, 'vocabulary')).filter((s) => [...(s.characters ?? '')].length >= 2);
+  const kanji = await subjectsAt(1, 'kanji');
+  for (const s of [vocab[0]!, kanji[0]!]) {
+    await page.goto(`./#/subject/${s.id}`);
+    await expectJavaHeadline(page, `item ${s.characters}`);
+  }
 });
