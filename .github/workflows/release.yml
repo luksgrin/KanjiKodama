@@ -6,6 +6,7 @@ name: Release (manual)
 #   kanjikodama-<version>.apk      the signed Android app (app.kanjikodama.wk, installs over the phone's)
 #   kanjikodama-<version>-web.apk  the same app as app.kanjikodama.wk.web, installs next to it
 #   kanjikodama-<version>-pwa.zip  the web app (PWA) build, app/dist
+#   SHA256SUMS                     their checksums (the Android app's in-app update checks its download)
 # Manual only. The version must equal app/package.json's and be higher than every v* tag, so a
 # release can never reuse or go back to an old version (app/scripts/release/version.ts, tested in
 # app/test/release/). The Android versionCode is derived from the version.
@@ -149,6 +150,15 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: (cd dist && zip -qr "../release/kanjikodama-$VERSION-pwa.zip" .)
 
+      # The app's in-app update downloads its APK and checks it against this list.
+      - name: Write the checksums
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cd release
+          sha256sum "kanjikodama-$VERSION.apk" "kanjikodama-$VERSION-web.apk" "kanjikodama-$VERSION-pwa.zip" > SHA256SUMS
+          cat SHA256SUMS
+
       - name: Create the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -159,6 +169,7 @@ jobs:
             "release/kanjikodama-$VERSION.apk" \
             "release/kanjikodama-$VERSION-web.apk" \
             "release/kanjikodama-$VERSION-pwa.zip" \
+            "release/SHA256SUMS" \
             --target "$GITHUB_SHA" \
             --title "KanjiKodama $VERSION" \
             --notes "Android versionCode $VERSION_CODE. Web app: https://luksgrin.xyz/KanjiKodama/" \

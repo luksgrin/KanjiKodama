@@ -1,0 +1,2 @@
+/* The update dialog's progress bar (UpdateDialog.tsx). */
+.kk-update-progress { display: block; width: 100%; margin: var(--space-2, 8px) 0; }

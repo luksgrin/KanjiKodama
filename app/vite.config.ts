@@ -9,7 +9,10 @@ import { readFileSync } from 'node:fs';
 const cert = process.env.KK_HTTPS_CERT;
 const key = process.env.KK_HTTPS_KEY;
 const https = cert && key ? { cert: readFileSync(cert), key: readFileSync(key) } : undefined;
-const appVersion = (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }).version;
+// KK_APP_VERSION overrides it for test builds only (the in-app update test builds an "older" and a
+// "newer" app from the same sources); releases use package.json's version.
+const appVersion = process.env.KK_APP_VERSION
+  ?? (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }).version;
 
 /**
  * Start-up: a <link rel=preload> for the hashed sql.js wasm, so its download starts with the HTML

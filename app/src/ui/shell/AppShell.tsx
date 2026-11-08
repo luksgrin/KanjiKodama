@@ -13,6 +13,7 @@ import { handleBack } from '../../app/back';
 import { useApp, useAppState } from '../hooks/useApp';
 import { useLocation, useRoute } from '../hooks/useRoute';
 import { preloadScreen, SCREENS } from '../screens';
+import { UpdateDialog } from '../update/UpdateDialog';
 import { KeyboardDiagnosticsOverlay } from './KeyboardDiagnosticsOverlay';
 import { StartupScreen } from './StartupScreen';
 import { ToolbarView } from './ToolbarView';
@@ -108,6 +109,8 @@ export function AppShell() {
       </main>
       {/* Hidden keyboard diagnostics (About → seven taps on the version): the last log lines. */}
       <KeyboardDiagnosticsOverlay />
+      {/* Android: the app's own update (start-up check, offer, download, install). */}
+      <UpdateDialog />
     </div>
   );
 }

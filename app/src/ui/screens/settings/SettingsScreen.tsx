@@ -16,6 +16,7 @@ import { paths } from '../../routes';
 import { useToolbar } from '../../shell/toolbar';
 import { toast } from '../../shell/toast';
 import { InstallHint } from '../about/InstallHint';
+import { useUpdateController } from '../../update/UpdateDialog';
 import { useCurriculumFlow } from '../curriculum/curriculumFlow';
 import { useFastTravelFlow } from '../fastTravel/fastTravelFlow';
 import { useImportFlow } from '../import/importFlow';
@@ -25,8 +26,10 @@ import { FONT_IMPORT_SCREEN, FONT_SCREEN_TITLES, FONT_SELECTION_SCREEN, FontImpo
 import {
   ADVANCED_CATEGORY_TITLE,
   ADVANCED_GROUPS,
+  APP_UPDATES_CATEGORY_TITLE,
   ENABLE_ADVANCED,
   SETTINGS_SCREENS,
+  UPDATE_CHECK_AT_START,
   XML_DEFAULT_DIFFERS_FROM_GETTER,
   findGroup,
   groupTitle,
@@ -98,6 +101,20 @@ function useNotificationActions(): Actions {
   };
 }
 
+/** Android: the start-up check switch and "Check for updates now" (ui/update). */
+function AppUpdatesCategory({ write }: { write: ReturnType<typeof useSettingWriter>['write'] }) {
+  const { state } = useReady();
+  const updates = useUpdateController();
+  if (updates === null) return null;
+  return (
+    <PrefCategory title={APP_UPDATES_CATEGORY_TITLE} testId="category-app-updates">
+      <SettingRow row={UPDATE_CHECK_AT_START} prefs={state.prefs} write={write} />
+      <PrefRow title="Check for updates now" summary={`You have KanjiKodama ${__APP_VERSION__}`} testId="update-check-now"
+        onClick={() => void updates.check(true)} />
+    </PrefCategory>
+  );
+}
+
 function Root({ alerts, flows, write }: {
   alerts: Alerts; flows: { curriculum: () => void; fastTravel: () => void; import: () => void }; write: ReturnType<typeof useSettingWriter>['write'];
 }) {
@@ -136,6 +153,7 @@ function Root({ alerts, flows, write }: {
       </PrefCategory>
       <ProgressCategory alerts={alerts} flows={flows} />
       <OtherActionsCategory alerts={alerts} onResetTutorials={resetTutorials} />
+      <AppUpdatesCategory write={write} />
     </ul>
   );
 }

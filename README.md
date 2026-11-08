@@ -22,7 +22,7 @@ offline, on Android and iPhone.**
 
 | | |
 |---|---|
-| 🤖 **Android** | Download `kanjikodama-<version>.apk` from the [latest release](https://github.com/luksgrin/KanjiKodama/releases/latest) and open it (allow installing from your browser or file manager when Android asks). Updates install over it and keep your progress. Android 7.0 or newer. |
+| 🤖 **Android** | Download `kanjikodama-<version>.apk` from the [latest release](https://github.com/luksgrin/KanjiKodama/releases/latest) and open it (allow installing from your browser or file manager when Android asks). From then on the app updates itself: when a new version is out it offers to download and install it, and you confirm with a tap; your progress stays. (Versions before 0.6.2 can't do this yet: install 0.6.2 or later by hand once.) Android 7.0 or newer. |
 | 🍎 **iPhone / iPad** | Open [luksgrin.xyz/KanjiKodama](https://luksgrin.xyz/KanjiKodama/) in Safari, tap **Share**, then **Add to Home Screen**. |
 | 💻 **Any browser** | Just open [luksgrin.xyz/KanjiKodama](https://luksgrin.xyz/KanjiKodama/). Chrome and Edge can install it as an app too. |
 

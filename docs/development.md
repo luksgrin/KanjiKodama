@@ -8,8 +8,8 @@ How the app is built, tested and released. For what the app is and how to instal
 **Releases** come from the manual **Release** workflow (`.github/workflows/release.yml`: GitHub →
 Actions → Release (manual) → Run workflow, or `gh workflow run release.yml -f version=0.6.1`). It
 publishes a GitHub release `v<version>` with the signed APK (`kanjikodama-<version>.apk`), the
-side-by-side APK (`kanjikodama-<version>-web.apk`, id `app.kanjikodama.wk.web`) and the web app build
-(`kanjikodama-<version>-pwa.zip`), and deploys the web app to GitHub Pages at
+side-by-side APK (`kanjikodama-<version>-web.apk`, id `app.kanjikodama.wk.web`), the web app build
+(`kanjikodama-<version>-pwa.zip`) and `SHA256SUMS` (their checksums, `sha256sum` format), and deploys the web app to GitHub Pages at
 <https://luksgrin.xyz/KanjiKodama/>. The builds contain the WaniKani content, which the owner has
 WaniKani's permission to publish. To release:
 
@@ -39,6 +39,34 @@ installs over the previous one and keeps its data. Android 7.0 (API 24) or newer
 the progress file is the way back: save progress (to Google Drive, or copy it off the phone:
 uninstalling deletes the app's own files in Downloads), uninstall, install the older APK from its
 GitHub release, and restore the file (Settings → Progress → Restore progress from a file).
+
+### In-app updates (Android)
+
+The Android app updates itself from these releases (`app/src/core/update/` decides,
+`app/src/ui/update/` shows the dialog, `UpdaterPlugin.java` downloads and installs):
+
+- At start-up (at most once a day, Settings → App updates → "Check for a new version at start") and
+  on "Check for updates now", it reads `https://api.github.com/repos/luksgrin/KanjiKodama/releases/latest`
+  (unauthenticated; nothing about the user is sent).
+- A newer release of the same major version with this app's APK (`kanjikodama-<v>.apk`, or
+  `-web.apk` for the side-by-side app) and `SHA256SUMS` is offered: Update / Later ("Later" quiets
+  that version at start-up for a day). A new major version, or a release without those assets, only
+  gets a notice with a link to the release page.
+- Update downloads the APK into the app's cache, checks its SHA-256 against `SHA256SUMS`, and checks
+  that it is this app, signed with this app's certificate and with a higher versionCode, before
+  anything is installed. Then a PackageInstaller session hands it to Android, which asks the user
+  to confirm and closes the app to replace it (data and settings stay). The first time, Android
+  also asks to allow installs from KanjiKodama ("Install unknown apps"); the app explains and opens
+  that screen.
+- A release made without `SHA256SUMS` (v0.6.1 and earlier) can't be installed in the app.
+
+**Testing it on an emulator** (debug builds only; release builds aren't debuggable and ignore it):
+build an "older" and a "newer" debug APK from the same sources with `KK_APP_VERSION=<v> npm run build`
+and `./gradlew assembleDebug -PsideBySide -PversionName=<v> -PversionCode=<n>`, serve a fake
+`latest.json` (GitHub's release JSON with `tag_name` and `assets`), the newer APK and its
+`SHA256SUMS` from the Mac, then on the device `adb reverse tcp:8765 tcp:8765` and
+`adb shell setprop debug.kk.update_url http://127.0.0.1:8765/latest.json`. Debug builds allow plain
+HTTP to 127.0.0.1 (`app/android/app/src/debug/`) for this.
 
 ## Building
 

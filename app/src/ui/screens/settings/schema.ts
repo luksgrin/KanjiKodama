@@ -166,6 +166,12 @@ const list = (key: string, title: string, options: Options, def: string, extra: 
 const taggedUrl = (key: string, title: string, def = '', defaultTag = ''): TaggedUrlSetting => ({ type: 'taggedUrl', key, title, default: def, defaultTag });
 const adv = <T extends SettingDef | InfoRow>(r: T): T => ({ ...r, advanced: true });
 
+/** The Android app's self-update (Settings → App updates; ui/update). */
+export const UPDATE_CHECK_AT_START: BoolSetting = bool('update_check_at_start', 'Check for a new version at start', true, {
+  requires: 'selfUpdate', summary: 'At most once a day, from GitHub. Nothing about you is sent.',
+});
+export const APP_UPDATES_CATEGORY_TITLE = 'App updates';
+
 export const ENABLE_ADVANCED: BoolSetting = bool('enable_advanced', 'Enable advanced settings', false, { summary: 'Only for experienced users!' });
 
 // ---- The advanced keys (`PreferenceCategory "advanced"`) ---------------------------------------

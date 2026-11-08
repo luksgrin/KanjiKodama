@@ -34,6 +34,11 @@ export interface Capabilities {
    * MediaPlayer): Android. Browsers can't ask other players to pause.
    */
   audioFocus?: boolean;
+  /**
+   * The app downloads and installs its own updates from GitHub releases (`platform.updater`):
+   * Android. The web build updates through its service worker instead.
+   */
+  selfUpdate?: boolean;
 }
 
 export type { ReviewTime } from '../core/notifications';
@@ -283,6 +288,53 @@ export interface BackgroundSyncApi {
   status?(): Promise<{ scheduled: boolean; lastRunAt: number; lastResult: string | null }>;
 }
 
+/** The running Android app, for the update check. */
+export interface UpdaterInfo {
+  /** The installed application id (`app.kanjikodama.wk`, or `.web` side by side). */
+  appId: string;
+  versionCode: number;
+  versionName: string;
+  /** "Install unknown apps" is allowed for this app (always true before Android 8). */
+  canInstall: boolean;
+  /** Debug builds only (`adb shell setprop debug.kk.update_url …`): a test release JSON to check instead. */
+  testReleaseUrl: string | null;
+}
+
+/**
+ * Why a download or install was refused (`UpdaterError.code`): the checksum didn't match, the APK is
+ * another app, is signed with another key or isn't newer, the network failed, installs aren't
+ * allowed yet, or Android's installer failed.
+ */
+export type UpdaterErrorCode = 'CHECKSUM' | 'NOT_THIS_APP' | 'SIGNATURE' | 'NOT_NEWER' | 'NETWORK' | 'PERMISSION' | 'INSTALL' | 'UNKNOWN';
+
+export class UpdaterError extends Error {
+  constructor(readonly code: UpdaterErrorCode, message: string) {
+    super(message);
+    this.name = 'UpdaterError';
+  }
+}
+
+/** Status of an install after it was handed to Android (`install`). */
+export type InstallStatus = { status: 'confirming' | 'installed' | 'cancelled' } | { status: 'failed'; message?: string };
+
+/** The app's self-update (Android, capability `selfUpdate`). The page decides what to offer (core/update). */
+export interface UpdaterApi {
+  info(): Promise<UpdaterInfo>;
+  /**
+   * Download the APK into the app's cache, check its SHA-256 against `sha256`, and check it is this
+   * app, signed with this app's key, and newer. Rejects with `UpdaterError`.
+   */
+  download(url: string, sha256: string, onProgress?: (received: number, total: number) => void): Promise<{ path: string; versionCode: number }>;
+  /** Open "Install unknown apps" for this app; resolves with whether installs are allowed now. */
+  openInstallSettings(): Promise<boolean>;
+  /** Hand the downloaded APK to Android's installer (it asks the user to confirm). */
+  install(path: string): Promise<void>;
+  /** Install statuses after `install`; returns an unsubscribe function. */
+  onInstallStatus(cb: (s: InstallStatus) => void): () => void;
+  /** Delete the downloaded APK. */
+  cleanup(): Promise<void>;
+}
+
 export interface Platform {
   readonly name: PlatformName;
   readonly capabilities: Capabilities;
@@ -301,6 +353,8 @@ export interface Platform {
   readonly widget?: WidgetApi;
   /** Android only (capability `backgroundSync`). */
   readonly backgroundSync?: BackgroundSyncApi;
+  /** Android only (capability `selfUpdate`). */
+  readonly updater?: UpdaterApi;
 }
 
 let cached: Promise<Platform> | undefined;

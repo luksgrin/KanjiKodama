@@ -8,6 +8,7 @@ import { androidAudio } from './androidAudio';
 import { androidBackgroundSync } from './androidBackgroundSync';
 import { androidSecrets } from './androidSecrets';
 import { androidWidget } from './androidWidget';
+import { androidUpdater } from './androidUpdater';
 import { androidHttp } from './httpAndroid';
 import { androidHaptics, androidLifecycle, androidSystemBars } from './androidLifecycle';
 import { androidNotifications } from './androidNotifications';
@@ -40,6 +41,7 @@ const capabilities: Capabilities = {
   autoBackup: true,
   imeFlags: true, // KkWebView (keyboard input settings)
   audioFocus: true, // KkAudioPlugin (MediaPlayer + AudioFocusRequest)
+  selfUpdate: true, // UpdaterPlugin (GitHub releases)
 };
 
 /** The native Document plugin is missing (e.g. an APK built before it existed). */
@@ -148,4 +150,5 @@ export const androidPlatform: Platform = {
   secrets: androidSecrets,
   widget: androidWidget,
   backgroundSync: androidBackgroundSync,
+  updater: androidUpdater,
 };
