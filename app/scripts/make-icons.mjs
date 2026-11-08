@@ -1,4 +1,4 @@
-// Renders the PNG icons from public/icons/icon.svg (derived from app/src/main/res/drawable/ic_launcher_foreground.xml).
+// Renders the PNG icons from public/icons/icon.svg and icon-maskable.svg (both written by tools/make_logo.py).
 import sharp from 'sharp';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
