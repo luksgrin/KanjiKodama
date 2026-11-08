@@ -53,8 +53,8 @@ it online. Moving to another phone? Save your progress to a file on the old one
 KanjiKodama is made by [luksgrin](https://github.com/luksgrin), with infinite thanks to
 [Smouldering Durtles](https://github.com/jerryhcooke/smouldering_durtles) by Jerry Cooke and
 Flaming Durtles by Ernst Jan Plugge, on which it is based (both Apache License 2.0, see
-[NOTICE](NOTICE)). Lesson content comes from [WaniKani](https://www.wanikani.com/) by Tofugu, used
-with permission; open data from EDRDG (KANJIDIC2, KRADFILE, JMdict) and KanjiVG; fonts Silkscreen,
+[NOTICE](NOTICE)). Lesson content comes from [WaniKani](https://www.wanikani.com/);
+open data from EDRDG (KANJIDIC2, KRADFILE, JMdict) and KanjiVG; fonts Silkscreen,
 Pixelify Sans and Zen Maru Gothic (SIL Open Font License). The app's About screen lists everything.
 
 KanjiKodama is not affiliated with or endorsed by Tofugu or WaniKani.
