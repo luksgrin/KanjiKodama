@@ -135,7 +135,9 @@ jobs:
         run: |
           apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
           for apk in "release/kanjikodama-$VERSION.apk" "release/kanjikodama-$VERSION-web.apk"; do
-            cert="$("$apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            # "Signer #1 certificate SHA-256 digest: …" or, in newer build tools, "V2 Signer: certificate
+            # SHA-256 digest: …": every signer listed must be the release key.
+            cert="$("$apksigner" verify --print-certs "$apk" | sed -n 's/^.*certificate SHA-256 digest: //p' | sort -u)"
             if [ "$cert" != "$EXPECTED_CERT_SHA256" ]; then
               echo "::error::$apk is signed with certificate $cert, not the release key's."
               exit 1
