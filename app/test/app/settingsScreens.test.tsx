@@ -513,6 +513,8 @@ describe('about', () => {
     expect($(el, 'about-wanikani')).not.toBeNull();
     expect([...$(el, 'about-fonts')!.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toContain('/licenses/OFL-silkscreen.txt');
     expect($(el, 'install-steps')!.textContent).toContain('Add to Home Screen');
+    const apk = $(el, 'android-app-download') as HTMLAnchorElement;
+    expect(apk.href).toBe(`https://github.com/luksgrin/KanjiKodama/releases/download/v${__APP_VERSION__}/kanjikodama-${__APP_VERSION__}.apk`);
     expect(el.textContent).toContain('No review notifications.');
     expect($(el, 'storage-info')).not.toBeNull();
     app.dispose();
@@ -521,6 +523,7 @@ describe('about', () => {
   it('has no install section on Android and the hint can be dismissed on the web', async () => {
     const android = await render('/settings/about', { caps: { audio: true, audioPlayback: true, audioDownload: true, notifications: true, autoBackup: true, backgroundSync: true, cleartextHttp: true } });
     expect($(android.el, 'install-section')).toBeNull();
+    expect($(android.el, 'android-app')).toBeNull();
     expect(android.el.textContent).toContain('No known limitations in this build.');
     android.app.dispose();
     act(() => root?.unmount());

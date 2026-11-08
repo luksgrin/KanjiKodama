@@ -3,7 +3,17 @@
  * not when the app already runs from the home screen.
  */
 import { useApp, useReady } from '../../hooks/useApp';
-import { INSTALL_BENEFIT, INSTALL_HINT_DISMISSED_KEY, INSTALL_STEPS, isWebBuild, useInstall } from './install';
+import { ANDROID_APP_TEXT, INSTALL_BENEFIT, INSTALL_HINT_DISMISSED_KEY, INSTALL_STEPS, androidApkUrl, isWebBuild, useInstall } from './install';
+
+/** The Android app's download link (the APK of this version). */
+function AndroidApp() {
+  return (
+    <p className="kk-small kk-android-app" data-testid="android-app">
+      {ANDROID_APP_TEXT}{' '}
+      <a href={androidApkUrl(__APP_VERSION__)} data-testid="android-app-download" rel="noopener">Download the Android app ({__APP_VERSION__})</a>
+    </p>
+  );
+}
 
 function InstallActions() {
   const install = useInstall();
@@ -18,6 +28,7 @@ function InstallActions() {
         {INSTALL_STEPS.map((t) => <li key={t}>{t}</li>)}
       </ul>
       <p className="kk-small kk-muted">{INSTALL_BENEFIT}</p>
+      <AndroidApp />
     </>
   );
 }
@@ -30,7 +41,7 @@ export function InstallSection() {
   return (
     <section data-testid="install-section" aria-labelledby="about-install">
       <h4 id="about-install">Install</h4>
-      {install.standalone ? <p className="kk-small">Running from the home screen.</p> : <InstallActions />}
+      {install.standalone ? <><p className="kk-small">Running from the home screen.</p><AndroidApp /></> : <InstallActions />}
     </section>
   );
 }

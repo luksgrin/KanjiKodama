@@ -39,7 +39,7 @@ jobs:
       run:
         working-directory: app
     env:
-      # The release key's certificate (README "Signing"): an APK signed with any other key can't
+      # The release key's certificate (docs/development.md, "Signing"): an APK signed with any other key can't
       # update the app on the phone.
       EXPECTED_CERT_SHA256: 1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741
     steps:

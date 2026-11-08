@@ -42,6 +42,16 @@ export const INSTALL_STEPS: readonly string[] = [
   'Android, Samsung Internet or Firefox: open the menu and choose Add page to / Add to Home screen.',
 ];
 
+/**
+ * The Android app (APK) of the same release as this web build, from the GitHub release the release
+ * workflow publishes (`v<version>/kanjikodama-<version>.apk`), so the two always match.
+ */
+export function androidApkUrl(version: string): string {
+  return `https://github.com/luksgrin/KanjiKodama/releases/download/v${version}/kanjikodama-${version}.apk`;
+}
+
+export const ANDROID_APP_TEXT = 'On Android you can also install the app itself: it adds the home-screen widget, review notifications and automatic backups.';
+
 export const INSTALL_BENEFIT = 'Installed, the web app opens full screen, works offline and its storage is less likely to be cleared.';
 
 /** The PWA (not the Capacitor build). */
