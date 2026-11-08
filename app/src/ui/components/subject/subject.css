@@ -1,0 +1,338 @@
+/*
+ * Item page (ui/components/subject). Theme tokens from ui/theme/tokens.css (fallbacks for use without
+ * it). The pitch accent colors are the theme's pitchInfo*Color (--color-pitch-*), stroke ghosts its
+ * strokeDiagramGhostColor (--color-stroke-ghost).
+ */
+.kk-item {
+  /* subject_info.xml is a vertical LinearLayout: every view has its own top margin and nothing
+     collapses (a flex column does the same). */
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text, #2E4756);
+  /* Java TextViews: no extra line spacing, each line as tall as the fonts on it (Pixelify Sans 1.2 em,
+     a line with Japanese text grows to the CJK face's ~1.45 em): CSS line-height normal does the same. */
+  line-height: normal;
+  overflow-wrap: break-word;
+  container-type: inline-size;
+}
+
+.kk-item .kk-ja,
+.kk-item :lang(ja) {
+  font-family: var(--font-ja);
+  font-weight: 400;
+}
+/* Android's CJK face has one weight: draw <b> (the primary reading) heavier, as Android's fake bold.
+   Java's Pixelify Sans bold is fake bold too (same advances as regular), so long bold meanings wrap
+   where Java's do; the section headers keep the real bold. */
+.kk-item .kk-headline b {
+  font-weight: 400;
+  -webkit-text-stroke: 0.035em currentColor;
+  paint-order: stroke fill;
+}
+.kk-item b:lang(ja),
+.kk-item .kk-ja b {
+  -webkit-text-stroke: 0.035em currentColor;
+  paint-order: stroke fill;
+}
+
+.kk-item p { margin: 4px 0 0; padding: var(--fp-top) 0 var(--fp-bottom); }
+.kk-item .kk-subject-divider {
+  flex: none;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--color-divider, #BFD9CB);
+  margin: 4px 0 0;
+}
+.kk-item .kk-subject-section { margin: 0; display: flex; flex-direction: column; }
+.kk-item .kk-subject-section-header {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: inherit;
+  margin: 4px 0 0;
+  padding: var(--fp-top) 0 var(--fp-bottom);
+}
+
+/* Headline (subject_info_headline_narrow.xml): the big title tile, "Level 3 kanji", the meanings and
+   readings (20 sp), the buttons column at the right. */
+.kk-headline {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2, 8px);
+  margin-bottom: var(--space-1, 4px);
+}
+.kk-subject-tile {
+  flex: none;
+  text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView: setShadowLayer(3, 1, 1, black) */
+  /* SubjectInfoButtonView: 12 dp top, 8 dp bottom, 16 dp sides. */
+  min-width: 1em;
+  padding: 12px 16px 8px;
+  border: 0;
+  border-radius: 12px; /* small_rounded_corners */
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  /* Font size set inline: min(max_font_size_*, width that fits). Glyph box = font size, as Java. */
+  font-size: 64px;
+  line-height: 1;
+  text-align: center;
+  color: var(--color-on-subject, #2E4756);
+}
+.kk-headline-text { flex: 1; min-width: 0; }
+.kk-headline-title { font-size: 1em; color: inherit; padding: var(--fp-top) 0 var(--fp-bottom); }
+.kk-headline-meaning,
+.kk-headline-reading { font-size: 1.25em; line-height: 1.25; padding: var(--fp-top) 0 var(--fp-bottom); }
+.kk-headline-buttons { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2, 8px); max-width: 45%; }
+.kk-headline-buttons .kk-reveal-btn { white-space: nowrap; }
+/* subject_info_headline_wide.xml: the title and the tile centred (tile 4 dp below the title), then the
+   meanings and readings at the left and the buttons column at the right, 8 dp below the tile. */
+.kk-headline--wide { flex-direction: column; align-items: stretch; gap: 0; }
+.kk-headline--wide > .kk-headline-title { align-self: center; text-align: center; }
+.kk-headline--wide > .kk-subject-tile { align-self: center; margin-top: 4px; }
+.kk-headline-row { display: flex; align-items: flex-start; gap: var(--space-2, 8px); margin-top: 8px; }
+.kk-headline-row > .kk-headline-buttons { margin-right: -4px; }
+
+/* The headline's audio button: a flat grey chip with the speaker icon. */
+.kk-audio-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  min-height: 40px;
+  padding: 0 var(--space-2, 8px);
+  border: 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-text, #2E4756) 16%, var(--color-bg, #EAF7EF));
+  color: var(--color-text, #2E4756);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.24);
+  font-size: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.kk-audio-btn svg { width: 24px; height: 24px; }
+.kk-audio-hint { font-size: var(--text-xs, 13px); color: var(--color-text-muted, #3E7F6B); }
+
+/* Subject type colors (tile, links, tags) */
+.kk-type--radical { background: var(--color-radical, #9EC9F0); }
+.kk-type--kanji { background: var(--color-kanji, #F5A9B8); }
+.kk-type--vocabulary,
+.kk-type--kana_vocabulary { background: var(--color-vocab, #C9B6F2); }
+
+/* WaniKani markup */
+.kk-wk-tag {
+  /* WaniKaniTagHandler.ButtonStyleSpan: TextPaint.bgColor (the glyphs' ascent..descent box, square,
+     no padding) and the text colour, bold. */
+  color: var(--color-on-subject, #2E4756);
+  border-radius: 0;
+  padding: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+/* ButtonStyleSpan(getSubjectTypeTextColors()[type], getSubjectTypeBackgroundColors()[type]). */
+.kk-wk-tag--radical { background: var(--color-radical, #9EC9F0); color: var(--color-radical-fg, var(--color-on-subject)); }
+.kk-wk-tag--kanji { background: var(--color-kanji, #F5A9B8); color: var(--color-kanji-fg, var(--color-on-subject)); }
+.kk-wk-tag--vocabulary,
+.kk-wk-tag--kana_vocabulary { background: var(--color-vocab, #C9B6F2); color: var(--color-vocab-fg, var(--color-on-subject)); }
+.kk-wk-tag--reading {
+  /* colorPrimaryLight on colorPrimaryDark */
+  background: var(--color-primary-dark);
+  color: var(--color-primary-light);
+}
+.kk-item .kk-big { font-size: 1.25em; }
+.kk-item .kk-tt { font-family: ui-monospace, monospace; }
+
+/* Synonyms: "My synonyms:" with a small inline "+" (40 px tap area around a 24 px square). */
+.kk-synonyms { display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--space-1, 4px); margin: 4px 0 0; }
+.kk-synonyms-text { min-width: 0; }
+.kk-add-synonym {
+  /* addSynonymButton (WK.TextView.InlineButton, 8 dp start margin, 6 dp side padding): Java's size,
+     under the 40 px tap floor (e2e exemption "add-synonym" in test/e2e/helpers/app.ts). */
+  appearance: none;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  margin: 0 0 0 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text, #2E4756);
+  font: 700 18px/1 var(--font-body, sans-serif);
+  cursor: pointer;
+}
+.kk-add-synonym > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  background: var(--color-surface, #F8FDF9);
+}
+.kk-subject-input {
+  width: 100%;
+  font: inherit;
+  color: var(--color-text, #2E4756);
+  background: var(--color-surface, #F8FDF9);
+  border: 2px solid var(--color-divider, #BFD9CB);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--space-2, 8px);
+}
+.kk-subject-input:focus { border-color: var(--color-accent, #7CC8AC); outline: none; }
+
+/* Notes editor */
+.kk-study-materials { display: flex; flex-direction: column; gap: var(--space-2, 8px); }
+.kk-study-materials-head { display: flex; align-items: center; justify-content: space-between; }
+.kk-subject-label { font-weight: 700; }
+.kk-subject-note { min-height: 5em; resize: vertical; }
+.kk-synonym-row { display: flex; align-items: center; gap: var(--space-2, 8px); }
+.kk-synonym-move { flex: none; min-width: 44px; padding-left: 11px; padding-right: 11px; }
+
+/* Context sentences */
+.kk-sentence { margin-bottom: var(--space-2, 8px); }
+.kk-sentence p { margin: 0; }
+.kk-sentence-en--hidden .kk-subject-reveal {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0 0.25em 0 0;
+  text-align: start;
+  cursor: pointer;
+  filter: blur(0.33em);
+}
+
+/* Subject cards (SubjectGridView, subject_card_*.xml): 2 dp margins, 3 dp padding, small rounded
+   corners, elevation 4 dp; floor((width + 10) / 90) columns; vocabulary rows span the width (3 columns
+   from 6). The text colours are the --color-card-ink-* tokens (SubjectCardBinder.styleCardText in the
+   KanjiKodama themes, colorPrimaryLight with a shadow in the others). */
+.kk-link-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  /* SubjectGridView (RigidGridLayout): setChildMargin(2 dp) on every side of each card, the cards' own
+     XML margins are ignored: 4 dp between cards across and down, 2 dp from the edges (measured on the
+     Java app: 11 device px apart at 420 dpi). The session screens use the same view. */
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 2px;
+}
+.kk-link {
+  --kk-card-text: var(--color-card-ink-kanji);
+  border-radius: 12px; /* SubjectCardBinder: small_rounded_corners */
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  overflow: hidden;
+  container-type: inline-size;
+}
+.kk-link.kk-type--radical { --kk-card-text: var(--color-card-ink-radical); }
+.kk-link.kk-type--vocabulary,
+.kk-link.kk-type--kana_vocabulary { --kk-card-text: var(--color-card-ink-vocab); }
+.kk-link--wide { grid-column: 1 / -1; }
+@container (min-width: 536px) {
+  .kk-link-grid .kk-link--wide { grid-column: span 3; }
+}
+.kk-link-button {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 40px;
+  border: 0;
+  background: none;
+  padding: 3px;
+  color: var(--color-on-subject, #2E4756);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+span.kk-link-button { cursor: default; }
+.kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; } /* SubjectInfoButtonView.setSizeSp(24) */
+/* SubjectInfoButtonView glyphs centre on Roboto's metrics (--font-glyph, fonts.css), not the CJK face's. */
+.kk-item .kk-subject-tile,
+.kk-item .kk-subject-tile .kk-ja,
+.kk-item .kk-link-chars,
+.kk-subject-tile,
+.kk-link-chars { font-family: var(--font-glyph); }
+.kk-link-text { display: flex; flex-direction: column; align-items: center; width: 100%; min-width: 0; }
+.kk-link-meaning,
+.kk-link-reading,
+.kk-link-progress,
+.kk-link-level { max-width: 100%; color: var(--kk-card-text); text-shadow: var(--color-card-ink-shadow); white-space: nowrap; overflow: hidden; padding: calc(0.9px + var(--fp-top)) 0 calc(0.9px + var(--fp-bottom)); } /* includeFontPadding (measured) */
+/* autoSizeTextType uniform 9..14 sp on one line. */
+.kk-link-meaning { margin-top: 4px; font-size: clamp(9px, calc(100cqi / (var(--mlen, 8) * 0.62)), 14px); }
+.kk-link-reading { font-size: 16px; line-height: 1.25; }
+.kk-link-progress,
+.kk-link-level { font-size: 14px; }
+/* subject_card_vocabulary.xml: characters left, the texts right-aligned at the right. */
+.kk-link--wide .kk-link-button { flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 7px; }
+.kk-link--wide .kk-link-chars { margin-top: 0; flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kk-link--wide .kk-link-text { align-items: flex-end; text-align: end; flex: 1; }
+.kk-link--wide .kk-link-meaning { margin-top: 0; font-size: 14px; text-overflow: ellipsis; }
+
+/* Stroke order */
+.kk-stroke-diagram {
+  appearance: none;
+  display: block;
+  padding: 0;
+  margin: 0 auto var(--space-2, 8px);
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.kk-stroke-diagram svg { display: block; }
+.kk-stroke-ghost { stroke: var(--color-stroke-ghost); } /* strokeDiagramGhostColor */
+.kk-stroke-done { stroke: var(--color-text, #2E4756); }
+.kk-stroke-tip { fill: var(--color-text, #2E4756); }
+.kk-stroke-labels { font-family: var(--font-body, sans-serif); }
+.kk-stroke-label-ghost { fill: var(--color-stroke-ghost); }
+.kk-stroke-label-done { fill: var(--color-text, #2E4756); }
+
+/* Pitch accent */
+.kk-pitch {
+  --kk-pitch-heiban: var(--color-pitch-heiban);
+  --kk-pitch-atamadaka: var(--color-pitch-atamadaka);
+  --kk-pitch-nakadaka: var(--color-pitch-nakadaka);
+  --kk-pitch-odaka: var(--color-pitch-odaka);
+  margin: var(--space-1, 4px) 0;
+}
+.kk-pitch-row { display: flex; align-items: center; gap: var(--space-2, 8px); margin-top: var(--space-1, 4px); }
+.kk-pitch-diagram { flex: none; overflow: visible; }
+.kk-pitch-kana { line-height: 1.2; }
+.kk-pitch--heiban { --kk-pitch-color: var(--kk-pitch-heiban); }
+.kk-pitch--atamadaka { --kk-pitch-color: var(--kk-pitch-atamadaka); }
+.kk-pitch--nakadaka { --kk-pitch-color: var(--kk-pitch-nakadaka); }
+.kk-pitch--odaka { --kk-pitch-color: var(--kk-pitch-odaka); }
+.kk-pitch-line { stroke: var(--kk-pitch-color); }
+.kk-pitch-dot { fill: var(--kk-pitch-color); stroke: var(--kk-pitch-color); stroke-width: 1; }
+.kk-pitch-dot--hollow { fill: var(--color-surface, #F8FDF9); }
+
+/* Details table */
+/* The details table (subject_info.xml TableLayout): labels right-aligned and bold, the value right after. */
+.kk-subject-details { border-collapse: collapse; font-size: inherit; margin: 4px auto 0 0; }
+/* detailsTable: each TableRow 2 dp from the top and start, each cell another 2 dp. */
+.kk-subject-details th { text-align: end; font-weight: 700; padding: calc(4px + var(--fp-top)) 0 var(--fp-bottom) 4px; vertical-align: top; white-space: nowrap; }
+.kk-subject-details td { padding: calc(4px + var(--fp-top)) 0 var(--fp-bottom) 2px; }
+
+/* My notes... (NotesDialog) */
+.kk-notes-dialog { width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 32px); }
+.kk-notes-dialog-body { max-height: calc(100dvh - 200px); overflow-y: auto; }
+
+/* Star rating (StarRatingView). */
+.kk-star-rating {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+.kk-star {
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--color-target);
+  cursor: pointer;
+}
+.kk-star:focus-visible {
+  outline: 2px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+}

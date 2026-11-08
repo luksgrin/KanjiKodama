@@ -1,0 +1,51 @@
+{
+ "description": "Level 1 radicals at Guru except 人 (9), an untaken lesson, so kanji 人 (444) is locked. Hiding the locked kanji 444 unlocks vocabulary 人 (2475, [444]) although 444 was never learnt; 二人 (2476, [441, 444]) waits for 二 (441) and unlocks when it passes.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 9,
+     "stage": 0
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "hideSubject",
+   "ids": [
+    444
+   ]
+  },
+  {
+   "action": "grind",
+   "lessonsWhere": {
+    "ids": [
+     441
+    ]
+   },
+   "reviewsWhere": {
+    "ids": [
+     441
+    ]
+   },
+   "until": {
+    "passed": [
+     441
+    ]
+   }
+  }
+ ]
+}

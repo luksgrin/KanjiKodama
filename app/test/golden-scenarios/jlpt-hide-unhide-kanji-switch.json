@@ -1,0 +1,62 @@
+{
+ "description": "As jlpt-hide-kanji-switch-wk-and-back, but the three kanji are unhidden again before switching to WaniKani order and back: original layout, placement level 2, backfill 0. Then hide them again (ids \"changed\"), switch to WaniKani order, unhide them there (503 at its WaniKani level 3) and switch back: the original layout again, backfill 0.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": 2,
+    "curriculum": "JLPT",
+    "levels": [
+     1
+    ],
+    "stage": 5
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 1,
+    "limit": 2
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 2,
+    "limit": 1
+   }
+  },
+  {
+   "action": "unhideSubject",
+   "ids": "changed"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "hideSubject",
+   "ids": "changed"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "unhideSubject",
+   "ids": "changed"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  }
+ ]
+}

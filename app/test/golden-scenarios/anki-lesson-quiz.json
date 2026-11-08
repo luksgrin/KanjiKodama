@@ -1,0 +1,34 @@
+{
+ "description": "Fresh start, lesson session (5 level 1 radicals) with Anki mode for lesson meanings: the quiz's first answer is graded Incorrect (re-queued, as with typing), the rest Correct; each finished radical is reported as a lesson at once.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "where": {},
+   "settings": {
+    "enable_advanced": true,
+    "anki_mode_lesson_meaning": true
+   }
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 120
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 6,
+   "answer": "ankiCorrect",
+   "rules": {
+    "meaning": [
+     "ankiIncorrect"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

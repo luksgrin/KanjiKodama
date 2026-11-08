@@ -1,0 +1,55 @@
+{
+ "description": "JLPT level 1 at Guru, user level 2: hide 440, 441 (level 1) and 503 (level 2), then switch to JLPT order while already in it: switchTo re-runs the layout anyway (504 moves to level 1, backfill 1, a lesson). Unhiding the three keeps that layout (all three at level 1), a round trip in JLPT order does not re-run it either, and a JLPT preview (a fresh layout) reports backfill 0.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": 2,
+    "curriculum": "JLPT",
+    "levels": [
+     1
+    ],
+    "stage": 5
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 1,
+    "limit": 2
+   }
+  },
+  {
+   "action": "hideSubject",
+   "where": {
+    "object": "kanji",
+    "level": 2,
+    "limit": 1
+   }
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 5
+   }
+  },
+  {
+   "action": "unhideSubject",
+   "ids": "changed"
+  },
+  {
+   "action": "exportRestore"
+  },
+  {
+   "action": "previewCurriculum",
+   "mode": "JLPT"
+  }
+ ]
+}

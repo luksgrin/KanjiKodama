@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android Auto Backup up to Android 11 (fullBackupContent). Everything is backed up (the WebView's
+     IndexedDB with the progress, files/backups/ with the rolling progress backups) except the
+     downloaded pronunciation audio, which can be downloaded again and would eat the 25 MB quota.
+     Keep in sync with data_extraction_rules.xml. -->
+<full-backup-content>
+    <exclude domain="file" path="pronunciation-audio/" />
+    <!-- Encrypted with a device-bound Keystore key: useless elsewhere (SecretStore.java). -->
+    <exclude domain="sharedpref" path="kk_secrets.xml" />
+</full-backup-content>

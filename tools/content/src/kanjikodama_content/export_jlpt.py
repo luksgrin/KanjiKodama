@@ -1,4 +1,4 @@
-"""Export the JLPT kanji list the offline app (durtles/) uses for its JLPT curriculum.
+"""Export the JLPT kanji list the app uses for its JLPT curriculum (content/inputs/jlpt-kanji.tsv).
 
 Levels come from Jonathan Waller's unofficial lists (jlpt_new). Kanji missing there fall back
 to KANJIDIC2's old four-level JLPT field (old 4 -> N5, 3 -> N4, 2 -> N3, 1 -> N1), and

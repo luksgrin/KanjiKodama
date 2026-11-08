@@ -1,0 +1,224 @@
+{
+ "description": "Restore of files whose subjects are all unknown ids: WaniKani order at user level 4 (level progression for 4), then JLPT order with probation on unknown ids only; the app stays usable (level, counts, lessons) and fast travel is not blocked, since probation rows for unknown ids are dropped.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "inline": {
+    "format": "kanjikodama-progress",
+    "version": 1,
+    "exportedAt": 1767604620000,
+    "userLevel": 4,
+    "levelProgression": [
+     {
+      "id": 9,
+      "level": 4,
+      "abandonedAt": 0,
+      "completedAt": 0,
+      "createdAt": 1767496620000,
+      "passedAt": 0,
+      "startedAt": 1767496620000,
+      "unlockedAt": 1767496620000
+     }
+    ],
+    "subjects": [
+     {
+      "id": 9540,
+      "srsStage": 5,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 1767064620000,
+      "passed": 1,
+      "availableAt": 1767639600000,
+      "meaningCorrect": 5,
+      "meaningMaxStreak": 5,
+      "meaningCurrentStreak": 5,
+      "percentageCorrect": 100
+     },
+     {
+      "id": 9541,
+      "srsStage": 1,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 0,
+      "passed": 0,
+      "availableAt": 1767600000000,
+      "meaningCorrect": 1,
+      "meaningMaxStreak": 1,
+      "meaningCurrentStreak": 1,
+      "percentageCorrect": 100
+     },
+     {
+      "id": 50000,
+      "srsStage": 3,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 0,
+      "passed": 0,
+      "availableAt": 1767600000000,
+      "meaningCorrect": 3,
+      "meaningMaxStreak": 3,
+      "meaningCurrentStreak": 3,
+      "percentageCorrect": 100,
+      "meaningNote": "n"
+     },
+     {
+      "id": 150000,
+      "srsStage": 9,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 1767064620000,
+      "passed": 1,
+      "availableAt": 1767603600000,
+      "meaningCorrect": 9,
+      "meaningMaxStreak": 9,
+      "meaningCurrentStreak": 9,
+      "percentageCorrect": 100,
+      "burnedAt": 1767568620000
+     },
+     {
+      "id": 300000,
+      "srsStage": 0,
+      "unlockedAt": 1766524620000,
+      "startedAt": 0,
+      "passedAt": 0,
+      "passed": 0,
+      "availableAt": 0,
+      "meaningCorrect": 0,
+      "meaningMaxStreak": 0,
+      "meaningCurrentStreak": 0,
+      "percentageCorrect": 100
+     }
+    ],
+    "curriculum": "WANIKANI",
+    "probation": [],
+    "jumps": []
+   }
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 3
+   }
+  },
+  {
+   "action": "exportRestore"
+  },
+  {
+   "action": "restore",
+   "inline": {
+    "format": "kanjikodama-progress",
+    "version": 1,
+    "exportedAt": 1767604620000,
+    "userLevel": 3,
+    "levelProgression": [],
+    "subjects": [
+     {
+      "id": 9540,
+      "srsStage": 5,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 1767064620000,
+      "passed": 1,
+      "availableAt": 1767639600000,
+      "meaningCorrect": 5,
+      "meaningMaxStreak": 5,
+      "meaningCurrentStreak": 5,
+      "percentageCorrect": 100
+     },
+     {
+      "id": 9541,
+      "srsStage": 1,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 0,
+      "passed": 0,
+      "availableAt": 1767600000000,
+      "meaningCorrect": 1,
+      "meaningMaxStreak": 1,
+      "meaningCurrentStreak": 1,
+      "percentageCorrect": 100
+     },
+     {
+      "id": 50000,
+      "srsStage": 3,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 0,
+      "passed": 0,
+      "availableAt": 1767600000000,
+      "meaningCorrect": 3,
+      "meaningMaxStreak": 3,
+      "meaningCurrentStreak": 3,
+      "percentageCorrect": 100,
+      "meaningNote": "n"
+     },
+     {
+      "id": 150000,
+      "srsStage": 9,
+      "unlockedAt": 1766524620000,
+      "startedAt": 1766528220000,
+      "passedAt": 1767064620000,
+      "passed": 1,
+      "availableAt": 1767603600000,
+      "meaningCorrect": 9,
+      "meaningMaxStreak": 9,
+      "meaningCurrentStreak": 9,
+      "percentageCorrect": 100,
+      "burnedAt": 1767568620000
+     },
+     {
+      "id": 300000,
+      "srsStage": 0,
+      "unlockedAt": 1766524620000,
+      "startedAt": 0,
+      "passedAt": 0,
+      "passed": 0,
+      "availableAt": 0,
+      "meaningCorrect": 0,
+      "meaningMaxStreak": 0,
+      "meaningCurrentStreak": 0,
+      "percentageCorrect": 100
+     }
+    ],
+    "curriculum": "JLPT",
+    "probation": [
+     [
+      9540,
+      1767586620000
+     ],
+     [
+      50000,
+      1767586620000
+     ]
+    ],
+    "jumps": [
+     [
+      1767586620000,
+      1,
+      3
+     ]
+    ]
+   }
+  },
+  {
+   "action": "snapshot",
+   "atHours": 80
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "until": {
+    "noProbation": true
+   },
+   "maxRounds": 2
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 3
+   }
+  }
+ ]
+}

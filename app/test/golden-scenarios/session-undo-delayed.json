@@ -1,0 +1,63 @@
+{
+ "description": "Review session with \"delay result upload\" on (3 radicals, 1 kanji): finished items stay PENDING, so Undo (UNDO_AND_RETRY_NOW) can go back three answers in a row, turning PENDING items ACTIVE again; one re-asked answer is wrong; nothing is reported until Finish, which reports every PENDING item with its own answer time (lastAnswer) 60 s later.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4
+    },
+    {
+     "id": 2,
+     "stage": 4
+    },
+    {
+     "id": 440,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {},
+   "settings": {
+    "delay_result_upload": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 4,
+   "spacingSeconds": 10
+  },
+  {
+   "action": "sessionButton",
+   "button": "UNDO_AND_RETRY_NOW",
+   "count": 3,
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "wrong",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 10,
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionFinish",
+   "advanceSeconds": 60
+  }
+ ]
+}

@@ -1,0 +1,115 @@
+/*
+ * The Java AlertDialog (AppCompat, KanjiKodama theme): window-coloured card, 2 dp corners, title
+ * 20 sp in the body font, message 16 sp, flat accent text buttons in capitals (36 dp, here 40 px
+ * for touch), radio lists as in ListPreference. Tokens only.
+ */
+.kk-alert {
+  border: 0;
+  border-radius: 2px;
+  padding: 0;
+  background: var(--color-dialog);
+  color: var(--color-text);
+  width: min(calc(100vw - 53.33px), 400px); /* measured: 26.7 dp from the screen edges */
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  box-shadow: 0 11px 15px -7px rgb(0 0 0 / 0.2), 0 24px 38px 3px rgb(0 0 0 / 0.14);
+  font-family: var(--font-body);
+  overflow: auto;
+}
+.kk-alert::backdrop { background: rgb(0 0 0 / 0.6); }
+.kk-alert-inner { padding: 18px 0 4px; display: flex; flex-direction: column; outline: none; }
+.kk-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* title_template: 18 dp above the title, 7.6 dp below it plus the 8 dp titleDividerNoCustom. */
+  margin: 0 24px 15.6px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: normal;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text);
+}
+.kk-alert-icon { flex: none; color: #FF0000; } /* ic_baseline_warning_24px fillColor */
+.kk-alert-message { margin: 0 24px; font-size: var(--text-md); line-height: normal; white-space: pre-line; overflow-wrap: anywhere; }
+.kk-alert-body { margin: 0 24px 8px; }
+.kk-alert-body p { white-space: pre-line; }
+.kk-alert-form { margin: 0 24px 8px; }
+.kk-alert-field {
+  font: inherit;
+  font-size: 18px;
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--color-accent);
+  border-radius: 0;
+  padding: 8px 2px;
+  min-height: 44px;
+  width: 100%;
+  outline: none;
+}
+.kk-alert-field.small { width: 4.5em; text-align: center; }
+.kk-alert-field::placeholder { color: var(--color-text-muted); opacity: 0.7; }
+.kk-range-fields { display: flex; justify-content: center; align-items: center; gap: 16px; }
+
+.kk-alert-buttons { display: flex; align-items: center; justify-content: flex-end; gap: 0; padding: 4px 12px 0; } /* ButtonBarLayout: 12 dp ends, buttons side by side */
+.kk-alert-buttons.wrap { flex-wrap: wrap; }
+.kk-alert-spacer { flex: 1; }
+.kk-alert-btn {
+  /* Button bar buttons use the theme font (Pixelify Sans), 14 sp caps, no letter spacing. */
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: transparent;
+  border: 0;
+  border-radius: 2px;
+  min-height: 54px; /* buttonPanel: 4 dp above and below 54 dp buttons (measured) */
+  min-width: 64px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+.kk-alert-btn.danger { color: var(--color-bad); }
+.kk-alert-btn:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.kk-alert-btn:disabled { opacity: 0.38; cursor: default; }
+.kk-alert-btn:focus-visible, .kk-alert-item:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+.kk-alert-list { list-style: none; margin: -6.7px 0 0.7px; padding: 0; } /* select_dialog_singlechoice: closer to the title than a message is (measured) */
+.kk-alert-item {
+  display: flex;
+  align-items: center;
+  gap: 29px; /* select_dialog_singlechoice_material: the text starts 73 dp from the dialog's edge */
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 24px;
+  font: inherit;
+  font-size: var(--text-md);
+  line-height: 1.3;
+  text-align: left;
+  color: var(--color-dialog-item);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.kk-alert-item:active { background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+.kk-alert-item-label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.kk-radio {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-control-normal);
+  display: grid;
+  place-items: center;
+}
+.kk-alert-item[aria-checked="true"] .kk-radio { border-color: var(--color-accent); }
+.kk-alert-item[aria-checked="true"] .kk-radio::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}

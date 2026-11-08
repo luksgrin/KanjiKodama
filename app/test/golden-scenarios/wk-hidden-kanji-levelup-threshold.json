@@ -1,0 +1,114 @@
+{
+ "description": "Level 1: 16 of 18 kanji passed (17 needed). Hiding the passed 一 (440) leaves 15 of 17 (16 needed): no level-up. Hiding the unpassed 山 (455) leaves 15 of 16 (15 needed): level 2. Unhiding both does not take the level back.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 440,
+     "stage": 5
+    },
+    {
+     "id": 441,
+     "stage": 5
+    },
+    {
+     "id": 442,
+     "stage": 5
+    },
+    {
+     "id": 443,
+     "stage": 5
+    },
+    {
+     "id": 444,
+     "stage": 5
+    },
+    {
+     "id": 445,
+     "stage": 5
+    },
+    {
+     "id": 446,
+     "stage": 5
+    },
+    {
+     "id": 447,
+     "stage": 5
+    },
+    {
+     "id": 448,
+     "stage": 5
+    },
+    {
+     "id": 449,
+     "stage": 5
+    },
+    {
+     "id": 450,
+     "stage": 5
+    },
+    {
+     "id": 451,
+     "stage": 5
+    },
+    {
+     "id": 457,
+     "stage": 5
+    },
+    {
+     "id": 452,
+     "stage": 5
+    },
+    {
+     "id": 453,
+     "stage": 5
+    },
+    {
+     "id": 454,
+     "stage": 5
+    },
+    {
+     "id": 455,
+     "stage": 4
+    },
+    {
+     "id": 456,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "hideSubject",
+   "ids": [
+    440
+   ]
+  },
+  {
+   "action": "hideSubject",
+   "ids": [
+    455
+   ]
+  },
+  {
+   "action": "unhideSubject",
+   "ids": [
+    440,
+    455
+   ]
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "description": "A window shorter than an hour: one slot, every probation review due at the top of the current hour.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 2,
+   "windowHours": 0.5
+  }
+ ]
+}

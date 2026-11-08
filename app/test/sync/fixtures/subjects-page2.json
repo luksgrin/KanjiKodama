@@ -1,0 +1,17 @@
+{
+  "object": "collection",
+  "url": "https://cdn.kk.example.test/v2/subjects?page_after_id=2",
+  "pages": { "per_page": 2, "next_url": null, "previous_url": "https://cdn.kk.example.test/v2/subjects?page_before_id=10" },
+  "total_count": 3,
+  "data_updated_at": "2026-10-01T00:00:00.000000Z",
+  "data": [
+    { "id": 10, "object": "kanji", "url": "https://kk.example.test/v2/subjects/10", "data_updated_at": "2026-10-01T00:00:00.000000Z",
+      "data": { "level": 1, "slug": "一", "characters": "一", "meanings": [{ "meaning": "One", "primary": true, "accepted_answer": true }],
+        "readings": [
+          { "type": "onyomi", "primary": true, "accepted_answer": true, "reading": "いち" },
+          { "type": "nanori", "primary": false, "accepted_answer": false, "reading": "None" },
+          { "type": "kunyomi", "primary": false, "accepted_answer": false, "reading": "" }
+        ],
+        "component_subject_ids": [1], "lesson_position": 2, "spaced_repetition_system_id": 1, "hidden_at": null } }
+  ]
+}

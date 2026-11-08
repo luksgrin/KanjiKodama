@@ -1,38 +1,71 @@
-name: Release APK (manual)
+name: Release (manual)
 
+# Builds the TypeScript app (app/), deploys the web app to GitHub Pages
+# (https://luksgrin.xyz/KanjiKodama/, the account's custom domain) and publishes a GitHub release
+# v<version> with:
+#   kanjikodama-<version>.apk      the signed Android app (app.kanjikodama.wk, installs over the phone's)
+#   kanjikodama-<version>-web.apk  the same app as app.kanjikodama.wk.web, installs next to it
+#   kanjikodama-<version>-pwa.zip  the web app (PWA) build, app/dist
+# Manual only. The version must equal app/package.json's and be higher than every v* tag, so a
+# release can never reuse or go back to an old version (app/scripts/release/version.ts, tested in
+# app/test/release/). The Android versionCode is derived from the version.
+#
+# The build contains the WaniKani content; the owner has WaniKani's permission to publish it
+# (2026-10-27).
+#
+# Secrets: RELEASE_KEYSTORE_BASE64, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD
+# (the release key, app/android/release.jks) and KANJIKODAMA_DATA_TOKEN or MOJIMORI_DATA_TOKEN
+# (read access to luksgrin/KanjiKodamaData, which holds the content file pinned in
+# tools/wk-content.lock.json).
 on:
   workflow_dispatch:
     inputs:
-      version_name:
-        description: "Version name to stamp on the APK (e.g. 0.1.0)"
+      version:
+        description: "Version to release, e.g. 0.6.0 (must equal app/package.json's and be higher than the last release)"
         required: true
-        default: "0.1.0"
-      create_github_release:
-        description: "Also create a GitHub release with the APK attached (private repo)"
-        type: boolean
-        default: true
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
-    name: Signed KanjiKodama APK (offline fork with bundled content)
+    name: Build and release
     runs-on: ubuntu-latest
     permissions:
       contents: write
     defaults:
       run:
-        working-directory: durtles
+        working-directory: app
+    env:
+      # The release key's certificate (docs/cutover.md): an APK signed with any other key can't
+      # update the app on the phone.
+      EXPECTED_CERT_SHA256: 1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b759e937741
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # all tags, for the version check
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Check the version
+        id: version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: node --import ./scripts/ts-hooks.mjs scripts/release-version.ts "$VERSION"
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - uses: gradle/actions/setup-gradle@v4
 
-      # The WaniKani content lives in a private release of luksgrin/KanjiKodamaData.
-      # KANJIKODAMA_DATA_TOKEN: fine-grained token with read access to that repository's contents.
-      # (MOJIMORI_DATA_TOKEN is the same secret under the app's former name, used until it is re-added.)
-      - name: Fetch bundled content
+      - name: Fetch the private content
         env:
           GH_TOKEN: ${{ secrets.KANJIKODAMA_DATA_TOKEN || secrets.MOJIMORI_DATA_TOKEN }}
         run: |
@@ -40,11 +73,10 @@ jobs:
             echo "::error::Secret KANJIKODAMA_DATA_TOKEN is missing; a release without content would be useless."
             exit 1
           fi
-          python3 tools/build_wk_asset.py
-          test -s app/src/main/assets/wk-content.db
+          python3 ../tools/build_wk_asset.py
+          test -s ../content/private/wk-content.db
 
-      # Every release must carry the same signature, or Android refuses to update the installed app.
-      - name: Restore signing key
+      - name: Restore the signing key
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
@@ -52,36 +84,81 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
-            echo "::error::Signing secrets are missing; a release signed with a throwaway key could not be updated later."
+            echo "::error::Signing secrets are missing; an APK signed with another key can't update the app."
             exit 1
           fi
-          echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > release.jks
+          umask 077
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > android/release.jks
           {
             echo "storeFile=release.jks"
             echo "storePassword=$RELEASE_STORE_PASSWORD"
             echo "keyAlias=$RELEASE_KEY_ALIAS"
             echo "keyPassword=$RELEASE_KEY_PASSWORD"
-          } > keystore.properties
+          } > android/keystore.properties
 
-      - name: Assemble release
-        run: ./gradlew :app:assembleRelease --no-daemon -PversionName=${{ inputs.version_name }} -PversionCode=$((100 + ${{ github.run_number }}))
+      - run: npm ci
 
-      - name: Name the APK
+      - name: Check (typecheck, tests, leak check, build)
+        run: npm run check
+
+      - name: Build the APKs
+        env:
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
         run: |
-          mv app/build/outputs/apk/release/*.apk app/build/outputs/apk/release/kanjikodama-${{ inputs.version_name }}.apk
-          ls -la app/build/outputs/apk/release/
+          sh scripts/release-android.sh --version-code "$VERSION_CODE"
+          sh scripts/release-android.sh --version-code "$VERSION_CODE" --side-by-side
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: kanjikodama-${{ inputs.version_name }}
-          path: durtles/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
+      - name: Verify the signing certificate
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          for apk in "release/kanjikodama-$VERSION.apk" "release/kanjikodama-$VERSION-web.apk"; do
+            cert="$("$apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            if [ "$cert" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::$apk is signed with certificate $cert, not the release key's."
+              exit 1
+            fi
+          done
 
-      - name: Create GitHub release
-        if: ${{ inputs.create_github_release }}
-        uses: softprops/action-gh-release@v2
+      - name: Package the web app
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: (cd dist && zip -qr "../release/kanjikodama-$VERSION-pwa.zip" .)
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+        run: |
+          gh release create "v$VERSION" \
+            "release/kanjikodama-$VERSION.apk" \
+            "release/kanjikodama-$VERSION-web.apk" \
+            "release/kanjikodama-$VERSION-pwa.zip" \
+            --target "$GITHUB_SHA" \
+            --title "KanjiKodama $VERSION" \
+            --notes "Android versionCode $VERSION_CODE. Web app: https://luksgrin.xyz/KanjiKodama/" \
+            --generate-notes
+
+      - uses: actions/upload-pages-artifact@v3
         with:
-          tag_name: v${{ inputs.version_name }}
-          name: KanjiKodama ${{ inputs.version_name }}
-          files: durtles/app/build/outputs/apk/release/*.apk
-          generate_release_notes: true
+          path: app/dist
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f android/release.jks android/keystore.properties
+
+  pages:
+    name: Deploy the web app
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

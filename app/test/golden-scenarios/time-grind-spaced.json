@@ -1,0 +1,14 @@
+{
+ "description": "Fresh start to level 2 like wk-grind-level1-to-level2, but every lesson and review is answered 7 s after the previous one, so later answers of a round cross hour boundaries and unlocks get distinct times.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "grind",
+   "until": {
+    "level": 2
+   },
+   "spacingSeconds": 7
+  }
+ ]
+}

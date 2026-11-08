@@ -1,0 +1,196 @@
+{
+ "description": "Question sequencing in a review session of 12 kanji, 3 vocabulary and 2 radicals (reading-and-meaning-first): Session.chooseQuestion picks at random among the first bucket's candidates, after the filters: back-to-back (only started items while any is), reading first / meaning first (an item with both questions pending offers only that one), at most 10 started items, and a wrongly answered item waits 3 questions (one meaning and one reading wrong). resolved.answers is the order the questions came in.",
+ "mode": "WANIKANI",
+ "seed": 59,
+ "start": {
+  "generate": {
+   "userLevel": 2,
+   "rows": [
+    {
+     "id": 440,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 441,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 442,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 443,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 444,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 445,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 446,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 447,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 448,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 449,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 450,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 451,
+     "stage": 3,
+     "availableInHours": -2
+    },
+    {
+     "id": 2467,
+     "stage": 2,
+     "availableInHours": -2
+    },
+    {
+     "id": 2468,
+     "stage": 2,
+     "availableInHours": -2
+    },
+    {
+     "id": 2469,
+     "stage": 2,
+     "availableInHours": -2
+    },
+    {
+     "id": 1,
+     "stage": 4,
+     "availableInHours": -2
+    },
+    {
+     "id": 6,
+     "stage": 4,
+     "availableInHours": -2
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {},
+   "settings": {
+    "enable_advanced": true,
+    "enable_lightning_mode": null,
+    "overdue_threshold": null,
+    "shake_on_matching_kanji": null,
+    "lesson_subjects_Kana_vocabulary_min": null,
+    "lesson_order": null,
+    "lesson_order_reversed": null,
+    "lesson_order_priority": null,
+    "lesson_shuffle_after_selection": null,
+    "lesson_back_to_back": null,
+    "lesson_reading_first": null,
+    "lesson_meaning_first": null,
+    "lesson_subjects_current_min": null,
+    "lesson_subjects_current_max": null,
+    "lesson_subjects_earlier_min": null,
+    "lesson_subjects_earlier_max": null,
+    "lesson_subjects_radical_min": null,
+    "lesson_subjects_radical_max": null,
+    "lesson_subjects_kanji_min": null,
+    "lesson_subjects_kanji_max": null,
+    "lesson_subjects_vocabulary_min": null,
+    "lesson_subjects_vocabulary_max": null,
+    "lesson_subjects_kana_vocabulary_min": null,
+    "lesson_subjects_kana_vocabulary_max": null,
+    "anki_mode_lesson": null,
+    "anki_mode_lesson_meaning": null,
+    "anki_mode_lesson_reading": null,
+    "review_order": null,
+    "review_order_reversed": null,
+    "review_order_priority": null,
+    "review_shuffle_after_selection": null,
+    "review_back_to_back": null,
+    "review_reading_first": true,
+    "review_meaning_first": true,
+    "review_randomize_inflections": null,
+    "review_subjects_current_min": null,
+    "review_subjects_current_max": null,
+    "review_subjects_earlier_min": null,
+    "review_subjects_earlier_max": null,
+    "review_subjects_radical_min": null,
+    "review_subjects_radical_max": null,
+    "review_subjects_kanji_min": null,
+    "review_subjects_kanji_max": null,
+    "review_subjects_vocabulary_min": null,
+    "review_subjects_vocabulary_max": null,
+    "review_subjects_kana_vocabulary_min": null,
+    "review_subjects_kana_vocabulary_max": null,
+    "anki_mode_review": null,
+    "anki_mode_review_meaning": null,
+    "anki_mode_review_reading": null,
+    "self_study_order": null,
+    "self_study_order_reversed": null,
+    "self_study_order_priority": null,
+    "self_study_shuffle_after_selection": null,
+    "self_study_back_to_back": null,
+    "self_study_reading_first": null,
+    "self_study_meaning_first": null,
+    "self_study_randomize_inflections": null,
+    "self_study_subjects_current_min": null,
+    "self_study_subjects_current_max": null,
+    "self_study_subjects_earlier_min": null,
+    "self_study_subjects_earlier_max": null,
+    "self_study_subjects_radical_min": null,
+    "self_study_subjects_radical_max": null,
+    "self_study_subjects_kanji_min": null,
+    "self_study_subjects_kanji_max": null,
+    "self_study_subjects_vocabulary_min": null,
+    "self_study_subjects_vocabulary_max": null,
+    "self_study_subjects_kana_vocabulary_min": null,
+    "self_study_subjects_kana_vocabulary_max": null,
+    "anki_mode_self_study": null,
+    "anki_mode_self_study_meaning": null,
+    "anki_mode_self_study_reading": null,
+    "review_order_overdue_first": null,
+    "self_study_order_overdue_first": null
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "rules": {
+    "442:meaning": [
+     "wrong"
+    ],
+    "445:reading": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

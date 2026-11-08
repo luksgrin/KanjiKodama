@@ -1,0 +1,614 @@
+/*
+ * Session screens (fragment_unanswered_question.xml, fragment_answered_question.xml, fragment_anki.xml).
+ * The quiz fills the height above the keyboard (--kk-visible-height, visibleViewport.ts; below the toolbar):
+ * - unanswered: question view (own height: progress line 28 + the 104 sp text), type banner (~34), answer
+ *   field (48), the spacer, and the quick-action row (60) on the keyboard. The question view gives up
+ *   height (and the glyph shrinks) when the rest wouldn't fit, so the row is never pushed off screen;
+ * - answered / Anki: the page scrolls; the bottom row (Next / the Anki bar) stays at the bottom.
+ * Display settings: .stretch (stretch_quiz_question_view), --kk-qv-fixed (quiz_question_view_height),
+ * --kk-anki-height (anki_buttons_height). Tokens only (theme/README.md).
+ */
+
+.kk-quiz {
+  /* Edge to edge inside .kk-main, like the Java fragments, down to the bottom of the screen. */
+  margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) calc(-1 * (var(--safe-bottom) + var(--main-gutter)));
+  display: flex;
+  flex-direction: column;
+  --kk-quiz-height: calc(var(--kk-visible-height, 100dvh) - var(--safe-top) - var(--toolbar-height));
+  /* The home indicator area, unless the keyboard covers it. */
+  --kk-bottom-inset: var(--safe-bottom);
+  min-height: var(--kk-quiz-height);
+}
+:root.kk-keyboard-open .kk-quiz { --kk-bottom-inset: 0px; }
+.kk-quiz.unanswered {
+  height: var(--kk-quiz-height);
+  overflow: hidden;
+  /* What the question view may use: the rest is banner 34 + field 48 + row 62. */
+  --kk-qv-avail: max(56px, calc(var(--kk-quiz-height) - 144px - var(--kk-bottom-inset) - var(--kk-ime-gap, 0px)));
+}
+.kk-quiz-spacer { flex: 1 1 0; min-height: 0; }
+.kk-quiz.stretch .kk-quiz-spacer { display: none; }
+
+.kk-quiz-question {
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--color-kanji);
+  color: var(--color-on-subject);
+  overflow: hidden;
+  /* The glyph's height cap (the bottom row: special button 2 / Next). */
+  --kk-qv-bottom: 0px;
+  --kk-glyph-hcap: 104px;
+}
+.kk-quiz-question.with-bottom { --kk-qv-bottom: 48px; }
+.kk-quiz.answered .kk-quiz-question.with-bottom { --kk-qv-bottom: 64px; }
+.kk-quiz.unanswered .kk-quiz-question {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: var(--kk-qv-avail);
+  --kk-glyph-hcap: max(16px, calc(var(--kk-qv-avail) - 28px - var(--kk-qv-bottom)));
+}
+.kk-quiz.unanswered.stretch .kk-quiz-question { flex: 1 1 0; max-height: none; }
+.kk-quiz-question.fixed { height: var(--kk-qv-fixed); --kk-glyph-hcap: max(16px, calc(var(--kk-qv-fixed) - 28px - var(--kk-qv-bottom))); }
+.kk-quiz.unanswered .kk-quiz-question.fixed {
+  --kk-glyph-hcap: max(16px, min(calc(var(--kk-qv-fixed) - 28px - var(--kk-qv-bottom)), calc(var(--kk-qv-avail) - 28px - var(--kk-qv-bottom))));
+}
+.kk-quiz-question.kk-type--radical { background: var(--color-radical); }
+.kk-quiz-question.kk-type--kanji { background: var(--color-kanji); }
+.kk-quiz-question.kk-type--vocabulary,
+.kk-quiz-question.kk-type--kana_vocabulary { background: var(--color-vocab); }
+
+/* progress / srsIndicator: 20 sp WK.TextView.Normal.Light (Silkscreen), 8 dp from the left, 4 dp from the top. */
+.kk-quiz-top,
+.kk-quiz-bottom {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.2;
+}
+.kk-quiz-bottom { align-items: flex-end; padding: 0 0 0; min-height: 0; }
+/* progress / srsIndicator: WK.TextView.Normal.Light in bold; AppCompat applies the theme's app:fontFamily (Pixelify Sans) over the style's Silkscreen. */
+.kk-quiz-progress { flex: none; font-family: var(--font-body); font-weight: 700; }
+.kk-quiz-srs { font-family: var(--font-body); font-weight: 700; }
+.kk-quiz-srs {
+  position: absolute;
+  left: 50%;
+  top: var(--space-1);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.kk-quiz-top .kk-quiz-special.s1 { margin-left: auto; }
+
+/* The answered fragment's nextButton: 18 sp, 8 dp margins, bottom right of the question view. */
+.kk-quiz-bottom > .kk-btn.kk-quiz-next {
+  margin: 8px 8px 8px auto;
+  /* WK.Button.Borderless.Light: 54 dp, padding 16 / 4 / 16 / 12 dp from the view's edge. */
+  --kk-btn-h: 54px;
+  min-width: 0;
+  padding: 4px 16px 12px;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* questionText (SubjectInfoButtonView, sizeForQuiz): a view at most max_font_size_quiz_text dp high
+   (AbstractSessionFragment.setMaxSize) and no higher than the room between the top row and the bottom row,
+   centred there. The text is that height minus the quiz margins (setQuizMargins(4, 4); the Anki fragment
+   keeps the view's 28 / 24 dp) and the font's top padding (TypefaceConfiguration, % of the text size), so
+   the glyph never reaches the type banner. The baseline sits where Java's
+   `top + textHeight / 2 - (ascent + descent) / 2` puts it: line-height 1 centres the primary font's ascent +
+   descent on the em box the same way, and --font-glyph gives it Roboto's metrics as Java's Paint. */
+.kk-quiz-glyph {
+  --kk-glyph-mt: 4px;
+  --kk-glyph-mb: 4px;
+  --kk-glyph-view: min(var(--kk-quiz-text-max, 104px), var(--kk-glyph-hcap));
+  --kk-glyph-fit-h: calc((var(--kk-glyph-view) - var(--kk-glyph-mt) - var(--kk-glyph-mb)) / (1 + var(--kk-glyph-pad, 0)));
+  text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView shadow layer */
+  align-self: center;
+  justify-self: center;
+  max-width: 100%;
+  padding: calc(var(--kk-glyph-mt) + var(--kk-glyph-pad, 0) * 1em) var(--space-1) var(--kk-glyph-mb);
+  font-family: var(--font-glyph);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  /* Fits the width too (Java: screen width - 10 dp, - 140 dp with the answer toast) for long words; never
+     below absoluteMinTextHeight (14 sp). */
+  font-size: max(14px, min(var(--kk-glyph-fit-h), calc((100vw - 16px) / var(--len, 1)), calc((var(--content-max-width) - 16px) / var(--len, 1))));
+}
+.kk-quiz-question.anki .kk-quiz-glyph { --kk-glyph-mt: 28px; --kk-glyph-mb: 24px; }
+/* A radical image fills the text box (image.setBounds over the textHeight square below the top margin). */
+.kk-quiz-glyph .kk-title-image { vertical-align: top; }
+.kk-quiz-question.with-mark .kk-quiz-glyph {
+  font-size: max(14px, min(var(--kk-glyph-fit-h), calc((100vw - 140px) / var(--len, 1)), calc((var(--content-max-width) - 140px) / var(--len, 1))));
+}
+
+
+/* Special buttons: WK.Button.Borderless.Light (Silkscreen, transparent), 8 dp margin; ≥ 40 px tap target. */
+.kk-quiz-special {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  min-height: 40px;
+  min-width: 48px;
+  margin: 0;
+  padding: 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: 18px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kk-quiz-special:active { background: color-mix(in srgb, currentColor 14%, transparent); }
+.kk-quiz-top .kk-quiz-special { margin-top: calc(-1 * var(--space-1)); }
+.kk-quiz-bottom .kk-quiz-special { margin: 0 0 var(--space-1) var(--space-1); }
+
+/* The answered screen's check mark / cross (toastAnimation: 64 dp, 12 dp from the right, centred). */
+.kk-quiz-mark {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 64px;
+  height: 64px;
+  margin-top: -32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  animation: kk-mark 1.5s ease-out forwards;
+}
+/* The Lottie animations' fills (res/raw/success.json, fail.json): a white mark on a filled circle. */
+.kk-quiz-mark.ok { background: #3BBD5E; }
+.kk-quiz-mark.bad { background: #CD5050; }
+@keyframes kk-mark {
+  0% { transform: scale(0.3); opacity: 0; }
+  25% { transform: scale(1.15); opacity: 1; }
+  40% { transform: scale(1); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* levelUpToastText / closeToastText / alternativesToastText (20 sp). The first two are
+   WK.TextView.CustomToast in every theme: black text (customToastColorPrimary) on @drawable/rounded_corners
+   (customToastColorBackground #FFFF80, 10 dp corners), elevation 4 dp; the SRS one starts with a 20 dp green
+   up / red down arrow (ic_arrow_up / ic_arrow_down) and a space. The alternatives toast is
+   WK.TextView.AlternativeToast: alternativeToastColorPrimary on a transparent background, no elevation. */
+.kk-quiz-toasts {
+  position: absolute;
+  top: 1px;
+  left: var(--space-1);
+  right: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+.kk-quiz-toast {
+  max-width: 100%;
+  padding: 2px var(--space-4) var(--space-1);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  font-size: 20px;
+  animation: kk-toast-fade 2.75s ease-in forwards;
+}
+.kk-quiz-toast.srs-up,
+.kk-quiz-toast.srs-down,
+.kk-quiz-toast.close { background: var(--color-custom-toast-bg); color: var(--color-custom-toast-fg); }
+.kk-quiz-toast.alternatives { background: transparent; color: var(--color-alt-toast-fg); box-shadow: none; }
+/* ImageSpan ALIGN_BOTTOM: the image's bottom on the line's descent. */
+.kk-quiz-toast-arrow { display: inline-block; vertical-align: text-bottom; }
+.kk-quiz-toast.alternatives { margin-top: 74px; }
+.kk-quiz-toast.close { animation-duration: 5s; }
+@keyframes kk-toast-fade {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* questionType: 22 sp, 4 dp vertical padding, centred, elevation 4 dp; hint colours. */
+.kk-quiz-type {
+  position: relative;
+  padding: 4px var(--space-2);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 1.2;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* fragment_anki.xml's questionType has no textSize: WK.TextView.Normal's 16 sp. */
+.kk-quiz-question.anki + .kk-quiz-type { font-size: 16px; }
+.kk-quiz-type.meaning { background: var(--color-q-meaning-bg); color: var(--color-q-meaning-fg); }
+.kk-quiz-type.reading { background: var(--color-q-reading-bg); color: var(--color-q-reading-fg); }
+
+/* questionEdit: a centred, underlined EditText (22 sp, minEms 10); after answering a full-width band in
+   the answer colour with the centred answer (the answered fragment's TextView). */
+.kk-quiz-answer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-1) var(--space-2) 0;
+}
+.kk-answer-form { margin: 0; width: min(100%, 264px); }
+.kk-answer {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 4px 6px;
+  border: 0;
+  border-bottom: 2px solid var(--color-accent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text);
+  /* font_size_question_edit (22 sp by default, Font settings). */
+  font-size: var(--kk-answer-size, 22px);
+  line-height: 1.25;
+  font-family: var(--font-body);
+}
+.kk-answer::placeholder { color: var(--color-edit-line); opacity: 1; } /* AppCompat textColorHint (measured on the Java app) */
+.kk-answer.kana { font-family: var(--font-ja); }
+.kk-answer.centered { text-align: center; }
+.kk-answer.monospace { font-family: monospace, var(--font-ja); } /* Typeface.MONOSPACE (Droid Sans Mono) */
+.kk-answer:focus { outline: none; border-bottom-color: var(--color-accent); border-bottom-width: 3px; padding-bottom: 5px; }
+.kk-answer:focus-visible { outline: none; }
+.kk-quiz-answer.correct,
+.kk-quiz-answer.incorrect { padding: 0; }
+.kk-quiz-answer.correct { background: var(--color-answer-correct); }
+.kk-quiz-answer.incorrect { background: var(--color-answer-incorrect); }
+.kk-quiz-answer.correct .kk-answer-form,
+.kk-quiz-answer.incorrect .kk-answer-form { width: 100%; }
+.kk-quiz-answer.correct .kk-answer,
+.kk-quiz-answer.incorrect .kk-answer {
+  border: 0;
+  padding: 4px var(--space-2);
+  min-height: 40px;
+  text-align: center;
+}
+.kk-quiz-answer.shake-0 .kk-answer-form { animation: kk-shake-a 1s linear; }
+.kk-quiz-answer.shake-1 .kk-answer-form { animation: kk-shake-b 1s linear; }
+@keyframes kk-shake-a {
+  0%, 14%, 28%, 42%, 57%, 71%, 85%, 100% { transform: translateX(0); }
+  7%, 35%, 64%, 92% { transform: translateX(10px); }
+  21%, 50%, 78% { transform: translateX(-10px); }
+}
+@keyframes kk-shake-b {
+  0%, 14%, 28%, 42%, 57%, 71%, 85%, 100% { transform: translateX(0); }
+  7%, 35%, 64%, 92% { transform: translateX(10px); }
+  21%, 50%, 78% { transform: translateX(-10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kk-quiz-answer.shake-0 .kk-answer-form, .kk-quiz-answer.shake-1 .kk-answer-form { animation-duration: 0.3s; }
+}
+
+/* The quick-action row (quickActionRow: 8 dp sides, 4 dp vertical, two equal halves 8 dp apart): Don't
+   know | Submit at the bottom, on the keyboard; after answering nextButton2 in Submit's half, pinned to the
+   bottom of the screen under the scrolling answer. */
+.kk-quiz-actions {
+  flex: none;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) calc(var(--space-1) + var(--kk-bottom-inset));
+}
+/* With the keyboard open (Android app: kk-ime-open, web: kk-keyboard-open; visibleViewport.ts) the row's
+   buttons end 8 px above the keyboard on every phone (Java: a navigation bar height above it). */
+.kk-quiz { --kk-ime-gap: 0px; }
+:root.kk-ime-open .kk-quiz,
+:root.kk-keyboard-open .kk-quiz { --kk-ime-gap: var(--space-1); --kk-bottom-inset: 0px; }
+.kk-quiz.unanswered .kk-quiz-actions { padding-bottom: calc(var(--space-1) + var(--kk-bottom-inset) + var(--kk-ime-gap)); }
+.kk-quiz.answered .kk-quiz-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  background: var(--color-bg);
+}
+.kk-quiz-actions > .kk-btn,
+.kk-quiz-actions > .kk-quiz-actions-space {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.kk-quiz-actions > .kk-btn {
+  /* WK.Button.Borderless.Light (54 dp, 4 / 12 dp top / bottom padding); 8 dp sides here so the
+     texts fit from 320 px. */
+  --kk-btn-h: 54px;
+  min-width: 0;
+  padding: 4px 11px 12px;
+  white-space: nowrap;
+  /* 18 sp, letterSpacing 0.06 (WK.Button.Borderless.Light); one line from 320 px wide. */
+  font-size: clamp(14px, 5.6vw, 18px);
+  letter-spacing: 0.06em;
+}
+
+/* closeMessageText / digraphMatchText: WK.TextView.CustomToast in a rounded box, 20 sp. */
+.kk-quiz-message {
+  align-self: center;
+  margin: var(--space-1) var(--space-2) 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  font-size: 20px;
+  color: var(--color-text);
+}
+.kk-quiz-info { padding: var(--space-2) var(--space-2) 0; }
+
+/* Anki mode (fragment_anki.xml, ActiveTheme ankiColors): buttonsView pinned at the bottom,
+   anki_buttons_height dp high, with full-width flat TextViews (Show answer / Next, Incorrect | Correct);
+   the answer and synonyms TextViews (8 dp margin and padding, font_size_anki_answer 20 sp). */
+.kk-anki-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  height: calc(var(--kk-anki-height, 50px) + var(--kk-bottom-inset));
+  padding-bottom: var(--kk-bottom-inset);
+  background: var(--color-bg);
+}
+.kk-anki {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: 0;
+  background: var(--kk-anki-fill);
+  color: var(--color-anki-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.kk-anki:disabled { cursor: default; }
+.kk-anki.show { --kk-anki-fill: var(--color-anki-show); }
+.kk-anki.next { --kk-anki-fill: var(--color-anki-next); }
+.kk-anki.correct { --kk-anki-fill: var(--color-anki-correct); }
+.kk-anki.incorrect { --kk-anki-fill: var(--color-anki-incorrect); }
+.kk-anki-answer {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  background: var(--color-anki-answer-bg);
+  color: var(--color-anki-text);
+  font-size: var(--kk-anki-answer-size, 20px); /* font_size_anki_answer */
+  white-space: pre-line;
+}
+
+/* Session fragment slides (SessionScreen): clipped at the screen's edges. */
+.kk-fragment-clip {
+  margin: 0 calc(-1 * var(--main-gutter));
+  padding: 0 var(--main-gutter);
+  overflow-x: clip;
+  position: relative;
+}
+/* The leaving fragment's copy (exitingFragment.ts): over the same box, under the entering one. */
+.kk-fragment-clip > .kk-fragment-exit {
+  position: absolute;
+  top: 0;
+  left: var(--main-gutter);
+  right: var(--main-gutter);
+  pointer-events: none;
+}
+.kk-fragment-clip > .kk-fragment:not(.kk-fragment-exit) { position: relative; }
+
+/* The keyboard keeper (keyboardKeeper.tsx): an invisible field that holds the focus between questions. */
+.kk-keyboard-keeper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+/* Lesson presentation (fragment_lesson.xml): Previous | space | n/m | space | Next at the top (4 dp
+   margins), the subject info below with 8 dp padding. */
+.kk-lesson { margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) 0; }
+.kk-lesson-nav {
+  display: flex;
+  align-items: center;
+  /* Above Java's SwipingScrollView: it stays while the subject info scrolls under it. */
+  position: sticky;
+  top: calc(var(--safe-top) + var(--toolbar-height));
+  z-index: 2;
+  padding: var(--space-1) var(--space-1) 0;
+  background: var(--color-bg);
+}
+.kk-lesson-nav > .kk-btn { flex: none; } /* WK.Button.Normal: 52 dp */
+.kk-lesson-space { flex: 1 1 0; }
+.kk-lesson-nav .kk-lesson-progress { font-family: var(--font-body); font-size: 16px; text-align: center; }
+.kk-lesson .kk-quiz-info { padding: var(--space-2); }
+
+/* Session log (fragment_session_log.xml, session_log_header.xml, session_log_item.xml). */
+.kk-session-log { margin: 0; }
+.kk-tutorial {
+  margin-bottom: 12px;
+  padding: var(--space-2) var(--space-2) 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-warn-bg);
+  color: var(--color-text);
+}
+.kk-tutorial p { margin: 0; }
+.kk-tutorial-dismiss {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kk-log-header {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  margin: 2px 0;
+  padding: 6px var(--space-2) 6px var(--space-2);
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.kk-log-arrow {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid var(--color-text);
+}
+.kk-log-arrow.collapsed { border-top: 0; border-bottom: 7px solid var(--color-text); }
+.kk-log-title { margin-left: var(--space-4); font-size: clamp(19px, 6.5vw, 26px); line-height: 1.15; min-width: 0; }
+.kk-log-details { flex: 1 0 auto; margin: 0 var(--space-2) 0 var(--space-4); text-align: end; white-space: nowrap; }
+.kk-log-list { list-style: none; margin: 0; padding: 0; }
+.kk-log-item {
+  margin: 2px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
+  color: var(--color-on-subject);
+}
+.kk-log-row {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 44px;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+button.kk-log-row { cursor: pointer; }
+.kk-log-chars { text-shadow: var(--text-shadow-3px); flex: none; margin-left: 4px; font-family: var(--font-ja); font-size: 24px; }
+.kk-log-unknown { margin-left: 12px; font-family: var(--font-body); font-weight: 700; font-size: 26px; }
+.kk-log-status { flex: 1; display: flex; flex-direction: column; align-items: flex-end; text-align: end; font-size: 14px; }
+
+/* SessionDialog's overlay: the scrim (Java's window dim) over the whole app, the dialog centred. */
+.kk-sdialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  background: rgb(0 0 0 / 0.6);
+  /* Centred in the part above the keyboard. */
+  height: var(--kk-visible-height, 100dvh);
+  overflow: auto;
+}
+.kk-sdialog-layer > .kk-sdialog { max-height: calc(var(--kk-visible-height, 100dvh) - 48px); overflow: auto; }
+
+/* Java AlertDialog look (SessionDialog, NotesDialog): title in the body font with the warning icon,
+   flat text buttons in one row (neutral left, negative and positive right). */
+.kk-sdialog { padding: 18px 24px 4px; width: min(400px, calc(100vw - 53.33px)); border: 0; border-radius: 2px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.32); }
+.kk-sdialog-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 15.6px;
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: normal;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.kk-sdialog-icon { flex: none; color: #FF0000; } /* ic_baseline_warning_24px fillColor */
+.kk-sdialog-message { margin: 0; font-size: 16px; line-height: normal; }
+.kk-sdialog-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0; margin: 4px -12px 0; }
+.kk-sdialog-spacer { display: none; }
+.kk-sdialog-btn.neutral { margin-right: auto; }
+.kk-sdialog-btn {
+  min-width: 64px;
+  appearance: none;
+  min-height: 54px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kk-sdialog-btn:disabled { opacity: 0.5; cursor: default; }
+.kk-sdialog-btn:active { background: color-mix(in srgb, currentColor 12%, transparent); }
+
+.kk-pre-line { white-space: pre-line; }
+.kk-dialog-actions-3 { flex-wrap: wrap; }
+.kk-self-study-form fieldset { border: 0; padding: 0; margin: 0 0 var(--space-3); }
+.kk-self-study-form legend { font-family: var(--font-display); font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-1); }
+.kk-check-grid { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+.kk-check-grid label { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 36px; }
+.kk-num-pair { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.kk-num-pair input { width: 6em; min-height: 40px; font-size: 16px; padding: 0 var(--space-2); border: 2px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); }
+
+
+/* Summary (fragment_summary.xml): 8 dp padding; Show items · Finish at the top right; the correct /
+   incorrect TableLayouts in correctColorBackground / incorrectColorBackground, 16 dp apart. */
+.kk-summary { margin: 0; }
+.kk-summary-buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0 var(--space-1); }
+.kk-summary-buttons > .kk-btn { --kk-btn-h: 48px; padding-left: 19px; padding-right: 19px; }
+.kk-summary-progress { display: block; width: 100%; margin-top: var(--space-1); }
+.kk-summary-table { width: 100%; margin-top: var(--space-4); border-collapse: collapse; font-size: 16px; }
+.kk-summary-table.correct { background: var(--color-answer-correct); }
+.kk-summary-table.incorrect { background: var(--color-answer-incorrect); }
+.kk-summary-table th { width: 1%; padding: 3px 0 3px 4px; font-weight: 400; text-align: right; white-space: nowrap; }
+.kk-summary-table td { padding: 3px 4px 3px 2px; text-align: left; }
+.kk-summary-resurrect { margin-top: var(--space-4); }
+.kk-summary-header { margin: var(--space-4) 0 var(--space-1); font-family: var(--font-body); font-size: 16px; font-weight: 700; letter-spacing: normal; text-transform: none; color: var(--color-text); }
+.kk-summary-stars { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
+.kk-summary-stars select { min-height: 40px; font-size: 16px; }
+.kk-summary-progress-section { margin-top: var(--space-4); }
+
+/* Self-study start (activity_self_study_start.xml). */
+.kk-self-study-header { margin: var(--space-2) 0 var(--space-1); font-family: var(--font-body); font-size: 20px; font-weight: 400; letter-spacing: normal; text-transform: none; color: var(--color-text); }
+.kk-self-study-presets { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-1); }
+.kk-self-study-presets > .kk-btn { --kk-btn-h: 48px; }
+.kk-self-study-divider { border: 0; border-top: 1px solid var(--color-divider); margin: var(--space-2) 0; }
+
+/* Subject cards in the lesson presentation and under answers: the same SubjectGridView as the item page
+   (Experimental.getSubjectCardLayoutOther() is NORMAL, not the *_compact layouts; RigidGridLayout uses
+   its 2 dp child margin only), so 4 dp apart across and down and 2 dp from the edges, plus the grid's
+   2 dp margin above the first row. */
+.kk-lesson .kk-link-grid,
+.kk-quiz .kk-link-grid { gap: 4px; padding: 2px; margin: 4px 0 0; }
+
+/* The unanswered question (keyboardKeeper.tsx `useKeepAnswerFocus`): nothing but the fields selects, so a
+   long press anywhere (banner, counter, toolbar title, empty space) leaves the keyboard open. */
+:root.kk-keep-answer .kk-shell, :root.kk-keep-answer .kk-shell * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+:root.kk-keep-answer .kk-shell input, :root.kk-keep-answer .kk-shell textarea { -webkit-user-select: text; user-select: text; }

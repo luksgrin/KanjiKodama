@@ -1,0 +1,29 @@
+{
+ "description": "Export, restore, export in JLPT order with open probation and a jump: probation, jumps and curriculum survive; switching to WaniKani order and restoring the saved export brings JLPT order back.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 1
+  },
+  {
+   "action": "review",
+   "where": {},
+   "wrongEveryNth": {
+    "n": 2
+   }
+  },
+  {
+   "action": "exportRestore"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "restore",
+   "fromStep": 2
+  }
+ ]
+}

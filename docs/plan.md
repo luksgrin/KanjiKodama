@@ -1,5 +1,18 @@
 # KanjiKodama — Implementation Plan
 
+> **Current state (2026-10-26).** The one-codebase plan below ("Next: one codebase…", Kotlin
+> Multiplatform) was replaced by the TypeScript plan of GitHub issue #3 (React + Vite + Capacitor in
+> `app/`: PWA for the iPhone, Capacitor APK for Android). Steps 1–5 are done; step 6, the cutover,
+> is in [cutover.md](cutover.md): the Capacitor APK now has the Java app's id and key and migrates
+> its data once. The Java app (`durtles/`) was removed on 2026-10-26 after commit `94abf2e` (owner:
+> only the Capacitor APK is used now); its content inputs moved to `content/inputs/`, the private
+> `wk-content.db` to `content/private/` (git-ignored), its tools to `tools/` and the release key to
+> `app/android/release.jks` (git-ignored; see README "Signing"). The Kotlin prototype (then in
+> `app/`, `core/`, `feature/`) was removed too (owner's call; last seen at `4def50a`), and the
+> TypeScript app's folder was renamed from `web/` to `app/`. The sections below are kept as history:
+> their `durtles/` paths refer to commit `94abf2e`, and their `app/`, `core/` and `feature/` paths to
+> the Kotlin prototype (commit `4def50a`).
+
 ## Pivot 2026-10-10: fork Smouldering Durtles
 
 WaniKani provided a full content dump (in Smouldering Durtles' own database format) with
@@ -71,6 +84,8 @@ app is superseded and kept for reference until those steps no longer need it.
 ---
 
 ## Next: one codebase for Android and iOS (planned 2026-10-12)
+
+> Superseded by issue #3 (TypeScript, `app/`); see the note at the top and [cutover.md](cutover.md).
 
 ### Stack
 

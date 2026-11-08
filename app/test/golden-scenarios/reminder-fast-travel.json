@@ -1,0 +1,18 @@
+{
+ "description": "Sync reminder in local mode around a 1-level fast travel in JLPT order: the jump itself, then the probation reviews answered right as they come due; it stays off throughout.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 1
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "until": {
+    "noProbation": true
+   }
+  }
+ ]
+}

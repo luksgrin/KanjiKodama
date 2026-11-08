@@ -1,0 +1,63 @@
+{
+ "description": "Self-study of 4 level 1 kanji at Guru (not due for 100 h) and 2 radicals: one reading and (after the Undo) one meaning wrong; Undo works after advancing (self-study is always delayed); Finish reports every item as SELF_STUDY with its own answer time: SRS stages, availableAt and the review statistics do not change, but a wrong item's lastIncorrectAnswer is set to its answer time.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 2,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical",
+    "kanji"
+   ],
+   "stage": 5
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "SELF_STUDY",
+   "ids": [
+    440,
+    441,
+    442,
+    443,
+    1,
+    6
+   ],
+   "atHours": 1
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 4,
+   "spacingSeconds": 7,
+   "rules": {
+    "440:meaning": [
+     "wrong"
+    ],
+    "441:reading": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionButton",
+   "button": "UNDO_AND_RETRY_NOW"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 7,
+   "rules": {
+    "440:meaning": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish",
+   "advanceSeconds": 120
+  }
+ ]
+}

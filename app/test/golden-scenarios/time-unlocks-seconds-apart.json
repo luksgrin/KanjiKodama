@@ -1,0 +1,56 @@
+{
+ "description": "Radicals 一 (1), 二 (7) and ト (10) pass at 10:59:00, 10:59:05 and 10:59:11: kanji 一 unlocks at :00, 二 and 三 at :05, 上 and 下 at :11. Lessons 三, 上, 下 at 10:59:20, 10:59:30, 10:59:30.001: the first is due an hour before the other two.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4,
+     "availableInHours": 0
+    },
+    {
+     "id": 7,
+     "stage": 4,
+     "availableInHours": 0
+    },
+    {
+     "id": 10,
+     "stage": 4,
+     "availableInHours": 0
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "review",
+   "atMs": 1767610740000,
+   "ids": [
+    1,
+    7,
+    10
+   ],
+   "offsetsSeconds": [
+    0,
+    5,
+    11
+   ]
+  },
+  {
+   "action": "lesson",
+   "advanceSeconds": 9,
+   "ids": [
+    449,
+    450,
+    451
+   ],
+   "offsetsSeconds": [
+    0,
+    10,
+    10.001
+   ]
+  }
+ ]
+}

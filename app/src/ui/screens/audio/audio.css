@@ -1,0 +1,9 @@
+/* Download audio (activity_download_audio.xml): a plain page (8 dp: .kk-main's gutter). Tokens only. */
+.kk-audio p { margin: 0 0 var(--space-2); }
+.kk-audio-text { white-space: pre-line; }
+.kk-audio-large { font-size: var(--text-lg); }
+.kk-audio-progress { width: 100%; accent-color: var(--color-accent); }
+.kk-audio-buttons { display: flex; gap: var(--space-2); flex-wrap: wrap; margin: var(--space-2) 0; }
+.kk-audio-brackets { list-style: none; margin: var(--space-3) 0 0; padding: 0; }
+.kk-audio-brackets > li { margin-top: var(--space-1); }
+.kk-audio-bracket-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-2); }

@@ -1,0 +1,67 @@
+{
+ "description": "Lesson quiz of 5 radicals: \"Back to lesson presentation\" while an answer is still on screen (answered, Next not pressed). KanjiKodama fix: the answer is taken as if Next had been pressed (Session.advance), so the finished radical leaves the queue and is reported once (it used to be asked again and reported a second time), and a wrong answer gets its choice delay and undo entry. Back with the session's last answer on screen finishes the session as Next would (the presentation is not shown).",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "where": {}
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionAnswer",
+   "advance": false
+  },
+  {
+   "action": "sessionBackToPresentation",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 1,
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "wrong",
+   "advance": false,
+   "advanceSeconds": 5
+  },
+  {
+   "action": "sessionBackToPresentation",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 2,
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionAnswer",
+   "advance": false,
+   "advanceSeconds": 5
+  },
+  {
+   "action": "sessionBackToPresentation",
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionFinish"
+  },
+  {
+   "action": "snapshot"
+  }
+ ]
+}

@@ -1,0 +1,5 @@
+{
+  "area": "answers.unicodeOverrides",
+  "javaSource": "util/FuzzyMatching.matches, enums/QuestionType.checkAnswer on Android (cases whose device output differs from the JVM fixture)",
+  "cases": []
+}

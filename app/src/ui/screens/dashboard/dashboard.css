@@ -1,0 +1,195 @@
+/* Dashboard (activity_main.xml). dp = CSS px; tokens from ui/theme. */
+
+.kk-dashboard { display: flex; flex-direction: column; }
+.kk-dashboard > * + * { margin-top: 8px; }
+
+/* LevelDurationView / UpcomingReviewsView: WK.TextView.Normal, centred. */
+.kk-level-duration,
+.kk-upcoming p {
+  margin: 0;
+  padding: var(--fp-top) 0 var(--fp-bottom);
+  font-size: 16px;
+  text-align: center;
+  color: var(--color-text);
+}
+.kk-dashboard > .kk-upcoming { margin-top: 2px; }
+
+/* AvailableSessionsView: labels Large (20sp), counts XLarge (34sp), baselines aligned, spread evenly. */
+.kk-available {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  color: var(--color-text);
+}
+.kk-dashboard > .kk-available { margin-top: 4px; }
+.kk-available-item { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.kk-available-label { font-size: 20px; padding: var(--fp-top) 0 var(--fp-bottom); }
+/* layout-w360dp/available_sessions.xml: labels XLarge (26 sp). */
+@media (min-width: 360px) { .kk-available-label { font-size: 26px; } }
+.kk-available-count { font-size: 34px; line-height: normal; }
+.kk-available-count.small { font-size: 30px; }
+
+/* SessionButtonsView: one centred row, 10dp side margins, 8dp above/below. */
+.kk-session-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 12px; margin: 8px 0; }
+/* Both buttons on one row as in Java's LinearLayout, down to ~360px; narrower phones wrap. */
+.kk-session-buttons > .kk-btn { white-space: nowrap; }
+.kk-dashboard > .kk-session-buttons { margin-top: 12px; }
+
+/* main_activity_view_background: window fill, 3dp ink outline, 14dp corners, hard 4/6dp shadow.
+   The shape's stroke rounds to whole device px (3dp = 8 px at 2.625) where Chromium floors a border
+   width (7 px): + 0.05px gives Java's width at the common densities (2, 2.625, 2.75, 3). */
+.kk-dash-panel {
+  background: var(--color-surface);
+  border: calc(var(--border-pixel) + 0.05px) solid var(--btn-outline);
+  border-radius: 14px;
+  box-shadow: 4px 6px 0 var(--color-shadow);
+  padding: 5px 6px 6px;
+  margin-right: 4px;
+  margin-bottom: 6px;
+  color: var(--color-text);
+}
+
+/* Timeline */
+.kk-dash-panel.kk-timeline { padding: 0; overflow: hidden; }
+.kk-timeline svg { display: block; font-family: 'Pixelify Sans', sans-serif; } /* TimeLineBarChart: always the pixel font, whatever the theme */
+.kk-timeline svg.scrollable { touch-action: pan-y; cursor: grab; }
+/* Java: strokeWidth 0 = a one-device-pixel hairline. */
+.kk-tl-line { stroke: var(--color-text); stroke-width: 0.5; }
+.kk-tl-text { fill: var(--color-text); }
+.kk-tl-levelup { fill: var(--color-level-up); }
+.kk-tl-waterfall { stroke: var(--color-waterfall); stroke-width: 1; fill: none; } /* colorWaterfallLine */
+
+/* SRS breakdown: 3 + 2 tiles of 84dp. */
+.kk-dash-panel.kk-srs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  /* srs_breakdown.xml: the tiles keep 8 dp from the panel's own padding (5 dp) on every side, 4 dp apart. */
+  padding: 13px;
+}
+.kk-srs-tile {
+  appearance: none;
+  position: relative;
+  height: 84px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--color-on-pastel);
+  font: inherit;
+  cursor: pointer;
+  min-width: 0;
+}
+.kk-srs-name {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.kk-srs-count {
+  display: block;
+  font-size: 34px;
+  line-height: 84px;
+  text-align: center;
+  /* SrsBreakDownView.setShadowLayer(3, 1, 1, black): device pixels (--text-shadow-3px). */
+  text-shadow: var(--srs-count-shadow, var(--text-shadow-3px));
+  color: var(--color-on-pastel);
+}
+.kk-srs-tile.apprentice { background: var(--color-stage-apprentice); }
+.kk-srs-tile.guru { background: var(--color-stage-guru); }
+.kk-srs-tile.master { background: var(--color-stage-master); }
+.kk-srs-tile.enlightened { background: var(--color-stage-enlightened); }
+.kk-srs-tile.burned { background: var(--color-stage-burned); }
+/* Below ~300px a tile can't hold "Enlightened" at 13px beside the 12dp margin: shrink the margin. */
+@media (max-width: 340px) { .kk-srs-name { left: 6px; font-size: 12px; } }
+/* layout-w480dp/srs_breakdown.xml: the five tiles in one row, 72 dp high, 32 sp counts, 11 sp names. */
+@media (min-width: 480px) {
+  .kk-dash-panel.kk-srs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .kk-srs-tile { height: 72px; }
+  .kk-srs-count { font-size: 32px; line-height: 72px; }
+  .kk-srs-name { top: 4px; left: 4px; font-size: 11px; }
+}
+
+/* Level progression: tile background, bar left (24dp), label right (Small 14sp). */
+.kk-lp { background: var(--color-surface); padding: 2px 0 4px; color: var(--color-text); }
+/* Java's TableLayout: one label column as wide as the longest label, so all bars end at the same x. */
+@supports (grid-template-columns: subgrid) {
+  .kk-lp { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .kk-lp > * { grid-column: 1 / -1; }
+  .kk-lp > .kk-lp-row { display: grid; grid-template-columns: subgrid; align-items: center; }
+}
+.kk-lp-title { font-weight: 700; font-size: 16px; text-align: center; padding: 2px; }
+.kk-lp-row {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  /* 24dp bar rows 4dp apart as in Java; the tap area reaches 8px above and below (rows overlap). */
+  margin-top: -12px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.kk-lp-bar { position: relative; flex: 1 1 auto; display: flex; height: 24px; margin-left: 8px; min-width: 0; }
+.kk-lp-bar > span { display: block; min-width: 1px; }
+.kk-lp-target { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--color-target); }
+.kk-lp-label { flex: 0 0 auto; margin: 0 8px 0 6px; font-size: 14px; white-space: nowrap; }
+.kk-lp-title + .kk-lp-row { margin-top: -4px; }
+.kk-lp-row + .kk-lp-legend { margin-top: -4px; }
+.kk-lp-legend { display: flex; flex-wrap: wrap; align-items: center; font-size: 13px; row-gap: 2px; }
+.kk-lp-legend i { display: inline-block; width: 8px; height: 8px; }
+.kk-lp-legend i.first { margin: 0 4px 0 8px; }
+.kk-lp-legend i.gap { margin-left: 4px; }
+.kk-lp-legend i.end { margin-right: 4px; }
+.lp-0 { background: var(--color-lp-0); } .lp-1 { background: var(--color-lp-1); } .lp-2 { background: var(--color-lp-2); }
+.lp-3 { background: var(--color-lp-3); } .lp-4 { background: var(--color-lp-4); } .lp-5 { background: var(--color-lp-5); }
+.lp-6 { background: var(--color-lp-6); } .lp-7 { background: var(--color-lp-7); } .lp-8 { background: var(--color-lp-8); }
+.lp-9 { background: var(--color-lp-9); }
+
+/* Live subject tables (recent unlocks, critical, burned). */
+.kk-subject-table-title { margin: 0; padding: 4px; text-align: center; font-weight: 700; font-family: var(--font-body); text-transform: none; color: var(--color-text); }
+.kk-subject-row {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 4px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--color-on-subject);
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-shadow: var(--text-shadow-3px);
+  /* live_subject_table_row.xml: 4 dp margins around a 16 sp line (Japanese face: 24 dp): 32 dp rows,
+     4 dp apart (Java ~36 dp pitch; below the 40 px tap floor, e2e exemption in test/e2e/helpers/app.ts). */
+  line-height: 1.5;
+}
+.kk-subject-row.radical { background: var(--color-radical); }
+.kk-subject-row.kanji { background: var(--color-kanji); }
+.kk-subject-row.vocabulary, .kk-subject-row.kana_vocabulary { background: var(--color-vocab); }
+.kk-subject-row-text { flex: 1 1 auto; text-align: left; font-family: var(--font-ja); min-width: 0; overflow-wrap: anywhere; }
+.kk-subject-row-extra { flex: 0 0 auto; margin-left: 8px; text-align: right; }
+
+/* JLPT / Joyo / lesson-review breakdown tables. */
+.kk-stage-table { display: table; width: calc(100% - 4px); border-collapse: separate; border-spacing: 0 2px; font-size: 16px; }
+.kk-stage-table caption { font-weight: 700; text-align: center; padding: 4px; caption-side: top; }
+.kk-stage-table th { font-weight: 700; padding: 0 4px; text-align: center; }
+.kk-stage-table td { padding: 0 4px; text-align: center; }
+.kk-stage-table td:first-child { text-align: left; width: 100%; }
+.kk-lr-breakdown .radical { background: var(--color-radical); color: var(--color-on-subject); }
+.kk-lr-breakdown .kanji { background: var(--color-kanji); color: var(--color-on-subject); }
+.kk-lr-breakdown .vocabulary { background: var(--color-vocab); color: var(--color-on-subject); }
+
+/* PWA banners after the session buttons. */
+.kk-dashboard > .kk-banner { margin-bottom: 0; }
+
+/* Post60ProgressView: the bold title centred with 4dp padding, then the 24dp bar (Post60ProgressBarView). */
+.kk-post60 { display: flex; flex-direction: column; }
+.kk-post60-title { margin: 0; padding: 4px; align-self: center; font-size: var(--text-md); font-weight: 700; line-height: normal; }
+.kk-post60-bar { display: block; width: 100%; height: 24px; }

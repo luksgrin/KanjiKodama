@@ -1,0 +1,9 @@
+/* A radical drawn as an image (SubjectChars.tsx): one text-size square, tinted in the text colour over
+   two black copies (Java draws them at +2 and −1 device px: --dev-px, tokens.css).
+   Inline it sits a little below the baseline, as TitleImageSpan (bottom − descent / 2). */
+.kk-title-image {
+  display: inline-block;
+  vertical-align: -0.12em;
+  overflow: visible;
+  filter: drop-shadow(calc(2 * var(--dev-px)) calc(2 * var(--dev-px)) 0 #000) drop-shadow(calc(-1 * var(--dev-px)) calc(-1 * var(--dev-px)) 0 #000);
+}

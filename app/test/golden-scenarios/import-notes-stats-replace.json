@@ -1,0 +1,247 @@
+{
+ "description": "WaniKani import with review statistics and study materials over existing local progress (which it replaces), then a round trip.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 3,
+   "levels": [
+    1,
+    2
+   ],
+   "stage": 6
+  }
+ },
+ "steps": [
+  {
+   "action": "importWaniKani",
+   "api": {
+    "user": {
+     "level": 1,
+     "username": "golden-user",
+     "max_level_granted_by_subscription": 60
+    },
+    "assignments": [
+     {
+      "id": 5000000,
+      "object": "assignment",
+      "data": {
+       "subject_id": 1,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000001,
+      "object": "assignment",
+      "data": {
+       "subject_id": 6,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000002,
+      "object": "assignment",
+      "data": {
+       "subject_id": 2,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000003,
+      "object": "assignment",
+      "data": {
+       "subject_id": 3,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000004,
+      "object": "assignment",
+      "data": {
+       "subject_id": 5,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000005,
+      "object": "assignment",
+      "data": {
+       "subject_id": 9177,
+       "subject_type": "kana_vocabulary",
+       "srs_stage": 0,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": null,
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": null,
+       "resurrected_at": null,
+       "hidden": false
+      }
+     }
+    ],
+    "review_statistics": [
+     {
+      "id": 6000000,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 1,
+       "subject_type": "radical",
+       "meaning_correct": 5,
+       "meaning_incorrect": 2,
+       "meaning_max_streak": 3,
+       "meaning_current_streak": 1,
+       "reading_correct": 0,
+       "reading_incorrect": 0,
+       "reading_max_streak": 0,
+       "reading_current_streak": 0,
+       "percentage_correct": 71,
+       "hidden": false
+      }
+     },
+     {
+      "id": 6000001,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 6,
+       "subject_type": "radical",
+       "meaning_correct": 5,
+       "meaning_incorrect": 2,
+       "meaning_max_streak": 3,
+       "meaning_current_streak": 1,
+       "reading_correct": 0,
+       "reading_incorrect": 0,
+       "reading_max_streak": 0,
+       "reading_current_streak": 0,
+       "percentage_correct": 71,
+       "hidden": false
+      }
+     },
+     {
+      "id": 6000002,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 2,
+       "subject_type": "radical",
+       "meaning_correct": 5,
+       "meaning_incorrect": 2,
+       "meaning_max_streak": 3,
+       "meaning_current_streak": 1,
+       "reading_correct": 0,
+       "reading_incorrect": 0,
+       "reading_max_streak": 0,
+       "reading_current_streak": 0,
+       "percentage_correct": 71,
+       "hidden": false
+      }
+     },
+     {
+      "id": 6000003,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 3,
+       "subject_type": "radical",
+       "meaning_correct": 5,
+       "meaning_incorrect": 2,
+       "meaning_max_streak": 3,
+       "meaning_current_streak": 1,
+       "reading_correct": 0,
+       "reading_incorrect": 0,
+       "reading_max_streak": 0,
+       "reading_current_streak": 0,
+       "percentage_correct": 71,
+       "hidden": false
+      }
+     },
+     {
+      "id": 6000004,
+      "object": "review_statistic",
+      "data": {
+       "subject_id": 5,
+       "subject_type": "radical",
+       "meaning_correct": 5,
+       "meaning_incorrect": 2,
+       "meaning_max_streak": 3,
+       "meaning_current_streak": 1,
+       "reading_correct": 0,
+       "reading_incorrect": 0,
+       "reading_max_streak": 0,
+       "reading_current_streak": 0,
+       "percentage_correct": 71,
+       "hidden": false
+      }
+     }
+    ],
+    "study_materials": [
+     {
+      "id": 7000000,
+      "object": "study_material",
+      "data": {
+       "subject_id": 1,
+       "subject_type": "radical",
+       "meaning_note": "imported note",
+       "reading_note": null,
+       "meaning_synonyms": [
+        "line",
+        "one"
+       ]
+      }
+     },
+     {
+      "id": 7000001,
+      "object": "study_material",
+      "data": {
+       "subject_id": 2467,
+       "subject_type": "vocabulary",
+       "meaning_note": null,
+       "reading_note": "rn",
+       "meaning_synonyms": []
+      }
+     }
+    ],
+    "level_progressions": []
+   }
+  },
+  {
+   "action": "exportRestore"
+  }
+ ]
+}

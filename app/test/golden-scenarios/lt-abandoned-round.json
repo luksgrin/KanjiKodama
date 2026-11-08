@@ -1,0 +1,35 @@
+{
+ "description": "Round 1 mostly abandoned (20 of 30): not recorded, status stays ROUND1. Then a fresh round 1 answered (N5 known), round 2 partly known, discard.",
+ "mode": "JLPT",
+ "seed": 17,
+ "start": null,
+ "steps": [
+  {
+   "action": "levelTestRound",
+   "round": 1,
+   "known": "all",
+   "abandon": 20
+  },
+  {
+   "action": "levelTestRound",
+   "round": 1,
+   "known": {
+    "blocks": [
+     5
+    ]
+   }
+  },
+  {
+   "action": "levelTestRound",
+   "round": 2,
+   "known": "all",
+   "abandon": 2
+  },
+  {
+   "action": "levelTestResult"
+  },
+  {
+   "action": "levelTestDiscard"
+  }
+ ]
+}

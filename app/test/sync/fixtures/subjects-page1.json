@@ -1,0 +1,15 @@
+{
+  "object": "collection",
+  "url": "https://kk.example.test/v2/subjects",
+  "pages": { "per_page": 2, "next_url": "https://cdn.kk.example.test/v2/subjects?page_after_id=2", "previous_url": null },
+  "total_count": 3,
+  "data_updated_at": "2026-10-01T00:00:00.000000Z",
+  "data": [
+    { "id": 1, "object": "radical", "url": "https://kk.example.test/v2/subjects/1", "data_updated_at": "2026-10-01T00:00:00.000000Z",
+      "data": { "level": 1, "slug": "ground", "characters": "一", "meanings": [{ "meaning": "Ground", "primary": true, "accepted_answer": true }],
+        "lesson_position": 0, "spaced_repetition_system_id": 1, "hidden_at": null } },
+    { "id": 2, "object": "radical", "url": "https://kk.example.test/v2/subjects/2", "data_updated_at": "2026-10-01T00:00:00.000000Z",
+      "data": { "level": 1, "slug": "fins", "characters": "丷", "meanings": [{ "meaning": "Fins", "primary": true, "accepted_answer": true }],
+        "lesson_position": 1, "spaced_repetition_system_id": 1, "hidden_at": null } }
+  ]
+}

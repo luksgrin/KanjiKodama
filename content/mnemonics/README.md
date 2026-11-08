@@ -13,7 +13,7 @@ Missing keys fall back to the pipeline's structural scaffold.
 ## Extra kanji (`extra-*.yaml`)
 
 Mnemonics for the JLPT kanji WaniKani does not teach, used by `kanjikodama-content export-extra`
-for the app in `durtles/`. One entry per kanji:
+(written to `content/inputs/extra-kanji.db`). One entry per kanji:
 
 ```yaml
 彦:

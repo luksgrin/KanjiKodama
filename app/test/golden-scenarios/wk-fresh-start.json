@@ -1,0 +1,41 @@
+{
+ "description": "Fresh start in WaniKani order: level 1 radicals are the only lessons; five lessons, an early review attempt (nothing due), reviews with one meaning slip, the remaining lessons, then the clock moves on.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "object": "radical",
+    "limit": 5
+   }
+  },
+  {
+   "action": "review",
+   "advanceHours": 1,
+   "where": {}
+  },
+  {
+   "action": "review",
+   "advanceHours": 1.5,
+   "where": {},
+   "wrong": {
+    "6": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "action": "lesson",
+   "where": {}
+  },
+  {
+   "action": "advance",
+   "advanceHours": 30
+  }
+ ]
+}

@@ -1,0 +1,168 @@
+{
+ "description": "Review session in Anki mode with randomized inflections (review_randomize_inflections): 10 subjects due at Apprentice IV (godan, ichidan and する verbs, い and な adjectives, a plain adjective, kana-only する verbs, a kanji); every answer lists the characters shown (inflected for verbs and adjectives) and the revealed answer with the form appended. The pick happens once per question: a question graded Incorrect comes back with the same form, the meaning and reading questions of one subject pick separately.",
+ "mode": "WANIKANI",
+ "exportMode": "delta",
+ "seed": 5,
+ "start": {
+  "generate": {
+   "userLevel": 10,
+   "rows": [
+    {
+     "id": 2480,
+     "stage": 4
+    },
+    {
+     "id": 2586,
+     "stage": 4
+    },
+    {
+     "id": 2490,
+     "stage": 4
+    },
+    {
+     "id": 2499,
+     "stage": 4
+    },
+    {
+     "id": 2502,
+     "stage": 4
+    },
+    {
+     "id": 2501,
+     "stage": 4
+    },
+    {
+     "id": 9180,
+     "stage": 4
+    },
+    {
+     "id": 9219,
+     "stage": 4
+    },
+    {
+     "id": 3174,
+     "stage": 4
+    },
+    {
+     "id": 440,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    2480,
+    2586,
+    2490,
+    2499,
+    2502,
+    2501,
+    9180,
+    9219,
+    3174,
+    440
+   ],
+   "settings": {
+    "enable_advanced": true,
+    "enable_lightning_mode": null,
+    "overdue_threshold": null,
+    "shake_on_matching_kanji": null,
+    "lesson_subjects_Kana_vocabulary_min": null,
+    "lesson_order": null,
+    "lesson_order_reversed": null,
+    "lesson_order_priority": null,
+    "lesson_shuffle_after_selection": null,
+    "lesson_back_to_back": null,
+    "lesson_reading_first": null,
+    "lesson_meaning_first": null,
+    "lesson_subjects_current_min": null,
+    "lesson_subjects_current_max": null,
+    "lesson_subjects_earlier_min": null,
+    "lesson_subjects_earlier_max": null,
+    "lesson_subjects_radical_min": null,
+    "lesson_subjects_radical_max": null,
+    "lesson_subjects_kanji_min": null,
+    "lesson_subjects_kanji_max": null,
+    "lesson_subjects_vocabulary_min": null,
+    "lesson_subjects_vocabulary_max": null,
+    "lesson_subjects_kana_vocabulary_min": null,
+    "lesson_subjects_kana_vocabulary_max": null,
+    "anki_mode_lesson": null,
+    "anki_mode_lesson_meaning": null,
+    "anki_mode_lesson_reading": null,
+    "review_order": null,
+    "review_order_reversed": null,
+    "review_order_priority": null,
+    "review_shuffle_after_selection": null,
+    "review_back_to_back": null,
+    "review_reading_first": null,
+    "review_meaning_first": null,
+    "review_randomize_inflections": true,
+    "review_subjects_current_min": null,
+    "review_subjects_current_max": null,
+    "review_subjects_earlier_min": null,
+    "review_subjects_earlier_max": null,
+    "review_subjects_radical_min": null,
+    "review_subjects_radical_max": null,
+    "review_subjects_kanji_min": null,
+    "review_subjects_kanji_max": null,
+    "review_subjects_vocabulary_min": null,
+    "review_subjects_vocabulary_max": null,
+    "review_subjects_kana_vocabulary_min": null,
+    "review_subjects_kana_vocabulary_max": null,
+    "anki_mode_review": null,
+    "anki_mode_review_meaning": true,
+    "anki_mode_review_reading": true,
+    "self_study_order": null,
+    "self_study_order_reversed": null,
+    "self_study_order_priority": null,
+    "self_study_shuffle_after_selection": null,
+    "self_study_back_to_back": null,
+    "self_study_reading_first": null,
+    "self_study_meaning_first": null,
+    "self_study_randomize_inflections": null,
+    "self_study_subjects_current_min": null,
+    "self_study_subjects_current_max": null,
+    "self_study_subjects_earlier_min": null,
+    "self_study_subjects_earlier_max": null,
+    "self_study_subjects_radical_min": null,
+    "self_study_subjects_radical_max": null,
+    "self_study_subjects_kanji_min": null,
+    "self_study_subjects_kanji_max": null,
+    "self_study_subjects_vocabulary_min": null,
+    "self_study_subjects_vocabulary_max": null,
+    "self_study_subjects_kana_vocabulary_min": null,
+    "self_study_subjects_kana_vocabulary_max": null,
+    "anki_mode_self_study": null,
+    "anki_mode_self_study_meaning": null,
+    "anki_mode_self_study_reading": null,
+    "review_order_overdue_first": null,
+    "self_study_order_overdue_first": null
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "answer": "ankiCorrect",
+   "rules": {
+    "2480:meaning": [
+     "ankiIncorrect"
+    ],
+    "2499:reading": [
+     "ankiIncorrect"
+    ],
+    "3174:meaning": [
+     "ankiIncorrect"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

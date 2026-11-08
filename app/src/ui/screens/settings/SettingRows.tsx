@@ -1,0 +1,341 @@
+/**
+ * Renders `schema.ts` rows as AndroidX preference rows (`PreferenceFragmentCompat`): a full-width
+ * tappable row with the title and the summary, the icon space reserved at the left (72 dp), and
+ *
+ * - SwitchPreferenceCompat: a Material switch at the right; tapping the row toggles it;
+ * - ListPreference: the chosen entry as summary; tap → a single-choice dialog (title, radio list,
+ *   Cancel) that closes on a pick;
+ * - EditTextPreference: the value as summary; tap → a dialog with a text field, Cancel / OK
+ *   (EditLimitedIntPreference: out of range → the Java toast, nothing stored);
+ * - SeekBarPreference: the seek bar and its value under the title, saved when released;
+ * - NumberRangePreference: "Min 3", "1 - 5", "Unlimited"; tap → the Min / Max dialog.
+ * - TaggedUrlPreference: the name as summary; tap → the Name / URL dialog.
+ *
+ * Changes go through `app.setPreference` (same keys and value types as Java's `SharedPreferences`);
+ * the theme follows its keys by itself (App.tsx `ThemeSync`).
+ * Turning on `enable_advanced` asks first, like `PreferencesFragment`.
+ */
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
+import { advancedEnabled, javaParseInt, type Preferences, type PreferenceValue } from '../../../core/settings';
+import { rescheduleReviewNotifications } from '../../../platform/reviewNotifications';
+import { useApp, useReady } from '../../hooks/useApp';
+import { useNavigate } from '../../hooks/useRoute';
+import { paths } from '../../routes';
+import { toast } from '../../shell/toast';
+import { AlertDialog, ChoiceList } from './AlertDialog';
+import { FONT_IMPORT_SCREEN, FONT_SELECTION_SCREEN } from './fontScreens';
+import {
+  ENABLE_ADVANCED_WARNING,
+  NUMBER_RANGE_MESSAGE,
+  rangeSummary,
+  rangeValue,
+  shownValue,
+  visibleRows,
+  type ActionRow,
+  type BoolSetting,
+  type ListSetting,
+  type RangeSetting,
+  type Row,
+  type SettingGroup,
+  type SliderSetting,
+  type TaggedUrlSetting,
+  type TextSetting,
+} from './schema';
+
+export type Write = (key: string, value: PreferenceValue) => void;
+export type Actions = Readonly<Record<string, () => void>>;
+
+/**
+ * Android's line breaker (ICU) may break after a "/" between words ("readings/ meanings"), Chromium's
+ * doesn't: give the browser the same opportunity with a <wbr> (the text content stays the same).
+ */
+export function slashBreaks(text: ReactNode): ReactNode {
+  if (typeof text !== 'string' || !/\/\p{L}/u.test(text)) return text;
+  const parts = text.split(/(?<=\/)(?=\p{L})/u);
+  return parts.flatMap((p, i) => (i === 0 ? [p] : [<wbr key={i} />, p]));
+}
+
+/** One tappable preference row. */
+export function PrefRow({ title, summary, onClick, testId, disabled = false, widget, role, checked }: {
+  title: ReactNode; summary?: ReactNode; onClick?(): void; testId?: string; disabled?: boolean; widget?: ReactNode;
+  role?: 'switch'; checked?: boolean;
+}) {
+  return (
+    <li>
+      <button type="button" className="kk-pref" data-testid={testId} disabled={disabled} onClick={onClick}
+        role={role} aria-checked={role === 'switch' ? checked : undefined}>
+        <span className="kk-pref-text">
+          <span className="kk-pref-title">{slashBreaks(title)}</span>
+          {summary !== undefined && summary !== '' && <span className="kk-pref-summary">{slashBreaks(summary)}</span>}
+        </span>
+        {widget}
+      </button>
+    </li>
+  );
+}
+
+/** `PreferenceCategory`: the accent-coloured title, a divider above (but not above the first). */
+export function PrefCategory({ title, children, testId }: { title: string; children: ReactNode; testId?: string }) {
+  return (
+    <li className="kk-pref-category" data-testid={testId}>
+      <h2 className="kk-pref-category-title">{title}</h2>
+      <ul className="kk-prefs">{children}</ul>
+    </li>
+  );
+}
+
+function BoolRow({ def, prefs, disabled, write }: { def: BoolSetting; prefs: Preferences; disabled: boolean; write: Write }) {
+  const checked = shownValue(def, prefs);
+  return (
+    <PrefRow title={def.title} summary={def.summary} testId={`setting-${def.key}`} disabled={disabled}
+      role="switch" checked={checked} onClick={() => write(def.key, !checked)}
+      widget={<span className={`kk-switch${checked ? ' on' : ''}`} aria-hidden="true"><span className="kk-switch-thumb" /></span>} />
+  );
+}
+
+function ListRow({ def, prefs, disabled, write }: { def: ListSetting; prefs: Preferences; disabled: boolean; write: Write }) {
+  const [open, setOpen] = useState(false);
+  const stored = shownValue(def, prefs);
+  // The theme lists: an unknown stored value means the default theme (`GlobalSettings.Display.getTheme`).
+  const value = def.options.some(([v]) => v === stored) || def.entrySummary === undefined ? stored : def.default;
+  const entry = def.options.find(([v]) => v === value)?.[1];
+  const summary = def.summary ?? (entry !== undefined && def.entrySummary !== undefined ? def.entrySummary.replace('%s', entry) : entry ?? '');
+  return (
+    <>
+      <PrefRow title={def.title} summary={summary} testId={`setting-${def.key}`} disabled={disabled} onClick={() => setOpen(true)} />
+      <AlertDialog open={open} title={def.title} onCancel={() => setOpen(false)} testId={`dialog-${def.key}`}
+        negative={{ label: 'Cancel', onClick: () => setOpen(false) }}>
+        <ChoiceList label={def.title} checked={entry === undefined ? null : value}
+          items={def.options.map(([v, label]) => ({ key: v, label, testId: `choice-${def.key}-${v}` }))}
+          onPick={(v) => { setOpen(false); if (v !== value) write(def.key, v); }} />
+      </AlertDialog>
+    </>
+  );
+}
+
+/** The field of an EditText / range dialog: number keyboard, focused when the dialog opens. */
+function DialogField({ fieldRef, initial, label, placeholder, small, decimal }: {
+  fieldRef: RefObject<HTMLInputElement | null>; initial: string; label: string; placeholder?: string; small?: boolean; decimal?: boolean;
+}) {
+  useEffect(() => {
+    const f = fieldRef.current;
+    if (!f) return;
+    f.focus();
+    const n = f.value.length;
+    try { f.setSelectionRange(n, n); } catch { /* not a text field */ }
+  }, [fieldRef]);
+  return (
+    <input ref={fieldRef} className={`kk-alert-field${small ? ' small' : ''}`} type="text" inputMode={decimal ? 'decimal' : 'numeric'} defaultValue={initial}
+      aria-label={label} placeholder={placeholder} autoComplete="off" />
+  );
+}
+
+/** EditTextPreference with a number keyboard (`setNumberInputType`); EditLimitedIntPreference checks the range. */
+function TextRow({ def, prefs, disabled, write }: { def: TextSetting; prefs: Preferences; disabled: boolean; write: Write }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  const stored = shownValue(def, prefs);
+  const ok = () => {
+    const draft = ref.current?.value ?? stored;
+    setOpen(false);
+    if (def.min !== undefined || def.max !== undefined) {
+      const n = javaParseInt(draft);
+      if (n === null) { toast('Invalid Number'); return; }
+      if ((def.min !== undefined && n < def.min) || (def.max !== undefined && n > def.max)) {
+        toast(`Please use a number between ${def.min ?? ''} and ${def.max ?? ''}`, { long: true });
+        return;
+      }
+    }
+    if (draft !== stored) write(def.key, draft);
+  };
+  return (
+    <>
+      <PrefRow title={def.title} summary={def.summary ?? stored} testId={`setting-${def.key}`} disabled={disabled} onClick={() => setOpen(true)} />
+      <AlertDialog open={open} title={def.title} onCancel={() => setOpen(false)} testId={`dialog-${def.key}`}
+        negative={{ label: 'Cancel', onClick: () => setOpen(false) }} positive={{ label: 'OK', onClick: ok }}>
+        <form className="kk-alert-form" onSubmit={(e) => { e.preventDefault(); ok(); }}>
+          <DialogField fieldRef={ref} initial={stored} label={def.title} decimal={def.decimal} />
+        </form>
+      </AlertDialog>
+    </>
+  );
+}
+
+/** SeekBarPreference (`showSeekBarValue`): the bar under the title, the value at its right; saved when released. */
+function SliderRow({ def, prefs, disabled, write }: { def: SliderSetting; prefs: Preferences; disabled: boolean; write: Write }) {
+  const stored = shownValue(def, prefs);
+  const [draft, setDraft] = useState(stored);
+  useEffect(() => setDraft(stored), [stored]);
+  const commit = () => { if (draft !== stored) write(def.key, draft); };
+  return (
+    <li>
+      <div className={`kk-pref kk-pref-seekbar${disabled ? ' is-disabled' : ''}`} data-testid={`setting-${def.key}`}>
+        <span className="kk-pref-text">
+          <span className="kk-pref-title">{def.title}</span>
+          {def.summary !== undefined && <span className="kk-pref-summary">{def.summary}</span>}
+          <span className="kk-seekbar-row">
+            <input className="kk-seekbar" type="range" min={def.min} max={def.max} step={1} value={draft} disabled={disabled}
+              style={{ '--frac': def.max > def.min ? (draft - def.min) / (def.max - def.min) : 0 } as CSSProperties}
+              aria-label={def.title} onChange={(e) => setDraft(Number(e.currentTarget.value))}
+              onPointerUp={commit} onKeyUp={commit} onBlur={commit} onTouchEnd={commit} />
+            <span className="kk-seekbar-value">{draft}</span>
+          </span>
+        </span>
+      </div>
+    </li>
+  );
+}
+
+/** NumberRangePreference and its dialog: empty field = no rule (-1); a non-number leaves that value unchanged. */
+function RangeRow({ def, prefs, disabled, write }: { def: RangeSetting; prefs: Preferences; disabled: boolean; write: Write }) {
+  const [open, setOpen] = useState(false);
+  const minRef = useRef<HTMLInputElement>(null);
+  const maxRef = useRef<HTMLInputElement>(null);
+  const { min, max } = rangeValue(prefs, def.key);
+  const text = (n: number) => (n === -1 ? '' : String(n));
+  const ok = () => {
+    setOpen(false);
+    const apply = (which: 'min' | 'max', field: HTMLInputElement | null, stored: number) => {
+      const t = (field?.value ?? text(stored)).trim();
+      // Integer.parseInt failing leaves the value unchanged (the dialog's safe()).
+      const n = t === '' ? -1 : javaParseInt(t);
+      if (n === null || n < -1) return;
+      if (n !== stored) write(`${def.key}_${which}`, n);
+    };
+    apply('min', minRef.current, min);
+    apply('max', maxRef.current, max);
+  };
+  return (
+    <>
+      <PrefRow title={def.title} summary={rangeSummary(min, max)} testId={`setting-${def.key}`} disabled={disabled} onClick={() => setOpen(true)} />
+      <AlertDialog open={open} title={def.title} onCancel={() => setOpen(false)} testId={`dialog-${def.key}`}
+        negative={{ label: 'Cancel', onClick: () => setOpen(false) }} positive={{ label: 'OK', onClick: ok }}>
+        <form className="kk-alert-form" onSubmit={(e) => { e.preventDefault(); ok(); }}>
+          <p className="kk-alert-message">{NUMBER_RANGE_MESSAGE}</p>
+          <span className="kk-range-fields">
+            <DialogField fieldRef={minRef} initial={text(min)} label={`${def.title} min`} placeholder="Min" small />
+            <span aria-hidden="true">-</span>
+            <input ref={maxRef} className="kk-alert-field small" type="text" inputMode="numeric" defaultValue={text(max)}
+              aria-label={`${def.title} max`} placeholder="Max" autoComplete="off" />
+          </span>
+          <button type="submit" hidden />
+        </form>
+      </AlertDialog>
+    </>
+  );
+}
+
+/** `TaggedUrlPreferenceDialogFragment`'s message. */
+export const TAGGED_URL_MESSAGE = 'Search engines are shown when long-pressing on a subject title. In the URL, "%s" will be replaced'
+  + ' with the search query.';
+
+/** TaggedUrlPreference: `<key>_tag` (name, the summary) and `<key>` (URL), both saved on OK. */
+function TaggedUrlRow({ def, prefs, write }: { def: TaggedUrlSetting; prefs: Preferences; write: Write }) {
+  const [open, setOpen] = useState(false);
+  const tagRef = useRef<HTMLInputElement>(null);
+  const urlRef = useRef<HTMLInputElement>(null);
+  const storedTag = prefs[`${def.key}_tag`];
+  const storedUrl = prefs[def.key];
+  const tag = typeof storedTag === 'string' ? storedTag : def.defaultTag;
+  const url = typeof storedUrl === 'string' ? storedUrl : def.default;
+  const ok = () => {
+    setOpen(false);
+    write(`${def.key}_tag`, tagRef.current?.value ?? tag);
+    write(def.key, urlRef.current?.value ?? url);
+  };
+  return (
+    <>
+      <PrefRow title={def.title} summary={tag} testId={`setting-${def.key}`} onClick={() => setOpen(true)} />
+      <AlertDialog open={open} title={def.title} onCancel={() => setOpen(false)} testId={`dialog-${def.key}`}
+        negative={{ label: 'Cancel', onClick: () => setOpen(false) }} positive={{ label: 'OK', onClick: ok }}>
+        <form className="kk-alert-form kk-tagged-url" onSubmit={(e) => { e.preventDefault(); ok(); }}>
+          <p className="kk-alert-message">{TAGGED_URL_MESSAGE}</p>
+          <input ref={tagRef} className="kk-alert-field" type="text" defaultValue={tag} placeholder="Name" aria-label="Name"
+            autoComplete="off" data-testid={`${def.key}-name`} />
+          <input ref={urlRef} className="kk-alert-field" type="url" inputMode="url" defaultValue={url} placeholder="URL" aria-label="URL"
+            autoComplete="off" autoCapitalize="none" spellCheck={false} data-testid={`${def.key}-url`} />
+          <button type="submit" hidden />
+        </form>
+      </AlertDialog>
+    </>
+  );
+}
+
+function ActionRowView({ row, actions }: { row: ActionRow; actions: Actions }) {
+  const run = actions[row.key];
+  if (!run) return null;
+  return <PrefRow title={row.title} summary={row.summary} testId={`setting-${row.key}`} onClick={run} />;
+}
+
+export function SettingRow({ row, prefs, write, actions = {} }: { row: Row; prefs: Preferences; write: Write; actions?: Actions }) {
+  if (row.type === 'info') {
+    return <li><p className="kk-pref kk-pref-info" data-testid={`setting-${row.key}`}><span className="kk-pref-text"><span className="kk-pref-title">{row.text}</span></span></p></li>;
+  }
+  if (row.type === 'action') return <ActionRowView row={row} actions={actions} />;
+  const disabled = row.enabledWhen !== undefined && !row.enabledWhen(prefs);
+  switch (row.type) {
+    case 'bool': return <BoolRow def={row} prefs={prefs} disabled={disabled} write={write} />;
+    case 'list': return <ListRow def={row} prefs={prefs} disabled={disabled} write={write} />;
+    case 'text': return <TextRow def={row} prefs={prefs} disabled={disabled} write={write} />;
+    case 'slider': return <SliderRow def={row} prefs={prefs} disabled={disabled} write={write} />;
+    case 'range': return <RangeRow def={row} prefs={prefs} disabled={disabled} write={write} />;
+    case 'taggedUrl': return <TaggedUrlRow def={row} prefs={prefs} write={write} />;
+  }
+}
+
+/**
+ * The write path for settings rows: `setPreference`, the `enable_advanced` confirmation
+ * and the notification reschedule after `enable_notifications` changes. Render `dialog` once.
+ */
+export function useSettingWriter(): { write: Write; dialog: ReactNode } {
+  const app = useApp();
+  const { state, platform, learner } = useReady();
+  const [askAdvanced, setAskAdvanced] = useState(false);
+  const write: Write = (key, value) => {
+    if (key === 'enable_advanced' && value === true && !advancedEnabled(state.prefs)) {
+      setAskAdvanced(true);
+      return;
+    }
+    void app.setPreference(key, value).then(() => {
+      if (key === 'enable_notifications' || key.startsWith('notification_')) {
+        void rescheduleReviewNotifications(platform.notifications, learner, app.get().prefs, app.clock.now()).catch(() => undefined);
+      }
+    });
+  };
+  const answer = (yes: boolean) => { setAskAdvanced(false); void app.setPreference('enable_advanced', yes); };
+  const dialog = (
+    <AlertDialog open={askAdvanced} warning title="Enable advanced settings?" testId="dialog-enable-advanced"
+      onCancel={() => setAskAdvanced(false)}
+      negative={{ label: 'No', onClick: () => answer(false) }} positive={{ label: 'Yes', onClick: () => answer(true) }}>
+      {/* Java renders the message as HTML: the same text with its two bold parts. */}
+      <p className="kk-alert-message">
+        <b>Warning:</b>{ENABLE_ADVANCED_WARNING.slice('Warning:'.length, ENABLE_ADVANCED_WARNING.indexOf('only change'))}
+        <b>only change these settings if you are an experienced user</b>
+        {ENABLE_ADVANCED_WARNING.slice(ENABLE_ADVANCED_WARNING.indexOf(' and know'))}
+      </p>
+    </AlertDialog>
+  );
+  return { write, dialog };
+}
+
+/** The `Preference` rows that open another screen (`setOnClickGoToActivity`). */
+export function useScreenLinkActions(): Actions {
+  const nav = useNavigate();
+  return {
+    theme_customization: () => nav(paths.themeCustomization()),
+    keyboard_help: () => nav(paths.keyboardHelp()),
+    font_selection: () => nav(`${paths.settings()}?screen=${FONT_SELECTION_SCREEN}`),
+    font_import: () => nav(`${paths.settings()}?screen=${FONT_IMPORT_SCREEN}`),
+  };
+}
+
+/** A sub-screen's rows. */
+export function SettingGroupRows({ group, write, actions }: { group: SettingGroup; write: Write; actions?: Actions }) {
+  const { state, platform } = useReady();
+  const rows = visibleRows(group, { capabilities: platform.capabilities, mode: state.mode });
+  return (
+    <ul className="kk-prefs" data-testid={`group-${group.id}`}>
+      {rows.map((r) => <SettingRow key={r.key} row={r} prefs={state.prefs} write={write} actions={actions} />)}
+    </ul>
+  );
+}

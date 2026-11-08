@@ -1,0 +1,68 @@
+{
+ "description": "Review session in Anki mode for meanings and readings (2 radicals, 2 kanji at Apprentice IV, due): the first answer is self-graded Correct, then Incorrect is pressed on the already answered question (ignored); one radical and one kanji reading are graded Incorrect once, so those items drop a stage exactly like a typed wrong answer; every finished item is reported at once with its answer time; the revealed answer text is listed per answer (ankiAnswer).",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4
+    },
+    {
+     "id": 440,
+     "stage": 4
+    },
+    {
+     "id": 441,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {},
+   "settings": {
+    "enable_advanced": true,
+    "anki_mode_review_meaning": true,
+    "anki_mode_review_reading": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "ankiCorrect",
+   "advance": false
+  },
+  {
+   "action": "sessionAnkiButton",
+   "button": "incorrect"
+  },
+  {
+   "action": "sessionAdvance"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5,
+   "answer": "ankiCorrect",
+   "rules": {
+    "1": [
+     "ankiIncorrect"
+    ],
+    "440:reading": [
+     "ankiIncorrect"
+    ]
+   }
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

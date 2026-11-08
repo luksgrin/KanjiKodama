@@ -1,0 +1,179 @@
+{
+ "description": "Sync reminder in local mode around a level-up: the kanji review that levels up to 2, a round trip, a restore of the start file (level 1 again), a WaniKani import and a curriculum switch; it stays off throughout.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "rows": [
+    {
+     "id": 440,
+     "stage": 5
+    },
+    {
+     "id": 441,
+     "stage": 5
+    },
+    {
+     "id": 442,
+     "stage": 5
+    },
+    {
+     "id": 443,
+     "stage": 5
+    },
+    {
+     "id": 444,
+     "stage": 5
+    },
+    {
+     "id": 445,
+     "stage": 5
+    },
+    {
+     "id": 446,
+     "stage": 5
+    },
+    {
+     "id": 447,
+     "stage": 5
+    },
+    {
+     "id": 448,
+     "stage": 5
+    },
+    {
+     "id": 449,
+     "stage": 5
+    },
+    {
+     "id": 450,
+     "stage": 5
+    },
+    {
+     "id": 451,
+     "stage": 5
+    },
+    {
+     "id": 457,
+     "stage": 5
+    },
+    {
+     "id": 452,
+     "stage": 5
+    },
+    {
+     "id": 453,
+     "stage": 5
+    },
+    {
+     "id": 454,
+     "stage": 5
+    },
+    {
+     "id": 455,
+     "stage": 4
+    },
+    {
+     "id": 456,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "review",
+   "ids": [
+    455
+   ],
+   "meaningWrong": 1
+  },
+  {
+   "action": "review",
+   "ids": [
+    456
+   ]
+  },
+  {
+   "action": "exportRestore"
+  },
+  {
+   "action": "restore",
+   "fromStep": 0
+  },
+  {
+   "action": "importWaniKani",
+   "api": {
+    "user": {
+     "level": 1,
+     "username": "golden-user",
+     "max_level_granted_by_subscription": 60
+    },
+    "assignments": [
+     {
+      "id": 5000000,
+      "object": "assignment",
+      "data": {
+       "subject_id": 1,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000001,
+      "object": "assignment",
+      "data": {
+       "subject_id": 6,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     },
+     {
+      "id": 5000002,
+      "object": "assignment",
+      "data": {
+       "subject_id": 2,
+       "subject_type": "radical",
+       "srs_stage": 4,
+       "unlocked_at": "2025-11-28T21:17:00.000000Z",
+       "started_at": "2025-11-29T07:17:00.000000Z",
+       "passed_at": null,
+       "burned_at": null,
+       "available_at": "2026-01-05T17:00:00.000000Z",
+       "resurrected_at": null,
+       "hidden": false
+      }
+     }
+    ],
+    "review_statistics": [],
+    "study_materials": [],
+    "level_progressions": []
+   }
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "JLPT"
+  }
+ ]
+}

@@ -1,0 +1,27 @@
+{
+ "description": "Fresh JLPT learner jumps the maximum 5 levels; every 4th probation review is wrong (the item goes back to the lesson queue), the rest go to Guru.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "fastTravel",
+   "levels": 5
+  },
+  {
+   "action": "grind",
+   "noLessons": true,
+   "until": {
+    "noProbation": true
+   },
+   "wrongEveryNth": {
+    "n": 4,
+    "meaning": 1,
+    "reading": 0
+   }
+  },
+  {
+   "action": "snapshot",
+   "atHours": 73
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+  "object": "collection",
+  "url": "https://kk.example.test/v2/level_progressions",
+  "pages": { "per_page": 500, "next_url": null, "previous_url": null },
+  "total_count": 2,
+  "data_updated_at": "2026-10-20T07:00:00.000000Z",
+  "data": [
+    { "id": 301, "object": "level_progression", "url": "https://kk.example.test/v2/level_progressions/301", "data_updated_at": "2026-10-20T07:00:00.000000Z",
+      "data": { "created_at": "2026-01-01T00:00:00.000000Z", "level": 1, "unlocked_at": "2026-01-01T00:00:00.000000Z",
+        "started_at": "2026-01-02T00:00:00.000000Z", "passed_at": "2026-01-10T00:00:00.000000Z", "completed_at": null, "abandoned_at": null } },
+    { "id": 302, "object": "level_progression", "url": "https://kk.example.test/v2/level_progressions/302", "data_updated_at": "2026-10-20T07:00:00.000000Z",
+      "data": { "created_at": "2026-01-10T00:00:00.000000Z", "level": 2, "unlocked_at": "2026-01-10T00:00:00.000000Z",
+        "started_at": "2026-01-11T00:00:00.000000Z", "passed_at": null, "completed_at": null, "abandoned_at": null } }
+  ]
+}

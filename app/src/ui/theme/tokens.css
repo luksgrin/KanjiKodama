@@ -1,0 +1,409 @@
+/*
+ * Pixel Forest theme tokens (light and dark), ported from the Java app's KanjiKodamaLightTheme /
+ * KanjiKodamaDarkTheme (the Java app's res/values/{colors,styles}.xml, snapshot in
+ * test/fixtures/java/; enums/ActiveTheme.java).
+ * Dark: the system setting, unless <html data-theme="light|dark"> overrides it (app/theme.ts).
+ * See README.md for what each token is for.
+ */
+:root {
+  color-scheme: light;
+  /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+  --kk-ink: #2E4756;
+  --kk-muted: #3E7F6B;
+  --kk-toned: #5C8A7A;
+  --kk-accent: #7CC8AC;
+  --kk-ground: #EAF7EF;
+  --kk-window: #F8FDF9;
+  --kk-shadow: #9CCDB8;
+  --kk-mint: #A8E6CF;
+  --kk-mint-hi: #D9F7EA;
+  --kk-mint-lo: #7CC8AC;
+  --kk-divider: #BFD9CB;
+  --kk-peach: #E9B572;
+  --kk-on-pastel: #2E4756;
+  --kk-bar: #A8E6CF;
+  /* Semantic */
+  --color-text: #2E4756;
+  --color-text-muted: #3E7F6B; /* mmMutedLight */
+  --color-text-toned: #5C8A7A; /* mmTonedLight */
+  --color-bg: #EAF7EF;
+  --color-surface: #F8FDF9;
+  --color-dialog: #FFFFFF; /* AppCompat light background_floating */
+  --color-pref-summary: rgb(0 0 0 / 0.6); /* Preference summary: ?android:textColorSecondary */
+  --color-dialog-item: rgb(0 0 0 / 0.87); /* AlertDialog list items: ?textColorAlertDialogListItem */
+  --color-control-normal: rgb(0 0 0 / 0.54); /* unchecked radio buttons: ?colorControlNormal */
+  --color-edit-line: rgb(0 0 0 / 0.6); /* EditText underline and hint (measured on the Java app) */
+  --color-divider: #BFD9CB;
+  --color-accent: #7CC8AC;
+  --color-target: #E9B572;
+  --color-on-pastel: #2E4756;
+  --color-toolbar-bg: #2E4756;
+  --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
+  --color-toast-bg: #F1F1F1;
+  --color-toast-fg: #1F1F1F;
+  /* The quiz's SRS / close-enough toasts (WK.TextView.CustomToast): the same in every theme. */
+  --color-custom-toast-bg: #FFFF80;
+  --color-custom-toast-fg: #000000;
+  /* The alternatives toast (alternativeToastColorPrimary; Nord #E5E9F0, themes.ts). */
+  --color-alt-toast-fg: #FFFFFF;
+  --color-level-up: #3FA383;
+  --color-ok: #3FA383;
+  --color-bad: #D9667F;
+  --color-bad-text: #D9667F; /* = --color-bad (Java has one error colour) */
+  --color-warn-bg: #F6D7B0;
+  --color-chip: #A8E6CF;
+  --btn-fill: #A8E6CF;
+  --btn-light: #D9F7EA;
+  --btn-shade: #7CC8AC;
+  --btn-outline: #2E4756;
+  --color-shadow: #9CCDB8;
+  --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
+  --btn-secondary-text: #2E4756; /* Java has one button style (mm_btn): .kk-btn.secondary = .kk-btn */
+  /* Theme attributes the upstream themes change (ui/theme/themes.ts maps them) */
+  --color-primary-light: #3E7F6B; /* colorPrimaryLight: text on subject / browse-level colours */
+  --color-primary-dark: #2E4756; /* colorPrimaryDark: borderless buttons on the yellow tutorial boxes */
+  --color-control-activated: #7CC8AC; /* colorControlActivated: switches, seek bars */
+  --color-pref-title: #2E4756; /* preference titles: android:textColorPrimary (mmInk) */
+  --color-waterfall: #D80088; /* colorWaterfallLine (WKLightTheme) */
+  --color-pitch-heiban: #D20CA3;
+  --color-pitch-odaka: #0CD24D;
+  --color-pitch-nakadaka: #27A2FF;
+  --color-pitch-atamadaka: #EA9316;
+  /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+     in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
+     black 1 px shadow (themes.ts). */
+  --color-card-ink-radical: #1D4A7A;
+  --color-card-ink-kanji: #7E1E40;
+  --color-card-ink-vocab: #45297F;
+  --color-card-ink-shadow: none;
+  --color-stroke-ghost: #D0D0D0;
+  /* Per-type text on the subject colours (= --color-on-subject here; the Breeze/Black/Nord themes colour the text instead) */
+  --color-radical-fg: #2E4756;
+  --color-kanji-fg: #2E4756;
+  --color-vocab-fg: #2E4756;
+  --font-button: var(--font-body);
+  /* Subject types (ActiveTheme KANJIKODAMA_*) */
+  --color-radical: #9EC9F0;
+  --color-kanji: #F5A9B8;
+  --color-vocab: #C9B6F2;
+  --color-radical-strong: #7FB2E6;
+  --color-kanji-strong: #E98BA4;
+  --color-vocab-strong: #A994E6;
+  --color-on-subject: #2E4756;
+  /* SRS stage buckets (ActiveTheme stageBucketColors7) */
+  --color-stage-locked: #DDEBE2;
+  --color-stage-initial: #B7C9BD;
+  --color-stage-apprentice: #F5C1D0;
+  --color-stage-guru: #D7C8F6;
+  --color-stage-master: #BBD8F4;
+  --color-stage-enlightened: #B5E9E3;
+  --color-stage-burned: #F6D7B0;
+  /* Level progress buckets: 0 passed, 1..7 apprentice stages (7 = first), 8 initiate, 9 locked */
+  --color-lp-0: #7CC8AC;
+  --color-lp-1: #E98BA4;
+  --color-lp-2: #F0A5BA;
+  --color-lp-3: #F5C1D0;
+  --color-lp-4: #F7CCD8;
+  --color-lp-5: #F9D6E0;
+  --color-lp-6: #FADDE6;
+  --color-lp-7: #FCE8EE;
+  --color-lp-8: #B7C9BD;
+  --color-lp-9: #DDEBE2;
+
+  /* Quiz (styles.xml wkLight* meaning/reading hint, correct/incorrect backgrounds; ActiveTheme KANJIKODAMA_LIGHT ankiColors) */
+  --color-q-meaning-bg: #FFFFFF;
+  --color-q-meaning-fg: #000000;
+  --color-q-reading-bg: #000000;
+  --color-q-reading-fg: #FFFFFF;
+  --color-answer-correct: #B7DAC7;
+  --color-answer-incorrect: #EAC2BC;
+  --color-anki-show: #909000;
+  --color-anki-next: #909000;
+  --color-anki-correct: #00A000;
+  --color-anki-incorrect: #A00000;
+  --color-anki-text: #FFFFFF;
+  --color-anki-answer-bg: #909000;
+
+  /* Fonts: pixel for Latin; Japanese in the system CJK font, as the Java app (its TextViews fall back
+     from Pixelify Sans/Silkscreen to the system font, Noto Sans CJK on Android; the bundled Zen Maru
+     Gothic is never used there). */
+  --font-ja: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
+  --font-body: 'Pixelify Sans', var(--font-ja);
+  --font-display: 'Silkscreen', var(--font-ja);
+  /* SubjectInfoButtonView glyphs (quiz question, item title tile, subject cards): Roboto's metrics for the
+     vertical centring, the CJK face for the outlines (fonts.css). */
+  --font-glyph: 'KK Android Metrics', var(--font-ja);
+
+  /* Type scale (WK.TextView.*: 13/14/16/20/26/34 sp) */
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 26px;
+  --text-xxl: 34px;
+
+  /* Spacing and shape */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+  --border-pixel: 3px;
+  /* includeFontPadding: what an Android TextView adds above its first and below its last line (the
+     font's top / bottom beyond its ascent / descent). Nothing for the KanjiKodama fonts; Roboto (the
+     upstream themes, themes.ts) 0.128 / 0.027 em. */
+  --fp-top: 0px;
+  --fp-bottom: 0px;
+  /* One Android device pixel in CSS px (devicePixels.ts sets --kk-dpr = devicePixelRatio). android:shadowDx /
+     shadowDy / shadowRadius and setShadowLayer() take raw device pixels, not dp, so their CSS size shrinks
+     as the density grows. */
+  --dev-px: calc(1px / var(--kk-dpr, 1));
+  /* TextView.setShadowLayer(3, 1, 1, black) / android:shadowRadius="3" shadowDx/Dy="1": a 1 device px offset
+     and a Gaussian of sigma 3 × 0.57735 + 0.5 = 2.23 device px (Skia's radius → sigma); a CSS blur radius is
+     2 sigma: 4.46 device px. One layer, as Java draws one. */
+  --text-shadow-3px: var(--dev-px) var(--dev-px) calc(4.46 * var(--dev-px)) #000;
+  /* The same layer on big glyphs (quiz question, item title tile: SubjectInfoButtonView's paint). */
+  --text-shadow-3px-glyph: var(--text-shadow-3px);
+
+  /* Safe areas: Capacitor's SystemBars injects --safe-area-inset-* on Android (edge-to-edge);
+     iOS / browsers provide env(). */
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+
+  /* Layout */
+  --toolbar-height: 56px; /* ?attr/actionBarSize */
+  --main-gutter: 8px; /* .kk-main padding (the Java layouts' 8dp margins); bleed with calc(-1 * var(--main-gutter)) */
+  --content-max-width: 640px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+    --kk-ink: #E3F4EA;
+    --kk-muted: #A9C9BC;
+    --kk-toned: #7FA898;
+    --kk-accent: #8EE3C8;
+    --kk-ground: #14232B;
+    --kk-window: #1E3139;
+    --kk-shadow: #0A1418;
+    --kk-mint: #8EE3C8;
+    --kk-mint-hi: #C4F4E4;
+    --kk-mint-lo: #5FBFA2;
+    --kk-divider: #2B414A;
+    --kk-peach: #E8B97A;
+    --kk-on-pastel: #0F1C22;
+    --kk-bar: #2E5D57;
+    /* Semantic */
+    --color-text: #E3F4EA;
+    --color-text-muted: #A9C9BC;
+    --color-text-toned: #7FA898;
+    --color-bg: #14232B;
+    --color-surface: #1E3139;
+  --color-dialog: #424242; /* AppCompat dark background_floating */
+  --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
+  --color-dialog-item: rgb(255 255 255 / 0.87);
+  --color-control-normal: rgb(255 255 255 / 0.7);
+  --color-edit-line: rgb(255 255 255 / 0.7); /* EditText underline and hint (measured on the Java app) */
+    --color-divider: #2B414A;
+    --color-accent: #8EE3C8;
+    --color-target: #E8B97A;
+    --color-on-pastel: #0F1C22;
+    --color-toolbar-bg: #1E3139;
+    --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
+    --color-toast-bg: #303030;
+    --color-toast-fg: #E3E3E3;
+    --color-level-up: #8EE3C8;
+    --color-ok: #8EE3C8;
+    --color-bad: #E98BA4;
+    --color-bad-text: #E98BA4;
+    --color-warn-bg: #5A4630;
+    --color-chip: #2E5D57;
+    --btn-fill: #8EE3C8;
+    --btn-light: #C4F4E4;
+    --btn-shade: #5FBFA2;
+    --btn-outline: #0A1418;
+    --color-shadow: #0A1418;
+    --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
+    --btn-secondary-text: #2E4756;
+    /* Theme attributes the upstream themes change (ui/theme/themes.ts) */
+    --color-primary-light: #A9C9BC;
+    --color-primary-dark: #1E3139;
+    --color-control-activated: #8EE3C8;
+    --color-pref-title: #E3F4EA;
+    --color-waterfall: #1D99F3; /* WKDarkTheme */
+    --color-pitch-heiban: #D20CA3;
+    --color-pitch-odaka: #0CD24D;
+    --color-pitch-nakadaka: #27A2FF;
+    --color-pitch-atamadaka: #EA9316;
+    /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+       in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
+       black 1 px shadow (themes.ts). */
+    --color-card-ink-radical: #1D4A7A;
+    --color-card-ink-kanji: #7E1E40;
+    --color-card-ink-vocab: #45297F;
+    --color-card-ink-shadow: none;
+    --color-stroke-ghost: #404040;
+    --color-radical-fg: #0F1C22;
+    --color-kanji-fg: #0F1C22;
+    --color-vocab-fg: #0F1C22;
+    /* Subject types (ActiveTheme KANJIKODAMA_*) */
+    --color-radical: #7FB2E6;
+    --color-kanji: #E98BA4;
+    --color-vocab: #A994E6;
+    --color-radical-strong: #7FB2E6;
+    --color-kanji-strong: #E98BA4;
+    --color-vocab-strong: #A994E6;
+    --color-on-subject: #0F1C22;
+    /* SRS stage buckets (ActiveTheme stageBucketColors7) */
+    --color-stage-locked: #2B414A;
+    --color-stage-initial: #4A5F66;
+    --color-stage-apprentice: #E98BA4;
+    --color-stage-guru: #A994E6;
+    --color-stage-master: #7FB2E6;
+    --color-stage-enlightened: #7FD3CB;
+    --color-stage-burned: #E8B97A;
+    /* Level progress buckets: 0 passed, 1..7 apprentice stages (7 = first), 8 initiate, 9 locked */
+    --color-lp-0: #8EE3C8;
+    --color-lp-1: #E98BA4;
+    --color-lp-2: #EC95AD;
+    --color-lp-3: #EFA2B7;
+    --color-lp-4: #F4B8C8;
+    --color-lp-5: #C98FA3;
+    --color-lp-6: #A57A8A;
+    --color-lp-7: #7D6370;
+    --color-lp-8: #4A5F66;
+    --color-lp-9: #2B414A;
+    /* Quiz (styles.xml wkDark*; ActiveTheme KANJIKODAMA_DARK ankiColors) */
+    --color-q-meaning-bg: #C0C0C0;
+    --color-q-meaning-fg: #000000;
+    --color-q-reading-bg: #000000;
+    --color-q-reading-fg: #C0C0C0;
+    --color-answer-correct: #205020;
+    --color-answer-incorrect: #502020;
+    --color-anki-show: #606000;
+    --color-anki-next: #606000;
+    --color-anki-correct: #006000;
+    --color-anki-incorrect: #600000;
+    --color-anki-text: #E8E8E8;
+    --color-anki-answer-bg: #606000;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+  --kk-ink: #E3F4EA;
+  --kk-muted: #A9C9BC;
+  --kk-toned: #7FA898;
+  --kk-accent: #8EE3C8;
+  --kk-ground: #14232B;
+  --kk-window: #1E3139;
+  --kk-shadow: #0A1418;
+  --kk-mint: #8EE3C8;
+  --kk-mint-hi: #C4F4E4;
+  --kk-mint-lo: #5FBFA2;
+  --kk-divider: #2B414A;
+  --kk-peach: #E8B97A;
+  --kk-on-pastel: #0F1C22;
+  --kk-bar: #2E5D57;
+  /* Semantic */
+  --color-text: #E3F4EA;
+  --color-text-muted: #A9C9BC;
+  --color-text-toned: #7FA898;
+  --color-bg: #14232B;
+  --color-surface: #1E3139;
+  --color-dialog: #424242; /* AppCompat dark background_floating */
+  --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
+  --color-dialog-item: rgb(255 255 255 / 0.87);
+  --color-control-normal: rgb(255 255 255 / 0.7);
+  --color-edit-line: rgb(255 255 255 / 0.7); /* EditText underline and hint (measured on the Java app) */
+  --color-divider: #2B414A;
+  --color-accent: #8EE3C8;
+  --color-target: #E8B97A;
+  --color-on-pastel: #0F1C22;
+  --color-toolbar-bg: #1E3139;
+  --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
+  --color-toast-bg: #303030;
+  --color-toast-fg: #E3E3E3;
+  --color-level-up: #8EE3C8;
+  --color-ok: #8EE3C8;
+  --color-bad: #E98BA4;
+  --color-bad-text: #E98BA4;
+  --color-warn-bg: #5A4630;
+  --color-chip: #2E5D57;
+  --btn-fill: #8EE3C8;
+  --btn-light: #C4F4E4;
+  --btn-shade: #5FBFA2;
+  --btn-outline: #0A1418;
+  --color-shadow: #0A1418;
+  --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
+  --btn-secondary-text: #2E4756;
+  /* Theme attributes the upstream themes change (ui/theme/themes.ts) */
+  --color-primary-light: #A9C9BC;
+  --color-primary-dark: #1E3139;
+  --color-control-activated: #8EE3C8;
+  --color-pref-title: #E3F4EA;
+  --color-waterfall: #1D99F3; /* WKDarkTheme */
+  --color-pitch-heiban: #D20CA3;
+  --color-pitch-odaka: #0CD24D;
+  --color-pitch-nakadaka: #27A2FF;
+  --color-pitch-atamadaka: #EA9316;
+  /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+     in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
+     black 1 px shadow (themes.ts). */
+  --color-card-ink-radical: #1D4A7A;
+  --color-card-ink-kanji: #7E1E40;
+  --color-card-ink-vocab: #45297F;
+  --color-card-ink-shadow: none;
+  --color-stroke-ghost: #404040;
+  --color-radical-fg: #0F1C22;
+  --color-kanji-fg: #0F1C22;
+  --color-vocab-fg: #0F1C22;
+  /* Subject types (ActiveTheme KANJIKODAMA_*) */
+  --color-radical: #7FB2E6;
+  --color-kanji: #E98BA4;
+  --color-vocab: #A994E6;
+  --color-radical-strong: #7FB2E6;
+  --color-kanji-strong: #E98BA4;
+  --color-vocab-strong: #A994E6;
+  --color-on-subject: #0F1C22;
+  /* SRS stage buckets (ActiveTheme stageBucketColors7) */
+  --color-stage-locked: #2B414A;
+  --color-stage-initial: #4A5F66;
+  --color-stage-apprentice: #E98BA4;
+  --color-stage-guru: #A994E6;
+  --color-stage-master: #7FB2E6;
+  --color-stage-enlightened: #7FD3CB;
+  --color-stage-burned: #E8B97A;
+  /* Level progress buckets: 0 passed, 1..7 apprentice stages (7 = first), 8 initiate, 9 locked */
+  --color-lp-0: #8EE3C8;
+  --color-lp-1: #E98BA4;
+  --color-lp-2: #EC95AD;
+  --color-lp-3: #EFA2B7;
+  --color-lp-4: #F4B8C8;
+  --color-lp-5: #C98FA3;
+  --color-lp-6: #A57A8A;
+  --color-lp-7: #7D6370;
+  --color-lp-8: #4A5F66;
+  --color-lp-9: #2B414A;
+  /* Quiz (styles.xml wkDark*; ActiveTheme KANJIKODAMA_DARK ankiColors) */
+  --color-q-meaning-bg: #C0C0C0;
+  --color-q-meaning-fg: #000000;
+  --color-q-reading-bg: #000000;
+  --color-q-reading-fg: #C0C0C0;
+  --color-answer-correct: #205020;
+  --color-answer-incorrect: #502020;
+  --color-anki-show: #606000;
+  --color-anki-next: #606000;
+  --color-anki-correct: #006000;
+  --color-anki-incorrect: #600000;
+  --color-anki-text: #E8E8E8;
+  --color-anki-answer-bg: #606000;
+}

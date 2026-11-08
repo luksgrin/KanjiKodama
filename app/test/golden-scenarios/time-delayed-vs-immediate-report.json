@@ -1,0 +1,37 @@
+{
+ "description": "All 25 level 1 radicals at Apprentice IV, answered 20 s apart from 09:59:00. Delayed reporting (reported 90 s after the last answer): passedAt and availableAt follow each answer time (the 09:59:30 boundary splits the next reviews by an hour), but every level 1 kanji unlocks at the report time. Then the start file again and immediate reporting from 10:59:00: each kanji unlocks when its last radical passes.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 4,
+   "availableInHours": 0
+  }
+ },
+ "steps": [
+  {
+   "action": "review",
+   "atMs": 1767607140000,
+   "where": {},
+   "spacingSeconds": 20,
+   "delayedReport": true,
+   "reportAfterSeconds": 90
+  },
+  {
+   "action": "restore",
+   "fromStep": 0
+  },
+  {
+   "action": "review",
+   "atMs": 1767610740000,
+   "where": {},
+   "spacingSeconds": 20
+  }
+ ]
+}

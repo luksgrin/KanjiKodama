@@ -1,0 +1,16 @@
+{
+ "description": "Fast travel status in WaniKani order: blocked with the hint to switch order.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 2
+   }
+  }
+ ]
+}

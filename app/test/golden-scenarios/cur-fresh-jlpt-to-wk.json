@@ -1,0 +1,21 @@
+{
+ "description": "Fresh learner in JLPT order takes a few lessons, then switches back to WaniKani order.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "lesson",
+   "where": {
+    "limit": 6
+   }
+  },
+  {
+   "action": "previewCurriculum",
+   "mode": "WANIKANI"
+  },
+  {
+   "action": "switchCurriculum",
+   "mode": "WANIKANI"
+  }
+ ]
+}

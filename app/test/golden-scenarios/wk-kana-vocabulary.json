@@ -1,0 +1,29 @@
+{
+ "description": "Level 1 fully at Guru: the level-up unlocks level 2; its kana-only vocabulary (no components) is a lesson at once, like the radicals.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "stage": 5
+  }
+ },
+ "steps": [
+  {
+   "action": "snapshot"
+  },
+  {
+   "action": "lesson",
+   "where": {
+    "object": "kana_vocabulary"
+   }
+  },
+  {
+   "action": "review",
+   "advanceHours": 3,
+   "where": {}
+  }
+ ]
+}

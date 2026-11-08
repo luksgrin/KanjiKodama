@@ -1,0 +1,267 @@
+/* Browse, search form and search results (fragment_browse_overview.xml, fragment_search_result.xml,
+   subject_card_*.xml, search_result_*_header.xml). dp = CSS px; theme tokens, plus the Java constants
+   of the yellow tutorial box (customToastColorBackground #FFFF80, black text) and the KanjiKodama
+   card text colours (SubjectCardBinder.styleCardText). */
+
+/* Tutorial box (rounded_corners + WK.TextView.CustomToast + WK.Button.Borderless.CustomToast). */
+.kk-tip {
+  background: #FFFF80;
+  color: #000;
+  border-radius: 10px;
+  padding: 8px 8px 0;
+  margin-bottom: 12px;
+}
+/* fragment_search_result.xml: the tutorial box has no outer margin (edge to edge under the toolbar). */
+.kk-tip.bleed { margin: 0 0 12px; }
+.kk-tip-text { margin: 0; font-size: 16px; white-space: pre-line; padding: var(--fp-top) 0 var(--fp-bottom); }
+.kk-tip-actions { display: flex; }
+.kk-tip-btn {
+  appearance: none;
+  min-height: 48px;
+  min-width: 64px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--color-toolbar-bg);
+  font: inherit;
+  font-size: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+/* Widget.AppCompat.Button.Borderless: ?selectableItemBackground, the colorControlHighlight state layer
+   (#1F000000 in the light theme, #33FFFFFF in the dark ones) while pressed or focused. */
+.kk-tip-btn:active,
+.kk-tip-btn:focus-visible { background: rgb(0 0 0 / 0.12); outline: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .kk-tip-btn:active,
+  :root:not([data-theme='light']) .kk-tip-btn:focus-visible { background: rgb(255 255 255 / 0.2); }
+}
+:root[data-theme='dark'] .kk-tip-btn:active,
+:root[data-theme='dark'] .kk-tip-btn:focus-visible { background: rgb(255 255 255 / 0.2); }
+
+/* Browse overview */
+.kk-browse-heading {
+  /* layout_marginTop 8 dp, as padding: a margin would collapse into the tutorial box's 12 dp. */
+  margin: 0;
+  padding-top: 8px;
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text);
+}
+.kk-browse-heading.presets { padding-top: 0; } /* presetHeader: no top margin */
+.kk-browse-divider { border: 0; border-top: 1px solid var(--color-divider); margin: 8px 0 0; }
+.kk-browse-presets { display: flex; gap: 8px; margin-top: 8px; }
+.kk-browse-preset-select { margin-top: 4px; }
+
+.kk-browse-levels {
+  display: grid;
+  /* BrowseOverviewFragment.render: a stretched TableLayout inside the 8 dp padding; each cell has a 2 dp
+     left and top margin, each row a 6 dp top margin (8 dp between rows); the table 8 dp below the
+     text, ending 2 dp short of the right padding (measured). Cells ~37 x 31 dp on a 411 dp phone: smaller than the 40 px tap floor, as in Java (e2e
+     exemption in test/e2e/helpers/app.ts). */
+  gap: 8px 2px;
+  margin: 16px 2px 0;
+}
+.kk-browse-level {
+  appearance: none;
+  min-width: 0;
+  /* setPadding(6 dp); 16 sp text: 31 px tall. */
+  padding: 6px 0;
+  line-height: 1.17; /* Pixelify Sans at 16 sp on Android: 49 device px at 420 dpi */
+  border: 0;
+  border-radius: 0;
+  background: var(--kk-bar);
+  color: var(--kk-muted);
+  font-family: var(--font-body);
+  font-size: 16px;
+  text-align: center;
+  /* shadowDx/Dy/Radius 1/1/3 device pixels. */
+  text-shadow: var(--text-shadow-3px);
+  cursor: pointer;
+}
+.kk-browse-level.current { background: var(--kk-mint-hi); }
+.kk-browse-level:focus-visible { outline: 2px solid var(--color-text); outline-offset: -2px; }
+
+/* EditText (abc_edit_text_material): a 43 dp view with 4 dp insets at the sides, the text ~2 dp above
+   its centre, the 1 dp underline 10 dp above the bottom (2 dp, accent, when focused); hint and line
+   in --color-edit-line (measured on the Java app). */
+.kk-browse input[type='text'],
+.kk-search-results input[type='text'],
+.kk-advanced-search input[type='text'],
+.kk-dialog .kk-preset-name {
+  --edit-line: var(--color-edit-line);
+  --edit-line-w: 1px;
+  box-sizing: border-box;
+  height: 43px;
+  margin: 0;
+  padding: 7px 4px 11px;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(var(--edit-line), var(--edit-line)) no-repeat 4px calc(100% - 10px - var(--edit-line-w) + 1px) / calc(100% - 8px) var(--edit-line-w);
+  font: inherit;
+  font-size: 18px;
+  line-height: 25px;
+  color: var(--color-text);
+  min-height: 0;
+  min-width: 0;
+}
+.kk-browse input[type='text']::placeholder,
+.kk-search-results input[type='text']::placeholder,
+.kk-advanced-search input[type='text']::placeholder { color: var(--color-edit-line); opacity: 1; }
+.kk-browse input[type='text']:focus,
+.kk-search-results input[type='text']:focus,
+.kk-advanced-search input[type='text']:focus,
+.kk-dialog .kk-preset-name:focus { --edit-line: var(--color-accent); --edit-line-w: 2px; outline: none; }
+.kk-browse-query { display: flex; align-items: baseline; margin-top: 8px; } /* LinearLayout baselineAligned */ /* the field's 4 dp inset is the gap to Search */
+.kk-browse-query input { flex: 1 1 auto; }
+
+/* Advanced search form (advanced_search.xml): a TableLayout, shrinkColumns="*" (tableColumns.ts sets
+   the two columns). Labels WK.TextView.Normal with 4 dp end margin; EditTexts 18 sp, ems 2 / 4
+   (34.7 / 77 dp underline inside 4 dp insets, 43 dp tall), underline and hint colorControlNormal;
+   SwitchCompat rows 27 dp with the labels right-aligned to the bottom; group headers 16 dp above;
+   the Search buttons at the start of column 2. Measured on the Java app (420 dpi). */
+.kk-advanced-search {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: start;
+  margin-top: 8px;
+  color: var(--color-text);
+}
+.kk-adv-label { margin-right: 4px; font-size: 16px; line-height: 1.21; min-width: 0; overflow-wrap: break-word; }
+.kk-adv-value { min-width: 0; display: flex; align-items: center; }
+.kk-table-measure .kk-adv-label { white-space: nowrap; }
+.kk-adv-group { grid-column: 1 / -1; margin-top: 16px; }
+.kk-adv-switch-label { justify-self: end; text-align: right; }
+.kk-adv-switch-cell { align-self: center; }
+.kk-adv-button { justify-self: start; }
+.kk-adv-button.bottom { margin-top: 16px; }
+.kk-search-range { display: flex; align-items: center; min-width: 0; font-size: 16px; }
+.kk-adv-dash { margin: 0; }
+.kk-advanced-search input.kk-search-number.ems2 { width: 42.7px; } /* 34.7 dp underline + insets */
+.kk-advanced-search input.kk-search-number.ems4 { width: 85px; }
+
+/* SwitchCompat (WK.Switch.Normal): the 20 dp thumb on the 23 x 14 dp track, 27 dp row. */
+.kk-adv-switch { position: relative; display: inline-flex; align-items: center; height: 27px; padding: 0 11px 0 8px; cursor: pointer; }
+.kk-adv-switch input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.kk-adv-switch-track { position: relative; width: 23px; height: 14px; border-radius: 7px; background: rgb(0 0 0 / 0.3); pointer-events: none; }
+:root[data-theme='dark'] .kk-adv-switch-track { background: rgb(255 255 255 / 0.3); }
+.kk-adv-switch-thumb {
+  position: absolute; top: -3px; left: -8px; width: 20px; height: 20px; border-radius: 50%;
+  background: #ECECEC; box-shadow: 0 1px 3px rgb(0 0 0 / 0.4); transition: transform 120ms ease, background-color 120ms ease;
+}
+:root[data-theme='dark'] .kk-adv-switch-thumb { background: #BDBDBD; }
+.kk-adv-switch input:checked + .kk-adv-switch-track { background: color-mix(in srgb, var(--color-control-activated) 30%, transparent); }
+.kk-adv-switch input:checked + .kk-adv-switch-track .kk-adv-switch-thumb { transform: translateX(19px); background: var(--color-control-activated); }
+.kk-adv-switch input:focus-visible + .kk-adv-switch-track { outline: 2px solid var(--color-text); outline-offset: 6px; }
+
+/* Spinner (AppCompat, not underlined): the selected item's text and the grey drop-down triangle at
+   the end, ~28 dp tall, as wide as the widest item (measured on the Java app). */
+.kk-browse select,
+.kk-search-results select,
+.kk-advanced-search select {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  height: 28px;
+  margin: 0;
+  padding: 0 50px 0 4px;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-text);
+  background-color: transparent;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-edit-line) 50%), linear-gradient(135deg, var(--color-edit-line) 50%, transparent 50%);
+  background-position: calc(100% - 25px) 55%, calc(100% - 19px) 55%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  min-width: 0;
+}
+.kk-browse select:focus-visible,
+.kk-search-results select:focus-visible,
+.kk-advanced-search select:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+/* Results: fragment_search_result.xml has no padding: the headers span the screen and the cards
+   (2 dp margins) start 2 dp from its edges, so the screen bleeds out of .kk-main's gutter. */
+.kk-search-results { margin: 0 calc(-1 * var(--main-gutter)); }
+/* LinearLayout / RecyclerView: margins add up (tutorial 12 dp + count 4 dp, header 2 dp + 2 dp); flex
+   columns keep CSS from collapsing them. */
+.kk-search-results,
+.kk-results-top,
+.kk-result-group { display: flex; flex-direction: column; }
+.kk-results-top {
+  position: sticky;
+  top: calc(var(--safe-top) + var(--toolbar-height));
+  z-index: 2;
+  margin-top: calc(-1 * var(--main-gutter));
+  background: var(--color-bg);
+}
+.kk-num-hits { margin: 4px 8px; font-size: 20px; color: var(--color-text); }
+.kk-results-form { padding: 0 8px 8px; }
+
+.kk-result-header {
+  appearance: none;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  margin: 2px 0;
+  padding: 6px 8px 6px 8px;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.kk-result-header.sub { padding-left: 24px; }
+.kk-result-arrow { flex: 0 0 auto; fill: var(--color-text); }
+.kk-result-header-title { flex: 0 1 auto; margin-left: 16px; font-size: 26px; line-height: 1.2; overflow-wrap: break-word; min-width: 0; }
+.kk-result-header-details { flex: 1 1 0; margin: 0 0 0 16px; font-size: 16px; text-align: right; min-width: 0; }
+
+.kk-result-grid { display: grid; gap: 0; }
+.kk-card-cell { min-width: 0; }
+
+.kk-card {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: calc(100% - 4px);
+  margin: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  min-width: 0;
+  --card-ink: var(--color-card-ink-vocab);
+}
+.kk-card.radical { background: var(--color-radical); --card-ink: var(--color-card-ink-radical); }
+.kk-card.kanji { background: var(--color-kanji); --card-ink: var(--color-card-ink-kanji); }
+.kk-card.vocabulary, .kk-card.kana_vocabulary { background: var(--color-vocab); --card-ink: var(--color-card-ink-vocab); }
+.kk-card-chars {
+  margin-top: 4px;
+  text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView paint.setShadowLayer(3, 1, 1, black) */
+  font-family: var(--font-glyph); /* centred on Roboto's metrics, as Java's Paint (fonts.css) */
+  font-size: 24px;
+  line-height: 1; /* SubjectInfoButtonView.setSizeSp(24): the view is exactly 24 sp high */
+  color: var(--color-on-subject);
+  overflow-wrap: anywhere;
+}
+.kk-card-meaning,
+.kk-card-reading,
+.kk-card-progress { display: block; color: var(--card-ink); text-shadow: var(--color-card-ink-shadow); min-width: 0; padding: calc(1.1px + var(--fp-top)) 0 calc(1.1px + var(--fp-bottom)); }
+/* ^ includeFontPadding: every single-line TextView is ~2.2 dp taller than its line (measured). */
+.kk-card-meaning { margin-top: 4px; white-space: nowrap; overflow: hidden; line-height: 1.21; }
+.kk-card-reading { font-family: var(--font-ja); font-size: 16px; line-height: 1.21; word-break: keep-all; overflow-wrap: anywhere; }
+.kk-card-progress { font-size: 14px; line-height: 1.21; overflow-wrap: break-word; }
+
+.kk-card.wide { flex-direction: row; align-items: center; text-align: right; }
+.kk-card.wide .kk-card-chars { margin: 0 0 0 4px; flex: 0 1 auto; text-align: left; overflow-wrap: normal; word-break: keep-all; }
+.kk-card.wide .kk-card-side { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-end; margin: 0 4px; min-width: 0; }
+.kk-card.wide .kk-card-meaning { margin-top: 0; max-width: 100%; }

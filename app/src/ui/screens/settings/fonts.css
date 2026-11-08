@@ -1,0 +1,57 @@
+/*
+ * Font selection / Font import (fontScreens.tsx), measured on the Java app: 8 dp page padding;
+ * selection rows 4 dp apart, the name (WK.TextView.Large, 20 sp) 4 dp in, the sample (XXLarge, 34 sp,
+ * the font's own line height) under it, the SwitchCompat centred at the right; import rows are a
+ * TableLayout of the name (16 sp) and two 88 × 48 dp borderless buttons.
+ */
+.kk-font-page {
+  padding: 8px;
+  color: var(--color-text);
+}
+.kk-font-intro { margin: 8px 0; font-size: var(--text-md); }
+.kk-font-list { list-style: none; margin: 0; padding: 0; }
+.kk-font-row {
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+}
+.kk-font-name { grid-column: 1; margin: 4px 0 0 4px; font-size: var(--text-lg); line-height: normal; }
+.kk-font-sample { grid-column: 1; margin-top: 4px; font-family: var(--font-ja); font-size: var(--text-xxl); line-height: normal; }
+/* "Android default": the system CJK face's box (Noto Sans CJK through the fallback line spacing),
+   measured 130 px at 34 sp × 2.625 on the Java app. The loaded faces carry their box (quizFonts.ts). */
+.kk-font-sample.default { line-height: 1.457; }
+.kk-font-switch {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  margin: 4px 0 0 4px;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0 4px;
+  height: 27px;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.kk-font-hint { margin: 0; font-size: var(--text-md); }
+.kk-font-table { margin-top: 4px; border-collapse: collapse; }
+.kk-font-table td { padding: 2px 0 0; vertical-align: middle; }
+.kk-font-file { padding-left: 2px !important; font-size: var(--text-md); user-select: text; word-break: break-all; }
+.kk-borderless {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  min-width: 88px;
+  min-height: 48px;
+  padding: 0 16px;
+  font-family: var(--font-body); /* Widget.AppCompat.Button.Borderless: 14 sp, all caps, the theme's font */
+  font-size: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kk-borderless:active { background: color-mix(in srgb, var(--color-text) 15%, transparent); }
+.kk-font-sample-dialog { margin: 0; padding: 0 0 16px; /* the 16 dp top padding sits in the space the dialog keeps above a message */ text-align: center; font-family: var(--font-ja); font-size: 36px; }

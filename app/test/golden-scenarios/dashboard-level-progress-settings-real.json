@@ -1,0 +1,141 @@
+{
+ "description": "The owner's phone export (JLPT, level 6) restored at its exportedAt, then the dashboard under the same settings combinations as dashboard-level-progress-settings (show over level: JLPT has 58 levels, so the empty levels 59-60 are dropped; previous level limit 0, 1, 2, 4, 100, -1, unparsable).",
+ "mode": "JLPT",
+ "start": null,
+ "exportMode": "delta",
+ "steps": [
+  {
+   "action": "restore",
+   "pushed": "progress/android-export.json",
+   "atMs": 1792298260372
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": null,
+    "previous_level_progression_limit_amount": null
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": false,
+    "previous_level_progression_limit": false,
+    "previous_level_progression_limit_amount": null
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": true,
+    "previous_level_progression_limit": null,
+    "previous_level_progression_limit_amount": null
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": null
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "0"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "1"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "2"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "4"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "100"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "-1"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "abc"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": ""
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": " 1"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": null,
+    "previous_level_progression_limit": false,
+    "previous_level_progression_limit_amount": "0"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": true,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "1"
+   }
+  },
+  {
+   "action": "dashboard",
+   "settings": {
+    "show_over_level_progression": true,
+    "previous_level_progression_limit": true,
+    "previous_level_progression_limit_amount": "0"
+   }
+  }
+ ]
+}

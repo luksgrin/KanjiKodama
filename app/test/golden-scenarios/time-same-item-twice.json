@@ -1,0 +1,74 @@
+{
+ "description": "The same subject reported twice minutes apart: radical 1 (stage 1) right at 09:17, not in the queue 5 min later, reported again by id (stage 3, the next review from the second time); radical 2 (stage 4) wrong at 09:25 then right at 09:27 (lastIncorrectAnswer keeps 09:25, streaks reset then restart).",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "levels": [
+    1
+   ],
+   "objects": [
+    "radical"
+   ],
+   "stage": 5,
+   "availableInHours": 100,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 1,
+     "passed": false,
+     "availableInHours": 0
+    },
+    {
+     "id": 2,
+     "stage": 4,
+     "passed": false,
+     "availableInHours": 0
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "review",
+   "ids": [
+    1
+   ]
+  },
+  {
+   "action": "review",
+   "advanceSeconds": 300,
+   "where": {
+    "ids": [
+     1
+    ]
+   }
+  },
+  {
+   "action": "review",
+   "ids": [
+    1
+   ]
+  },
+  {
+   "action": "review",
+   "advanceSeconds": 180,
+   "ids": [
+    2
+   ],
+   "wrong": {
+    "2": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "action": "review",
+   "advanceSeconds": 120,
+   "ids": [
+    2
+   ]
+  }
+ ]
+}

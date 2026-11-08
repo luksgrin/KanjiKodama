@@ -1,0 +1,60 @@
+{
+ "description": "Review session of 3 radicals without delayed reporting: a finished item is reported at once, so after advancing past it Undo is not offered (canUndo false); Undo right after a wrong answer (still on the question) takes the wrong answer back in place and the retry is right.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4
+    },
+    {
+     "id": 2,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {}
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 1
+  },
+  {
+   "action": "sessionButton",
+   "button": "UNDO_AND_RETRY_NOW"
+  },
+  {
+   "action": "sessionAnswer",
+   "answer": "wrong",
+   "advance": false,
+   "advanceSeconds": 10
+  },
+  {
+   "action": "sessionButton",
+   "button": "UNDO_AND_RETRY_NOW"
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 10
+  },
+  {
+   "action": "sessionButton",
+   "button": "UNDO_AND_PUT_BACK"
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

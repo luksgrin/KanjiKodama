@@ -1,0 +1,63 @@
+{
+ "description": "Fresh start: a lesson session of 5 radicals. The presentation's next/previous buttons move through the items (next stops at the last one; each move stores the item for a restart). After two quiz answers (the first wrong) the menu's \"Back to lesson presentation\" (visible: LESSON and ACTIVE) opens on the item being quizzed and stores it (KanjiKodama fix; it used to show the last item and store nothing); the quiz progress stays (the finished radical stays REPORTED and is still shown in the presentation, the wrong one keeps its incorrect count and stays queued); next and previous move from there. Starting the quiz again continues where it was, until Finish; the wrong radical's lesson report carries its incorrect count.",
+ "mode": "WANIKANI",
+ "start": null,
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "LESSON",
+   "where": {}
+  },
+  {
+   "action": "sessionInspect"
+  },
+  {
+   "action": "sessionPresentationNext",
+   "count": 2
+  },
+  {
+   "action": "sessionPresentationPrevious"
+  },
+  {
+   "action": "sessionPresentationNext",
+   "count": 10
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 120
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 2,
+   "spacingSeconds": 6,
+   "rules": {
+    "meaning": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionBackToPresentation",
+   "advanceSeconds": 30
+  },
+  {
+   "action": "sessionPresentationNext"
+  },
+  {
+   "action": "sessionPresentationPrevious",
+   "count": 2
+  },
+  {
+   "action": "sessionStartQuiz",
+   "advanceSeconds": 30
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 6
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

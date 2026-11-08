@@ -1,0 +1,38 @@
+/*
+ * keyboardHelpView (activity_main.xml): rounded_corners (customToastColorBackground #FFFF80, 10 dp
+ * radius) with 8 dp margins; the label (WK.TextView.CustomToast: 16sp, customToastColorPrimary #000)
+ * with 8 dp margins; Dismiss at the left and View at the right under it (WK.Button.Borderless.CustomToast:
+ * AppCompat borderless, colorPrimaryDark text). The yellow and black are fixed Java colours.
+ */
+.kk-kbhelp-banner {
+  /* Outside Java's scroll view: its own 8 dp bottom margin plus the scroll content's 8 dp padding. */
+  margin: 0 0 16px;
+  /* It sits above Java's NestedScrollView, so it stays put while the dashboard scrolls under it; the
+     margins around it are the window background (the scroll view's clip). */
+  position: sticky;
+  top: calc(var(--safe-top) + var(--toolbar-height) + 8px);
+  z-index: 2;
+  color: #000;
+}
+.kk-kbhelp-banner-text { margin: 0; padding: calc(8px + var(--fp-top)) 8px var(--fp-bottom); font-size: 16px; }
+.kk-kbhelp-banner-actions { display: flex; justify-content: space-between; }
+.kk-kbhelp-banner-btn {
+  appearance: none;
+  min-width: 88px;
+  min-height: 48px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: var(--color-primary-dark);
+  font: inherit;
+  font-size: 14px;
+  font-weight: var(--font-button-weight, 400);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kk-kbhelp-banner-btn:active { background: rgb(0 0 0 / 0.12); }
+.kk-kbhelp-banner::before,
+.kk-kbhelp-banner::after { content: ''; position: absolute; }
+.kk-kbhelp-banner::before { inset: -8px; z-index: -2; background: var(--color-bg); }
+.kk-kbhelp-banner::after { inset: 0; z-index: -1; border-radius: 10px; background: #FFFF80; }

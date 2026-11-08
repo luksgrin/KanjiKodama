@@ -1,0 +1,66 @@
+{
+ "description": "Review session of 2 kanji: both meanings answered (the second one wrong; reading questions are skipped), then the app process restarts (Session.load reads session_item back: meanings stay done, the undo history is gone); the first kanji's reading finishes and reports it; abandoning reports nothing for the second, half-answered kanji, which stays due with its old stage; a new session for it starts from scratch.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 440,
+     "stage": 4
+    },
+    {
+     "id": 441,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    440,
+    441
+   ]
+  },
+  {
+   "action": "sessionAnswer",
+   "only": "meaning",
+   "count": 2,
+   "spacingSeconds": 5,
+   "rules": {
+    "441:meaning": [
+     "wrong"
+    ]
+   }
+  },
+  {
+   "action": "sessionRestart",
+   "advanceSeconds": 300
+  },
+  {
+   "action": "sessionAnswer",
+   "only": "440:reading",
+   "count": 1
+  },
+  {
+   "action": "sessionAbandon"
+  },
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "where": {},
+   "advanceSeconds": 60
+  },
+  {
+   "action": "sessionAnswer",
+   "until": "finishing",
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionFinish"
+  }
+ ]
+}

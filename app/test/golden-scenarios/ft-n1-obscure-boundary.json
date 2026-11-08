@@ -1,0 +1,18 @@
+{
+ "description": "Boundary between N1 and Obscure: restored on the last N1 level (max-4, where the extra kanji appended to N1 sit), the 1-level jump into Obscure level 1 puts the last N1 level's kanji and vocabulary, extra kanji included, on probation.",
+ "mode": "JLPT",
+ "start": null,
+ "steps": [
+  {
+   "action": "restore",
+   "generate": {
+    "userLevel": "max-4",
+    "curriculum": "JLPT"
+   }
+  },
+  {
+   "action": "fastTravel",
+   "levels": 1
+  }
+ ]
+}

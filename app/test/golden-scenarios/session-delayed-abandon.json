@@ -1,0 +1,50 @@
+{
+ "description": "Delayed reporting: two radicals answered (PENDING) and a kanji half answered, then the session is abandoned: nothing is reported, all three stay due; the abandon also forgets the one not started.",
+ "mode": "WANIKANI",
+ "start": {
+  "generate": {
+   "userLevel": 1,
+   "rows": [
+    {
+     "id": 1,
+     "stage": 4
+    },
+    {
+     "id": 6,
+     "stage": 4
+    },
+    {
+     "id": 2,
+     "stage": 4
+    },
+    {
+     "id": 440,
+     "stage": 4
+    }
+   ]
+  }
+ },
+ "steps": [
+  {
+   "action": "sessionStart",
+   "type": "REVIEW",
+   "ids": [
+    1,
+    6,
+    2,
+    440
+   ],
+   "settings": {
+    "delay_result_upload": true
+   }
+  },
+  {
+   "action": "sessionAnswer",
+   "count": 3,
+   "spacingSeconds": 5
+  },
+  {
+   "action": "sessionAbandon"
+  }
+ ]
+}

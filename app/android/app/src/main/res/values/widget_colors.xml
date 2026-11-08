@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Java app's widget colours (its res/values/colors.xml). -->
+<resources>
+    <color name="wkDarkColorPrimary">#BCBCBC</color>
+    <color name="wkDarkColorBackground">#232629</color>
+</resources>
