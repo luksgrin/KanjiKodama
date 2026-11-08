@@ -101,12 +101,33 @@ jobs:
       - name: Check (typecheck, tests, leak check, build)
         run: npm run check
 
+      # Gradle downloads (e.g. the Kotlin compiler, which Maven Central may redirect to github.com)
+      # sometimes time out or get a 502 on the runners: longer timeouts, more retries, and up to three
+      # attempts per build.
+      - name: Make Gradle downloads sturdier
+        run: |
+          mkdir -p ~/.gradle
+          {
+            echo "systemProp.org.gradle.internal.http.connectionTimeout=120000"
+            echo "systemProp.org.gradle.internal.http.socketTimeout=120000"
+            echo "systemProp.org.gradle.internal.repository.max.retries=8"
+            echo "systemProp.org.gradle.internal.repository.initial.backoff=2000"
+          } >> ~/.gradle/gradle.properties
+
       - name: Build the APKs
         env:
           VERSION_CODE: ${{ steps.version.outputs.version_code }}
         run: |
-          sh scripts/release-android.sh --version-code "$VERSION_CODE"
-          sh scripts/release-android.sh --version-code "$VERSION_CODE" --side-by-side
+          build() {
+            for attempt in 1 2 3; do
+              sh scripts/release-android.sh --version-code "$VERSION_CODE" "$@" && return 0
+              echo "::warning::APK build attempt $attempt failed; retrying in 30 s"
+              sleep 30
+            done
+            return 1
+          }
+          build
+          build --side-by-side
 
       - name: Verify the signing certificate
         env:
