@@ -1,11 +1,10 @@
 /**
- * Browse's search. Java: util/SearchUtil (text, level and advanced search), model/AdvancedSearchParameters
- * (Jackson), enums/SearchSortOrder and adapter/search/SearchResultAdapter (the results screen),
- * views/AdvancedSearchFormView (the form). Fixtures: search/*.
+ * Browse's search: text, level and advanced search, the advanced search parameters, the sort
+ * orders and the results screen, and the advanced search form. Fixtures: search/*.
  */
 export * from './subject';
 export * from './text';
 export * from './parameters';
 export * from './advanced';
 export * from './form';
-export { hashSetOrder, stringHash, integerHash } from './javaHashSet';
+export { hashSetOrder, stringHash, integerHash } from './hashOrder';

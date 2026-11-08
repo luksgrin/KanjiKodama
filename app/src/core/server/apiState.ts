@@ -1,5 +1,5 @@
 /**
- * `api/ApiState` and the sync schedule of `AppDatabase.assertRefreshForAllModels` plus the task
+ * The API state and the sync schedule plus the task
  * priorities of the `Get*Task`s. Pure: the flags and times come in, decisions go out.
  */
 
@@ -8,9 +8,9 @@ export type ApiState = 'API_KEY_MISSING' | 'API_KEY_REJECTED' | 'ERROR' | 'UNKNO
 
 export interface ApiFlags {
   hasToken: boolean;
-  /** `PropertiesDao.isApiKeyRejected` (a 401). */
+  /** The token was rejected (a 401). */
   rejected: boolean;
-  /** `PropertiesDao.isApiInError` (other failures after the retries). */
+  /** Other failures after the retries. */
   inError: boolean;
   /** `last_api_success` (epoch ms, 0 never). */
   lastApiSuccess: number;
@@ -49,7 +49,7 @@ export type CollectionName =
 /** A step of a sync: the user, the upload queue, or a collection. */
 export type SyncStep = 'user' | 'uploads' | CollectionName;
 
-/** Task priorities (`Get*Task.PRIORITY`, `ReportSessionItemTask` 15, `SubmitStudyMaterialTask` 16). */
+/** Step priorities (uploads: results 15, notes 16). */
 export const STEP_PRIORITY: Readonly<Record<SyncStep, number>> = {
   user: 2,
   spaced_repetition_systems: 10,
@@ -84,7 +84,7 @@ export function syncSteps(cursors: SyncCursors, now: number): SyncStep[] {
 }
 
 /**
- * `PropertiesDao.getLast*SyncSuccessDate(HOUR)`: the `updated_after` value, an hour before the
+ * The `updated_after` value: an hour before the
  * last success (clock skew margin), or 0 (fetch everything) when there was none.
  */
 export function updatedAfter(cursors: SyncCursors, name: CollectionName): number {

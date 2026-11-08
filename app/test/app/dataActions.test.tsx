@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 /**
  * Settings → "Other actions" (Data import / export, Reset database, Backup / Restore your settings)
- * and the WaniKani import's saved token, as the Java `PreferencesFragment`, `DataImportExportActivity`,
- * `BackupActivity` and `ProgressPreferences.askToken`.
+ * and the WaniKani import's saved token.
  */
 import 'fake-indexeddb/auto';
 import { readFileSync } from 'node:fs';
@@ -26,7 +25,7 @@ vi.mock('../../src/platform', async (importOriginal) => ({
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const javaBackup = readFileSync(join(process.cwd(), 'test/progress-storage/fixtures/java-settings-backup.json'), 'utf8');
+const oldBackup = readFileSync(join(process.cwd(), 'test/progress-storage/fixtures/old-settings-backup.json'), 'utf8');
 const ANDROID: Partial<Capabilities> = {
   notifications: true, audio: true, audioPlayback: true, audioDownload: true, haptics: true, backgroundSync: true, widget: true,
   cleartextHttp: true, autoBackup: true,
@@ -88,7 +87,7 @@ function dialogButton(el: HTMLElement, label: string): HTMLButtonElement {
 const rowTitles = (el: HTMLElement) => [...$(el, 'category-about')!.querySelectorAll('.kk-pref-title')].map((t) => t.textContent);
 
 describe('Other actions', () => {
-  it("has Java's rows in Java's order, on every build", async () => {
+  it('has its rows in order, on every build', async () => {
     const web = await render('/settings');
     expect(rowTitles(web.el)).toEqual([
       'About this app', 'Data import / export', 'Reset UI confirmations and tutorials', 'Reset database',
@@ -105,7 +104,7 @@ describe('Other actions', () => {
     android.app.dispose();
   });
 
-  it('Reset database: the Java warning, No keeps everything, Yes starts over and goes to the dashboard', async () => {
+  it('Reset database: the warning, No keeps everything, Yes starts over and goes to the dashboard', async () => {
     const { el, app, location } = await render('/settings');
     await app.write((ldb, now) => updateProgress(ldb, 1, { startedAt: now, srsStage: 5, passedAt: now }));
     await app.db.meta.put({ key: 'starRatings', value: { 1: 4 } });
@@ -129,7 +128,7 @@ describe('Other actions', () => {
     app.dispose();
   });
 
-  it('Backup your settings: asks, saves the Java file format, toasts', async () => {
+  it('Backup your settings: asks, saves the file format, toasts', async () => {
     const saveText = vi.fn(async () => 'saved' as const);
     const { el, app } = await render('/settings', { files: { saveText } });
     await app.setPreference('show_legacy', true);
@@ -140,14 +139,14 @@ describe('Other actions', () => {
     await click(dialogButton(el, 'Yes'));
     expect(saveText).toHaveBeenCalledTimes(1);
     const [name, text] = saveText.mock.calls[0] as unknown as [string, string];
-    expect(name).toMatch(/^smouldering_durtles_\d{4}-\d{2}-\d{2}\.json$/);
+    expect(name).toMatch(/^kanjikodama_settings_\d{4}-\d{2}-\d{2}\.json$/);
     expect(JSON.parse(text).show_legacy).toEqual({ value: 'true', type: 'Boolean' });
     expect(toastText()).toBe('Settings backed up successfully.');
     app.dispose();
   });
 
-  it('Restore your settings: a backup made by the Java app restores here', async () => {
-    const openText = vi.fn(async () => ({ name: 'smouldering_durtles_2026-10-26.json', text: javaBackup }));
+  it('Restore your settings: a backup made by an earlier version restores here', async () => {
+    const openText = vi.fn(async () => ({ name: 'kanjikodama_settings_2026-10-26.json', text: oldBackup }));
     const { el, app } = await render('/settings', { files: { openText } });
     await click($(el, 'restore-settings'));
     const d = await waitFor('dialog-restore-settings', el);
@@ -161,7 +160,7 @@ describe('Other actions', () => {
     app.dispose();
   });
 
-  it('Restore your settings: a file Java cannot read changes nothing', async () => {
+  it('Restore your settings: an unreadable file changes nothing', async () => {
     const openText = vi.fn(async () => ({ name: 'x.json', text: '{"show_legacy":{"value":"true","type":"Boolean"},"x":{"value":"1","type":"HashSet"}}' }));
     const { el, app } = await render('/settings', { files: { openText } });
     await click($(el, 'restore-settings'));
@@ -174,7 +173,7 @@ describe('Other actions', () => {
 });
 
 describe('Data import/export', () => {
-  it("is the Java screen: title, texts and four buttons; exports and imports the Java JSON", async () => {
+  it('is the screen: title, texts and four buttons; exports and imports the JSON', async () => {
     const saveText = vi.fn(async () => 'saved' as const);
     const openText = vi.fn(async () => ({ name: 'star_ratings.json', text: '{"stars2":[1,999],"stars5":[10]}' }));
     const { el, app } = await render('/settings', { files: { saveText, openText } });
@@ -210,7 +209,7 @@ describe('Data import/export', () => {
     app.dispose();
   });
 
-  it('uses the share sheet when the platform has one (Java ACTION_SEND)', async () => {
+  it('uses the share sheet when the platform has one (ACTION_SEND)', async () => {
     const shareText = vi.fn(async () => 'saved' as const);
     const saveText = vi.fn(async () => 'saved' as const);
     const { el, app } = await render('/settings?screen=data_import_export', { files: { shareText, saveText } });

@@ -1,20 +1,19 @@
 /**
- * `model/AdvancedSearchParameters`: the advanced search (and self-study preset) parameters, read
- * from JSON with Jackson's rules (`Converters.getObjectMapper()`, unknown properties ignored) and
- * written back the way the app serializes them.
+ * The advanced search (and self-study preset) parameters, read from JSON with Jackson's lenient
+ * rules (`jackson.ts`, unknown properties ignored) and written back in the stored format.
  *
- * Jackson's coercions are part of the stored format: numbers given as strings are parsed, floats
+ * The coercions are part of the stored format: numbers given as strings are parsed, floats
  * are truncated, enum names must match exactly (or be an index), an explicit `null` for
  * `sortOrder` or a collection keeps the default, and a whole number outside the int range is
  * clamped (`ClampedInteger`). A single string where an array belongs, a bad enum, a string or float
- * out of the int range, or broken JSON fails the whole parse: `JacksonError` with the Java
- * exception's simple class name.
+ * out of the int range, or broken JSON fails the whole parse: `JacksonError` with the error's type
+ * name.
  */
 
 import { SUBJECT_TYPES, type SubjectTypeName } from '../content';
-import { hashSetOrder, integerHash, stringHash } from './javaHashSet';
+import { hashSetOrder, integerHash, stringHash } from './hashOrder';
 
-/** `enums/SearchSortOrder`, in declaration (ordinal) order. */
+/** The sort orders, in ordinal order. */
 export const SEARCH_SORT_ORDERS = ['TYPE', 'LEVEL_TYPE', 'AVAILABLE_AT_TYPE', 'STAGE_TYPE'] as const;
 export type SearchSortOrder = (typeof SEARCH_SORT_ORDERS)[number];
 
@@ -27,7 +26,7 @@ export const SORT_ORDER_DESCRIPTIONS: Readonly<Record<SearchSortOrder, string>> 
 };
 
 /**
- * The parameters. Collections are arrays in the Java collection's iteration order (`HashSet` for
+ * The parameters. Collections are arrays in their iteration order (hash set order for
  * the form's, Jackson's list order for parsed ones); search only tests membership.
  */
 export interface AdvancedSearchParameters {
@@ -72,9 +71,9 @@ export function defaultParameters(): AdvancedSearchParameters {
   };
 }
 
-/** A failed Jackson read; `javaClass` is the exception's simple name (`InvalidFormatException`, …). */
+/** A failed Jackson read; `errorType` is the exception's simple name (`InvalidFormatException`, …). */
 export class JacksonError extends Error {
-  constructor(readonly javaClass: string, message: string) {
+  constructor(readonly errorType: string, message: string) {
     super(message);
   }
 }
@@ -253,8 +252,8 @@ class JsonReader {
 const INT_MIN = -2147483648;
 const INT_MAX = 2147483647;
 
-/** Java `String.trim`. */
-function javaTrim(s: string): string {
+/** Strips chars <= U+0020 at both ends. */
+function trimControlChars(s: string): string {
   let start = 0;
   let end = s.length;
   while (start < end && s.charCodeAt(start) <= 0x20) start++;
@@ -264,8 +263,8 @@ function javaTrim(s: string): string {
 
 const DIGIT = /\p{Nd}/u;
 
-/** `Integer.parseInt(s)`/`Long.parseLong(s)` (sign, Unicode decimal digits), as a bigint; null if it doesn't parse. */
-function javaParseInteger(s: string): bigint | null {
+/** A strict integer (sign, Unicode decimal digits), as a bigint; null if it doesn't parse. */
+function parseBigInteger(s: string): bigint | null {
   let i = 0;
   let negative = false;
   if (s[0] === '+' || s[0] === '-') {
@@ -284,7 +283,7 @@ function javaParseInteger(s: string): bigint | null {
   return negative ? -v : v;
 }
 
-/** `ClampedInteger.deserialize` (and Jackson's `Integer` deserializer it falls back to). */
+/** A clamped integer field (a whole number outside the int range is clamped). */
 function readInteger(t: Token): number | null {
   switch (t.kind) {
     case 'null':
@@ -299,16 +298,16 @@ function readInteger(t: Token): number | null {
       }
       return Math.trunc(t.value);
     case 'string': {
-      const text = javaTrim(t.value);
+      const text = trimControlChars(t.value);
       if (text.length === 0 || text === 'null') return null;
-      const v = javaParseInteger(text);
+      const v = parseBigInteger(text);
       if (v === null || v > BigInt(INT_MAX) || v < BigInt(INT_MIN)) {
-        throw new JacksonError('InvalidFormatException', `Cannot deserialize value of type \`java.lang.Integer\` from String "${t.value}"`);
+        throw new JacksonError('InvalidFormatException', `Cannot deserialize value of type \`Integer\` from String "${t.value}"`);
       }
       return Number(v);
     }
     default:
-      throw new JacksonError('MismatchedInputException', `Cannot deserialize value of type \`java.lang.Integer\` from ${t.kind}`);
+      throw new JacksonError('MismatchedInputException', `Cannot deserialize value of type \`Integer\` from ${t.kind}`);
   }
 }
 
@@ -323,7 +322,7 @@ function readBoolean(t: Token): boolean {
     case 'int':
       return t.value !== 0n;
     case 'string': {
-      const text = javaTrim(t.value);
+      const text = trimControlChars(t.value);
       if (text === 'true' || text === 'True' || text === 'TRUE') return true;
       if (text === 'false' || text === 'False' || text === 'FALSE' || text === '' || text === 'null') return false;
       throw new JacksonError('InvalidFormatException', `Cannot deserialize value of type \`boolean\` from String "${t.value}"`);
@@ -362,13 +361,13 @@ function readString(t: Token): string | null {
     case 'false':
       return t.kind;
     default:
-      throw new JacksonError('MismatchedInputException', `Cannot deserialize value of type \`java.lang.String\` from ${t.kind}`);
+      throw new JacksonError('MismatchedInputException', `Cannot deserialize value of type \`String\` from ${t.kind}`);
   }
 }
 
 function readArray<T>(t: Token, element: (e: Token) => T): T[] {
   if (t.kind !== 'array') {
-    throw new JacksonError('MismatchedInputException', `Cannot deserialize value of type \`java.util.Collection\` from ${t.kind}`);
+    throw new JacksonError('MismatchedInputException', `Cannot deserialize value of type \`Collection\` from ${t.kind}`);
   }
   return t.items.map(element);
 }
@@ -381,9 +380,8 @@ const INT_FIELDS: ReadonlySet<string> = new Set<IntField>([
 ]);
 
 /**
- * `objectMapper.readValue(json, AdvancedSearchParameters.class)`. Returns null for the JSON
- * literal `null` (Java then fails with a `NullPointerException` when it uses the result); throws
- * `JacksonError` when Jackson throws.
+ * Parses the parameters. Returns null for the JSON literal `null` (callers treat it as a failed
+ * search); throws `JacksonError` when the JSON can't be read.
  */
 export function parseParameters(json: string): AdvancedSearchParameters | null {
   const root = new JsonReader(json).readRoot();
@@ -423,8 +421,8 @@ const jsonString = (s: string): string => JSON.stringify(s);
 const jsonInt = (n: number | null): string => (n === null ? 'null' : String(n));
 
 /**
- * `objectMapper.writeValueAsString(parameters)`: properties in alphabetical order; the sets in Java
- * `HashSet` iteration order, `itemTypes` (an `EnumSet`) in ordinal order.
+ * The stored JSON: properties in alphabetical order; the sets in hash set iteration order,
+ * `itemTypes` in ordinal order.
  */
 export function writeParameters(p: AdvancedSearchParameters): string {
   const ints = (xs: readonly (number | null)[]): string =>

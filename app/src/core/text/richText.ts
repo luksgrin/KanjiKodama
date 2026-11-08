@@ -1,9 +1,7 @@
 /**
- * Rich text as the Android app renders it: `TextUtil.renderHtml` (`HtmlCompat.fromHtml`,
- * `FROM_HTML_MODE_COMPACT`) for the small HTML the logic builds (`<b>`, `<br/>`, escaped text), as plain
+ * Rich text as Android's `HtmlCompat.fromHtml` (`FROM_HTML_MODE_COMPACT`) renders it, for the small
+ * HTML the logic builds (`<b>`, `<br/>`, escaped text), as plain
  * text plus style spans. A UI renders the spans; tests compare text and ranges.
- *
- * Java: `util/TextUtil.escapeHtml`, `util/TextUtil.renderHtml`.
  */
 
 /** A style span `[type, start, end)` in UTF-16 units of `text`. */
@@ -14,7 +12,7 @@ export interface RichText {
   spans: RichSpan[];
 }
 
-/** `TextUtil.escapeHtml`: only `&`, `<` and `>` (quotes are left alone). */
+/** Escapes only `&`, `<` and `>` (quotes are left alone). */
 export function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
@@ -28,7 +26,7 @@ function decodeEntity(name: string): string | null {
 }
 
 /**
- * `TextUtil.renderHtml` for the markup this app builds: `<b>`/`</b>` become bold spans, `<br>`/`<br/>` a
+ * Renders the markup this app builds: `<b>`/`</b>` become bold spans, `<br>`/`<br/>` a
  * line break, entities are decoded. Text whitespace follows Android's `Html`: a space, CR or LF is
  * dropped after a space or line break (or at the very start) and otherwise becomes one space; tabs and
  * other spaces (NBSP, U+3000) stay. Other tags are ignored.
@@ -85,7 +83,7 @@ export function boldRanges(rich: RichText): [number, number][] {
   return rich.spans.filter((s) => s[0] === 'bold').map((s) => [s[1], s[2]]);
 }
 
-/** `TextUtils.concat(rich, plain)`: the spans stay where they were. */
+/** Rich text followed by plain text: the spans stay where they were. */
 export function concatRich(rich: RichText, plain: string): RichText {
   return { text: rich.text + plain, spans: rich.spans };
 }

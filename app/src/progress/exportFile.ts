@@ -1,7 +1,6 @@
 /**
- * Saving a progress file (`ProgressPreferences` "Save" → `ProgressStore.export`): the stored
- * progress as the Java app's file text (core `exportProgress`, byte for byte like Android's
- * `JSONObject.toString(1)`), and the file name the Android app suggests. The caller hands both to
+ * Saving a progress file: the stored progress as the file text (core `exportProgress`, byte for
+ * byte like Android's `JSONObject.toString(1)`), and the suggested file name. The caller hands both to
  * the platform's `FilesApi.saveText`.
  *
  * Rows kept for subjects the current content no longer has are exported too: a restore ignores

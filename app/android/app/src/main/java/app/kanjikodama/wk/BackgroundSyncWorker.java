@@ -37,8 +37,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Background sync (server mode, "Allow background sync"), the port of the Java app's
- * `services/BackgroundSyncWorker`. The sync logic is the app's JavaScript (src/sync/), and its
+ * Background sync (server mode, "Allow background sync"). The sync logic is the app's JavaScript (src/sync/), and its
  * data is the WebView's IndexedDB, so this worker loads the app's own bundled index.html in a
  * headless WebView on the app's origin (https://localhost, as Capacitor serves it: same origin,
  * same IndexedDB) with {@code ?kk-background-sync}. main.tsx then runs only src/sync/background.ts:
@@ -48,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  * (HttpURLConnection, like CapacitorHttp), the token from {@link SecretStore} and the app version.
  *
  * Skipped while the app is in the foreground (it syncs itself on resume) and more than once in the
- * same hour (Java's lastBackgroundSync top-of-hour check). After the sync the review notification is
+ * same hour (a top-of-hour check on the last run). After the sync the review notification is
  * rescheduled with the plan the page computed (the counts may have changed), like the app does after
  * its own syncs; without notification permission it is only cancelled, as the app's plugin does.
  */

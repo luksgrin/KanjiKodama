@@ -1,5 +1,5 @@
 /**
- * The headline's audio button (`SubjectInfoHeadlineView` buttons column, `audio_button`): a flat grey
+ * The headline's audio button (in its buttons column): a flat grey
  * chip with the speaker icon and the vocabulary's characters ("🔊 電源"). `onPlay` returns false when
  * nothing played; the hint ("No audio" / "Offline") then shows under the button.
  */

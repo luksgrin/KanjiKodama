@@ -1,7 +1,6 @@
 /**
- * `AvailableSessionsView` (`available_sessions.xml`): "Lessons: N    Reviews: N" centred, the labels
- * in WK.TextView.Large (20 sp), the counts in XLarge (34 sp; 30 sp at 1000+ on screens under 480 dp).
- * `SessionButtonsView` (`session_buttons.xml`): one centred row with "Start lessons" / "Start reviews"
+ * The available sessions: "Lessons: N    Reviews: N" centred, the labels 20 px, the counts 34 px (30 px
+ * at 1000+ on screens under 480 px). The session buttons: one centred row with "Start lessons" / "Start reviews"
  * for what is available while no session runs, else the "Resume session" button.
  */
 import { paths, sessionRoutePath as sessionPath } from '../../routes';

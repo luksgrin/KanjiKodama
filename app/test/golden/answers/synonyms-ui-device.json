@@ -1,6 +1,5 @@
 {
   "area": "answers.synonymsUiDevice",
-  "javaSource": "db/model/Subject.getMeaningSynonymsRichText/getMeaningNoteRichText/getReadingNoteRichText, activities/StudyMaterialsActivity (real activity, SynonymRowView, SaveStudyMaterialJob)",
   "cases": [
     {"name":"richtext/none","input":{"meaningSynonymsColumn":null},"output":{"synonyms":[],"rich":{"text":"My synonyms: ","spans":[["bold",0,11]]}}},
     {"name":"richtext/empty-array","input":{"meaningSynonymsColumn":"[]"},"output":{"synonyms":[],"rich":{"text":"My synonyms: ","spans":[["bold",0,11]]}}},

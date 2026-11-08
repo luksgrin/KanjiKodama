@@ -1,6 +1,5 @@
 {
   "area": "answers.osa",
-  "javaSource": "util/OptimalStringAlignmentDistance.getDistance",
   "cases": [
     {"name":"edge-1","input":{"a":"","b":""},"output":0},
     {"name":"edge-2","input":{"a":"","b":"a"},"output":1},

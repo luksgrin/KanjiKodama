@@ -22,7 +22,7 @@ import type { Preferences } from '../core/settings';
 import { DAY, HOUR } from '../core/time';
 import { waitTimeInformal } from './format';
 
-/** Timeline bar segments (`SubjectType.timeLineBarChartBucket`): radicals, kanji, vocabulary (kana-only included). */
+/** Timeline bar segments: radicals, kanji, vocabulary (kana-only included). */
 export const TIMELINE_BUCKETS = ['radical', 'kanji', 'vocabulary'] as const;
 
 const BUCKET_OF: Readonly<Record<SubjectTypeName, number>> = {
@@ -43,7 +43,7 @@ export interface TimeLineSlot {
 
 export interface LevelProgressGroup {
   level: number;
-  /** JLPT order: "N4, level 2 of 5" (`Curriculum.describeLevel`); null in WaniKani order. */
+  /** JLPT order: "N4, level 2 of 5" (`describeLevel`); null in WaniKani order. */
   block: string | null;
   bars: LevelProgressBar[];
 }
@@ -51,7 +51,7 @@ export interface LevelProgressGroup {
 export interface DashboardData {
   lessons: number;
   reviews: number;
-  /** The `UpcomingReviewsView` line; null when there is nothing to say. */
+  /** The upcoming reviews line; null when there is nothing to say. */
   upcomingText: string | null;
   /** When the next review that isn't available yet becomes available (0: none scheduled). */
   nextReviewAt: number;
@@ -67,7 +67,7 @@ export interface DashboardData {
   targetLevel: number;
 }
 
-/** `UpcomingReviewsView.update` (first-time-setup and vacation-mode branches left out). */
+/** The upcoming reviews line (first-time-setup and vacation-mode branches left out). */
 export function upcomingReviewsText(learner: LearnerDb, t: TimeLine, now: number): string | null {
   const size = t.slots.length;
   const sizeDesc = size <= 48 ? `${size}h` : `${Math.trunc(size / 24)}d`;

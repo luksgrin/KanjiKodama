@@ -46,11 +46,9 @@
             </intent-filter>
         </receiver>
 
-        <!-- Home-screen widget (port of the Java app's services/SessionWidgetProvider). WIDGET_TICK is
-             its own inexact alarm at the next review hour (SessionWidgetProvider.scheduleNext).
-             Declared under the Java app's class name (an empty subclass) so widgets placed with the
-             Java app survive the update to this app: placed widgets are bound to this component name. -->
-        <receiver android:name="com.smouldering_durtles.wk.services.SessionWidgetProvider" android:exported="true">
+        <!-- Home-screen widget. WIDGET_TICK is its own inexact alarm at the next review hour
+             (SessionWidgetProvider.scheduleNext). -->
+        <receiver android:name=".SessionWidgetProvider" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="android.appwidget.action.APPWIDGET_OPTIONS_CHANGED" />
@@ -62,7 +60,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Haptic feedback on answer verdicts (navigator.vibrate in the WebView), as the Java app's HapticUtil. -->
+    <!-- Haptic feedback on answer verdicts (navigator.vibrate in the WebView). -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- The review notification (Android 13+ asks at runtime) and its re-armed alarm after a reboot.
          Only inexact alarms are used: no SCHEDULE_EXACT_ALARM. -->

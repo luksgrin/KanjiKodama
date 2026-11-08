@@ -20,7 +20,7 @@ async function connected(http: FakeHttp, kk?: KkDb, clock = new FakeClock(NOW)) 
 }
 
 describe('checkConnection / migrate', () => {
-  it('returns the account, or the Java messages naming the server', async () => {
+  it('returns the account, or the messages naming the server', async () => {
     const clock = new FakeClock(NOW);
     const t = { baseUrl: BASE, token: 'tok', clock, limiter: limiterFor(clock), retryDelay: 1 };
     const user = await checkConnection({ ...t, http: new FakeHttp().on('GET', '/v2/user', ok('user')) });
@@ -154,7 +154,7 @@ describe('SyncEngine', () => {
     expect((await engine.syncNow({ manual: true })).ok).toBe(true);
   });
 
-  it('a different account on the server resets the downloaded data and the queue (GetUserTask)', async () => {
+  it('a different account on the server resets the downloaded data and the queue', async () => {
     const http = firstSyncRoutes(new FakeHttp());
     const { kk, engine } = await connected(http);
     await engine.syncNow();

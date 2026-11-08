@@ -1,8 +1,7 @@
 /**
- * The settings rows as data: keys, types, defaults, titles, summaries and choices exactly as
- * the Java app's `res/xml/preferences.xml` (snapshot: `test/fixtures/java/preferences.xml`) and
- * `res/values/array.xml` have them, so a value stored here means the same as in the Java app's
- * `SharedPreferences`. `SettingRows.tsx` renders them
+ * The settings rows as data: keys, types, defaults, titles, summaries and choices (the layout is
+ * pinned by `test/fixtures/settings-layout.json`). Stored keys and values never change meaning.
+ * `SettingRows.tsx` renders them
  * as AndroidX rows: `SETTINGS_SCREENS` are the root's sub-screens, `ADVANCED_GROUPS` the four
  * advanced sub-screens shown while `enable_advanced` is on.
  *
@@ -10,19 +9,18 @@
  * (also the numeric ones) → string, SeekBarPreference → number, NumberRangePreference →
  * `<key>_min` / `<key>_max` numbers (-1 = no rule).
  *
- * Gating (`LocalMode.applyToPreferences`, `PreferencesFragment`): `mode` hides a row in the other
- * mode (Java's ONLINE_PREFERENCES / LOCAL_PREFERENCES), `requires` hides it on a build without the
+ * Gating: `mode` hides a row in the other mode, `requires` hides it on a build without the
  * capability, `advanced` marks a value the core getters ignore (default used) while
- * `enable_advanced` is off, and `enabledWhen` is Java's `android:dependency`.
+ * `enable_advanced` is off, and `enabledWhen` greys a row out while another one is off.
  *
- * Not listed (see `docs/settings-inventory.md`):
+ * Not listed (see `docs/settings.md`):
  * - API plumbing: api_key_help, api_key (asked by the import / server screens instead),
- *   audio_location (hidden in Java too: one location), web_password (resurrect through the WaniKani
- *   web site is not ported).
- * - Hidden experimental screen (`isPreferenceVisible="false"` in Java): experimental_status,
+ *   audio_location (one location), web_password (resurrect through the WaniKani web site is not
+ *   available).
+ * - Hidden experimental screen: experimental_status,
  *   exp_subject_card_layout_search, exp_subject_card_layout_grid. Hidden helper:
  *   not_always_hide_wk_mnemonic (enabledWhen below).
- * - Other actions: support_and_feedback (hidden in Java too), data_import_export, reset_database,
+ * - Other actions: support_and_feedback (hidden), data_import_export, reset_database,
  *   backup_settings, restore_settings. (reset_tutorials is an action on the root screen.)
  */
 import { DARK_THEME_KEY, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LIGHT_THEME_KEY, THEME_OPTIONS } from '../../theme/themes';
@@ -32,9 +30,9 @@ import type { Preferences, PreferenceValue } from '../../../core/settings';
 interface Base {
   key: string;
   title: string;
-  /** Fixed summary (Java `app:summary`). Lists and text fields show their value instead (simple summary provider). */
+  /** Fixed summary. Lists and text fields show their value instead. */
   summary?: string;
-  /** Shown only in this mode (`LocalMode` lists). */
+  /** Shown only in this mode. */
   mode?: 'local' | 'server';
   /** Shown only on builds with this capability. */
   requires?: keyof Capabilities;
@@ -72,17 +70,17 @@ export interface ActionRow { type: 'action'; key: string; title: string; summary
 export type SettingDef = BoolSetting | ListSetting | TextSetting | SliderSetting | RangeSetting | TaggedUrlSetting;
 export type Row = SettingDef | InfoRow | ActionRow;
 
-/** A Java sub-`PreferenceScreen`: `id` is its key, `note` its summary on the parent screen. */
+/** A settings sub-screen: `id` is its key, `note` its summary on the parent screen. */
 export interface SettingGroup {
   id: string;
   title: string;
-  /** Title in server mode, when it differs (`LocalMode.applyToPreferences`). */
+  /** Title in server mode, when it differs. */
   serverTitle?: string;
   note?: string;
   rows: readonly Row[];
 }
 
-// ---- array.xml ---------------------------------------------------------------------------------
+// ---- choice lists ---------------------------------------------------------------------------
 
 type Options = readonly (readonly [string, string])[];
 
@@ -98,7 +96,7 @@ const REVIEW_ORDERS: Options = [
   ['TYPE_THEN_LEVEL_THEN_SRS', 'Type, Level, SRS stage'], ['TYPE_THEN_SRS_THEN_LEVEL', 'Type, SRS stage, Level'],
   ['SRS_THEN_TYPE_THEN_LEVEL', 'SRS stage, Type, Level'], ['SRS_THEN_LEVEL_THEN_TYPE', 'SRS stage, Level, Type'],
 ];
-// "Femminine" is the Java app's spelling.
+// "Femminine" is the stored label's spelling.
 const VOICE_PREFERENCES: Options = [
   ['RANDOM', 'Random'], ['MALE', 'Masculine'], ['FEMALE', 'Femminine'], ['ALTERNATE', 'Alternate between voices'],
 ];
@@ -145,19 +143,19 @@ const TIME_LINE_CHART_SIZES: Options = [
   ['168', '7 days'], ['240', '10 days'], ['336', '14 days'],
 ];
 
-// ---- Texts from Constants.java -----------------------------------------------------------------
+// ---- Fixed texts ------------------------------------------------------------------------------
 
-/** `Constants.SUBJECT_SELECTION_NOTICE`. */
+/** The notice above the subject selection settings. */
 export const SUBJECT_SELECTION_NOTICE = 'If there are more candidates for your session than will fit,'
   + ' the settings below will let you influence how the subjects for the session are selected.';
 
-/** `Constants.ENABLE_ADVANCED_WARNING` (bold parts as plain text). */
+/** The warning before advanced settings are enabled (bold parts as plain text). */
 export const ENABLE_ADVANCED_WARNING = 'Warning: Changing advanced settings will alter the presentation'
   + ' of lessons and reviews. If used unwisely, this may cause unbalanced workloads or slower progress, and may'
   + ' harm your long-term retention. You should only change these settings if you are an experienced user and'
   + " know what you're doing. Are you sure you want to enable these settings?";
 
-/** `NumberRangePreferenceDialogFragment`'s message. */
+/** The number range dialog's message. */
 export const NUMBER_RANGE_MESSAGE = 'Choose a minimum and maximum value for this category. Leave a field empty to not constrain that value.';
 
 const SHUFFLE_AFTER_SELECTION = 'Items are selected for the session according to ordering settings, but after that they are shuffled randomly.';
@@ -220,7 +218,7 @@ const UNDO_BUTTON = adv(list('undo_button', 'Special button 1 behavior (top righ
 const IGNORE_BUTTON = adv(list('ignore_button', 'Special button 2 behavior (bottom left)', SPECIAL_BUTTON_BEHAVIORS, 'DISABLE'));
 const DONT_KNOW_BUTTON = adv(list('dont_know_button', "Don't know button behavior", DONT_KNOW_BEHAVIORS, 'ENABLE'));
 
-/** The Advanced page: Java's four advanced sub-screens, all 58 values. */
+/** The Advanced page: the four advanced sub-screens, all 58 values. */
 export const ADVANCED_GROUPS: readonly SettingGroup[] = [
   { id: 'advanced_lesson_settings', title: 'Lesson advanced settings', rows: [...orderRows('lesson'), ...ankiRows('lesson'), ...selectionRows('lesson')] },
   { id: 'advanced_review_settings', title: 'Review advanced settings', rows: [...orderRows('review'), ...ankiRows('review'), ...selectionRows('review')] },
@@ -253,22 +251,22 @@ const notAlwaysHideWkMnemonic = (p: Preferences): boolean => p.always_hide_wk_mn
 /** The summary of the subject title size sliders. */
 const HIDE_TITLE = 'Set to 0 to hide the title';
 
-/** `PreferencesFragment`: shown on the web build only where a browser can honour it (`imeFlags`). */
+/** Shown on the web build only where a browser can honour it (`imeFlags`). */
 const VISIBLE_PASSWORD_SUMMARY = 'This may be necessary to prevent auto-suggest on some keyboards';
 
 /**
- * Java's root `PreferenceScreen` children before the "Advanced settings" category, in XML order. A
+ * The root screen's sub-screens before the "Advanced settings" category, in display order. A
  * sub-screen without a visible value row is hidden (e.g. "Audio download settings" on the web build).
  * Keyboard input settings: the rows a browser can't honour (Android IME flags, set by `KkWebView`)
- * need `imeFlags`, as Java hides the language hints below Android 7 (`setVisibility`); the web build
+ * need `imeFlags`; the web build
  * keeps auto-correct (the `autocorrect` attribute) and the Next delay. The notification rows need
- * `notifications` (the web build has none) and "Request audio focus" `audioFocus` (Android), as Java
- * hides rows its device can't use.
+ * `notifications` (the web build has none) and "Request audio focus" `audioFocus` (Android): rows a
+ * build can't use are hidden.
  */
 export const SETTINGS_SCREENS: readonly SettingGroup[] = [
   {
     id: 'api_settings',
-    // `LocalMode.applyToPreferences` retitles it.
+    // Retitled in server mode.
     title: 'Audio download settings',
     serverTitle: 'API and audio download settings',
     rows: [
@@ -483,10 +481,9 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
 export const ADVANCED_CATEGORY_TITLE = 'Advanced settings';
 
 /**
- * Keys whose XML default differs from the `GlobalSettings` getter's default. AndroidX writes the XML
- * default the first time a settings screen shows the row, so after the learner opened settings the
- * Java app behaves as the XML says; the settings screen does the same for these (see
- * `persistShownDefaults`).
+ * Keys whose settings-screen default differs from the getter's default. The settings screen writes
+ * its default the first time it shows the row, so after the learner opened settings the screen's
+ * default applies (see `persistShownDefaults`).
  */
 export const XML_DEFAULT_DIFFERS_FROM_GETTER: readonly string[] = ['hide_sentence_translations', 'force_ascii_meaning'];
 

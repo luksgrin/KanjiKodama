@@ -1,9 +1,9 @@
 /**
- * `SearchUtil.searchSubjects(0 | 2, …)`: Browse's level buttons and the advanced search, plus what
- * the results screen makes of the hits (`SearchResultAdapter.setResult` with a `SearchSortOrder`).
+ * Browse's level buttons and the advanced search, plus what the results screen makes of the hits
+ * (with a `SearchSortOrder`).
  *
- * The Java builds SQL; this evaluates the same conditions on `SearchSubject`s and returns them in
- * the query's `ORDER BY level, lessonPosition, id`.
+ * This evaluates the search conditions on `SearchSubject`s and returns them in
+ * `level, lessonPosition, id` order.
  */
 
 import { SUBJECT_TYPE_BY_OBJECT } from '../content';
@@ -18,13 +18,13 @@ function byLevelPositionId(a: SearchSubject, b: SearchSubject): number {
   return a.level - b.level || a.lessonPosition - b.lessonPosition || a.id - b.id;
 }
 
-/** A Java `NumberFormatException`, thrown where `Integer.parseInt` fails. */
+/** A malformed integer (`NumberFormatException`). */
 export class NumberFormatError extends Error {}
 
 const DIGIT = /\p{Nd}/u;
 
-/** `Integer.parseInt(s, 10)`: optional sign, Unicode decimal digits, int range. */
-export function parseIntJava(s: string): number {
+/** Optional sign, Unicode decimal digits, int range. */
+export function parseIntChecked(s: string): number {
   let i = 0;
   let negative = false;
   if (s[0] === '+' || s[0] === '-') {
@@ -46,9 +46,9 @@ export function parseIntJava(s: string): number {
   return v;
 }
 
-/** `searchSubjects(0, level)` (`SubjectCollectionsDao.getByLevelRange(n, n)`); throws `NumberFormatError`. */
+/** The subjects of one level; throws `NumberFormatError`. */
 export function searchByLevel(subjects: readonly SearchSubject[], level: string): SearchSubject[] {
-  const n = parseIntJava(level);
+  const n = parseIntChecked(level);
   return subjects.filter((s) => s.level === n && s.hiddenAt === 0).sort(byLevelPositionId);
 }
 
@@ -57,10 +57,10 @@ function isLocked(s: SearchSubject): boolean {
   return s.unlockedAt === 0;
 }
 
-/** One stage condition of `SrsSystemRepository.addSrsStageFragments`. */
+/** One stage condition. */
 type StageFragment = (s: SearchSubject) => boolean;
 
-/** `SrsSystemRepository.addSrsStageFragments(fragments, tag)`. */
+/** Adds the stage conditions for one stage tag. */
 function addSrsStageFragments(fragments: StageFragment[], systems: readonly SrsSystem[], tag: string): void {
   if (tag === 'locked') {
     fragments.push((s) => s.unlockedAt === 0);
@@ -78,16 +78,15 @@ function addSrsStageFragments(fragments: StageFragment[], systems: readonly SrsS
 /** The settings and clock an advanced search reads. */
 export interface AdvancedSearchContext {
   systems: readonly SrsSystem[];
-  /** `GlobalSettings.Other.getEnableStarRatings`. */
+  /** `enable_star_ratings`. */
   starRatingsEnabled: boolean;
   /** `Clock.now()`. */
   now: number;
 }
 
 /**
- * The private `SearchUtil.searchSubjects(AdvancedSearchParameters)`. A null element in a
- * collection makes Java throw a `NullPointerException` (caught by `safe`, so: no results);
- * this throws `TypeError` there.
+ * The advanced search on parsed parameters. A null element in a collection throws a `TypeError`
+ * (the caller turns it into no results).
  */
 export function searchAdvanced(
   subjects: readonly SearchSubject[],
@@ -151,7 +150,7 @@ export function searchAdvanced(
 }
 
 /**
- * `SearchUtil.searchSubjects(2, json)`: parse, then search; any failure gives no results (`safe`).
+ * The advanced search on JSON parameters: parse, then search; any failure gives no results.
  */
 export function searchAdvancedJson(
   subjects: readonly SearchSubject[],
@@ -225,7 +224,7 @@ function sortOrderImpl(order: SearchSortOrder, searchTime: number, systems: read
 export type ResultViewItem = { header: string } | { subject: SearchSubject };
 
 /**
- * `SearchResultAdapter.setResult(result)`: sorted stably by the sort order, consecutive equal
+ * The results list: sorted stably by the sort order, consecutive equal
  * subjects grouped under a type header; for two-level orders the type headers sit under a
  * top-level header, which a later group with the same tag joins. Returns the list in screen order.
  */

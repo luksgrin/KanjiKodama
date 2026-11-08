@@ -1,11 +1,11 @@
 /**
- * `enums/QuestionType`: the 8 question types, their flags, and `checkAnswer`; plus
- * `SubjectType.getPossibleQuestionTypes`.
+ * The 8 question types, their flags, and `checkAnswer`; plus the question types each subject type
+ * gets.
  */
 import type { AuxiliaryMeaning, Meaning, Reading, SubjectObject } from '../content';
 import { simulateInput } from '../kana';
 import { fuzzyMatches } from './fuzzy';
-import { javaHashSetOrder } from './javaHash';
+import { stringSetOrder } from './stringHashOrder';
 import { isKunYomi, isOnYomi, readingMatches, readingMatchesForDigraph } from './reading';
 import { type AnswerVerdict, type CloseEnoughAction, NOK_WITH_RETRY, NOK_WITHOUT_RETRY, makeVerdict } from './verdict';
 
@@ -44,7 +44,7 @@ export const QUESTION_TYPE_INFO: Readonly<Record<QuestionType, QuestionTypeInfo>
   WANIKANI_KANJI_KUNYOMI: { meaning: false, reading: true, kana: true, ascii: false, slot: 4, shortTitle: "Kun'yomi" },
 };
 
-/** `SubjectType.getPossibleQuestionTypes(onkun)`: on'yomi/kun'yomi split kanji readings in two. */
+/** On'yomi/kun'yomi split kanji readings in two. */
 export function possibleQuestionTypes(object: SubjectObject, onkun: boolean): readonly QuestionType[] {
   switch (object) {
     case 'radical':
@@ -60,7 +60,7 @@ export function possibleQuestionTypes(object: SubjectObject, onkun: boolean): re
   }
 }
 
-/** What `checkAnswer` reads from a subject (`db/model/Subject`): the parsed JSON columns. */
+/** What `checkAnswer` reads from a subject: the parsed JSON columns. */
 export interface CheckSubject {
   readonly meanings: readonly Meaning[];
   readonly auxiliaryMeanings: readonly AuxiliaryMeaning[];
@@ -70,22 +70,22 @@ export interface CheckSubject {
 
 /** Optional inputs of `checkAnswer`. */
 export interface CheckOptions {
-  /** `Subject.getMeaningSynonyms`: the user's synonyms, already parsed (blank ones dropped; a null throws NullPointerException like Java). */
+  /** The user's synonyms, already parsed (blank ones dropped; a null throws NullPointerException). */
   readonly meaningSynonyms?: readonly (string | null)[];
   /**
-   * For a single-kanji vocabulary reading: the kanji with those characters (`SubjectDao.getKanjiByCharacters`),
+   * For a single-kanji vocabulary reading: the kanji with those characters,
    * when the "matching kanji" setting is on. One of its readings gives a retry instead of a fail.
    */
   readonly matchingKanji?: CheckSubject | null;
   readonly closeEnoughAction: CloseEnoughAction;
-  /** `GlobalSettings.Other.getRequireOnInKatakana`: on'yomi only count when typed in katakana. */
+  /** `require_on_in_katakana`: on'yomi only count when typed in katakana. */
   readonly requireOnInKatakana: boolean;
 }
 
 /**
  * The meaning types' `checkAnswer` (identical for all four): accepted meanings, whitelisted auxiliary
- * meanings and synonyms vs rejected meanings and blacklisted auxiliary meanings, collected in Java
- * `HashSet`s (whose iteration order decides `matchedAnswer` on ties). A wrong answer that is one of
+ * meanings and synonyms vs rejected meanings and blacklisted auxiliary meanings, collected in hash
+ * sets (whose iteration order decides `matchedAnswer` on ties). A wrong answer that is one of
  * the subject's readings when typed through the IME gets a retry.
  */
 function checkMeaning(subject: CheckSubject, answer: string, o: CheckOptions): AnswerVerdict {
@@ -97,8 +97,8 @@ function checkMeaning(subject: CheckSubject, answer: string, o: CheckOptions): A
     else if (m.type === 'blacklist') rejected.push(m.meaning);
   }
   accepted.push(...(o.meaningSynonyms ?? []));
-  // A null meaning (or synonym) makes FuzzyMatching's cleanString throw NullPointerException, as in Java.
-  const verdict = fuzzyMatches(answer, javaHashSetOrder(accepted), javaHashSetOrder(rejected), o.closeEnoughAction);
+  // A null meaning (or synonym) makes cleanString throw NullPointerException.
+  const verdict = fuzzyMatches(answer, stringSetOrder(accepted), stringSetOrder(rejected), o.closeEnoughAction);
   if (!verdict.ok && !verdict.retry) {
     const kanaAnswer = simulateInput(answer);
     for (const r of subject.readings) {
@@ -112,7 +112,7 @@ function accepted(r: Reading, answer: string): AnswerVerdict {
   return makeVerdict(true, false, false, answer, r.reading, null);
 }
 
-/** `checkAnswer` for one question type (the 5-argument Java overload). */
+/** `checkAnswer` for one question type. */
 export function checkAnswer(
   questionType: QuestionType,
   subject: CheckSubject,

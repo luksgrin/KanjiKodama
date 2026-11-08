@@ -1,4 +1,4 @@
-/** `importWaniKani {api}` (`ScenarioRunner.importWaniKani` → `WaniKaniImporter.apply`). */
+/** `importWaniKani {api}`: the WaniKani import. */
 
 import { applyWaniKaniImport, parseDownload, type WaniKaniApiData } from '../../../../src/core/importer';
 import type { ActionHandler } from '../runner';

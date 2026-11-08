@@ -1,7 +1,6 @@
 /**
- * Lessons (`MainActivity` "Start lessons" → `Session.startNewLessonSession(availableLessons)`): the lesson
- * presentation, one item page per item (`fragments/LessonSessionFragment`, `SubjectInfoView` with
- * LESSON_PRESENTATION), then the lesson quiz. The batch size and order come from the lesson settings
+ * Lessons (the dashboard's "Start lessons" with the available lessons): the lesson presentation, one
+ * item page per item, then the lesson quiz. The batch size and order come from the lesson settings
  * (`max_lesson_session_size`, `lesson_order`, … in core `settingsOrdering`).
  */
 import { maxFontSizeLesson } from '../../theme/fontPrefs';
@@ -22,7 +21,7 @@ function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Sess
   const item = session.currentItem;
   const subject = item === null ? null : contentSubject(learner, item.id);
   const menu = useSessionMenu(rt, session, item?.id ?? null);
-  // Toolbar: "一 (level 1 radical)" in the subject's colour (LessonSessionFragment.getToolbarTitle).
+  // Toolbar: "一 (level 1 radical)" in the subject's colour.
   useToolbar({
     title: subject === null ? '' : <InfoTitle subject={subject} level={tableRow(learner, subject.id).level} />,
     color: subject?.object ?? 'default',
@@ -46,7 +45,7 @@ function LessonPresentation({ rt, session }: { rt: SessionRuntime; session: Sess
   };
   return (
     <section className="kk-lesson" aria-label="Lesson">
-      {/* fragment_lesson.xml: Previous (gone on the first item) | space | n/m | space | Next. */}
+      {/* Previous (gone on the first item) | space | n/m | space | Next. */}
       <div className="kk-lesson-nav">
         {index > 0 && (
           <button type="button" className="kk-btn" disabled={busy} data-testid="lesson-previous" onClick={() => run(() => rt.presentationPrevious())}>Previous</button>

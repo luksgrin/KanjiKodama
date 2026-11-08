@@ -4,9 +4,8 @@
  * Start-up (`start()`):
  * 1. open the progress DB (Dexie) and read the stored progress, while the content file loads;
  * 2. join both into the core's in-memory `LearnerDb` (`hydrateLearnerDb`: fresh WaniKani layout,
- *    stored ordering applied), then, like `WkApplication`'s start task in local mode,
- *    `Curriculum.ensureOrdering` (table re-laid when ordering != chosen curriculum) and
- *    `LocalProgression.update`, persisted;
+ *    stored ordering applied), then, in local mode, `applyOrdering` (table re-laid when ordering !=
+ *    chosen curriculum) and `updateProgression`, persisted;
  * 3. ready. Persistent storage (`ensurePersistence`) runs alongside and never delays start-up
  *    (Firefox shows a prompt and waits for it).
  *
@@ -89,8 +88,8 @@ export type PersistMode =
   /** Save the whole learner state (`saveLearnerDb`); rows of subjects the content lacks are kept. */
   | 'all'
   /**
-   * The learner replaces ALL stored progress (Java `ProgressStore.resetProgress` then the new rows, as
-   * the WaniKani import does): rows of subjects the content lacks ("orphans") are dropped too.
+   * The learner replaces ALL stored progress (a full reset, then the new rows, as the WaniKani import
+   * does): rows of subjects the content lacks ("orphans") are dropped too.
    */
   | 'replace'
   /** Save only these subjects' rows (`saveSubjects`); the caller guarantees nothing else changed. */
@@ -291,7 +290,7 @@ export function createAppController(deps: AppDeps): AppController {
       return;
     }
     patch({ platform });
-    // The toolbar's Mute (Java AudioUtil.playAudio returns early while muted).
+    // The toolbar's Mute: no audio plays while muted.
     if (platform.audio) {
       const audio = platform.audio;
       const play = audio.play.bind(audio);
@@ -337,7 +336,7 @@ export function createAppController(deps: AppDeps): AppController {
       orphans = orphansOf(snap, learner);
       const [prefs, lastSavedAt, server] = await Promise.all([readPrefs(), saved.getLastSavedAt(), isServerMode()]);
       if (!server) {
-        // WkApplication start task, local mode: Curriculum.ensureOrdering, LocalProgression.update.
+        // Local mode: re-lay the order if the curriculum changed, then unlock and level up.
         const before = capture(learner);
         if (learner.ordering !== learner.progress.curriculum) applyOrdering(learner, learner.progress.curriculum);
         updateProgression(learner, clock.now());

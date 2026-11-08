@@ -1,5 +1,5 @@
 /**
- * Converts the Java app's radical drawables (`res/drawable/radical_<id>.xml`, Android vector drawables)
+ * Converts the radical drawables (`content/inputs/drawable/radical_<id>.xml`, Android vector drawables)
  * into the content file's `title_image` rows (`src/content/titleImages.ts`). The drawables are flat:
  * `<path>`s (stroked, transparent fill) at the top level or inside a `<group>` that starts with one
  * `<clip-path>`. Anything else is rejected so a changed drawable is noticed.

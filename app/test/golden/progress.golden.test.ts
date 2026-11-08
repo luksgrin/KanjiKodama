@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { JavaException, optLong, parseJsonObject } from '../../src/core/progressFile/androidJson';
+import { TypedError, optLong, parseJsonObject } from '../../src/core/progressFile/androidJson';
 import { describe as describeFile } from '../../src/core/progressFile/describe';
 import { exportProgress, restoreProgress } from '../../src/core/progressFile/store';
 import { GOLDEN_DIR, goldenSuite } from './harness';
@@ -24,8 +24,8 @@ goldenSuite<DescribeInput, unknown>('progress/describe.json', (input) => {
   try {
     return { ok: true, summary: describeFile(text, STYLE), exportedAt };
   } catch (e) {
-    if (!(e instanceof JavaException)) throw e;
-    return { ok: false, error: e.javaClass, message: e.message, exportedAt };
+    if (!(e instanceof TypedError)) throw e;
+    return { ok: false, error: e.errorType, message: e.message, exportedAt };
   }
 });
 

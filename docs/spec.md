@@ -1,11 +1,8 @@
 # KanjiKodama (漢字木霊) — Product & Technical Specification
 
-> **History (2026-10-26).** This spec describes the earlier Kotlin/Compose app built only from open
-> data. It is kept for reference and no longer matches the app. KanjiKodama is now a fork of
-> Smouldering Durtles ported to TypeScript (GitHub issue #3), in `app/` (React + Vite + Capacitor:
-> the Android APK and the iPhone PWA); see the [README](../README.md) and [plan.md](plan.md). The
-> Kotlin code this spec's layout section names (`app/`, `core/`, `feature/`) was removed after commit
-> `4def50a`.
+> **History.** This spec describes an earlier design built only from open data and no longer
+> matches the app (see the [README](../README.md)). Its content pipeline sections (§6, §8, §9) still
+> describe `tools/content/`, which builds `sound-components.db`, `jlpt-kanji.tsv` and `extra-kanji.db`.
 
 Version 0.4 (draft) — 2026-09-29
 

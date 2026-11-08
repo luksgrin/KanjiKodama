@@ -1,8 +1,7 @@
 /**
- * Sessions in server mode (`ReportSessionItemJob` with `LocalMode.isEnabled()` false): each finished
- * lesson or review is predicted locally right away (core `reportServer`: the "patched" assignment
- * and statistic, so counts and the item page move at once) and queued for the server
- * (`ReportSessionItemTask`). The server's data replaces the prediction on the next sync.
+ * Sessions in server mode: each finished lesson or review is predicted locally right away (core
+ * `reportServer`: the "patched" assignment and statistic, so counts and the item page move at once)
+ * and queued for the server. The server's data replaces the prediction on the next sync.
  *
  * The session's `report` hook runs inside `app.write` (synchronously), so it only collects; the app
  * controller drains the collected reports into the Dexie queue after the write is saved, then sends.

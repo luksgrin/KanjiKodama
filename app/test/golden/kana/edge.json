@@ -1,6 +1,5 @@
 {
   "area": "kana.edge",
-  "javaSource": "util/PseudoIme.simulateInput",
   "cases": [
     {"name":"edge-1","input":{"romaji":"n"},"output":{"simulateInput":{"value":"ん"}}},
     {"name":"edge-2","input":{"romaji":"nn"},"output":{"simulateInput":{"value":"ん"}}},

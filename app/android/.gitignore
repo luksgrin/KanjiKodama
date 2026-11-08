@@ -9,7 +9,7 @@
 # Files for the ART/Dalvik VM
 *.dex
 
-# Java class files
+# Compiled class files
 *.class
 
 # Generated files

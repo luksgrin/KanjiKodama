@@ -1,5 +1,5 @@
 /**
- * The subject cards' third line (`SubjectCardBinder.bindNormal`): "Guru I - 3h", the stage alone when no
+ * The subject cards' third line: "Guru I - 3h", the stage alone when no
  * review is scheduled ("Initiate"), nothing when locked; vocabulary shows the full stage name, the others
  * the short one.
  */
@@ -12,7 +12,7 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
-/** `ObjectSupport.getShortWaitTimeAsInformalString`: now, 12m, 5h, 3d (rounded). */
+/** A short wait time: now, 12m, 5h, 3d (rounded). */
 export function shortWaitTime(waitTime: number): string {
   if (waitTime <= 0) return 'now';
   if (waitTime < HOUR) return `${Math.trunc((waitTime + MINUTE / 2) / MINUTE)}m`;

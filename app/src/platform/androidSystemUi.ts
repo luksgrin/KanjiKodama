@@ -2,12 +2,12 @@
  * Android window chrome that the page can't set itself (native side: app/android/.../SystemUiPlugin.java,
  * KkWebView.java):
  *
- * - Bar colours. The Java app's status bar has its toolbar's colour (dark, or the subject type colour
- *   in sessions and on item pages) and its navigation bar the page background, with matching icon
+ * - Bar colours. The status bar takes the toolbar's colour (dark, or the subject type colour in
+ *   sessions and on item pages) and the navigation bar the page background, with matching icon
  *   colours. This samples the colours at the top and bottom edge of the page (whatever the UI draws
  *   there, including a modal dialog's backdrop) and hands them to the native side whenever the page
  *   changes. On WebView 140+ the page draws behind the bars and only the icon colours matter.
- * - IME flags of the Java answer field (fragments/UnansweredSessionFragment) from the Keyboard
+ * - IME flags of the answer field from the Keyboard
  *   input settings (`answerKeyboard.ts`): "no personalized learning", force ASCII, auto-correct,
  *   'visible password' and the keyboard language hint, for the focused `input.kk-answer`.
  */
@@ -22,7 +22,7 @@ export interface BarColors {
   lightBottom: boolean;
 }
 
-/** KkWebView.setImeHints: what Java's questionEdit sets (`answerField` false: Chromium's own EditorInfo). */
+/** KkWebView.setImeHints: the answer field's flags (`answerField` false: Chromium's own EditorInfo). */
 export type ImeHints = AnswerKeyboard;
 
 export interface SystemUiPlugin {
@@ -150,7 +150,7 @@ export function barColors(e: EdgeColors): BarColors {
   return { top: toHex(e.top), bottom: toHex(e.bottom), lightTop: isLight(e.top), lightBottom: isLight(e.bottom) };
 }
 
-/** The Java answer field's IME flags for the focused element (the Keyboard input settings). */
+/** The answer field's IME flags for the focused element (the Keyboard input settings). */
 export function imeHintsFor(el: Element | null): ImeHints {
   return answerKeyboardFor(el);
 }
@@ -194,7 +194,7 @@ export function startAndroidSystemUi(plugin: Pick<SystemUiPlugin, 'setBarColors'
   win.addEventListener('hashchange', schedule);
   win.addEventListener('resize', schedule);
   // Chromium rounds the viewport up to whole dp (a 1080 px WebView at 2.625 is 411.43 dp, the page
-  // 412.19 px): narrow the root to the WebView's real width so right edges match the Java views.
+  // 412.19 px): narrow the root to the WebView's real width so right edges sit on the screen.
   const fitWidth = () => {
     void plugin.getViewWidth?.()
       .then(({ width }) => {

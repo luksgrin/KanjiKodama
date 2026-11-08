@@ -1,8 +1,7 @@
 /**
- * The optional table panels: `JlptProgressView` (`jlpt_progress.xml`, "JLPT progress", N5..N1),
- * `JoyoProgressView` (`joyo_progress.xml`, "Jōyō kanji progress", Grade 1..6, Middle school), both with
- * Locked / In progress / Passed / Burned columns, blank for 0 (`setTextOrBlankIfZero`), and
- * `LessonReviewBreakdownView` (`lesson_review_breakdown.xml`: Radical / Kanji / Vocab columns in the
+ * The optional table panels: "JLPT progress" (N5..N1), "Jōyō kanji progress" (Grade 1..6, Middle
+ * school), both with Locked / In progress / Passed / Burned columns, blank for 0, and the lesson/review
+ * breakdown (Radical / Kanji / Vocab columns in the
  * type colours; current-level and earlier-level lesson and review rows, each only when non-zero).
  */
 import type { LessonReviewBreakdown, StageCounts } from './panelData';

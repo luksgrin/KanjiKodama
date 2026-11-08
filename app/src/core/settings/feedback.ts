@@ -1,7 +1,7 @@
 /**
- * Answer feedback settings (Android build). Java: `GlobalSettings.Review.enable_haptic_feedback_success`
- * and `enable_haptic_feedback_failure`, both off by default; `fragments/UnansweredSessionFragment`
- * calls `util/HapticUtil.onCorrect` / `onWrong` when they are on.
+ * Answer feedback settings (Android build): `enable_haptic_feedback_success` and
+ * `enable_haptic_feedback_failure`, both off by default; the quiz vibrates on a correct or wrong
+ * answer when they are on.
  */
 import { prefBoolean, type Preferences } from './index';
 

@@ -16,7 +16,7 @@ describe('app controller start-up', () => {
     expect(s.status).toEqual({ kind: 'ready' });
     expect(s.learner?.progress.userLevel).toBe(1);
     expect(s.mode).toBe('local');
-    // LocalProgression.update on start: level 1 radicals unlocked.
+    // updateProgression on start: level 1 radicals unlocked.
     const unlocked = [...s.learner!.progress.subjects].filter(([, r]) => r.unlockedAt === T0).map(([id]) => id);
     expect(unlocked).toEqual(expect.arrayContaining([1, 2]));
     const kk = new KkDb(dbName);

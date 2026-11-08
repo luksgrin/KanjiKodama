@@ -1,23 +1,20 @@
 /**
- * User meaning synonyms and the study-material (notes) save path, as the Java app stores them.
- *
- * Java: `util/StudyMaterialsSupport` (the "Add synonym" dialog and the notes form),
- * `db/model/Subject.getMeaningSynonyms` (column parsing), `jobs/SaveStudyMaterialJob` (job data),
- * `db/dao/SubjectSyncDao.serializeToJsonString` (the stored column).
+ * User meaning synonyms and the study-material (notes) save path: the "Add synonym" dialog and the
+ * notes form, column parsing, the save job's data and the stored column.
  * Fixtures: `answers/synonyms*.json`.
  */
-import { JavaException } from '../kana';
+import { TypedError } from '../kana';
 import { JacksonError, readStringList, writeStringList } from './jackson';
 
-/** `StudyMaterialsSupport.FORM_SYNONYM_ROWS`: the notes form's synonym rows. */
+/** The notes form's synonym rows. */
 export const FORM_SYNONYM_ROWS = 10;
 
 /**
- * Java `Character.isWhitespace(c) || Character.isSpaceChar(c)` for one UTF-16 unit: tab..CR, the
+ * Whitespace or a space character, for one UTF-16 unit: tab..CR, the
  * file/group/record/unit separators U+001C..U+001F, and the space, line and paragraph separators
  * (Zs, Zl, Zp: NBSP, U+2007 and U+202F included).
  */
-export function isJavaWhitespaceOrSpaceChar(c: number): boolean {
+export function isWhitespaceOrSpaceChar(c: number): boolean {
   return (
     (c >= 0x09 && c <= 0x0d) ||
     (c >= 0x1c && c <= 0x20) ||
@@ -32,20 +29,20 @@ export function isJavaWhitespaceOrSpaceChar(c: number): boolean {
   );
 }
 
-/** `StudyMaterialsSupport.isBlank`: null, empty, or only whitespace/space chars (NBSP and U+3000 included). */
+/** Null, empty, or only whitespace/space chars (NBSP and U+3000 included). */
 export function isBlank(s: string | null | undefined): boolean {
   if (s === null || s === undefined) return true;
-  for (let i = 0; i < s.length; i++) if (!isJavaWhitespaceOrSpaceChar(s.charCodeAt(i))) return false;
+  for (let i = 0; i < s.length; i++) if (!isWhitespaceOrSpaceChar(s.charCodeAt(i))) return false;
   return true;
 }
 
-/** `StudyMaterialsSupport.isTrimmable`: `String.trim`'s chars (<= U+0020) plus the ones `isBlank` counts. */
+/** Chars <= U+0020 plus the ones `isBlank` counts. */
 function isTrimmable(c: number): boolean {
-  return c <= 0x20 || isJavaWhitespaceOrSpaceChar(c);
+  return c <= 0x20 || isWhitespaceOrSpaceChar(c);
 }
 
 /**
- * `StudyMaterialsSupport.synonymInput`: the "Add synonym" dialog's text as it is saved: each run of
+ * The "Add synonym" dialog's text as it is saved: each run of
  * CR/LF becomes one space, then trimmable chars are stripped at both ends.
  */
 export function synonymInput(text: string): string {
@@ -58,7 +55,7 @@ export function synonymInput(text: string): string {
 }
 
 /**
- * `StudyMaterialsSupport.addSynonym`: the new list, or null when nothing happens (a blank value, or one
+ * The new list, or null when nothing happens (a blank value, or one
  * the list already contains exactly, case-sensitive).
  */
 export function addSynonym(current: readonly string[], value: string | null): string[] | null {
@@ -66,7 +63,7 @@ export function addSynonym(current: readonly string[], value: string | null): st
   return [...current, value as string];
 }
 
-/** `StudyMaterialsSupport.addSynonymJobData`: `[id, meaningNote ?? "", readingNote ?? "", ...synonyms]` as JSON. */
+/** The save job's data: `[id, meaningNote ?? "", readingNote ?? "", ...synonyms]` as JSON. */
 export function addSynonymJobData(
   subjectId: number,
   meaningNote: string | null,
@@ -76,19 +73,19 @@ export function addSynonymJobData(
   return writeStringList([String(subjectId), meaningNote ?? '', readingNote ?? '', ...synonyms]);
 }
 
-/** `StudyMaterialsSupport.formSynonymFields`: exactly 10 row texts, `""` for unused rows. */
+/** Exactly 10 row texts, `""` for unused rows. */
 export function formSynonymFields(synonyms: readonly string[]): string[] {
   const padded = [...synonyms];
   while (padded.length < FORM_SYNONYM_ROWS) padded.push('');
   return padded.slice(0, FORM_SYNONYM_ROWS);
 }
 
-/** `StudyMaterialsSupport.formExtraSynonyms`: the synonyms beyond the form's rows (kept unchanged on save). */
+/** The synonyms beyond the form's rows (kept unchanged on save). */
 export function formExtraSynonyms(synonyms: readonly string[]): string[] {
   return synonyms.length <= FORM_SYNONYM_ROWS ? [] : synonyms.slice(FORM_SYNONYM_ROWS);
 }
 
-/** `StudyMaterialsSupport.formJobData`: the form's texts as typed, nothing trimmed. */
+/** The form's save job data: the texts as typed, nothing trimmed. */
 export function formJobData(
   subjectId: number,
   meaningNote: string,
@@ -99,9 +96,9 @@ export function formJobData(
 }
 
 /**
- * `Subject.getMeaningSynonyms`: the `meaningSynonyms` column parsed like Jackson does, without null and
- * blank entries. NULL or empty text, or text Jackson can't read, gives []. The text `null` makes Java
- * throw a NullPointerException (a `JavaException`).
+ * The `meaningSynonyms` column parsed leniently (`jackson.ts`), without null and blank entries. NULL
+ * or empty text, or text the parser can't read, gives []. The text `null` throws a NullPointerException
+ * (a `TypedError`).
  */
 export function parseMeaningSynonyms(column: string | null): string[] {
   if (column === null || column === '') return [];
@@ -112,16 +109,16 @@ export function parseMeaningSynonyms(column: string | null): string[] {
     if (e instanceof JacksonError) return [];
     throw e;
   }
-  if (parsed === null) throw new JavaException('NullPointerException', 'meaningSynonyms column is "null"');
+  if (parsed === null) throw new TypedError('NullPointerException', 'meaningSynonyms column is "null"');
   return parsed.filter((s): s is string => !isBlank(s));
 }
 
-/** `SubjectSyncDao.serializeToJsonString`: `[]` for an empty list, otherwise Jackson's JSON. */
+/** The stored column: `[]` for an empty list, otherwise the JSON array. */
 export function serializeSynonymsColumn(list: readonly (string | null)[] | null): string {
   return list === null || list.length === 0 ? '[]' : writeStringList(list);
 }
 
-/** What `new SaveStudyMaterialJob(data)` holds. */
+/** A study material save job. */
 export interface StudyMaterialJob {
   subjectId: number;
   meaningNote: string | null;
@@ -131,8 +128,8 @@ export interface StudyMaterialJob {
 }
 
 /**
- * `new SaveStudyMaterialJob(data)`: `[id, meaningNote, readingNote, ...synonyms]`; empty and blank
- * synonyms are dropped. Throws like Java on malformed data (JacksonError, or a JavaException).
+ * Parses save job data `[id, meaningNote, readingNote, ...synonyms]`; empty and blank synonyms are
+ * dropped. Throws on malformed data (JacksonError, or a TypedError).
  */
 export function parseStudyMaterialJob(data: string): StudyMaterialJob {
   let values: (string | null)[] | null;
@@ -140,14 +137,14 @@ export function parseStudyMaterialJob(data: string): StudyMaterialJob {
     values = readStringList(data);
   } catch (e) {
     // The constructor wraps Jackson's IOException.
-    if (e instanceof JacksonError) throw new JavaException('IllegalArgumentException', e.message);
+    if (e instanceof JacksonError) throw new TypedError('IllegalArgumentException', e.message);
     throw e;
   }
-  if (values === null) throw new JavaException('NullPointerException', 'job data is "null"');
-  if (values.length < 3) throw new JavaException('IndexOutOfBoundsException', `Index 0 out of bounds for length ${values.length}`);
+  if (values === null) throw new TypedError('NullPointerException', 'job data is "null"');
+  if (values.length < 3) throw new TypedError('IndexOutOfBoundsException', `Index 0 out of bounds for length ${values.length}`);
   const [id, meaningNote, readingNote, ...rest] = values as [string | null, string | null, string | null, ...(string | null)[]];
-  // Long.parseLong: an optional sign and decimal digits (null throws NumberFormatException too).
-  if (id === null || !/^[+-]?[0-9]+$/.test(id)) throw new JavaException('NumberFormatException', String(id));
+  // A 64-bit integer: an optional sign and decimal digits (null throws NumberFormatException too).
+  if (id === null || !/^[+-]?[0-9]+$/.test(id)) throw new TypedError('NumberFormatException', String(id));
   return {
     subjectId: Number(id),
     meaningNote,
@@ -156,7 +153,7 @@ export function parseStudyMaterialJob(data: string): StudyMaterialJob {
   };
 }
 
-/** `api/model/ApiStudyMaterial` as `ApiTask.parseEntity` reads a WaniKani `study_material` envelope. */
+/** A WaniKani `study_material` envelope's data. */
 export interface ApiStudyMaterial {
   id: number;
   subjectId: number;
@@ -167,7 +164,7 @@ export interface ApiStudyMaterial {
 }
 
 /**
- * `ApiTask.parseEntity` for a study material: the `data` fields by their JSON names (unknown ones
+ * Reads a study material envelope: the `data` fields by their JSON names (unknown ones
  * ignored), the id from the envelope. Synonyms must be an array (numbers and booleans become their text);
  * anything else throws like Jackson's `MismatchedInputException`.
  */
@@ -181,10 +178,10 @@ export function parseApiStudyMaterial(envelope: { id: number; data: Record<strin
     else if (Array.isArray(v)) {
       meaningSynonyms = v.map((x) => {
         if (x === null) return null;
-        if (typeof x === 'object') throw new JavaException('MismatchedInputException', 'synonym is not a scalar');
+        if (typeof x === 'object') throw new TypedError('MismatchedInputException', 'synonym is not a scalar');
         return String(x);
       });
-    } else throw new JavaException('MismatchedInputException', 'meaning_synonyms is not an array');
+    } else throw new TypedError('MismatchedInputException', 'meaning_synonyms is not an array');
   }
   return {
     id: envelope.id,

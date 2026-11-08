@@ -1,10 +1,7 @@
 /**
- * The building blocks of the item page, each matching a part of the Java subject info screen.
- *
- * Java: `views/SubjectInfoHeadlineView` (title, meanings, readings or pitch, audio buttons column),
- * `views/SubjectInfoView` + `layout/subject_info.xml` (on'yomi/kun'yomi/nanori lines, parts of speech,
- * context sentences, the subject tables and the details table), `views/SubjectGridView` (linked
- * subjects).
+ * The building blocks of the item page: the headline (title, meanings, readings or pitch, audio
+ * buttons column), the on'yomi/kun'yomi/nanori lines, parts of speech, context sentences, the subject
+ * tables and the details table, and the linked subjects.
  */
 import './subject.css';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
@@ -41,11 +38,11 @@ export interface HeadlineProps {
   showOnInKatakana?: boolean;
   /** Pitch records; shown instead of the reading line when non-null and the subject has some for its readings. */
   pitchInfo?: readonly PitchInfo[] | null;
-  /** Audio button(s) slot (the Java buttons column; vocabulary only there). */
+  /** Audio button(s) slot (the buttons column; vocabulary only). */
   audio?: ReactNode;
   /** Base font size in px (`font_size_subject_info`, default 16). */
   fontSize?: number;
-  /** Largest tile glyph height in px; the tile also fits the screen width minus 80 px (SubjectInfoHeadlineView). 0 hides the tile. */
+  /** Largest tile glyph height in px; the tile also fits the screen width minus 80 px. 0 hides the tile. */
   maxFontSize?: number;
   /** The settings the tile's long press reads (search engines). */
   prefs?: Preferences;
@@ -54,7 +51,7 @@ export interface HeadlineProps {
 const NO_PREFS: Preferences = {};
 
 /**
- * SubjectInfoHeadlineView.layoutSubject: the wide layout (title, then the tile centred on its own row,
+ * The wide headline layout (title, then the tile centred on its own row,
  * then meanings and readings beside the buttons column) when the tile's text is at least 40 % of the
  * screen width minus 80 dp, or 15 % with pitch accent; else the narrow one (the tile at the left).
  */
@@ -177,7 +174,7 @@ export function PartsOfSpeech({ partsOfSpeech }: { partsOfSpeech: readonly strin
   return <WkMarkup as="p" className="kk-subject-line kk-pos" html={partsOfSpeechHtml(partsOfSpeech)} />;
 }
 
-/** Up to 10 sentences, as the Java layout has 10 slots. */
+/** Up to 10 sentences. */
 export const MAX_CONTEXT_SENTENCES = 10;
 
 function Translation({ text, hidden }: { text: string; hidden: boolean }) {
@@ -214,7 +211,7 @@ export interface SubjectLinksProps {
   header: string;
   ids: readonly number[];
   content: Content;
-  /** `SubjectGridView` shows readings only with the reading-related info. */
+  /** The grid shows readings only with the reading-related info. */
   showReading?: boolean;
   /** Meanings only with the meaning-related info (default true). */
   showMeaning?: boolean;
@@ -228,7 +225,7 @@ export interface SubjectLinksProps {
 }
 
 /**
- * A header and a grid of subject cards (`SubjectGridView` with `subject_card_*.xml`): radicals and kanji
+ * A header and a grid of subject cards: radicals and kanji
  * one column each (floor((width + 10) / 90) columns), vocabulary a full-width row (three columns from six);
  * each card in the subject's colour with the characters, one meaning (shrunk to fit one line, 9–14 sp), one
  * reading and the progress line. In the given id order; unknown ids are skipped.
@@ -257,7 +254,7 @@ export interface SubjectCardsProps {
   progressOf?: (subject: ContentSubject) => string | null;
 }
 
-/** The card grid itself (`SubjectGridView`). */
+/** The card grid itself. */
 export function SubjectCards({ subjects, showReading = true, showMeaning = true, showOnInKatakana = false, onOpenSubject, levelOf, progressOf }: SubjectCardsProps) {
   return (
     <ul className="kk-link-grid">
@@ -319,7 +316,7 @@ export interface DetailsProgress {
   readingCurrentStreak?: number | null;
 }
 
-/** `TextUtil.formatTimestampForDisplay`: medium date and short time in the user's locale; "" for 0. */
+/** Medium date and short time in the user's locale; "" for 0. */
 export function formatTimestamp(ms: number): string {
   if (ms === 0) return '';
   const d = new Date(ms);

@@ -1,14 +1,12 @@
 /**
- * Font settings → "Select fonts for quiz questions" (`FontSelectionActivity`,
- * `activity_font_selection.xml`, `font_selection_row_view.xml`) and "Import fonts for quiz questions"
- * (`FontImportActivity`, `activity_font_import.xml`, `font_import_row.xml`), shown as
- * `/settings?screen=font_selection` / `font_import` with the activities' labels.
+ * Font settings → "Select fonts for quiz questions" and "Import fonts for quiz questions", shown as
+ * `/settings?screen=font_selection` / `font_import` with their titles.
  *
  * Selection: the intro text, then one row per font (the eight built-in ones, then the imported
  * ones): its name (20 sp), "日本語の書体" in that font (34 sp) and a switch that adds / removes it
  * from `selected_fonts`. Import: the hint, IMPORT (a file picker: the system document picker in the
  * Android app, the browser's file dialog on the web), and a row per imported file with SAMPLE and
- * DELETE (borderless), with Java's dialogs and toasts.
+ * DELETE (borderless), with dialogs and toasts.
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useApp, useReady } from '../../hooks/useApp';
@@ -95,7 +93,7 @@ export function FontSelectionPage() {
   );
 }
 
-/** `FontImportActivity.resolveFileName`: the last path segment of the picked file's name. */
+/** The last path segment of the picked file's name. */
 export function fontFileName(name: string): string | null {
   const p = name.lastIndexOf('/');
   const n = p >= 0 ? name.slice(p + 1) : name;

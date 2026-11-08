@@ -104,7 +104,7 @@ export function createHashLocation(): HashLocation {
     get: store.get,
     subscribe: store.subscribe,
     navigate(path, options = {}) {
-      // The dashboard is the root (Java goToMainActivity: CLEAR_TOP): going there, pushed or
+      // The dashboard is the root: going there, pushed or
       // replacing (the summary's Finish), drops the app's history, so the next back leaves the app
       // instead of landing on a stale dashboard entry.
       if (path === '/') {

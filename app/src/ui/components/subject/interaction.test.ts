@@ -44,7 +44,7 @@ const buttonByText = (text: string): HTMLButtonElement =>
   [...container.querySelectorAll('button')].find((b) => b.textContent === text) as HTMLButtonElement;
 
 describe('SynonymsLine (Add synonym dialog)', () => {
-  it('saves a new synonym with the Java job data', () => {
+  it('saves a new synonym with the job data', () => {
     const saves: StudyMaterialSave[] = [];
     mount(createElement(SynonymsLine, { subjectId: 440, synonyms: ['one'], meaningNote: 'mn', readingNote: null, onSave: (s) => void saves.push(s) }));
     expect(container.textContent).toContain('My synonyms: one');
@@ -98,7 +98,7 @@ describe('SynonymsLine (Add synonym dialog)', () => {
 });
 
 describe('StudyMaterialsEditor', () => {
-  it('edits notes and reorders synonyms, saving the form as Java does', async () => {
+  it('edits notes and reorders synonyms, saving the form', async () => {
     const saves: StudyMaterialSave[] = [];
     const onDone = vi.fn();
     mount(

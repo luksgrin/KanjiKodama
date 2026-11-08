@@ -1,6 +1,6 @@
 /**
- * `/settings/fast-travel` (menu "Fast travel..."): Java shows the fast travel dialogs over the screen the
- * menu was opened on (the dashboard), so this is the dashboard with the dialogs; back to the previous
+ * `/settings/fast-travel` (menu "Fast travel..."): the fast travel dialogs over the screen the menu was
+ * opened on (the dashboard), so this is the dashboard with the dialogs; back to the previous
  * screen when they are done.
  */
 import { useEffect, useRef } from 'react';

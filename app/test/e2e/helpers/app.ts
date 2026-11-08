@@ -16,7 +16,7 @@ export async function waitReady(page: Page): Promise<void> {
   await expect(page.locator('.kk-shell')).toBeVisible({ timeout: 60_000 });
 }
 
-/** Opens the toolbar's overflow menu and picks the item (`settings`, `browse`, `self_study`, `about`, `download_audio`, `fast_travel`, `level_test`, `session_log`, `abandon_session`, …: Java menu ids without `action_`). */
+/** Opens the toolbar's overflow menu and picks the item (`settings`, `browse`, `self_study`, `about`, `download_audio`, `fast_travel`, `level_test`, `session_log`, `abandon_session`, …: menu ids). */
 export async function menu(page: Page, id: string): Promise<void> {
   await page.getByTestId('toolbar-overflow').click();
   await page.getByTestId(`menu-${id}`).click();
@@ -35,7 +35,7 @@ export async function toolbarBack(page: Page): Promise<void> {
 }
 
 /**
- * The former bottom-nav destinations, reached as in the Java app: Home = the toolbar's Dashboard
+ * The former bottom-nav destinations: Home = the toolbar's Dashboard
  * action (nothing on the dashboard), Browse / Study / Settings = the overflow menu's
  * "Browse/search...", "Self-study quiz", "Settings".
  */
@@ -56,7 +56,7 @@ export async function toolbarSearch(page: Page, query: string): Promise<void> {
     const icon = page.getByTestId('toolbar-search');
     if (await icon.count() > 0) await icon.click();
     else await menu(page, 'search');
-    await page.getByTestId('toolbar-search-expand').click(); // SearchView expands iconified first, as Java's
+    await page.getByTestId('toolbar-search-expand').click(); // the search expands iconified first
   }
   await field.fill(query);
   await field.press('Enter');
@@ -216,7 +216,7 @@ export async function pickRestoreFile(page: Page, path: string): Promise<string>
   await (await chooser).setFiles(path);
   const dialog = page.getByTestId('dialog-restore');
   await expect(dialog).toBeVisible();
-  // The message is the summary, a blank line, then the override warning (Java's setMessage).
+  // The message is the summary, a blank line, then the override warning.
   return (await dialog.locator('.kk-alert-message').innerText()).split('\n')[0]!;
 }
 
@@ -269,26 +269,25 @@ export async function smallTapTargets(page: Page, min = 40): Promise<string[]> {
       // (or through its wrapping <label>).
       const target = (el.matches('input[type="checkbox"], input[type="radio"]') && (el.closest('label') ?? el.closest('.kk-row'))) as HTMLElement | null;
       const box = target ? target.getBoundingClientRect() : r;
-      // Java sizes win over the floor where Java's element is smaller (owner decision, wave 5):
-      // [testid prefix, min width, min height] in px = dp.
+      // Smaller elements the owner accepted (owner decision): [testid prefix, min width, min height] in px.
       const exempt: [string, number, number][] = [
-        // BrowseOverviewFragment level cells: 16 sp + 2 × 6 dp padding ≈ 31 dp tall, width = (screen −
-        // 16 dp − 2 dp per column) / columns (≈ 37 dp at 10 columns on 411 dp, ≈ 35 on 393 dp).
+        // Browse level cells: 16 px + 2 × 6 px padding ≈ 31 px tall, width = (screen − 16 px − 2 px per
+        // column) / columns (≈ 37 px at 10 columns on 411 px, ≈ 35 on 393 px).
         ['browse-level-', 30, 30],
-        // live_subject_table_row.xml (recent unlocks, critical, burned): 4 dp margins around a 24 dp
-        // line = 32 dp rows (≈ 36 dp pitch).
+        // Dashboard subject rows (recent unlocks, critical, burned): 4 px margins around a 24 px line =
+        // 32 px rows (≈ 36 px pitch).
         ['subject-row-', min, 31],
-        // activity_theme_customization.xml colour samples: 24 dp high (subject types 26 sp text), the
-        // width an equal share of the row (10 level progression cells ≈ 22 dp at 320 px).
+        // Theme customization colour samples: 24 px high (subject types 26 px text), the width an equal
+        // share of the row (10 level progression cells ≈ 22 px at 320 px).
         ['tc-sample-', 16, 24],
-        // advanced_search.xml SwitchCompat rows (WK.Switch.Normal): 27 dp tall, the 20 dp thumb over the
-        // 23 dp track with 8 / 11 dp around it = 42 dp wide.
+        // Advanced search switch rows: 27 px tall, the 20 px thumb over the 23 px track with 8 / 11 px
+        // around it = 42 px wide.
         ['adv-switch-', 40, 26],
-        // subject_info.xml addSynonymButton (WK.TextView.InlineButton "+", 6 dp side padding): ~24 x 22 dp.
+        // The add-synonym "+" (inline button, 6 px side padding): ~24 x 22 px.
         ['add-synonym', 24, 22],
-        // advanced_search.xml sortOrder Spinner (AppCompat, wrap_content): ~28 dp tall (measured 73 device px).
+        // The advanced search's sort order drop-down: ~28 px tall.
         ['adv-sort-order', 40, 27],
-        // font_selection_row_view.xml fontSwitch (SwitchCompat, wrap_content): 46 x 27 dp (122 x 71 device px).
+        // The font selection switches: 46 x 27 px.
         ['font-switch-', 40, 26],
       ];
       const tid = el.getAttribute('data-testid') ?? '';
@@ -318,7 +317,7 @@ export async function clippedText(page: Page): Promise<string[]> {
       const r = el.getBoundingClientRect();
       if (r.width === 0) continue;
       const clipsX = cs.overflowX !== 'visible' || cs.textOverflow === 'ellipsis';
-      // The toolbar title ellipsizes long titles, as Java's Toolbar does.
+      // The toolbar title ellipsizes long titles.
       const toolbarTitle = el.closest('.kk-toolbar h1') !== null;
       if (clipsX && !toolbarTitle && el.scrollWidth > el.clientWidth + 1) {
         out.push(`${el.tagName.toLowerCase()}.${el.className.toString().split(' ')[0]} "${text.slice(0, 20)}…" ${el.scrollWidth}>${el.clientWidth}`);
@@ -395,8 +394,8 @@ export async function simulateKeyboard(page: Page, height: number | null, how: '
 }
 
 /**
- * The quick-action row as Java places it (`fragment_unanswered_question.xml`: after a spacer, on the
- * keyboard; answered: `nextButton2` pinned at the bottom): below the answer field, its bottom at the
+ * The quick-action row (after a spacer, on the keyboard; answered: the second Next pinned at the
+ * bottom): below the answer field, its bottom at the
  * bottom of the visible area (±12 px), buttons ≥ 40 px. With `keyboardTop` the check runs with the
  * keyboard simulated both ways (visual viewport and resize) and then closed again.
  */
@@ -473,12 +472,12 @@ export async function watchSessionStandIns(page: Page): Promise<{ seen(): Promis
 }
 
 /**
- * The item headline follows Java's SubjectInfoHeadlineView rule: the wide layout (tile on its own row)
+ * The item headline's layout rule: the wide layout (tile on its own row)
  * when the tile's text is at least 40 % of the screen width minus 80 px (15 % with pitch accent), else
  * the tile at the left; and the text column never shrinks to a sliver.
  */
-export async function expectJavaHeadline(page: Page, label: string): Promise<void> {
-  // The last one: a screen sliding out (Java's 150 ms transition) may still show the previous item.
+export async function expectHeadlineLayout(page: Page, label: string): Promise<void> {
+  // The last one: a screen sliding out (the 150 ms transition) may still show the previous item.
   const head = page.locator('.kk-headline').last();
   await expect(head).toBeVisible();
   const measure = () => head.evaluate((el) => {
@@ -486,10 +485,10 @@ export async function expectJavaHeadline(page: Page, label: string): Promise<voi
     const pitch = el.querySelector('.kk-pitch-diagram') !== null;
     const col = (el.querySelector('.kk-headline-text') as HTMLElement | null)?.offsetWidth ?? 0;
     const max = window.innerWidth - 80;
-    const javaWide = text * 10 >= max * 4 || (pitch && text * 20 >= max * 3);
-    return { text, col, head: (el as HTMLElement).offsetWidth, screen: window.innerWidth, wide: el.classList.contains('kk-headline--wide'), javaWide };
+    const expectedWide = text * 10 >= max * 4 || (pitch && text * 20 >= max * 3);
+    return { text, col, head: (el as HTMLElement).offsetWidth, screen: window.innerWidth, wide: el.classList.contains('kk-headline--wide'), expectedWide };
   });
-  await expect.poll(async () => { const m = await measure(); return m.wide === m.javaWide; }, { message: `${label}: Java's narrow/wide layout`, timeout: 3000 }).toBe(true);
+  await expect.poll(async () => { const m = await measure(); return m.wide === m.expectedWide; }, { message: `${label}: narrow/wide layout`, timeout: 3000 }).toBe(true);
   const m = await measure();
   expect(m.col / m.head, `${label}: headline text column (tile text ${m.text} px, screen ${m.screen} px)`).toBeGreaterThanOrEqual(0.25);
 }

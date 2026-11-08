@@ -1,8 +1,7 @@
 import type { ContentSubject, SubjectObject } from '../content';
 
 /**
- * `model/MatchingKanji.lookupCharacters` (from `UnansweredSessionFragment`): the characters to look a
- * matching kanji up by, or null. Only `vocabulary` (not `kana_vocabulary`) whose characters are exactly
+ * The characters to look a matching kanji up by, or null. Only `vocabulary` (not `kana_vocabulary`) whose characters are exactly
  * one UTF-16 char qualifies, and only while the setting (`shakeOnMatchingKanji` in `settings/`) is on.
  */
 export function matchingKanjiLookupCharacters(
@@ -14,7 +13,7 @@ export function matchingKanjiLookupCharacters(
 }
 
 /**
- * `SubjectDao.getKanjiByCharacters`: the first visible kanji (in id order, the table's scan order) with
+ * The first visible kanji (in id order, the table's scan order) with
  * exactly these characters, or null.
  */
 export function kanjiByCharacters(subjects: Iterable<ContentSubject>, characters: string): ContentSubject | null {

@@ -23,10 +23,10 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 /**
- * `KkSystemUi` (src/platform/androidSystemUi.ts): what the Java app's windows do natively.
+ * `KkSystemUi` (src/platform/androidSystemUi.ts): window chrome the page can't set itself.
  *
- * setBarColors: the Java app's status bar has the colour of its toolbar (dark, or the subject type
- * colour in sessions and on item pages) and its navigation bar the page background. Capacitor's
+ * setBarColors: the status bar takes the colour of the toolbar (dark, or the subject type colour in
+ * sessions and on item pages) and the navigation bar the page background. Capacitor's
  * SystemBars pads the decor view by the bar insets when the WebView can't draw behind them
  * (WebView before 140, or no viewport-fit=cover) and fills that padding with the theme's window
  * background; this paints the top padding with the colour at the top of the page and the rest with
@@ -102,7 +102,7 @@ public class SystemUiPlugin extends Plugin {
     /**
      * The WebView's width in dp. Chromium rounds the CSS viewport up to whole dp (1080 px at 2.625
      * is 411.43 dp but a 412.19 px wide page), so content laid out to the right edge ends ~2 device
-     * px further right than the Java app's views; the page narrows its root to this width
+     * px further right than the screen's edge; the page narrows its root to this width
      * (androidSystemUi.ts).
      */
     @PluginMethod

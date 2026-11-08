@@ -11,7 +11,7 @@ const pref = (prefs: Preferences, key: string, def: string, allowed: readonly st
 };
 
 /**
- * `GlobalSettings.Other.getNotificationUpdateFrequency` / `getNotificationPriority` /
+ * `notification_update_frequency` / `getNotificationPriority` /
  * `getNotificationCategory` (enum values; an unknown value falls back to the default).
  */
 export function notificationStyle(prefs: Preferences): { frequency: string; priority: string; category: string } {

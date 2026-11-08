@@ -1,6 +1,6 @@
 /**
- * Item page building blocks (the Java subject info screen). See `ItemPage.tsx` for the composition and
- * the section order, each file's header for the Java source it ports.
+ * Item page building blocks (the subject info screen). See `ItemPage.tsx` for the composition and the
+ * section order.
  */
 export { ItemPage, SHOW_ALL, type InfoVisibility, type ItemPageProps, type ItemProgress } from './ItemPage';
 export { WkMarkup, renderMarkupNodes, safeHref, type WkMarkupProps } from './WkMarkup';

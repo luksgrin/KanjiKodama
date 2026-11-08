@@ -46,8 +46,8 @@ npx playwright show-report test/e2e/report        # HTML report, traces of failu
   only loaded into the local test browser, never printed).
 - `offline.spec.ts`: service worker on, load, go offline, reload, review.
 - `layout.spec.ts`: every main screen with strict checks (soft failures, so one run lists all):
-  no sideways scroll, tap targets ≥ 40 px (Java-sized exemptions by testid), no clipped text; the
-  quick-action row where Java has it: at the bottom of the visible area, also with the keyboard simulated
+  no sideways scroll, tap targets ≥ 40 px (exemptions by testid), no clipped text; the
+  quick-action row: at the bottom of the visible area, also with the keyboard simulated
   (`simulateKeyboard`: visual viewport as iOS / Chrome, or a resized viewport as the Android WebView;
   iPhone SE 410 px visible, 320 px Android 300 px, Pixel 7, iPad, Firefox).
 - `session-layout.spec.ts`: the question view's height (unanswered ~133, answered ~193 with Next in it),

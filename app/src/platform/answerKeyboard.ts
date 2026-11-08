@@ -1,6 +1,5 @@
 /**
- * Keyboard input settings for the quiz answer field, as `UnansweredSessionFragment` applies them to
- * `questionEdit` (`GlobalSettings.Keyboard`):
+ * Keyboard input settings for the quiz answer field:
  *
  * - imeOptions: IME_FLAG_NO_PERSONALIZED_LEARNING (`enable_no_learning`, default true),
  *   IME_FLAG_FORCE_ASCII (`force_ascii_meaning` for meanings, `force_ascii_reading` for readings; the
@@ -72,7 +71,7 @@ let lastAnswer: AnswerKeyboard = NONE;
  * The settings for the focused element: all off unless it is an `input.kk-answer`. Between two
  * questions the invisible `.kk-keyboard-keeper` holds the focus (keyboardKeeper.tsx): it keeps the
  * last answer field's settings, so the keyboard isn't restarted with Chromium's own flags (and then
- * again with the next field's) while it stays open, as Java's single questionEdit keeps them.
+ * again with the next field's) while it stays open.
  */
 export function answerKeyboardFor(el: Element | null, prefs: Preferences = current): AnswerKeyboard {
   if (!(el instanceof HTMLInputElement)) return NONE;

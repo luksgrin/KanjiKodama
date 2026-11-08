@@ -1,14 +1,14 @@
 /**
- * The session log (`fragments/SessionLogFragment`, `adapter/sessionlog/*`), opened from the session
+ * The session log, opened from the session
  * menu's "Session log...": the session's items under collapsible headers "Abandoned items", "Completed
  * items", "Started items", "Items not started" (with "n items"), one row per item in the subject's
  * colour with the status of each of its questions ("Meaning: Done, 1 incorrect answer").
  *
- * Restricted mode (the default) as Java: the tutorial text with Dismiss (`session_log_dismissed`),
+ * Restricted mode (the default): the tutorial text with Dismiss (`session_log_dismissed`),
  * not-started items show "?" instead of the subject, started items are not clickable. With
  * `full_session_log` (advanced) every row shows its subject and opens the item page, and the "Events"
- * header lists what happened in this app run, newest first (`EventItemViewHolder`: the subject, "12s ago"
- * and the event text, e.g. "Submit Meaning: two\nCorrect"; in memory only, like Java).
+ * header lists what happened in this app run, newest first (the subject, "12s ago" and the event text,
+ * e.g. "Submit Meaning: two\nCorrect"; in memory only).
  *
  * Shown in place of the quiz (it is a fragment of the same activity); back or the toolbar arrow close it.
  */
@@ -33,7 +33,7 @@ export const SESSION_LOG_TUTORIAL = 'By default, this session log shows only lim
   + ' If you want to see the full session log, you can'
   + ' enable it in Settings -> Advanced -> Other.';
 
-/** `SessionItemItemViewHolder.getQuestionStatus`. */
+/** One question's status line. */
 export function questionStatus(item: SessionItem, slot: 1 | 2 | 3 | 4): string | null {
   const question = item.questions.find((q) => QUESTION_TYPE_INFO[q.type].slot === slot);
   if (question === undefined) return null;
@@ -63,7 +63,7 @@ export interface LogGroup {
   clickable: boolean;
 }
 
-/** `SessionLogAdapter.initialize`: the groups in Java's order, empty ones left out. */
+/** The groups in display order, empty ones left out. */
 export function sessionLogGroups(session: Session): LogGroup[] {
   const items = session.items;
   const groups: LogGroup[] = [
@@ -75,7 +75,7 @@ export function sessionLogGroups(session: Session): LogGroup[] {
   return groups.filter((g) => g.items.length > 0);
 }
 
-/** `TextUtil.formatElapsedTime`: "12s", "3:05", "1:02:03". */
+/** An elapsed time: "12s", "3:05", "1:02:03". */
 export function formatElapsedTime(elapsed: number): string {
   const ms = Math.max(0, Math.floor(elapsed));
   const sec = Math.floor(ms / 1000);
@@ -105,7 +105,7 @@ function EventRow({ learner, event, now, onOpen }: { learner: LearnerDb; event: 
   );
 }
 
-/** The collapsed headers survive closing the log (`SessionLogAdapter.collapsedTags`). */
+/** The collapsed headers survive closing the log. */
 const collapsedTags = new Set<string>();
 
 function LogRow({ learner, item, group, full, onOpen }: { learner: LearnerDb; item: SessionItem; group: LogGroup; full: boolean; onOpen(id: number): void }) {

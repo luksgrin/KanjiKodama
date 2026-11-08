@@ -1,8 +1,7 @@
 /**
- * The images of the radicals the Java app draws instead of their characters ("Yurt", "Beggar"…):
- * `Subject.getTitleImageId` / `needsTitleImage` and the vector drawables `res/drawable/radical_<id>.xml`,
- * shown by `SubjectInfoButtonView` (headline tiles, cards, session question) and by
- * `WaniKaniTagHandler.TitleImageSpan` (toolbar titles, dashboard tables).
+ * The images of the radicals drawn instead of their characters ("Yurt", "Beggar"…), from the vector
+ * drawables `content/inputs/drawable/radical_<id>.xml`; shown on headline tiles, cards, the session
+ * question, toolbar titles and dashboard tables.
  *
  * The content builder converts the drawables (`scripts/content/titleImages.ts`) into the content file's
  * `title_image` table (`id` → JSON {@link TitleImage}); the app reads it once with {@link readTitleImages}
@@ -10,7 +9,7 @@
  */
 import type { Database } from 'sql.js';
 
-/** The subject ids `Subject.getTitleImageId` maps to a drawable (radical_8762.xml exists but is unused). */
+/** The subject ids drawn from a drawable (radical_8762.xml exists but is unused). */
 export const TITLE_IMAGE_IDS: readonly number[] = [
   56, 114, 8766, 8770, 8771, 8773, 8774, 8778, 8781, 8787, 8788, 8790, 8792, 8796, 8797, 8798, 8799, 9452,
 ];

@@ -1,9 +1,8 @@
 /**
- * Pitch accent of one reading, like the Java `PitchInfoView`: per record a dot diagram (high/low per
+ * Pitch accent of one reading: per record a dot diagram (high/low per
  * mora plus a hollow dot for the following particle, colored by pattern) with the label
- * `[n] 平板 (part of speech)`, then the reading itself, whose kana line up with the dots.
- *
- * Java: `views/PitchInfoView`, `views/PitchInfoDiagramView` (dots 3 dp, lines 2 dp, text size + 4).
+ * `[n] 平板 (part of speech)`, then the reading itself, whose kana line up with the dots (dots 3 px,
+ * lines 2 px, text size + 4).
  */
 import './subject.css';
 import { moraEnds, pitchDots, pitchKind, pitchLabel, type PitchInfo } from './pitchInfo';
@@ -12,7 +11,7 @@ export interface PitchAccentProps {
   /** The reading as WaniKani writes it (hiragana). */
   kana: string;
   infos: readonly PitchInfo[];
-  /** Font size in px of the reading and labels (Java: subject info size + 4 = 20 by default). */
+  /** Font size in px of the reading and labels (subject info size + 4 = 20 by default). */
   fontSize?: number;
 }
 

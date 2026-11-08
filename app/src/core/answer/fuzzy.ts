@@ -1,12 +1,12 @@
 /**
- * `util/FuzzyMatching`: answer matching with a dynamic optimal-string-alignment distance.
+ * Fuzzy answer matching with a dynamic optimal-string-alignment distance.
  */
-import { JavaException } from '../kana';
+import { TypedError } from '../kana';
 import { osaDistance } from './osa';
 import { CleanClass, androidToLowerCase, cleanClass } from './unicode';
 import { type AnswerVerdict, type CloseEnoughAction, NOK_WITH_RETRY, NOK_WITHOUT_RETRY, makeVerdict } from './verdict';
 
-/** `FuzzyMatching.cleanReplace`: look-alike digits and punctuation → ASCII, by code point. */
+/** Look-alike digits and punctuation → ASCII, by code point. */
 const CLEAN_REPLACE: ReadonlyMap<number, number> = (() => {
   const groups: readonly (readonly [string, readonly number[]])[] = [
   ['0', [0x660, 0x6F0, 0x7C0, 0x966, 0x9E6, 0xA66, 0xAE6, 0xB66, 0xBE6, 0xC66, 0xCE6, 0xD66, 0xE50, 0xED0, 0xF20, 0x1040, 0x1090, 0x17E0, 0x1810, 0x1946, 0x19D0, 0x1A80, 0x1A90, 0x1B50, 0x1BB0, 0x1C40, 0x1C50, 0xA620, 0xA8D0, 0xA900, 0xA9D0, 0xAA50, 0xABF0, 0xFF10, 0x104A0, 0x11066, 0x110F0, 0x11136, 0x111D0, 0x116C0, 0x1D7CE, 0x1D7D8, 0x1D7E2, 0x1D7EC, 0x1D7F6]],
@@ -40,14 +40,14 @@ const CLEAN_REPLACE: ReadonlyMap<number, number> = (() => {
   return m;
 })();
 
-/** `FuzzyMatching.cleanReplace`. */
+/** One code point through {@link CLEAN_REPLACE}. */
 function cleanReplace(cp: number): number {
   if (cp < 127) return cp;
   return CLEAN_REPLACE.get(cp) ?? cp;
 }
 
 /**
- * `FuzzyMatching.cleanString`: separators, controls, format characters, surrogates and unassigned
+ * Cleans an answer: separators, controls, format characters, surrogates and unassigned
  * code points become spaces; digits and punctuation are normalized (`cleanReplace`); spaces are
  * trimmed and collapsed; then `toLowerCase(Locale.ENGLISH)` as Android does it.
  */
@@ -67,7 +67,7 @@ export function cleanString(s: string): string {
   return androidToLowerCase(collapsed);
 }
 
-/** `FuzzyMatching.getMatchScore`: the OSA distance if within the length-based threshold, else MAX. */
+/** The OSA distance if within the length-based threshold, else MAX. */
 export function getMatchScore(answer: string, reference: string): number {
   const n = reference.length;
   let threshold: number;
@@ -81,16 +81,16 @@ export function getMatchScore(answer: string, reference: string): number {
 
 const NO_MATCH = Number.MAX_SAFE_INTEGER;
 
-/** `cleanString` on a reference answer; a Java null (e.g. a meaning without text) throws like Java's. */
+/** `cleanString` on a reference answer; null (e.g. a meaning without text) throws NullPointerException. */
 function cleanReference(reference: string | null): string {
-  if (reference === null) throw new JavaException('NullPointerException', 'cleanString(null)');
+  if (reference === null) throw new TypedError('NullPointerException', 'cleanString(null)');
   return cleanString(reference);
 }
 
 /**
- * `FuzzyMatching.matches`: the answer matches when its best accepted score is within the threshold
+ * The answer matches when its best accepted score is within the threshold
  * and no rejected answer scores better. `accepted` is iterated in order and the first best score
- * wins `matchedAnswer`, so pass the order the Java collection iterates in (see `javaHashSetOrder`).
+ * wins `matchedAnswer`, so pass the set's iteration order (see `stringSetOrder`).
  */
 export function fuzzyMatches(
   answer: string,

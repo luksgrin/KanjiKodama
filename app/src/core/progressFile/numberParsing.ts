@@ -1,7 +1,7 @@
 /**
- * The Java number conversions Android's `org.json` relies on: `Double.parseDouble`,
- * `Long.parseLong(s, radix)`, `Double.toString`, and the narrowing casts behind `intValue()` and
- * `longValue()`. Kept separate so the JSON port reads like the Java it copies.
+ * The number conversions Android's `org.json` relies on: parsing doubles and 64-bit integers (with a
+ * radix), printing doubles, and the narrowing behind `intValue()` and `longValue()`. Kept separate
+ * so the JSON port stays readable.
  */
 
 const INT_MIN = -2147483648;
@@ -9,7 +9,7 @@ const INT_MAX = 2147483647;
 export const LONG_MIN = -(2n ** 63n);
 export const LONG_MAX = 2n ** 63n - 1n;
 
-/** Java's `NumberFormatException`, raised by the parsers below. */
+/** A malformed number (`NumberFormatException`), raised by the parsers below. */
 export class NumberFormatError extends Error {}
 
 /** `(int) d` for a double: truncates toward zero, NaN is 0, out-of-range values saturate. */
@@ -28,12 +28,12 @@ export function doubleToLong(d: number): bigint {
   return BigInt(Math.trunc(d));
 }
 
-/** `Long.intValue()`: the low 32 bits. */
+/** The low 32 bits. */
 export function longToInt(v: bigint): number {
   return Number(BigInt.asIntN(32, v));
 }
 
-/** `Character.digit(c, radix)` for the characters Java accepts: Unicode decimal digits and Latin letters. */
+/** A digit's value in `radix`: Unicode decimal digits and Latin letters count. */
 function digit(c: string, radix: number): number {
   const code = c.charCodeAt(0);
   let value = -1;
@@ -49,7 +49,7 @@ function digit(c: string, radix: number): number {
   return value < radix ? value : -1;
 }
 
-/** `Long.parseLong(s, radix)`, as a bigint; throws `NumberFormatError`. */
+/** A 64-bit integer in `radix`, as a bigint; throws `NumberFormatError`. */
 export function parseLong(s: string, radix: number): bigint {
   if (s.length === 0) throw new NumberFormatError(`For input string: "${s}"`);
   let i = 0;
@@ -76,7 +76,7 @@ export function parseLong(s: string, radix: number): bigint {
 const DEC_FLOAT = /^[+-]?(NaN|Infinity|(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?[fFdD]?)$/;
 const HEX_FLOAT = /^([+-]?)0[xX]([0-9a-fA-F]*)(?:\.([0-9a-fA-F]*))?[pP]([+-]?\d+)[fFdD]?$/;
 
-/** `Double.parseDouble`: trims chars <= U+0020, accepts Java's float syntax; throws `NumberFormatError`. */
+/** Parses a double: trims chars <= U+0020, accepts the usual float syntax (`1e5`, `0x1p3`, `NaN`, `Infinity`, an `f`/`d` suffix); throws `NumberFormatError`. */
 export function parseDouble(input: string): number {
   let start = 0;
   let end = input.length;
@@ -99,7 +99,7 @@ export function parseDouble(input: string): number {
   throw new NumberFormatError(s.length === 0 ? 'empty String' : `For input string: "${s}"`);
 }
 
-/** `Double.toString(d)`: shortest digits, plain between 10^-3 and 10^7, otherwise `1.0E10` style. */
+/** Shortest digits, plain between 10^-3 and 10^7, otherwise `1.0E10` style. */
 export function doubleToString(d: number): string {
   if (Number.isNaN(d)) return 'NaN';
   if (d === Infinity) return 'Infinity';

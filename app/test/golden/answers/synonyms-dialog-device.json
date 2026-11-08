@@ -1,6 +1,5 @@
 {
   "area": "answers.synonymsDialogDevice",
-  "javaSource": "views/SubjectInfoView.prepareAddSynonymButton/onSynonymEditorAction/addSynonym (real dialog in BrowseActivity's SubjectInfoFragment, SaveStudyMaterialJob)",
   "cases": [
     {"name":"field/editorInfo","input":{},"output":{"inputType":1,"imeOptions":6,"singleLine":true}},
     {"name":"dialog/save-plain","input":{"subject":512,"before":{"meaningSynonyms":{"type":"text","value":"[]"},"meaningNote":{"type":"text","value":"m"},"readingNote":{"type":"text","value":"r"},"studyMaterialPatched":{"type":"integer","value":0}},"ops":[{"open":true},{"setText":"papa"},{"button":"save"}]},"output":{"shownAtStart":"My synonyms: ","steps":[{"op":{"open":true},"after":{"dialogShowing":true,"field":"","shown":"My synonyms: "}},{"op":{"setText":"papa"},"after":{"dialogShowing":true,"field":"papa","shown":"My synonyms: "}},{"op":{"button":"save"},"after":{"dialogShowing":false,"field":null,"shown":"My synonyms: papa"}}],"saved":true,"stored":{"meaningSynonyms":{"type":"text","value":"[\"papa\"]"},"meaningNote":{"type":"text","value":"m"},"readingNote":{"type":"text","value":"r"},"studyMaterialPatched":{"type":"integer","value":1}},"storedSynonyms":["papa"],"shownReopened":"My synonyms: papa"}},

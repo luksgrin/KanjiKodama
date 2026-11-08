@@ -88,7 +88,7 @@ describe.skipIf(!HAS_WK)('content builder: private variant', () => {
     expect(built.manifest.counts).toMatchObject({ subjects: 9887, wanikaniSubjects: 9452, extraSubjects: 435, srsSystems: 2 });
   }, TIMEOUT);
 
-  it('stores stroke data and pitch info as the Java app does', () => {
+  it('stores stroke data and pitch info as JSON text per subject', () => {
     const strokes = JSON.parse(readFileSync(join(RAW_DIR, 'stroke_data.json'), 'utf8')) as Record<string, string[]>;
     const pitch = JSON.parse(readFileSync(join(RAW_DIR, 'pitch_info.json'), 'utf8')) as Record<string, unknown[]>;
     expect(strokeData(db, 1)).toBe(JSON.stringify(strokes['一'])); // radical 一

@@ -7,7 +7,7 @@ import {
   type SubjectObject,
 } from '../core/content';
 
-/** JSON text column → array; NULL or empty text → [] (as Java's Subject getters do). */
+/** JSON text column → array; NULL or empty text → []. */
 function jsonArray<T>(value: unknown): T[] {
   if (typeof value !== 'string' || value === '') return [];
   const parsed: unknown = JSON.parse(value);

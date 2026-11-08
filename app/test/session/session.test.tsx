@@ -107,7 +107,7 @@ describe('reviews', () => {
         await waitFor(() => q(el, 'next'), 'answered');
         expect(q(el, 'answer-frame')?.classList.contains('incorrect')).toBe(true);
       } else if (reading) {
-        // Romaji becomes kana while typing (PseudoIme.fixup).
+        // Romaji becomes kana while typing (fixup).
         await typeText(el, 'ni');
         expect(field(el).value).toBe('に');
         await click(q(el, 'submit'));
@@ -129,7 +129,7 @@ describe('reviews', () => {
     await click(q(el, 'summary-show'));
     expect(ids(q(el, 'summary-incorrect-items'))).toEqual(['1', '2']);
     expect(ids(q(el, 'summary-correct-items'))).toEqual(['10']);
-    // Java's card: characters, one meaning, the progress line.
+    // The card: characters, one meaning, the progress line.
     expect(q(el, 'summary-correct-items')?.querySelector('.kk-link-chars')?.textContent).toBe('二');
     const learner = app.requireLearner();
     // Reported at once (no delayed results): the kanji moved up, the radicals didn't.
@@ -140,7 +140,7 @@ describe('reviews', () => {
     await waitFor(() => q(el, 'reviews-count'), 'dashboard');
   });
 
-  it('shows the SRS change as Java\'s toast: a green up arrow and the new stage', async () => {
+  it('shows the SRS change as a toast: a green up arrow and the new stage', async () => {
     const { el } = await renderApp('/reviews', { setup: dueReviews([10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
     await answer(el, rightAnswer(el));
@@ -285,19 +285,19 @@ describe('reviews', () => {
     // A new app on the same database: the dashboard route, then Reviews resumes the same session.
     const again = await renderApp('/reviews', { dbName: first.dbName, prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(again.el, 'submit'), 'restored question');
-    // Session.load keeps only items still eligible: the reported one is no longer due (as in Java).
+    // Session.load keeps only items still eligible: the reported one is no longer due.
     expect(q(again.el, 'session-progress')?.textContent).toBe('0/1');
     expect(currentQuestion(again.el).chars).toBe(secondChars);
   });
 
-  it('the dashboard offers Resume session while one runs (SessionButtonsView)', async () => {
+  it('the dashboard offers Resume session while one runs', async () => {
     const { el, location } = await renderApp('/reviews', { setup: dueReviews([1, 2]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
     const chars = currentQuestion(el).chars;
     await act(async () => location.navigate('/'));
     const resume = await waitFor(() => q(el, 'resume-session'), 'resume button');
     expect(resume.textContent).toBe('Resume session');
-    // SessionButtonsView: only Resume while a session runs.
+    // Only Resume while a session runs.
     expect([...el.querySelectorAll('button')].some((b) => /^Start (reviews|lessons)$/i.test(b.textContent ?? ''))).toBe(false);
     await click(resume);
     expect(location.get()).toBe('/reviews');
@@ -305,13 +305,13 @@ describe('reviews', () => {
     expect(currentQuestion(el).chars).toBe(chars);
   });
 
-  it('adds a synonym from the item info after answering (SubjectInfoView\'s "+")', async () => {
+  it('adds a synonym from the item info after answering (the "+")', async () => {
     const { el, app } = await renderApp('/reviews', { setup: dueReviews([1, 2]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
     const id = currentQuestion(el).chars === '一' ? 1 : 2;
     await answer(el, 'zzz');
     const add = await waitFor(() => el.querySelector<HTMLButtonElement>('.kk-quiz-info button[aria-label="Add synonym"]'), 'add synonym');
-    // Notes are edited from the toolbar menu's "My notes..." (StudyMaterialsActivity), not on the page.
+    // Notes are edited from the toolbar menu's "My notes...", not on the page.
     expect(el.querySelector('.kk-quiz-info')?.textContent).not.toContain('Edit notes');
     expect((await menuItem(el, 'study_materials'))?.textContent).toBe('My notes...');
     await click(q(el, 'toolbar-overflow'));
@@ -329,10 +329,10 @@ describe('reviews', () => {
     kk.close();
   });
 
-  it('wrap up and abandon from the session menu, with Java\'s confirmation', async () => {
+  it('wrap up and abandon from the session menu, with confirmation', async () => {
     const { el, app } = await renderApp('/reviews', { setup: dueReviews([1, 2, 10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
-    // The toolbar in the subject colour with the question title; the session menu has Java's entries.
+    // The toolbar in the subject colour with the question title; the session menu has its entries.
     expect(toolbarTitle(el)).toBe(q(el, 'question-type')?.textContent);
     await click(q(el, 'toolbar-overflow'));
     const labels = [...q(el, 'toolbar-menu')!.querySelectorAll('[role^="menuitem"]')].map((b) => b.textContent);
@@ -348,7 +348,7 @@ describe('reviews', () => {
     expect(dialog.querySelector('.kk-sdialog-title')?.textContent).toBe('Abandon session?');
     expect(dialog.querySelector('.kk-sdialog-message')?.textContent)
       .toBe('Are you sure you want to abandon this session? If you do:\n- 3 unquizzed items will not be reported');
-    // Java's button row: neutral, then negative and positive.
+    // The button row: neutral, then negative and positive.
     expect([...dialog.querySelectorAll('button')].map((b) => b.textContent)).toEqual(["Yes and don't ask again", 'No', 'Yes']);
     const yes = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Yes') as HTMLElement;
     await click(yes);
@@ -375,7 +375,7 @@ describe('question title', () => {
 });
 
 describe('layout', () => {
-  it('lays the quiz out as the Java fragments: spacer before the row; answered: the info, then the pinned row', async () => {
+  it('lays the quiz out: spacer before the row; answered: the info, then the pinned row', async () => {
     const { el } = await renderApp('/reviews', { setup: dueReviews([1]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
     const quiz = el.querySelector('.kk-quiz')!;

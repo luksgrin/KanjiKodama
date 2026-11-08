@@ -1,11 +1,9 @@
 /**
- * The session summary (`fragments/SummarySessionFragment`, `fragment_summary.xml`, shown when the session
- * is FINISHING): "Show items · Finish" right-aligned at the top, the green "correct" and red "incorrect"
+ * The session summary (shown when the session is FINISHING): "Show items · Finish" right-aligned at the top, the green "correct" and red "incorrect"
  * tables (labels right-aligned, the value after them), "Resurrect items with incorrect answers", and after
- * "Show items" the two subject grids in Java's order with the bulk star ratings ("Star ratings updated"
- * toast). Finish reports the pending items (delayed results) with a progress bar, then `Session.finish`.
- * The plan's additions, not in the Java screen, at the end: the level-ups and the new unlocks of the
- * session (subjects unlocked since it started).
+ * "Show items" the two subject grids with the bulk star ratings ("Star ratings updated" toast). Finish
+ * reports the pending items (delayed results) with a progress bar, then finishes the session. At the
+ * end: the level-ups and the new unlocks of the session (subjects unlocked since it started).
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ContentSubject } from '../../../core/content';
@@ -36,7 +34,7 @@ export interface SummaryCounts {
 
 const totalIncorrect = (i: SessionItem): number => i.incorrect.reduce((a, b) => a + b, 0);
 
-/** `SummarySessionFragment.onViewCreatedLocal`'s counts (abandoned items left out). */
+/** The summary's counts (abandoned items left out). */
 export function summaryCounts(learner: LearnerDb, items: readonly SessionItem[]): SummaryCounts {
   const byType: SummaryCounts['byType'] = { radical: [0, 0], kanji: [0, 0], vocabulary: [0, 0], kana_vocabulary: [0, 0] };
   let total = 0;
@@ -53,12 +51,12 @@ export function summaryCounts(learner: LearnerDb, items: readonly SessionItem[])
       byType[s.object][0]++;
     }
   }
-  // Java: Math.round((float) correctTotal / total * 100)
+  // Round half up, in 32-bit float arithmetic.
   const percentage = total === 0 ? 0 : Math.floor(Math.fround(Math.fround(correct / total) * 100) + 0.5);
   return { total, correct, byType, percentage };
 }
 
-/** `showItems`: the incorrect and the correct subjects, in Java's order. */
+/** The incorrect and the correct subjects, in display order. */
 export function summaryLists(learner: LearnerDb, session: Session): { incorrect: number[]; correct: number[] } {
   const live = session.items.filter((i) => i.state !== 'ABANDONED' && learner.content.byId.has(i.id));
   const subj = (id: number): ContentSubject => learner.content.byId.get(id)!;
@@ -104,7 +102,7 @@ function SubjectGrid({ ids, learner, testId }: { ids: readonly number[]; learner
   );
 }
 
-/** incorrectStarSpinnerRow: the star spinner and "Bulk set star rating", with Java's confirmation and toast. */
+/** The star spinner and "Bulk set star rating", with its confirmation and toast. */
 function StarBulk({ ids, onSet }: { ids: readonly number[]; onSet(ids: readonly number[], n: number): void }) {
   const [n, setN] = useState(0);
   const [ask, setAsk] = useState(false);
@@ -168,7 +166,7 @@ export function SummaryScreen() {
   }, [snap.loaded, snap.finished, session, st, rt, navigate]);
 
   const counts = useMemo(() => (session ? summaryCounts(learner, session.items) : null), [learner, session, snap.version]);
-  // `SummarySessionFragment.onResumeLocal`: Finish has the focus (Java's focus highlight).
+  // Finish has the focus (the focus highlight).
   const finishRef = useRef<HTMLButtonElement>(null);
   // Blank while leaving: Finish in progress (the session ended in place, not yet reported), done, or back
   // to the quiz; also while the session's change to FINISHING is not reported yet.
@@ -201,7 +199,7 @@ export function SummaryScreen() {
     void rt.finish().catch(() => setBusy(false));
   };
   const starsOn = enableStarRatings(state.prefs);
-  // updateIncorrectStars / getResurrectableIds: every session item, as Java.
+  // The incorrect stars and resurrectable ids: every session item.
   const live = session.items;
   const allIncorrect = live.filter((i) => totalIncorrect(i) > 0).map((i) => i.id);
   const allCorrect = live.filter((i) => totalIncorrect(i) === 0).map((i) => i.id);

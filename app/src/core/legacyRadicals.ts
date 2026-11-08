@@ -1,7 +1,6 @@
 /**
- * `LegacyRadicals`: the names and mnemonics of the radicals renamed in the December 2018 WaniKani
- * content update, by subject id (the item page shows them with `show_legacy`, `SubjectInfoView`).
- * Generated from durtles/app/src/main/java/com/smouldering_durtles/wk/LegacyRadicals.java.
+ * The names and mnemonics of the radicals renamed in the December 2018 WaniKani content update, by
+ * subject id (the item page shows them with `show_legacy`).
  */
 
 const LEGACY: ReadonlyMap<number, readonly [name: string, mnemonic: string]> = new Map([
@@ -86,17 +85,17 @@ const LEGACY: ReadonlyMap<number, readonly [name: string, mnemonic: string]> = n
   [8794, ["Shark", "This looks like it is water, but it's barbed and sharp. It also has a fish tail. What is in the water, has \"barbs\" and has a fish tail? Something that will bite you, that's for sure. Let's call this radical <radical>shark</radical>."]],
 ]);
 
-/** `LegacyRadicals.isLegacyRadical` (`Subject.hasLegacy`). */
+/** Whether the radical was renamed. */
 export function isLegacyRadical(id: number): boolean {
   return LEGACY.has(id);
 }
 
-/** `LegacyRadicals.getLegacyName`. */
+/** The radical's old name. */
 export function legacyName(id: number): string | null {
   return LEGACY.get(id)?.[0] ?? null;
 }
 
-/** `LegacyRadicals.getLegacyMnemonic` (WaniKani markup: `<radical>…</radical>` etc.). */
+/** The radical's old mnemonic (WaniKani markup: `<radical>…</radical>` etc.). */
 export function legacyMnemonic(id: number): string | null {
   return LEGACY.get(id)?.[1] ?? null;
 }

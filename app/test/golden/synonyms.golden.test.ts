@@ -8,7 +8,7 @@ import {
   serializeSynonymsColumn,
   synonymInput,
 } from '../../src/core/answer/synonyms';
-import { JavaException } from '../../src/core/kana';
+import { TypedError } from '../../src/core/kana';
 import { goldenSuite } from './harness';
 import { meaningSynonymsRichText, noteRichText } from '../../src/core/answer/synonymsRichText';
 import {
@@ -25,7 +25,7 @@ import type { AuxiliaryMeaning, Meaning, Reading, SubjectObject } from '../../sr
 import { CLOSE_ENOUGH_ACTIONS, QUESTION_TYPE_INFO, checkAnswer, type CheckSubject, type QuestionType } from '../../src/core/answer';
 import { parseApiStudyMaterial } from '../../src/core/answer/synonyms';
 
-/** What `SynonymUiGolden.job` records for a SaveStudyMaterialJob data string. */
+/** What the fixtures record for a save job's data string. */
 function job(data: string): Record<string, unknown> {
   try {
     const j = parseStudyMaterialJob(data);
@@ -40,7 +40,7 @@ function job(data: string): Record<string, unknown> {
       readBack: parseMeaningSynonyms(column),
     };
   } catch (e) {
-    if (e instanceof JavaException) return { ok: false, error: e.javaClass };
+    if (e instanceof TypedError) return { ok: false, error: e.errorType };
     throw e;
   }
 }
@@ -64,7 +64,7 @@ goldenSuite<UiInput, unknown>('answers/synonyms-ui.json', (input, c) => {
   }
   const subject = input.subject as number;
   if (c.name.startsWith('add/')) {
-    // SynonymUiGolden.addCase: the in-memory Subject's column, replaced by setMeaningSynonyms after each add.
+    // The in-memory subject's column, replaced after each add.
     let synonyms = parseMeaningSynonyms(input.meaningSynonymsColumn ?? null);
     const steps = (input.typed ?? []).map((typed) => {
       const current = [...synonyms];
@@ -77,7 +77,7 @@ goldenSuite<UiInput, unknown>('answers/synonyms-ui.json', (input, c) => {
     });
     return { steps };
   }
-  // form/: StudyMaterialsActivity's rows, the edits, the job data from the rows only (the generator's view).
+  // form/: the notes form's rows, the edits, the job data from the rows only.
   const synonyms = parseMeaningSynonyms(input.meaningSynonymsColumn ?? null);
   const fields = formSynonymFields(synonyms);
   const edited = [...fields];
@@ -107,7 +107,7 @@ goldenSuite<Record<string, unknown>, unknown>('answers/synonyms-ui-device.json',
   }
   if (c.name.startsWith('meaningNote/')) return { rich: richOut(noteRichText('meaning', input.meaningNote as string | null)) };
   if (c.name.startsWith('readingNote/')) return { rich: richOut(noteRichText('reading', input.readingNote as string | null)) };
-  // activity/: the real StudyMaterialsActivity.
+  // activity/: the notes screen.
   const before = input.before as Record<string, { type: string; value: string | number | null }>;
   const synonyms = parseMeaningSynonyms(untyped(before.meaningSynonyms as never) as string | null);
   let form = populateStudyMaterialsForm(
@@ -190,12 +190,12 @@ interface SynonymSubject {
   readings: Reading[] | null;
 }
 
-const javaErr = (e: unknown) => {
-  if (e instanceof JavaException) return { error: e.javaClass };
+const errResult = (e: unknown) => {
+  if (e instanceof TypedError) return { error: e.errorType };
   throw e;
 };
 
-/** `SynonymGolden.verdicts`: every variant of the question type, with the synonyms read from `column`. */
+/** Every variant of the question type, with the synonyms read from `column`. */
 function verdicts(q: QuestionType, s: SynonymSubject, column: string | null, answer: string): Record<string, unknown> {
   const subject: CheckSubject = { meanings: s.meanings ?? [], auxiliaryMeanings: s.auxiliaryMeanings ?? [], readings: s.readings ?? [] };
   const run = (closeEnoughAction: (typeof CLOSE_ENOUGH_ACTIONS)[number], requireOnInKatakana: boolean) => {
@@ -203,7 +203,7 @@ function verdicts(q: QuestionType, s: SynonymSubject, column: string | null, ans
       const v = checkAnswer(q, subject, answer, { meaningSynonyms: parseMeaningSynonyms(column), closeEnoughAction, requireOnInKatakana });
       return { ...v, digraph: v.digraph === null ? null : [...v.digraph] };
     } catch (e) {
-      return javaErr(e);
+      return errResult(e);
     }
   };
   const out: Record<string, unknown> = {};
@@ -230,7 +230,7 @@ goldenSuite<Record<string, unknown>, unknown>('answers/synonyms.json', (input, c
     try {
       synonyms = parseMeaningSynonyms(column);
     } catch (e) {
-      synonyms = javaErr(e);
+      synonyms = errResult(e);
     }
     return { synonyms, verdicts: verdicts(input.questionType as QuestionType, s, column, input.answer as string) };
   }
@@ -248,7 +248,7 @@ goldenSuite<Record<string, unknown>, unknown>('answers/synonyms.json', (input, c
         checks: checks(input.subject as number, column, input.answers as string[]),
       };
     } catch (e) {
-      return { ok: false, ...javaErr(e) };
+      return { ok: false, ...errResult(e) };
     }
   }
   // import/
@@ -266,6 +266,6 @@ goldenSuite<Record<string, unknown>, unknown>('answers/synonyms.json', (input, c
       checks: subjects.has(m.subjectId) ? checks(m.subjectId, column, input.answers as string[]) : null,
     };
   } catch (e) {
-    return { ok: false, ...javaErr(e) };
+    return { ok: false, ...errResult(e) };
   }
 });

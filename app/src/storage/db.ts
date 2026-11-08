@@ -4,13 +4,13 @@
  * subject id, so a content update never touches these tables.
  *
  * Tables (plan, "Progress schema (Dexie)"):
- * - `subjects` (key `id`): exactly the `ProgressStore.NUMERIC` and `TEXT` columns, same names
+ * - `subjects` (key `id`): exactly the progress file's numeric and text columns, same names
  *   (`SubjectProgressRow` of core `progressFile/format`). Only subjects with a stored row; an absent
  *   row is the empty defaults.
  * - `levelProgression` (key `id`): the `LEVEL_PROGRESSION` columns.
  * - `probation` (key `id`): `since`.
- * - `jumps` (auto key `seq`, index `at`): `at`, `fromLevel`, `toLevel`. Java's `mm_jump` has no key
- *   (rowid), so two jumps may share an `at`; `seq` keeps them all, in insertion order.
+ * - `jumps` (auto key `seq`, index `at`): `at`, `fromLevel`, `toLevel`. Two jumps may share an `at`;
+ *   `seq` keeps them all, in insertion order.
  * - `state` (key `key`): `userLevel`, `curriculum`, `ordering`, the other `mm_state` keys
  *   (`mm_state.<key>`), and later the server mode settings and sync cursors.
  * - `levelTest` (key `id`): `round`, `known` (`mm_level_test`).
@@ -70,7 +70,7 @@ export interface ServerSubjectRecord { id: number; object: string; dataUpdatedAt
 export interface SettingRecord { key: string; value: unknown }
 export interface MetaRow { key: string; value: unknown }
 
-/** The progress tables a progress-file restore replaces (Java's `resetProgress` also drops the session). */
+/** The progress tables a progress-file restore replaces (a full reset also drops the session). */
 export const PROGRESS_TABLES = ['subjects', 'levelProgression', 'probation', 'jumps', 'state', 'levelTest', 'session'] as const;
 
 /** Version 1 (the spike): `progress` rows. Kept for the migration. */

@@ -1,5 +1,4 @@
-// Wave 6 (owner's phone): mm_btn drawn as Java's layer-list, no focus highlight in touch mode, and the
-// leaving session fragment sliding out (FragmentTransaction.replace + setCustomAnimations(enter, exit)).
+// The pixel pill buttons, no focus highlight in touch mode, and the leaving session screen sliding out.
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,7 +8,7 @@ import { playExit, snapshotFragment } from '../../src/ui/components/session/exit
 
 const base = readFileSync(join(process.cwd(), 'src/ui/theme/base.css'), 'utf8');
 
-describe('mm_btn', () => {
+describe('pixel pill button', () => {
   it('uses the layer-list insets, truncated to device px', () => {
     for (const dp of [3, 5, 6, 8, 12, 14]) {
       expect(base).toContain(`--kk-bt${dp}: calc(round(down, calc(${dp}px * var(--kk-dpr, 1) + 0.001px), 1px) / var(--kk-dpr, 1));`);

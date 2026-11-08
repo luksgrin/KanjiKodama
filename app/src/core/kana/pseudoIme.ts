@@ -1,27 +1,27 @@
 /**
- * Port of `util/PseudoIme`: replaces romaji in a string with kana, roughly the way a Japanese IME
+ * Replaces romaji in a string with kana, roughly the way a Japanese IME
  * with romaji input does. Lower-case romaji give hiragana, upper-case romaji katakana.
  *
- * `fixup` works on an {@link Editable} in place, like the Java code on an Android `Editable`; the
+ * `fixup` works on an {@link Editable} in place; the
  * answer field's re-entrant use of it is modelled in `answerField.ts`.
  */
-import { stringIndexOutOfBounds } from './javaException';
+import { stringIndexOutOfBounds } from './typedError';
 
 /**
- * The part of Android's `Editable` that `fixup` uses. Indices are UTF-16 units, like Java chars.
+ * The part of an editable text that `fixup` uses. Indices are UTF-16 units.
  */
 export interface Editable {
   readonly length: number;
-  /** Java `charAt`: throws {@link JavaException} (`StringIndexOutOfBoundsException`) when out of range. */
+  /** The unit at `index`: throws {@link TypedError} (`StringIndexOutOfBoundsException`) when out of range. */
   charAt(index: number): string;
-  /** Java `subSequence(start, end).toString()`. */
+  /** The text from `start` to `end`. */
   substring(start: number, end: number): string;
   replace(start: number, end: number, text: string): void;
   delete(start: number, end: number): void;
   toString(): string;
 }
 
-/** The lower-case (hiragana) entries of `PseudoIme.KANA_MAP`, in the Java source's order. */
+/** The lower-case (hiragana) entries of the kana map, in matching order. */
 const HIRAGANA_ENTRIES: readonly (readonly [string, string])[] = [
   // Single vowels
   ['a', 'あ'],
@@ -359,7 +359,7 @@ const HIRAGANA_ENTRIES: readonly (readonly [string, string])[] = [
 ];
 
 /**
- * `PseudoIme.KANA_MAP`: the lower-case entries plus, for each, its upper-case key mapped to the
+ * The kana map: the lower-case entries plus, for each, its upper-case key mapped to the
  * katakana value (`key.toUpperCase(Locale.ENGLISH)` → `toKatakana(value)`). `-` is its own upper
  * case, so it maps to `toKatakana("ー")`, which is `ー` again.
  */
@@ -380,10 +380,10 @@ export function kanaMapKeys(): string[] {
 }
 
 /**
- * Java `Character.isWhitespace(char)`: Unicode space separators except the no-break ones
+ * Whitespace: Unicode space separators except the no-break ones
  * (U+00A0, U+2007, U+202F), line and paragraph separators, and U+0009–U+000D, U+001C–U+001F.
  */
-export function isJavaWhitespace(c: string): boolean {
+export function isWhitespaceChar(c: string): boolean {
   const code = c.charCodeAt(0);
   if ((code >= 0x09 && code <= 0x0d) || (code >= 0x1c && code <= 0x20)) return true;
   if (code < 0x1680) return false;
@@ -392,7 +392,7 @@ export function isJavaWhitespace(c: string): boolean {
 }
 
 /**
- * `PseudoIme.fixup`: advance the IME over the edited range `[editStart, editEnd)`, converting in
+ * Advances the IME over the edited range `[editStart, editEnd)`, converting in
  * place. An `n` before anything but a vowel, `y`, `n` or space becomes ん, a doubled consonant
  * becomes っ, the longest romaji key (up to 4 chars) ending at each position is replaced by its kana,
  * and whitespace is removed.
@@ -431,7 +431,7 @@ export function fixup(s: Editable, editStart: number, editEnd: number): void {
     }
     if (found) continue;
 
-    if (isJavaWhitespace(s.charAt(start))) {
+    if (isWhitespaceChar(s.charAt(start))) {
       s.delete(start, start + 1);
       end--;
       continue;
@@ -442,7 +442,7 @@ export function fixup(s: Editable, editStart: number, editEnd: number): void {
 }
 
 /**
- * `PseudoIme.DummyEditable`: a plain string, just enough of an `Editable` for {@link fixup}.
+ * A plain string, just enough of an `Editable` for {@link fixup}.
  */
 export class DummyEditable implements Editable {
   private value: string;
@@ -482,9 +482,9 @@ export class DummyEditable implements Editable {
 }
 
 /**
- * `PseudoIme.simulateInput`: type `input` character by character through the IME, then turn a
+ * Types `input` character by character through the IME, then turn a
  * trailing `n` into ん (what submitting does). Throws `StringIndexOutOfBoundsException` when the
- * result is empty (`""`, or only whitespace), like the Java code.
+ * result is empty (`""`, or only whitespace).
  */
 export function simulateInput(input: string): string {
   const editable = new DummyEditable(input);
@@ -495,7 +495,7 @@ export function simulateInput(input: string): string {
   return editable.toString();
 }
 
-/** `PseudoIme.toKatakana`: hiragana (U+3040–U+3096) to katakana; everything else unchanged. */
+/** Hiragana (U+3040–U+3096) to katakana; everything else unchanged. */
 export function toKatakana(hiragana: string): string {
   let out = '';
   for (let i = 0; i < hiragana.length; i++) {

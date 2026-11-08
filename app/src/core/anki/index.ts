@@ -1,8 +1,6 @@
 /**
  * Anki mode (self-graded questions): when a question gets the Anki screen, and the answer it reveals,
  * including randomized verb/adjective inflections.
- * Java: GlobalSettings.getAnkiMode, model/Question.getAnkiAnswerRichText / getCharacters,
- * enums/QuestionType.getAnkiAnswerRichText, db/model/Subject.get*RichText, util/InflectionUtil.
  * Fixtures: anki/*.
  */
 export { ankiMode } from './mode';
@@ -19,7 +17,7 @@ export {
   ADJECTIVE_DECLENSION_KEY_ORDER,
   VERB_CONJUGATIONS,
   VERB_CONJUGATION_KEY_ORDER,
-  javaHashMapKeyOrder,
+  hashMapKeyOrder,
   randomAdjectiveDeclension,
   randomVerbConjugation,
   conjugatedVerb,

@@ -38,7 +38,7 @@ import { loadServerContent } from './serverContent';
 import { createServerReporter, enqueueReports, type ServerReporter } from './serverSession';
 import { stateTokenStore, type TokenStore } from './store';
 
-/** `enable_background_sync` (Java default false). */
+/** `enable_background_sync` (default false). */
 export const BACKGROUND_SYNC_PREF = 'enable_background_sync';
 
 export interface DeviceSyncDeps {
@@ -90,8 +90,8 @@ function wroteData(r: SyncResult): { any: boolean; content: boolean } {
 }
 
 /**
- * Java `AbstractActivity.onResume`: with "Sync on open" (`sync_on_open`, default false), sync when the
- * app comes back after more than 3 minutes away. (Java's first-resume case is the start-up sync.)
+ * With "Sync on open" (`sync_on_open`, default false), sync when the app comes back after more than
+ * 3 minutes away. (The first open is the start-up sync.)
  */
 export function shouldSyncOnResume(prefs: AppState['prefs'], lastPause: number, now: number): boolean {
   return prefBoolean(prefs, 'sync_on_open', false) && lastPause !== 0 && now - lastPause > 3 * 60_000;
@@ -189,7 +189,7 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
     return canDownloadAudio(s.prefs, type, nav?.onLine !== false) ? audio : null;
   }
 
-  /** One download at a time (Java's one task queue); a scan while one runs is skipped. */
+  /** One download at a time; a scan while one runs is skipped. */
   async function downloadAudio(audio: AudioApi, ids: readonly number[]): Promise<boolean> {
     if (audioRunning) return false;
     if (ids.length === 0) return true;
@@ -201,7 +201,7 @@ export function createDeviceSync(deps: DeviceSyncDeps): DeviceSync {
     }
   }
 
-  /** `LiveTimeLine.updateLocal`'s audio scan, at most every 12 hours. */
+  /** The dashboard's audio scan, at most every 12 hours. */
   async function timelineAudioScan(): Promise<void> {
     const audio = audioForAutoDownload();
     if (!audio) return;

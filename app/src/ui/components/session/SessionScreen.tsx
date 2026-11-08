@@ -1,10 +1,10 @@
 /**
- * The study session on a route (`SessionActivity`): starts the route's kind of session when none runs,
+ * The study session on a route: starts the route's kind of session when none runs,
  * shows the lesson presentation, the quiz, or sends the user to the summary (state FINISHING) and back to
  * the dashboard (or the level test) once the session is over. A running session of another kind is shown
- * on its own route. Back leaves the session running (Java returns to the dashboard; Resume continues).
+ * on its own route. Back leaves the session running (it returns to the dashboard; Resume continues).
  *
- * A new fragment (lesson item, question, answered screen) slides in as Java's with `slide_animations`
+ * A new screen (lesson item, question, answered screen) slides in with `slide_animations`
  * (`transitions.ts`) while the old one slides out (`exitingFragment.ts`); the keyboard keeper holds the
  * keyboard open between questions.
  */
@@ -50,7 +50,7 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
   const { state: appState } = useReady();
   const prefs = appState.prefs;
 
-  // The fragment shown and its slide (`SessionActivity.updateFragment`).
+  // The screen shown and its slide.
   const frag = session !== null && !logOpen
     ? fragmentOf(session, (s) => s.currentQuestion !== null && ankiMode(prefs, s.type, s.currentQuestion.type))
     : null;
@@ -60,7 +60,7 @@ export function SessionScreen({ kind, start, emptyText, presentation }: SessionS
   const fragmentRef = useRef<HTMLDivElement>(null);
   const clipRef = useRef<HTMLDivElement>(null);
   // The fragment being replaced: a still copy of its view, taken before React swaps it out, which slides
-  // out under the new one (FragmentTransaction.replace with setCustomAnimations(enter, exit)).
+  // out under the new one.
   const exiting = useRef<HTMLElement | null>(null);
   if (frag !== null && slide.current.key !== fragKey && session !== null) {
     const anim = slideAnimations(prefs) ? transitionAnimation(lastFrag.current, frag, session.questionChoiceReason) : 'NONE';

@@ -1,5 +1,5 @@
 /**
- * Test-side emulation of the Android pieces around the answer field that the Tier B kana fixtures
+ * Test-side emulation of the Android pieces around the answer field that the device kana fixtures
  * drive: `TextView.setText` and the field's `InputConnection` (AOSP `BaseInputConnection`). The
  * app logic under test (the watcher, `fixup`, the span rules) is in `src/core/kana`; this only
  * reproduces how Android calls into it.

@@ -1,10 +1,8 @@
 /**
- * What the home-screen widget shows (Android): `services/SessionWidgetProvider` with the counts of
- * `LiveAlertContext` (`SubjectAggregatesDao.getAlertContext`): available lessons, available reviews
- * and when the next review becomes available ("More at 14:00").
+ * What the home-screen widget shows (Android): available lessons, available reviews and when the
+ * next review becomes available ("More at 14:00").
  *
- * The Java app recomputes these from its database at every hourly alarm. The widget here can't run
- * the app's code, so the app hands it the counts now plus the counts at every future hour in which
+ * The widget can't run the app's code, so the app hands it the counts now plus the counts at every future hour in which
  * reviews become available (like the review notifications, ./plan.ts); the native side switches to
  * the right entry on its own alarm.
  */

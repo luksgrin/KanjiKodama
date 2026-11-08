@@ -1,6 +1,6 @@
 #!/bin/sh
-# Builds the signed Android release APK locally (issue #3, step 6; replaces .github/workflows/release.yml,
-# which needs Actions minutes):
+# Builds the signed Android release APK locally (the release workflow, .github/workflows/release.yml,
+# runs it too):
 #
 #   content (private WaniKani build) -> npm run build -> npx cap sync android -> ./gradlew :app:assembleRelease
 #
@@ -11,11 +11,11 @@
 # Usage: sh scripts/release-android.sh [--version-code N] [--side-by-side]
 #   --version-code N  default: derived from the version (scripts/release/version.ts: 0.6.0 -> 7000), so it
 #                     grows with every version; it must be higher than the installed app's
-#   --side-by-side    build app.kanjikodama.wk.web instead (installs next to the Java app)
+#   --side-by-side    build app.kanjikodama.wk.web instead (installs next to the main app)
 #
 # Needs app/android/keystore.properties (git-ignored, see keystore.properties.example) pointing at the
-# release key app/android/release.jks (git-ignored; the Java app's key, so updates install over the
-# app on the phone; keep an offline backup, see README.md).
+# release key app/android/release.jks (git-ignored; every release is signed with it, so updates
+# install over the app on the phone; keep an offline backup, see README.md).
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -36,7 +36,7 @@ VERSION="$(node -p "require('./package.json').version")"
 
 if [ ! -f android/keystore.properties ]; then
   echo "app/android/keystore.properties is missing: copy android/keystore.properties.example and point it at release.jks." >&2
-  echo "Without the release key (the Java app's) the APK can't install over the app on the phone." >&2
+  echo "Without the release key the APK can't install over the app on the phone." >&2
   exit 1
 fi
 
@@ -64,7 +64,7 @@ cp "$SRC" "$OUT"
 SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
 APKSIGNER="$(ls -d "$SDK"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -n 1 || true)"
 if [ -n "$APKSIGNER" ]; then
-  echo "== Signing certificate (must equal the Java app's: docs/cutover.md)"
+  echo "== Signing certificate (SHA-256 must be 1574375e…937741, see README.md)"
   "$APKSIGNER" verify --print-certs "$OUT" | grep -E 'certificate (DN|SHA-256)'
 fi
 

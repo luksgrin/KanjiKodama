@@ -1,6 +1,6 @@
 /**
- * Shared by the curriculum, fast travel and WaniKani import screens (`local/CurriculumUi`,
- * `local/ProgressPreferences`): the "session running" guard and what follows a progress change.
+ * Shared by the curriculum, fast travel and WaniKani import screens: the "session running" guard and
+ * what follows a progress change.
  */
 import type { AppController } from '../../../app/appController';
 import { rescheduleReviewNotifications } from '../../../platform/reviewNotifications';
@@ -27,5 +27,5 @@ export function afterProgressChange(app: AppController, platform: Platform): voi
 
 export const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
-/** `" (N5)"` after a level, or nothing (Java's `where == null ? "" : " (" + where + ")"`). */
+/** `" (N5)"` after a level, or nothing. */
 export const paren = (s: string | null): string => (s === null ? '' : ` (${s})`);

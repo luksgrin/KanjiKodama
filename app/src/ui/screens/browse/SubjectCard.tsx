@@ -1,7 +1,6 @@
 /**
- * The search result card (`SubjectCardBinder`, NORMAL layout: `subject_card_radical.xml`,
- * `subject_card_kanji.xml`, `subject_card_vocabulary.xml`, `subject_card_kana_vocabulary.xml`):
- * 12 dp rounded, type-coloured, 2 dp margin, 3 dp padding. Radicals and kanji are one grid column:
+ * The search result card (normal layout, for radicals, kanji, vocabulary and kana vocabulary):
+ * 12 px rounded, type-coloured, 2 dp margin, 3 dp padding. Radicals and kanji are one grid column:
  * the characters (24 sp), the meaning on one line (auto-sized 14 → 9 sp), the reading (16 sp, kanji)
  * and the progress line (14 sp). Vocabulary spans the row: characters left, meaning / reading /
  * progress right-aligned. Progress: "Guru I - 3h" (vocabulary the full stage name), the stage alone

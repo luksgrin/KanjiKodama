@@ -33,9 +33,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Capacitor's WebView plus the IME settings HTML can't express. The Java app sets them on its answer
- * field (fragments/UnansweredSessionFragment) from the Keyboard input settings
- * (GlobalSettings.Keyboard):
+ * Capacitor's WebView plus the IME settings HTML can't express, set on the answer field from the
+ * Keyboard input settings:
  *
  * - imeOptions: IME_FLAG_NO_PERSONALIZED_LEARNING (`enable_no_learning`), IME_FLAG_FORCE_ASCII
  *   (`force_ascii_meaning` / `force_ascii_reading`), plus IME_FLAG_NO_FULLSCREEN;
@@ -135,7 +134,7 @@ public class KkWebView extends CapacitorWebView {
         if (imeLog != null) log("input-connection", ic == null ? "none (no editable focus)" : "editor type=0x" + Integer.toHexString(outAttrs.inputType));
         final ImeHints h = hints;
         if (ic != null && outAttrs != null && h.answerField) {
-            // UnansweredSessionFragment.updateViews; Chromium's IME action (Go) is kept, as the answer
+            // The answer field's flags; Chromium's IME action (Go) is kept, as the answer
             // field submits on it.
             int imeOptions = outAttrs.imeOptions | EditorInfo.IME_FLAG_NO_FULLSCREEN;
             if (h.noPersonalizedLearning) imeOptions |= EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;

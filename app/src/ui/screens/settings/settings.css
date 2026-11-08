@@ -10,7 +10,7 @@
 .kk-pref {
   display: flex;
   align-items: center;
-  gap: 17px; /* 16 dp, plus the WebView's layout width being 412 px where Java has 411.4 dp: the text wraps where Java's does */
+  gap: 17px; /* 16 px, plus the WebView's layout width being 412 px where the screen is 411.4: the text wraps as on a native screen */
   width: 100%;
   min-height: 48px;
   margin: 0;
@@ -30,7 +30,7 @@ button.kk-pref:focus-visible { outline: 2px solid var(--color-accent); outline-o
 .kk-pref-text { flex: 1; min-width: 0; display: block; }
 .kk-pref-title { display: block; font-size: var(--text-md); line-height: var(--pref-title-line, 1.21); padding-block: var(--pref-line-pad, 0); overflow-wrap: anywhere; }
 .kk-pref-summary { display: block; font-size: var(--text-sm); line-height: var(--pref-summary-line, 1.197); /* 14 sp Pixelify on Android: 34 + 10 of 36.75 px a line, plus the font padding (includeFontPadding) on the first and last line */ padding-block: var(--pref-line-pad, 0.37px); color: var(--color-pref-summary); overflow-wrap: anywhere; }
-.kk-pref-info { cursor: default; padding-right: 57px; } /* InfoPreference: its widget layout (pref_api_key_help.xml, empty) keeps a 41 dp widget frame */
+.kk-pref-info { cursor: default; padding-right: 57px; } /* an info row keeps an empty 41 px widget frame */
 .kk-pref-page { padding: var(--space-4) 16px var(--space-4) 72px; }
 
 .kk-pref-category { border-top: 1px solid var(--color-divider); }
@@ -45,8 +45,8 @@ button.kk-pref:focus-visible { outline: 2px solid var(--color-accent); outline-o
   color: var(--color-accent);
 }
 
-/* SwitchCompat as the Java app shows it (measured on Android 16): a 46 dp widget, the 23 × 14 dp
-   track 11 dp from its right edge, the 20 dp thumb hanging over both track ends. Off: track black
+/* The switch (Android 16 look): a 46 px widget, the 23 × 14 px track 11 px from its right edge, the
+   20 px thumb hanging over both track ends. Off: track black
    (white in dark themes) at 30 %, thumb #ECECEC (#BDBDBD); on: colorControlActivated, track at 30 %. */
 .kk-switch {
   flex: none;

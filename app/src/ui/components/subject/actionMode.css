@@ -1,6 +1,6 @@
 /*
- * The subject title's action mode (TitleActionMode.tsx), measured on the Java app: a 54 dp #303030
- * bar plus a 2 dp colorControlActivated line, inserted above the toolbar (everything below moves
+ * The subject title's action mode (TitleActionMode.tsx): a 54 px #303030 bar plus a 2 px
+ * colorControlActivated line, inserted above the toolbar (everything below moves
  * down 56 dp); the status bar area keeps the window background. White Done arrow, the actions in the
  * toolbar's Silkscreen, upper case.
  */
@@ -26,7 +26,7 @@
   color: #FFFFFF;
   position: relative;
   /* The Android status bar takes the colour at the page's top edge (androidSystemUi.ts, hit-tested):
-     let it see the bar's wrapper, the window background, as Java's status bar shows it. */
+     let it see the bar's wrapper, the window background. */
   pointer-events: none;
 }
 .kk-action-mode-inner > * { pointer-events: auto; }

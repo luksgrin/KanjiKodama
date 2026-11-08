@@ -31,7 +31,7 @@ test('save progress: download fallback, then restore it', async ({ page }, info)
   expect(saved.version).toBe(1);
   expect(saved.userLevel).toBe(1);
   expect(saved.subjects.length).toBeGreaterThanOrEqual(seed.items);
-  // Java: "Progress saved." in a message dialog.
+  // "Progress saved." in a message dialog.
   const saidSaved = page.getByTestId('alert-message');
   await expect(saidSaved.locator('.kk-alert-message')).toHaveText('Progress saved.');
   await checkScreen(page, info, '60-settings-saved');
@@ -81,7 +81,7 @@ test('restore rejects a file that is not a progress file', async ({ page }, info
   const chooser = page.waitForEvent('filechooser');
   await page.getByTestId('progress-restore').click();
   await (await chooser).setFiles(path);
-  // Busy.run's error dialog.
+  // The error dialog.
   await expect(page.getByRole('dialog', { name: 'Something went wrong' })).toBeVisible();
   await expect(page.getByRole('dialog', { name: 'Override local progress?' })).toHaveCount(0);
 });

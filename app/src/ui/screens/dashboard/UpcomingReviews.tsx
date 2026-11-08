@@ -1,8 +1,7 @@
 /**
- * `UpcomingReviewsView`: the one centred line ("1034 reviews available now, 12 in next 24h", …),
+ * The upcoming reviews: the one centred line ("1034 reviews available now, 12 in next 24h", …),
  * hidden when there is nothing to say. Builds without review notifications (the PWA) add the next
- * review time below, formatted as Java formats "Next review:" (`Subject.getFormattedAvailableAt` →
- * `TextUtil.formatTimestampForDisplay`: medium date and short time); only when a review is scheduled.
+ * review time below ("Next review:", medium date and short time); only when a review is scheduled.
  */
 import { formatTimestamp } from '../../../app/format';
 

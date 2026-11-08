@@ -1,7 +1,6 @@
 /**
- * `util/OptimalStringAlignmentDistance.getDistance`: the optimal string alignment distance
- * (Levenshtein plus adjacent transpositions, no substring edited twice), on UTF-16 code units
- * like Java's `charAt`.
+ * The optimal string alignment distance (Levenshtein plus adjacent transpositions, no substring
+ * edited twice), on UTF-16 code units.
  */
 export function osaDistance(a: string, b: string): number {
   if (a.length === 0) return b.length;

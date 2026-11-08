@@ -2,12 +2,10 @@
  * Stroke order data (`subject.strokeData`: one KanjiVG path per stroke, in a 109×109 box, with a
  * custom `T<number>,<x>,<y>` instruction for the stroke number label) turned into plain SVG paths,
  * their lengths and points along them for the animation. Pure.
- *
- * Java: `views/StrokeDiagramView.buildStrokeDataHelper` (path commands M m L l H h V v C c S s Z z
- * and T; others are ignored), `splitCoordinates`, the `PathMeasure` lengths and `getPosTan`.
+ * Path commands M m L l H h V v C c S s Z z and T; others are ignored.
  */
 
-/** KanjiVG's coordinate box (`StrokeDiagramView.inputRect`). */
+/** KanjiVG's coordinate box. */
 export const STROKE_BOX = 109;
 
 export interface Stroke {
@@ -23,7 +21,7 @@ export interface Stroke {
   contours: [number, number][][];
 }
 
-/** `splitCoordinates`: Java's `-?\d*\.?\d*` matches, empty ones skipped, as floats. */
+/** The `-?\d*\.?\d*` matches, empty ones skipped, as floats. */
 export function splitCoordinates(s: string): number[] {
   const out: number[] = [];
   for (const m of s.matchAll(/-?\d*\.?\d*/g)) {
@@ -36,8 +34,7 @@ const CURVE_STEPS = 24;
 const fmt = (v: number): string => String(Math.round(v * 1000) / 1000);
 
 /**
- * Parses one stroke. Like the Java view (which wraps the parse in `safe()`), a malformed instruction
- * stops the parse and keeps what was built so far.
+ * Parses one stroke. A malformed instruction stops the parse and keeps what was built so far.
  */
 export function parseStroke(pathData: string): Stroke {
   const parts: string[] = [];
@@ -197,7 +194,7 @@ export function parseStroke(pathData: string): Stroke {
       }
     }
   } catch {
-    // keep what was built (Java: safe())
+    // keep what was built
   }
 
   let length = 0;
@@ -238,7 +235,7 @@ export function pointAt(stroke: Stroke, distance: number): [number, number] {
   return lastPoint;
 }
 
-/** `StrokeDiagramView` animation timing: 200 ms before each stroke, `length × 5` ms to draw it, 1.5 s linger. */
+/** The stroke animation's timing: 200 ms before each stroke, `length × 5` ms to draw it, 1.5 s linger. */
 export const STROKE_START_DELAY_MS = 200;
 export const STROKE_LINGER_MS = 1500;
 export function strokeDurationMs(stroke: Stroke): number {

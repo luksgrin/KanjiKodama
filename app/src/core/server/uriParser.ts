@@ -1,13 +1,13 @@
 /**
- * The parts of `java.net.URI`'s parser (JDK 21, RFC 2396 with Java's deviations) that
- * `local/ServerMode` depends on: whether `new URI(s)` throws, and what `getScheme()` and `getHost()`
- * return. Only the character classes and the authority/host rules are ported; the parsed parts other
+ * A strict URI parser (RFC 2396 with the deviations the server URL check pins) for what the server
+ * URL check needs: whether a string parses, and its scheme and host. Only the character classes and
+ * the authority/host rules are implemented; the parsed parts other
  * than scheme and host are not kept.
  *
- * Java keeps a server authority's host only when it parses as an IPv4 address, a bracketed IPv6
+ * A server authority's host is kept only when it parses as an IPv4 address, a bracketed IPv6
  * address or an RFC 2396 hostname; otherwise the authority falls back to a registry-based name and
  * `getHost()` is null (no exception). This is why `https://under_score.example.org` is "not http(s)"
- * in `ServerMode.normalize` rather than "not valid".
+ * in `normalizeServerUrl` rather than "not valid".
  */
 
 /** Thrown where `new URI(s)` throws `URISyntaxException`. */
@@ -23,7 +23,7 @@ export interface ParsedUri {
   host: string | null;
 }
 
-// Character classes, as sets of ASCII characters (java.net.URI's L_* / H_* masks).
+// Character classes, as sets of ASCII characters (low / high 64-bit masks).
 const DIGIT = '0123456789';
 const UPALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWALPHA = 'abcdefghijklmnopqrstuvwxyz';
@@ -198,7 +198,7 @@ class Parser {
       if (q > p) {
         p = this.parseAuthority(p, q);
       } else if (q >= n) {
-        // Java allows an empty authority before a non-empty path, query or fragment
+        // an empty authority is allowed before a non-empty path, query or fragment
         this.failExpected('authority', p);
       }
     }
@@ -289,7 +289,7 @@ class Parser {
       p++;
       q = this.scan(p, n, C_DIGIT);
       if (q > p) {
-        // Integer.parseInt: more than 2^31-1 is "Malformed port number"
+        // more than 2^31-1 is "Malformed port number"
         if (Number(this.input.substring(p, q)) > 2147483647) {
           this.fail('Malformed port number', p);
         }
@@ -314,7 +314,7 @@ class Parser {
     return q;
   }
 
-  /** `scanIPv4Address(start, n, false)`; -1 where Java throws. */
+  /** Scans an IPv4 address; -1 where it isn't one. */
   private scanIpv4Address(start: number, n: number): number {
     let p = start;
     const m = this.scan(p, n, C_DIGIT_DOT);
@@ -417,8 +417,8 @@ class Parser {
   }
 }
 
-/** `new URI(s)`; throws `UriSyntaxError` where Java throws `URISyntaxException`. */
-export function parseJavaUri(s: string): ParsedUri {
+/** Parses a URI; throws `UriSyntaxError` on a malformed one. */
+export function parseUri(s: string): ParsedUri {
   const parser = new Parser(s);
   parser.parse();
   return { scheme: parser.scheme, host: parser.host };

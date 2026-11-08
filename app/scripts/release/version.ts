@@ -36,8 +36,8 @@ export function tagVersion(tag: string): Version | null {
 
 /**
  * The Android versionCode for a version: 1000 + major·1,000,000 + minor·1,000 + patch, so it grows
- * with the version and stays above 1000, the first Capacitor build (0.6.0 built locally before this
- * rule) and every Java release (100 + run number). Minor and patch must stay below 1000.
+ * with the version and stays above every earlier build (the highest was 1000, a 0.6.0 built locally
+ * before this rule). Minor and patch must stay below 1000.
  */
 export function versionCode(v: Version): number {
   if (v.minor > 999 || v.patch > 999) throw new Error(`${formatVersion(v)}: minor and patch must be at most 999 (versionCode)`);

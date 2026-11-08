@@ -1,13 +1,12 @@
 /*
- * keyboardHelpView (activity_main.xml): rounded_corners (customToastColorBackground #FFFF80, 10 dp
- * radius) with 8 dp margins; the label (WK.TextView.CustomToast: 16sp, customToastColorPrimary #000)
- * with 8 dp margins; Dismiss at the left and View at the right under it (WK.Button.Borderless.CustomToast:
- * AppCompat borderless, colorPrimaryDark text). The yellow and black are fixed Java colours.
+ * The keyboard help banner: #FFFF80 with a 10 px radius and 8 px margins; the label (16 px, #000) with
+ * 8 px margins; Dismiss at the left and View at the right under it (borderless, colorPrimaryDark
+ * text). The yellow and black are fixed colours in every theme.
  */
 .kk-kbhelp-banner {
-  /* Outside Java's scroll view: its own 8 dp bottom margin plus the scroll content's 8 dp padding. */
+  /* Outside the scrolling content: its own 8 px bottom margin plus the content's 8 px padding. */
   margin: 0 0 16px;
-  /* It sits above Java's NestedScrollView, so it stays put while the dashboard scrolls under it; the
+  /* It sits above the scrolling content, so it stays put while the dashboard scrolls under it; the
      margins around it are the window background (the scroll view's clip). */
   position: sticky;
   top: calc(var(--safe-top) + var(--toolbar-height) + 8px);

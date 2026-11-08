@@ -1,8 +1,6 @@
 /**
- * Server data into progress rows: `db/dao/SubjectSyncDao.insertOrUpdateAssignment`,
- * `insertOrUpdateReviewStatistic`, `insertOrUpdateStudyMaterial(m, false)` and
- * `LevelProgressionDao.insertOrUpdate`. A missing row starts from the empty defaults (Java's
- * `tryInsertIdOnly`). Every other column of the row is kept, so a merge of one collection never
+ * Server data into progress rows: assignments, review statistics, study materials and level
+ * progressions. A missing row starts from the empty defaults. Every other column of the row is kept, so a merge of one collection never
  * undoes another.
  */
 

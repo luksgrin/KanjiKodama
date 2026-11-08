@@ -1,8 +1,9 @@
 /*
- * Port of durtles' services/SessionWidgetProvider (Copyright 2019-2020 Ernst Jan Plugge, Apache 2.0):
- * same layouts, size breakpoints and texts. The counts come from WidgetStore (handed over by the
- * app) instead of the Room database; an inexact alarm at the next scheduled entry redraws the
- * widget when new reviews become available, without the app.
+ * Portions Copyright 2019-2020 Ernst Jan Plugge, Apache License 2.0 (see NOTICE).
+ *
+ * The home-screen widget: three layouts by size, the counts from WidgetStore (handed over by the
+ * app); an inexact alarm at the next scheduled entry redraws the widget when new reviews become
+ * available, without the app.
  */
 package app.kanjikodama.wk;
 
@@ -26,19 +27,14 @@ import java.time.ZonedDateTime;
 import java.util.Locale;
 
 public class SessionWidgetProvider extends AppWidgetProvider {
-    /**
-     * The receiver declared in the manifest: the Java app's class name
-     * (com.smouldering_durtles.wk.services.SessionWidgetProvider, an empty subclass), so widgets
-     * placed with the Java app keep working after this app is installed over it. Placed widgets are
-     * bound to the provider's component name; a different name would remove them on the update.
-     */
-    static final Class<? extends AppWidgetProvider> PROVIDER = com.smouldering_durtles.wk.services.SessionWidgetProvider.class;
+    /** The receiver declared in the manifest (placed widgets are bound to its component name). */
+    static final Class<? extends AppWidgetProvider> PROVIDER = SessionWidgetProvider.class;
 
     /** The alarm's broadcast: the next scheduled entry has started. */
     static final String ACTION_TICK = "app.kanjikodama.wk.WIDGET_TICK";
     private static final long DAY = 24L * 60 * 60 * 1000;
 
-    /** `TextUtil.formatShortTimeForDisplay(ts, false)`. */
+    /** A short clock time ("14:00", or "2pm" / "2.30pm" on a 12-hour clock), without the weekday. */
     static String formatShortTime(final Context context, final long ts) {
         final ZonedDateTime dt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), ZoneId.systemDefault());
         final int hour = dt.getHour();
@@ -97,7 +93,7 @@ public class SessionWidgetProvider extends AppWidgetProvider {
             return;
         }
         // Inexact, not waking the device: the widget is only seen with the screen on, and a pending
-        // alarm is delivered as soon as the device wakes (the Java app's alarm was inexact too).
+        // alarm is delivered as soon as the device wakes.
         am.set(AlarmManager.RTC, next, pi);
     }
 

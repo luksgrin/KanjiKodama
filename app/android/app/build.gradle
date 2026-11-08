@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
-// Release signing with the Java app's key (issue #3, step 6): app/android/keystore.properties
-// (git-ignored; keystore.properties.example) names the keystore, normally release.jks (the Java
-// app's key, git-ignored) next to it, relative to that file. Without it, release builds are unsigned.
+// Release signing: app/android/keystore.properties (git-ignored; keystore.properties.example) names
+// the keystore, normally release.jks (git-ignored) next to it, relative to that file. Without it,
+// release builds are unsigned.
 def keystoreProps = new Properties()
 def keystorePropsFile = rootProject.file('keystore.properties')
 if (keystorePropsFile.exists()) {
@@ -10,22 +10,22 @@ if (keystorePropsFile.exists()) {
 }
 
 // Side-by-side variant (-PsideBySide): every build type installs as app.kanjikodama.wk.web, next
-// to the Java app, as before the cutover. Without it: release app.kanjikodama.wk (replaces the Java
-// app), debug app.kanjikodama.wk.debug (replaces the Java debug app: the legacy migration test).
+// to the main app. Without it: release app.kanjikodama.wk, debug app.kanjikodama.wk.debug.
 def sideBySide = project.hasProperty('sideBySide')
 
-// versionName from app/package.json; versionCode 1000+ (the Java releases used 100 + run number).
+// versionName from app/package.json; versionCode from scripts/release/version.ts (passed by
+// scripts/release-android.sh).
 def webVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
 
 android {
     namespace = "app.kanjikodama.wk"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        // Identity (issue #3, step 6): the Java app's id; the build types add the suffixes below.
+        // The app's id; the build types add the suffixes below.
         applicationId "app.kanjikodama.wk"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Overridable like the Java app's: -PversionCode=1001 -PversionName=0.2.0.
+        // Overridable: -PversionCode=7001 -PversionName=0.6.1.
         versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 1000
         versionName project.hasProperty('versionName') ? project.property('versionName') : webVersion
 
@@ -35,7 +35,7 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
             // The content file is read at every start: stored uncompressed it streams without
-            // inflating 33 MB first (start-up, docs/android-parity.md).
+            // inflating 33 MB first (faster start-up).
             noCompress 'db'
         }
     }
@@ -52,7 +52,7 @@ android {
     }
     buildTypes {
         debug {
-            // Same id and (default) debug key as the Java debug app; ".web" side by side.
+            // ".debug", or ".web" side by side; signed with the default debug key.
             applicationIdSuffix sideBySide ? ".web" : ".debug"
         }
         release {
@@ -79,8 +79,6 @@ dependencies {
     // Background sync (BackgroundSyncWorker) and its headless WebView's asset loader.
     implementation "androidx.work:work-runtime:2.11.0"
     implementation "androidx.webkit:webkit:$androidxWebkitVersion"
-    // LegacyMigrationPlugin reads the Java app's API token (same library and version as the Java app used).
-    implementation "androidx.security:security-crypto:1.1.0-alpha06"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

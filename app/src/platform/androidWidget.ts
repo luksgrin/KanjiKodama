@@ -1,6 +1,6 @@
 /**
  * The home-screen widget (Android): the local `Widget` plugin (app/android/.../WidgetPlugin.java,
- * SessionWidgetProvider.java, a port of `services/SessionWidgetProvider`). The app hands it the
+ * SessionWidgetProvider.java). The app hands it the
  * counts (core `planWidget`); the native side stores them, redraws every widget and sets an inexact
  * alarm for the next scheduled entry, so the widget moves on at the next review hour without the app.
  */

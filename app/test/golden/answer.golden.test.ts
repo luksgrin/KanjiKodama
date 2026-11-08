@@ -1,5 +1,5 @@
 import type { AuxiliaryMeaning, Meaning, Reading, SubjectObject } from '../../src/core/content';
-import { JavaException } from '../../src/core/kana';
+import { TypedError } from '../../src/core/kana';
 import {
   type AnswerVerdict,
   CLOSE_ENOUGH_ACTIONS,
@@ -20,7 +20,7 @@ import { goldenSuite, matchFixtures, readFixture } from './harness';
 
 goldenSuite<{ a: string; b: string }, number>('answers/osa.json', (input) => osaDistance(input.a, input.b));
 
-// --- FuzzyMatching.matches -------------------------------------------------------------------------
+// --- fuzzy matching -----------------------------------------------------------------------------
 
 interface FuzzyInput {
   answer: string;
@@ -118,7 +118,7 @@ function safeVerdict(run: () => AnswerVerdict): unknown {
   try {
     return run();
   } catch (e) {
-    if (e instanceof JavaException) return { error: e.javaClass };
+    if (e instanceof TypedError) return { error: e.errorType };
     throw e;
   }
 }
@@ -186,8 +186,8 @@ goldenSuite<{ questionType: QuestionType; answer: string }, unknown>('answers/ch
 );
 
 /**
- * The fixture generator's `AnswerTies.ties`: the accepted answers (in subject order) that share the best
- * fuzzy score, when there are at least two; `javaPick` is what `checkAnswer` chose.
+ * The ties: the accepted answers (in subject order) that share the best
+ * fuzzy score, when there are at least two; `referencePick` is what `checkAnswer` chose.
  */
 function meaningTies(input: CheckInput): unknown {
   const s = toCheckSubject(resolve(input.subject));
@@ -225,10 +225,10 @@ function meaningTies(input: CheckInput): unknown {
     closeEnoughAction: 'SILENTLY_ACCEPT',
     requireOnInKatakana: false,
   });
-  return { score: best, ties: tied, subjectOrderFirst: tied[0], javaPick: v.matchedAnswer };
+  return { score: best, ties: tied, subjectOrderFirst: tied[0], referencePick: v.matchedAnswer };
 }
 
-// Device outputs that differ from the JVM fixtures (none so far): same shapes as fuzzy*/check-*.
+// Device outputs that differ from the other fixtures (none so far): same shapes as fuzzy*/check-*.
 goldenSuite<FuzzyInput | CheckInput, unknown>('answers/unicode-android-overrides.json', (input) =>
   'questionType' in input ? checkOutputs(input) : fuzzyByAction(input),
 );

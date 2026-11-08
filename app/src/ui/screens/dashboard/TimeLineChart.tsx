@@ -1,12 +1,11 @@
 /**
- * The review timeline (`views/TimeLineBarChart`), drawn as SVG with the Java geometry (density 1:
- * dp = CSS px): 250 px high, 4 px vertical padding, the y axis and grid lines (`timeline_chart_grid_style`:
+ * The review timeline, drawn as SVG: 250 px high, 4 px vertical padding, the y axis and grid lines (`timeline_chart_grid_style`:
  * for the bars, for the waterfall line, or none), one bar per hour stacked by SRS stage, next SRS
  * stage or item type (`timeline_chart_style`), the count above each bar (labels that would overlap are
  * skipped), the level-up count with the arrow above it, time labels every `shown / 6` bars
- * (`TextUtil.formatShortTimeForDisplay`, weekday from the second day on), the optional waterfall line,
+ * (short clock times, weekday from the second day on), the optional waterfall line,
  * and the legend below (wrapping onto a second row). With more bars than `timeline_chart_size_shown`
- * the bars scroll sideways under a fixed y axis (drag, as Java's fling/scroll).
+ * the bars scroll sideways under a fixed y axis (drag).
  * "No upcoming reviews" in the middle when the timeline is empty.
  */
 import { useEffect, useLayoutEffect, useRef, useState, type JSX, type PointerEvent as ReactPointerEvent } from 'react';
@@ -14,9 +13,9 @@ import { shortTime } from '../../../app/format';
 import { roundUpInterval, type TimeLineChartGridStyle, type TimeLineDataSet } from './panelData';
 
 const HEIGHT = 250;
-/** main_activity_view_background: the panel's border box is the 250 dp view minus the 6 dp shadow band,
- *  and its 3 dp outline sits inside it; the drawing keeps Java's view coordinates and the SVG shows the
- *  part inside the outline (250 − 6 − 2 × 3). */
+/** The panel's border box is the 250 px view minus the 6 px shadow band, and its 3 px outline sits
+ *  inside it; the drawing keeps the full view's coordinates and the SVG shows the part inside the
+ *  outline (250 − 6 − 2 × 3). */
 const SHOWN_HEIGHT = HEIGHT - 12;
 const PAD = 4;
 const FONT = 12;

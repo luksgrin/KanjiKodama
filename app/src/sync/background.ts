@@ -1,6 +1,5 @@
 /**
- * Background sync, the JavaScript half (Android). `BackgroundSyncWorker` (WorkManager, hourly like
- * the Java app's) loads the app's own `index.html?kk-background-sync` in a headless WebView on the
+ * Background sync, the JavaScript half (Android). `BackgroundSyncWorker` (WorkManager, hourly) loads the app's own `index.html?kk-background-sync` in a headless WebView on the
  * same origin (`https://localhost`), so it sees the same IndexedDB. `main.tsx` then runs only this:
  * one sync with the same engine as the app, then the widget's counts and the review notification
  * plan (what `rescheduleReviewNotifications` would schedule), handed back to the worker, which

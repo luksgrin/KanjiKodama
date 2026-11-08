@@ -1,6 +1,5 @@
 {
   "area": "answers.matchingKanji",
-  "javaSource": "model/MatchingKanji.lookupCharacters (from fragments/UnansweredSessionFragment)",
   "cases": [
     {"name":"radical/0/true","input":{"object":"radical","characters":null,"shakeOnMatchingKanji":true},"output":{"lookup":null}},
     {"name":"radical/0/false","input":{"object":"radical","characters":null,"shakeOnMatchingKanji":false},"output":{"lookup":null}},

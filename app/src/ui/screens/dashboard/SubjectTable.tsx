@@ -1,5 +1,5 @@
 /**
- * `LiveSubjectTableView` (`live_subject_table.xml`, `LiveSubjectTableRowView`): the bold centred
+ * A dashboard subject table (recent unlocks, critical condition, burned items): the bold centred
  * title, then one rounded row per subject in its type colour, characters left and the extra text
  * right (`font_size_live_subject_table`, default 16 sp), both with the black text shadow. A row opens
  * the item page. Hidden when empty. Used for "Recent unlocks in the last 30 days", "Critical

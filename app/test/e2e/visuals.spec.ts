@@ -1,9 +1,9 @@
-/** Java look details outside sessions and settings: radical images, Java sizes, scroll position on Back. */
+/** Look details outside sessions and settings: radical images, sizes, scroll position on Back. */
 import { expect, test } from '@playwright/test';
 import { checkScreen, openApp, settle, tab, toolbarBack } from './helpers/app';
 
 test('image-only radicals show their image (item page headline and toolbar, browse results)', async ({ page }, info) => {
-  // 8787 "yurt": Subject.getTitleImageId → radical_8787.xml.
+  // 8787 "yurt": drawn from radical_8787.xml.
   await openApp(page, '/subject/8787');
   const tile = page.locator('.kk-subject-tile [data-testid="title-image"]');
   await expect(tile).toBeVisible();
@@ -17,7 +17,7 @@ test('image-only radicals show their image (item page headline and toolbar, brow
   await expect(page.locator('[data-testid="result-8787"] [data-testid="title-image"]')).toBeVisible();
 });
 
-test('browse level cells have the Java size (~31 dp tall, 2 dp apart, 8 dp between rows)', async ({ page }) => {
+test('browse level cells have their size (~31 px tall, 2 px apart, 8 px between rows)', async ({ page }) => {
   await openApp(page);
   await tab(page, 'Browse');
   await settle(page);

@@ -1,13 +1,13 @@
-import { DummyEditable, fixup, JavaException, kanaMapGet, simulateInput, toKatakana } from '../../src/core/kana';
+import { DummyEditable, fixup, TypedError, kanaMapGet, simulateInput, toKatakana } from '../../src/core/kana';
 import { convertKatakanaToHiragana } from '../../src/core/kana/kanaUtil';
 import { goldenSuite } from './harness';
 
-/** `AnswerGoldenSupport.attempt`: `{value}` or `{error, message}` for a thrown Java exception. */
+/** `{value}`, or `{error, message}` for a thrown typed error. */
 function attempt<T>(call: () => T): { value: T } | { error: string; message: string } {
   try {
     return { value: call() };
   } catch (e) {
-    if (e instanceof JavaException) return { error: e.javaClass, message: e.message };
+    if (e instanceof TypedError) return { error: e.errorType, message: e.message };
     throw e;
   }
 }
@@ -39,7 +39,7 @@ goldenSuite<{ reading: string; romaji: string; romajiKatakana: string }>('kana/r
 type SequenceEdit = { insert: string; at: number } | { backspace: true };
 
 /**
- * `KanaGolden.apply`: each edit on a `DummyEditable`, then one `fixup` over the inserted range (no
+ * Each edit on a `DummyEditable`, then one `fixup` over the inserted range (no
  * re-entrancy). Backspace removes a whole surrogate pair.
  */
 goldenSuite<{ edits: SequenceEdit[] }>('kana/fixup-sequences.json', ({ edits }) => {

@@ -1,8 +1,8 @@
 /**
  * Level-up (ceil(0.9 x kanji) passed) and unlocks, plus the in-memory learner database the local-mode
- * logic works on (content layout, progress, curriculum state) and the operations on it. Java:
- * local/LocalProgression, local/ProgressStore (restore/export), local/Curriculum (database side),
- * jobs/ReportSessionItemJob (local mode), activities/ResurrectActivity and BurnActivity (local mode). Fixtures: scenarios/*.
+ * logic works on (content layout, progress, curriculum state) and the operations on it: restore and
+ * export, the curriculum's database side, lesson and review results, burn and resurrect. Fixtures:
+ * scenarios/*.
  */
 export * from './db';
 export { afterChange, isPassed, updateProgression } from './localProgression';

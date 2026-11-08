@@ -1,14 +1,13 @@
 /**
  * The types the session engine shares with item selection and question order (`order*.ts`,
- * `selection*.ts`) and with the level test. Java: model/Session, db/model/SessionItem, model/Question,
- * enums/SessionState, enums/SessionItemState, enums/QuestionChoiceReason.
+ * `selection*.ts`) and with the level test.
  */
 
 import type { QuestionType } from '../answer/questionType';
 import type { ContentSubject } from '../content';
 import type { SubjectProgressRow } from '../progressFile/format';
 import type { LearnerDb, TableRow } from '../progression/db';
-import type { JavaRandom } from '../rng';
+import type { SeededRandom } from '../rng';
 import type { Preferences, SessionType } from '../settings';
 import type { SrsSystem } from '../srs';
 
@@ -17,13 +16,13 @@ export type { SessionType };
 /** The three kinds of session that can be started (`SessionType` without NONE). */
 export type SessionKind = Exclude<SessionType, 'NONE'>;
 
-/** `enums/SessionState`. */
+/** The session's state. */
 export type SessionState = 'INACTIVE' | 'IN_LESSON_PRESENTATION' | 'ACTIVE' | 'FINISHING';
 
-/** `enums/SessionItemState`. */
+/** A session item's state. */
 export type SessionItemState = 'ACTIVE' | 'PENDING' | 'REPORTED' | 'ABANDONED';
 
-/** `enums/QuestionChoiceReason` (the values the session sets). */
+/** Why a question was chosen (the values the session sets). */
 export type QuestionChoiceReason =
   | 'STARTING_LESSON_SESSION'
   | 'STARTING_REVIEW_SESSION'
@@ -44,7 +43,7 @@ export type QuestionChoiceReason =
   | 'FINISHED';
 
 /**
- * A subject as ordering and selection read it (Java `db/model/Subject`): the content, the table's
+ * A subject as ordering and selection read it: the content, the table's
  * runtime layout (level and lesson position in the current curriculum order, hiddenAt) and the
  * progress columns, read when the session starts.
  */
@@ -59,16 +58,16 @@ export interface SessionSubject {
 /** A `Comparator<Subject>`: 0 means "same bucket" (Session.populateItems starts a new bucket on non-zero). */
 export type SubjectComparator = (a: SessionSubject, b: SessionSubject) => number;
 
-/** What ordering and selection may read. `rng` is the app's shared random (`ObjectSupport`). */
+/** What ordering and selection may read. `rng` is the app's shared random. */
 export interface SessionContext {
   readonly db: LearnerDb;
   readonly prefs: Preferences;
   /** `Clock.now()`. */
   readonly now: number;
-  readonly rng: JavaRandom;
+  readonly rng: SeededRandom;
 }
 
-/** `GlobalSettings.getBackToBack/getReadingFirst/getMeaningFirst(type)`. */
+/** `<type>_back_to_back`, `<type>_reading_first`, `<type>_meaning_first`. */
 export interface QuestionOrderFlags {
   readonly backToBack: boolean;
   readonly readingFirst: boolean;
@@ -98,7 +97,7 @@ export interface SessionOrdering {
   questionOrder(type: SessionType, prefs: Preferences): QuestionOrderFlags;
 }
 
-/** `db/model/SessionItem` (the live object; `choiceDelay` is not persisted). */
+/** A session item (the live object; `choiceDelay` is not persisted). */
 export interface SessionItem {
   readonly id: number;
   assignmentId: number;
@@ -118,7 +117,7 @@ export interface SessionItem {
   readonly questions: Question[];
 }
 
-/** `model/Question`. Identity matters: the queue and history hold these objects. */
+/** A question. Identity matters: the queue and history hold these objects. */
 export interface Question {
   readonly item: SessionItem;
   readonly type: QuestionType;

@@ -98,7 +98,7 @@ describe('server screen, local mode', () => {
     app.dispose();
   });
 
-  it('a rejected token shows the Java message naming the server', async () => {
+  it('a rejected token shows the message naming the server', async () => {
     const http = new FakeHttp().on('GET', '/v2/user', json(401, fixture('error-401')));
     const { el, app } = await render(http);
     await type(el, 'server-url', BASE);

@@ -1,6 +1,5 @@
 {
   "area": "answers.synonymsUi",
-  "javaSource": "util/StudyMaterialsSupport (views/SubjectInfoView.addSynonym, activities/StudyMaterialsActivity), jobs/SaveStudyMaterialJob, db/model/Subject.getMeaningSynonyms",
   "cases": [
     {"name":"input/plain","input":{"text":"papa"},"output":{"value":"papa","ignored":false}},
     {"name":"input/leading-trailing-spaces","input":{"text":"  papa  "},"output":{"value":"papa","ignored":false}},

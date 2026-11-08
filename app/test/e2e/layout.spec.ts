@@ -1,11 +1,11 @@
 /**
  * Layout on every device: each main screen without sideways scroll, tap targets ≥ 40 px, no clipped
- * text (soft failures, so one run lists them all), and the quiz's quick-action row where Java has it: at
- * the bottom, on the keyboard (simulated: iPhone SE 410 px visible, 320 px Android 300 px, …); answered,
- * Java closes the keyboard and Next is pinned at the bottom of the screen.
+ * text (soft failures, so one run lists them all), and the quiz's quick-action row: at the bottom, on
+ * the keyboard (simulated: iPhone SE 410 px visible, 320 px Android 300 px, …); answered, the keyboard
+ * closes and Next is pinned at the bottom of the screen.
  */
 import { expect, test } from '@playwright/test';
-import { answer, checkQuickActions, checkScreen, expectJavaHeadline, keyboardTopFor, openApp, quiz, restoreFile, tab } from './helpers/app';
+import { answer, checkQuickActions, checkScreen, expectHeadlineLayout, keyboardTopFor, openApp, quiz, restoreFile, tab } from './helpers/app';
 import { subjectsAt } from './helpers/content';
 import { writeReviewSeed } from './helpers/progress';
 
@@ -67,7 +67,7 @@ test('main screens', async ({ page }, info) => {
   await openApp(page, '/settings/about');
   await checkScreen(page, info, 'L11-about-full', { strict: true, fullPage: true });
   await openApp(page, '/settings/level-test');
-  // Java: an AlertDialog over the dashboard (the wrapped-up session above still runs: "Finish or abandon…").
+  // A dialog over the dashboard (the wrapped-up session above still runs: "Finish or abandon…").
   await expect(page.getByTestId('level-test-dialog')).toBeVisible();
   await checkScreen(page, info, 'L12-level-test', { strict: true });
   await openApp(page, '/settings/fast-travel');
@@ -99,12 +99,12 @@ test('main screens', async ({ page }, info) => {
   await checkScreen(page, info, 'L23-settings-other-full', { strict: true, fullPage: true });
 });
 
-test('item headline: Java narrow/wide layout, text never a sliver', async ({ page }) => {
+test('item headline: narrow/wide layout, text never a sliver', async ({ page }) => {
   await openApp(page);
   const vocab = (await subjectsAt(1, 'vocabulary')).filter((s) => [...(s.characters ?? '')].length >= 2);
   const kanji = await subjectsAt(1, 'kanji');
   for (const s of [vocab[0]!, kanji[0]!]) {
     await page.goto(`./#/subject/${s.id}`);
-    await expectJavaHeadline(page, `item ${s.characters}`);
+    await expectHeadlineLayout(page, `item ${s.characters}`);
   }
 });

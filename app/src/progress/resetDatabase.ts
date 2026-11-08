@@ -1,12 +1,11 @@
 /**
- * "Reset database" (`PreferencesFragment` → `ResetDatabaseJob` → `AppDatabase.resetDatabase`):
- * everything the app keeps about the subjects goes, the settings stay.
+ * "Reset database": everything the app keeps about the subjects goes, the settings stay.
  *
- * Local mode (Java's "Offline fork: a reset means starting over from the bundled content"): the
- * subject rows (progress, notes, synonyms, and the star ratings, which Java keeps on the same row),
- * the level progression and the session are cleared, the level is 1 again, the curriculum stays
- * and `LocalProgression.update` unlocks level 1. Java's own `mm_*` tables (fast-travel jumps,
- * probation, level test, `mm_state`) are not part of the reset and stay; so do the search presets.
+ * Local mode (a reset means starting over from the bundled content): the subject rows (progress,
+ * notes, synonyms, and the star ratings), the level progression and the session are cleared, the
+ * level is 1 again, the curriculum stays and `updateProgression` unlocks level 1. The fast-travel
+ * jumps, probation, level test and curriculum state are not part of the reset and stay; so do the
+ * search presets.
  *
  * Server mode: `resetServerData` (downloads, queue, cursors) and the star ratings; the next sync
  * downloads everything again (`assertGetSubjectsTask`, `assertRefreshForAllModels`).
@@ -22,7 +21,7 @@ import { hydrateLearnerDb, readSnapshot, snapshotOf, writeSnapshot } from '../st
 /** `meta` key of the star ratings (`ui/components/subject/starRatings.ts`). */
 const STAR_RATINGS_META_KEY = 'starRatings';
 
-/** `Constants.RESET_DATABASE_WARNING` (the parts in `<b>` are bold). */
+/** The reset warning (the parts in `<b>` are bold). */
 export const RESET_DATABASE_WARNING_PARTS: readonly (string | { b: string })[] = [
   { b: 'Warning:' }, ' Resetting the database will ', { b: 'clear all content' }, ' from'
   + " the app's database except for your settings. Any work in progress will be immediately lost and all data"

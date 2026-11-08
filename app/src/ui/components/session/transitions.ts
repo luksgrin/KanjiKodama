@@ -1,7 +1,6 @@
 /**
- * Session fragment transitions (`SessionActivity.updateFragment` with `slide_animations`): when the
- * session shows a different fragment, the old one's `getAnimation(newFragment)` picks the slide
- * (`enums/FragmentTransitionAnimation`, `QuestionChoiceReason.getAnimation`).
+ * Session screen transitions (with `slide_animations`): when the session shows a different screen,
+ * the old one and the new one's choice reason pick the slide.
  */
 import type { QuestionChoiceReason, Session } from '../../../core/session';
 
@@ -26,7 +25,7 @@ export function reasonAnimation(reason: QuestionChoiceReason): SlideAnimation {
   }
 }
 
-/** What the session screen shows (Java's current session fragment). */
+/** What the session screen shows. */
 export interface FragmentInfo {
   kind: 'lesson' | 'unanswered' | 'answered' | 'anki';
   /** The lesson item, or the question as `itemId:type`. */
@@ -44,7 +43,7 @@ export function fragmentOf(session: Session, anki: (s: Session) => boolean): Fra
   return { kind: session.answered ? 'answered' : 'unanswered', id };
 }
 
-/** Whether Java would replace the fragment (an Anki question keeps its fragment when answered). */
+/** Whether the screen is replaced (an Anki question keeps its screen when answered). */
 export function sameFragment(a: FragmentInfo, b: FragmentInfo): boolean {
   return a.kind === b.kind && a.id === b.id;
 }

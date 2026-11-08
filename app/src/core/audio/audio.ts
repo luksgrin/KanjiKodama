@@ -1,14 +1,11 @@
 /**
- * Pronunciation audio: which file to play and which files to download. Java: `util/AudioUtil`
- * (getOneAudioFileShouldMatch / MustMatch, getOneAudioFile, getStreamingAudio, getNewFileForAudio),
- * `tasks/DownloadAudioTask`, `api/model/PronunciationAudio`, `enums/VoicePreference`.
- * The platform layer (android audio) does the I/O; this file only decides.
+ * Pronunciation audio: which file to play and which files to download. The platform layer (android audio) does the I/O; this file only decides.
  */
 
 import { shuffleByRemoval, type Rng } from '../rng';
 import type { Preferences } from '../settings';
 
-/** `api/model/PronunciationAudio` with its metadata flattened (the content's `pronunciationAudios` JSON). */
+/** A pronunciation recording with its metadata flattened (the content's `pronunciationAudios` JSON). */
 export interface PronunciationAudio {
   url: string;
   contentType: string;
@@ -53,17 +50,17 @@ export function audioCatalog(owners: readonly AudioOwner[]): AudioCatalog {
   };
 }
 
-/** `enums/VoicePreference`. */
+/** Which voice to prefer. */
 export type VoicePreference = 'RANDOM' | 'MALE' | 'FEMALE' | 'ALTERNATE';
 export const VOICE_PREFERENCES: readonly VoicePreference[] = ['RANDOM', 'MALE', 'FEMALE', 'ALTERNATE'];
 
-/** `GlobalSettings.Audio.getVoicePreference`: `voice_preference`, default RANDOM. */
+/** `voice_preference`, default RANDOM. */
 export function voicePreference(prefs: Preferences): VoicePreference {
   const v = prefs.voice_preference;
   return typeof v === 'string' && (VOICE_PREFERENCES as readonly string[]).includes(v) ? (v as VoicePreference) : 'RANDOM';
 }
 
-/** `Constants.AUDIO_DIRECTORY_NAME`, under the app's files dir. */
+/** The audio directory, under the app's files dir. */
 export const AUDIO_DIR = 'pronunciation-audio';
 
 /** Parses the `pronunciationAudios` column (NULL, '' or bad JSON → []); drops entries without a url. */
@@ -93,17 +90,17 @@ export function parsePronunciationAudios(json: unknown): PronunciationAudio[] {
   return out;
 }
 
-/** `AudioUtil.getNewFileForAudio…`: `.ogg` for audio/ogg, else `.mp3` (also for other formats). */
+/** `.ogg` for audio/ogg, else `.mp3` (also for other formats). */
 export function audioExtension(contentType: string): '.ogg' | '.mp3' {
   return contentType === 'audio/ogg' ? '.ogg' : '.mp3';
 }
 
-/** Path below the files dir, as in the Java app: `pronunciation-audio/<level>/<sourceId>.<ext>`. */
+/** Path below the files dir: `pronunciation-audio/<level>/<sourceId>.<ext>`. */
 export function audioPath(level: number, audio: Pick<PronunciationAudio, 'sourceId' | 'contentType'>): string {
   return `${AUDIO_DIR}/${level}/${audio.sourceId}${audioExtension(audio.contentType)}`;
 }
 
-/** File names that count as "this recording is cached" (`AudioUtil.getExistingFileForAudio`: mp3, then ogg). */
+/** File names that count as "this recording is cached" (mp3, then ogg). */
 export function cachedNames(sourceId: number): readonly [string, string] {
   return [`${sourceId}.mp3`, `${sourceId}.ogg`];
 }
@@ -117,7 +114,7 @@ export function isCached(cached: CachedFiles, level: number, audio: Pronunciatio
   return cachedNames(audio.sourceId).some((n) => dir.has(n));
 }
 
-/** Formats in download order: MP3 first (plays everywhere), then other formats, ogg last (as Java). */
+/** Formats in download order: MP3 first (plays everywhere), then other formats, ogg last. */
 function formatRank(contentType: string): number {
   if (contentType === 'audio/mpeg') return 0;
   if (contentType === 'audio/ogg') return 2;
@@ -134,10 +131,9 @@ export interface AudioDownload {
 }
 
 /**
- * `DownloadAudioTask` for every subject on the levels: one file per recording (`source_id`), in the
- * preferred format, skipping recordings already cached and entries the Java app skips (no url, no
- * content type or no source id). Java may store a WebM file under `.mp3` when it comes first; this
- * always picks the MPEG entry when there is one.
+ * The downloads for every subject on the levels: one file per recording (`source_id`), in the
+ * preferred format, skipping recordings already cached and unusable entries (no url, no content type
+ * or no source id). It picks the MPEG entry when there is one.
  */
 export function planAudioDownloads(owners: readonly AudioOwner[], cached: CachedFiles): AudioDownload[] {
   const out: AudioDownload[] = [];
@@ -204,7 +200,7 @@ function genderCmps(pref: VoicePreference, lastWasMale: boolean): Cmp[] {
   return out;
 }
 
-/** Shuffle (random tie-break, `ObjectSupport.shuffle`), then a stable sort, like Java's `Collections.sort`. */
+/** Shuffle (random tie-break, by removal), then a stable sort. */
 function pick(audios: readonly PronunciationAudio[], cmp: Cmp, rng: Pick<Rng, 'nextInt'>): PronunciationAudio | null {
   const list = shuffleByRemoval(audios, rng);
   list.sort(cmp);
@@ -218,7 +214,7 @@ export interface AudioChoice {
 }
 
 /**
- * `AudioUtil.playAudio`: a cached file matching `reading` (the last matched answer), else a cached
+ * What to play: a cached file matching `reading` (the last matched answer), else a cached
  * file preferring the primary reading, else the best recording to stream. Gender preference breaks
  * ties (ALTERNATE flips on the last voice played). Null when the subject has no audio.
  */

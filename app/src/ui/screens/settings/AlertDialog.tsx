@@ -1,11 +1,11 @@
 /**
- * The Java app's `AlertDialog` (AppCompat / AndroidX preference dialogs): optional warning icon and
+ * The alert dialog (also the settings' preference dialogs): optional warning icon and
  * title in the body font, a message, an optional view (list, text field), and flat accent-coloured
  * text buttons in one row: neutral at the left, then negative and positive at the right.
- * Back / Escape / a tap outside cancel it unless `cancelable` is false (Java `setCancelable(false)`).
+ * Back / Escape / a tap outside cancel it unless `cancelable` is false.
  *
- * `ChoiceList` is `setSingleChoiceItems` (radio buttons, as ListPreference) or `setItems` (plain
- * rows). Native `<dialog>`, so the Android bars are dimmed like Java's scrim (`androidSystemUi`).
+ * `ChoiceList` is a single-choice list (radio buttons) or plain rows. Native `<dialog>`, so the
+ * Android bars are dimmed with the scrim (`androidSystemUi`).
  */
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { useBackHandler } from '../../hooks/useRoute';
@@ -23,7 +23,7 @@ export interface AlertDialogProps {
   title?: string | null;
   /** `R.drawable.ic_baseline_warning_24px` before the title. */
   warning?: boolean;
-  /** Plain text message; `\n` breaks lines like Java's `setMessage`. */
+  /** Plain text message; `\n` breaks lines. */
   message?: string;
   children?: ReactNode;
   positive?: AlertButton;
@@ -47,7 +47,7 @@ export function AlertDialog({ open, title, warning, message, children, positive,
     if (open && !d.open) {
       if (typeof d.showModal === 'function') d.showModal();
       else d.setAttribute('open', '');
-      // Like Java, no list item looks focused on open; a text field keeps the focus (and the keyboard).
+      // No list item looks focused on open; a text field keeps the focus (and the keyboard).
       if (!d.querySelector('input')) d.querySelector<HTMLElement>('.kk-alert-inner')?.focus({ preventScroll: true });
     } else if (!open && d.open) {
       if (typeof d.close === 'function') d.close();

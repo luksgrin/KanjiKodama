@@ -1,13 +1,12 @@
 /**
- * Progress files written by the TypeScript core, for the TS export → Java restore → Java export
- * round trip (`progress/ts-roundtrip.json`, `ScenarioGoldenTest#progressTsExports`). Each file is
- * `exportFromDb` of a state the TS core reached; `progress-ts-inputs.test.ts` writes them to
- * `progress/ts-export/` (committed inputs; the retired Java app's `durtles/golden/run.sh` pushed them to the device) and
- * checks that the committed files are still what the core produces.
+ * Progress files written by the core, for the export → restore → export round trip
+ * (`progress/ts-roundtrip.json` holds the reference re-exports). Each file is `exportFromDb` of a
+ * state the core reached; `progress-ts-inputs.test.ts` writes them to `progress/ts-export/`
+ * (committed inputs) and checks that the committed files are still what the core produces.
  *
- * Every file is settled: restoring it with the TS core (which, like `ProgressStore.restore`,
- * adopts the curriculum and recomputes unlocks) and exporting at its `exportedAt` gives the same
- * bytes, so any difference in Java's re-export is a difference between the two apps.
+ * Every file is settled: restoring it (which adopts the curriculum and recomputes unlocks) and
+ * exporting at its `exportedAt` gives the same bytes, so any difference in the reference re-export
+ * is a behaviour difference.
  */
 
 import { formJobData, parseStudyMaterialJob } from '../../src/core/answer/synonyms';
@@ -36,7 +35,7 @@ export interface TsProgressInput {
 
 export const TS_EXPORT_DIR = 'progress/ts-export';
 
-/** `ScenarioRunner.emptyFile(mode)`. */
+/** An empty progress file in `mode`. */
 function emptyFile(mode: 'WANIKANI' | 'JLPT', at: number): string {
   return JSON.stringify({
     format: 'kanjikodama-progress', version: 1, exportedAt: at, userLevel: 1, levelProgression: [], subjects: [],
@@ -44,14 +43,14 @@ function emptyFile(mode: 'WANIKANI' | 'JLPT', at: number): string {
   });
 }
 
-/** The Java base state: a fresh database with the empty WaniKani file restored at `at`. */
+/** The base state: a fresh database with the empty WaniKani file restored at `at`. */
 function freshDb(res: RunnerResources, at: number): LearnerDb {
   const db = createLearnerDb(res.content, res.jlptKanji);
   restoreIntoDb(db, emptyFile('WANIKANI', at), at);
   return db;
 }
 
-/** The study-materials screen's save (`SaveStudyMaterialJob.runLocal`). */
+/** The notes screen's save. */
 function saveNotes(db: LearnerDb, id: number, meaningNote: string, readingNote: string, synonyms: string[]): void {
   const job = parseStudyMaterialJob(formJobData(id, meaningNote, readingNote, synonyms));
   updateProgress(db, id, storeStudyMaterialJob(job));
@@ -209,7 +208,7 @@ function importedWaniKani(res: RunnerResources): { text: string; db: LearnerDb; 
 /**
  * A hand-edited file restored by the TS core and exported again: values only a hand-edited file can
  * hold (text in numeric columns, non-integral numbers, booleans, negative and huge numbers, an
- * extra-kanji subject, two level rows for one level), as the TS port stores them (SQLite affinity).
+ * extra-kanji subject, two level rows for one level), as the core stores them (SQLite affinity).
  * No NULLs: the export leaves NULL columns out and a restore resets missing ones to 0, so a file
  * with them would not be settled (the TS export of the restored state is the same either way).
  */

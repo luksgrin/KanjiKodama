@@ -1,8 +1,7 @@
 /**
- * Which characters a TrueType / OpenType font has glyphs for, read from its `cmap` table. The Java
- * app asks Android (`TextUtil.hasGlyphs` → `Paint.hasGlyph`) before it uses a quiz font for a subject
- * (`SessionItem.tryAddTypefaceConfiguration`); a browser has no such call, so the font file is read
- * here. Handles TTF, OTF and the first font of a TTC; cmap subtable formats 4 and 12.
+ * Which characters a TrueType / OpenType font has glyphs for, read from its `cmap` table: a quiz font
+ * is only used for a subject when it has all its characters, and a browser has no call for that, so
+ * the font file is read here. Handles TTF, OTF and the first font of a TTC; cmap subtable formats 4 and 12.
  */
 
 export type GlyphCoverage = (codePoint: number) => boolean;
@@ -96,7 +95,7 @@ export function readGlyphCoverage(data: ArrayBuffer): GlyphCoverage | null {
   }
 }
 
-/** `TextUtil.hasGlyphs`: every character of `text` (surrogate pairs as one) has a glyph. */
+/** Every character of `text` (surrogate pairs as one) has a glyph. */
 export function hasGlyphs(coverage: GlyphCoverage, text: string): boolean {
   for (const ch of text) {
     if (!coverage(ch.codePointAt(0)!)) return false;

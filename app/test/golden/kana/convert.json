@@ -1,6 +1,5 @@
 {
   "area": "kana.convert",
-  "javaSource": "util/PseudoIme.toKatakana, util/KanaUtil.convertKatakanaToHiragana",
   "cases": [
     {"name":"U+3000","input":{"text":"　"},"output":{"toKatakana":"　","convertKatakanaToHiragana":"　"}},
     {"name":"U+3001","input":{"text":"、"},"output":{"toKatakana":"、","convertKatakanaToHiragana":"、"}},

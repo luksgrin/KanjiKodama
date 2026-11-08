@@ -1,6 +1,5 @@
 {
   "area": "srs.newStage",
-  "javaSource": "model/SrsSystem.Stage.getNewStage",
   "cases": [
     {"name":"system1-stage-999-incorrect0","input":{"systemId":1,"stage":-999,"numIncorrect":0},"output":{"stage":1,"interval":14400000,"name":"Apprentice I","passed":false,"completed":false}},
     {"name":"system1-stage-999-incorrect1","input":{"systemId":1,"stage":-999,"numIncorrect":1},"output":{"stage":1,"interval":14400000,"name":"Apprentice I","passed":false,"completed":false}},

@@ -1,5 +1,5 @@
 /**
- * The two Jackson (`Converters.getObjectMapper()`) operations the study-material code relies on, with
+ * The two lenient JSON (Jackson-style) operations the study-material code relies on, with
  * Jackson's behavior rather than `JSON.parse`/`JSON.stringify`'s:
  *
  * - `readStringList`: `readValue(text, List<String>)`. Lenient where JSON.parse is strict: text after the
@@ -9,10 +9,10 @@
  *   `\u00XX` with upper-case hex; lone surrogates and everything else are written as they are.
  */
 
-import { JavaException } from '../kana';
+import { TypedError } from '../kana';
 
 /** Thrown where Jackson throws (`JsonProcessingException` and subclasses). */
-export class JacksonError extends JavaException {
+export class JacksonError extends TypedError {
   constructor(message: string) {
     super('JsonProcessingException', message);
   }

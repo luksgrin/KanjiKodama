@@ -55,7 +55,7 @@ describe('server subjects → Content', () => {
   });
 });
 
-describe('server-mode report (ReportSessionItemJob, server mode)', () => {
+describe('server-mode report', () => {
   it('patches assignment and statistic locally, no progression; queues the upload', async () => {
     const content = smallContent([{ ...subject(10, 'kanji', 1, [1]), amalgamationSubjectIds: [100] }, subject(1, 'radical', 1), subject(100, 'vocabulary', 1, [10])]);
     const db = createLearnerDb(content, NO_JLPT);
@@ -82,7 +82,7 @@ describe('server-mode report (ReportSessionItemJob, server mode)', () => {
 
 const num = (v: unknown) => (typeof v === 'number' ? v : 0);
 
-describe('mode features (LocalMode)', () => {
+describe('mode features', () => {
   it('hides the local-only features in server mode and the sync ones in local mode', () => {
     for (const f of ['curriculum', 'extraKanji', 'fastTravel', 'levelTest', 'restore', 'importWaniKani'] as const) {
       expect(featureVisible('local', f)).toBe(true);

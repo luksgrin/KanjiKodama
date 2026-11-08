@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { conjugatedVerb } from './inflection';
 
-// KanjiKodama fix (also in Java `InflectionUtilTest`): the する-verb NAI stem is し, not しな, so the negative forms
-// no longer come out with a doubled な (運転しなない).
+// The する-verb NAI stem is し, not しな, so the negative forms don't come out with a doubled な
+// (運転しなない).
 describe('する verbs: negative (NAI) forms', () => {
   const suru = (verb: string, form: string) => conjugatedVerb(verb, 'SURU', form);
 

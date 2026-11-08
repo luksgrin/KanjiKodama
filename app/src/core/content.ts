@@ -22,20 +22,20 @@ export const SUBJECT_TYPE_BY_OBJECT: Readonly<Record<SubjectObject, SubjectTypeN
   kana_vocabulary: 'WANIKANI_KANA_VOCAB',
 };
 
-/** `api/model/Meaning`. Java keeps a missing `meaning` as null. */
+/** A meaning. A missing `meaning` stays null. */
 export interface Meaning {
   meaning: string | null;
   primary: boolean;
   accepted_answer: boolean;
 }
 
-/** `api/model/AuxiliaryMeaning`: `type` is `whitelist` or `blacklist`. */
+/** An auxiliary meaning: `type` is `whitelist` or `blacklist`. */
 export interface AuxiliaryMeaning {
   meaning: string | null;
   type: string | null;
 }
 
-/** `api/model/Reading`: `type` is `onyomi`, `kunyomi`, `nanori` for kanji, absent for vocabulary. */
+/** A reading: `type` is `onyomi`, `kunyomi`, `nanori` for kanji, absent for vocabulary. */
 export interface Reading {
   reading: string | null;
   primary: boolean;
@@ -57,15 +57,14 @@ export interface ContentSubject {
   slug: string | null;
   meanings: Meaning[];
   auxiliaryMeanings: AuxiliaryMeaning[];
-  /** Empty for radicals: the DB stores NULL, which Java's `Subject.getReadings` turns into []. */
+  /** Empty for radicals (the DB stores NULL). */
   readings: Reading[];
   componentSubjectIds: number[];
   amalgamationSubjectIds: number[];
   visuallySimilarSubjectIds: number[];
   partsOfSpeech: string[];
   /**
-   * Reference data. The content DB stores 0; the Java app fills these at runtime
-   * (`LoadReferenceDataTask` from `ReferenceDataUtil`). The content builder (step 4) precomputes them.
+   * Reference data. The WaniKani content stores 0; the content builder precomputes them.
    */
   frequency: number;
   joyoGrade: number;

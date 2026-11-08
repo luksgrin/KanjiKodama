@@ -1,20 +1,17 @@
 /**
- * The quiz (`UnansweredSessionFragment`, `AnsweredSessionFragment`, `AnkiSessionFragment`) for the current
- * question of an active session, laid out as the Java fragments:
+ * The quiz for the current question of an active session, in three layouts:
  *
- * - unanswered (`fragment_unanswered_question.xml`): the question view (its own height: the progress line
+ * - unanswered: the question view (its own height: the progress line
  *   and the 104 sp text), the question type banner, the centred underlined answer field, a spacer, and the
  *   quick-action row Don't know | Submit at the bottom, on the keyboard. The quiz fills the height above the
  *   keyboard (`useVisibleViewport`: the Android WebView resizes, iOS / Chrome shrink the visual viewport);
  *   on a very short screen the question view gives up height first, so the row stays visible. Display
  *   settings: `stretch_quiz_question_view` (the question view takes the spacer's room),
  *   `quiz_question_view_height` (a fixed height in dp), `center_caret`. With the keyboard open the row sits
- *   8 px above it, and a tap beside the field keeps the keyboard (the owner's requests; Java leaves a
- *   navigation bar height and hides the keyboard);
- * - answered (`fragment_answered_question.xml`): the question view grows by its Next button (bottom right,
- *   focused like Java's, the keyboard closes), the answer band, the messages and the item info scroll, and
+ *   8 px above it, and a tap beside the field keeps the keyboard (docs/behaviour.md);
+ * - answered: the question view grows by its Next button (bottom right, focused, the keyboard closes), the answer band, the messages and the item info scroll, and
  *   the second Next sits in Submit's place at the bottom of the screen;
- * - Anki (`fragment_anki.xml`): the question view, banner, answer and item info scroll; the full-width
+ * - Anki: the question view, banner, answer and item info scroll; the full-width
  *   flat Show answer / Incorrect | Correct / Next bar is pinned at the bottom, `anki_buttons_height` dp high.
  *
  * The toolbar is in the subject's colour with the question title and the session menu (`useSessionMenu`).
@@ -126,7 +123,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
     }
   }, [floating.retryCount]);
 
-  // An incorrect answer vibrates when the answered screen appears (`AnsweredSessionFragment.onViewCreated`).
+  // An incorrect answer vibrates when the answered screen appears.
   const wrongBuzzed = useRef<string | null>(null);
   useEffect(() => {
     if (answered && !session.correct && !anki && wrongBuzzed.current !== questionKey && hapticFeedbackOnWrong(prefs)) {
@@ -135,9 +132,9 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
     }
   });
 
-  // One action at a time. Don't know / Submit / Next ignore taps while one runs but keep their look (the
-  // owner's request; Java's disableInteraction() shows them pale until the next question, and the exiting
-  // copy of the fragment would slide out pale). Next is disabled only by next_button_delay (`frozen`).
+  // One action at a time. Don't know / Submit / Next ignore taps while one runs but keep their look (no
+  // pale disabled state, and the exiting copy of the screen slides out in the normal look; see
+  // docs/behaviour.md). Next is disabled only by next_button_delay (`frozen`).
   const busyRef = useRef(false);
   const run = async (f: () => Promise<unknown>): Promise<void> => {
     if (busyRef.current) return;
@@ -187,7 +184,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
     holdKeyboard();
     void run(() => rt.next());
   };
-  // Java: the answered fragment focuses its Next button (the focus highlight) and hides the keyboard.
+  // The answered screen focuses its Next button (the focus highlight) and hides the keyboard.
   useEffect(() => {
     if (answered && !anki && !busy && !frozen) nextRef.current?.focus({ preventScroll: true });
   }, [answered, anki, busy, frozen]);
@@ -228,7 +225,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
   const verdict = floating.lastVerdict;
 
   const input = answerInputAttributes(prefs, question.type, platform.capabilities.imeFlags === true);
-  // Taps on the quiz buttons leave the focus (and the keyboard) in the answer field, like Java's buttons.
+  // Taps on the quiz buttons leave the focus (and the keyboard) in the answer field.
   // Only the mousedown: cancelling a touch's pointerdown also drops its click in WebKit (iOS).
   const keepFocus = (e: React.MouseEvent) => e.preventDefault();
   const stretch = !answered && stretchQuestionView(prefs);
@@ -282,7 +279,7 @@ export function Quiz({ rt, snap, session, question }: QuizProps) {
           </>
         ) : (
           <>
-            {/* nextButton2 takes Submit's place (fragment_answered_question.xml: Space | nextButton2). */}
+            {/* The second Next takes Submit's place (spacer | Next). */}
             <span className="kk-quiz-actions-space" aria-hidden="true" />
             <button type="button" className="kk-btn" disabled={frozen} data-testid="next-bottom" onClick={goNext}>Next</button>
           </>

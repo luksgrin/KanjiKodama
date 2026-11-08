@@ -1,16 +1,16 @@
 /**
- * The `session*` actions (`SessionDriver`): they drive `core/session`'s `Session` the way
- * SessionActivity and its fragments do, and record per step the session state, the question queue
+ * The `session*` actions: they drive `core/session`'s `Session` the way the session screens do, and
+ * record per step the session state, the question queue
  * and every job the session scheduled.
  *
  * State: `rs.ext.session` holds what the database keeps (session items and properties); `restore`
- * deletes it like the Java reset deletes the session items, and the live session is then `reset()`.
+ * deletes it as a reset deletes the session items, and the live session is then `reset()`.
  * `rs.ext.sessionLive` holds the live `Session` (a process restart replaces it) and
  * `rs.ext.prefs` the preferences the steps set (put back only by the next scenario's base reset).
  */
 
 import { ankiMode } from '../../../../src/core/anki';
-import { JavaRandom } from '../../../../src/core/rng';
+import { SeededRandom } from '../../../../src/core/rng';
 import {
   QUESTION_TYPE_INFO,
   checkAnswer,
@@ -45,14 +45,14 @@ import {
   type Preferences,
   type PreferenceValue,
 } from '../../../../src/core/settings';
-import { javaRound, type ActionHandler, type RunnerState, type Step } from '../runner';
+import { roundHalfUp, type ActionHandler, type RunnerState, type Step } from '../runner';
 import { matchesFilter, select, type Filter } from '../select';
 import { levelTestRandom } from './levelTest';
 
 const WRONG_MEANING = 'qqqqqqqq';
 const WRONG_READINGS = ['ぬぬぬぬ', 'へへへへ', 'ゑゑゑゑ'];
 
-/** `SessionDriver.PINNED`: what every sessionStart sets first (null removes the key). */
+/** What every sessionStart sets first (null removes the key). */
 const PINNED: readonly [string, PreferenceValue][] = [
   ['enable_advanced', false],
   ['delay_result_upload', false],
@@ -85,7 +85,7 @@ function prefsOf(rs: RunnerState): Record<string, PreferenceValue> {
   return p;
 }
 
-/** The stored session; a restore (which deleted it) also resets the live session, like `ProgressStore.restore`. */
+/** The stored session; a restore (which deleted it) also resets the live session. */
 function storedOf(rs: RunnerState): StoredSession {
   let s = rs.ext.session as Stored | undefined;
   if (s === undefined) {
@@ -108,11 +108,11 @@ const hooks: SessionHooks = {
   },
 };
 
-/** The Java base reset's `new Random(seed)` behind the inflection picks; it lives for the whole scenario. */
-function inflectionRngOf(rs: RunnerState): JavaRandom {
-  let r = rs.ext.inflectionRng as JavaRandom | undefined;
+/** The seeded generator behind the inflection picks; it lives for the whole scenario. */
+function inflectionRngOf(rs: RunnerState): SeededRandom {
+  let r = rs.ext.inflectionRng as SeededRandom | undefined;
   if (r === undefined) {
-    r = new JavaRandom(BigInt(rs.seed));
+    r = new SeededRandom(BigInt(rs.seed));
     rs.ext.inflectionRng = r;
   }
   return r;
@@ -129,7 +129,7 @@ function newLive(rs: RunnerState): Live {
       return rs.now;
     },
     rng: rs.rng,
-    // InflectionUtil.setRandomSourceForTesting(new Random(seed)::nextDouble) in the Java base reset.
+    // The seeded source of the randomized inflection picks.
     inflectionRng: inflectionRngOf(rs),
     get stored(): StoredSession {
       return storedOf(rs);
@@ -151,7 +151,7 @@ function liveOf(rs: RunnerState): Live {
   return live;
 }
 
-/** `SessionDriver.applySettings`: PINNED plus the step's settings; `resolved.settings` is what was applied. */
+/** PINNED plus the step's settings; `resolved.settings` is what was applied. */
 function applySettings(rs: RunnerState, overrides: unknown, resolved: Record<string, unknown>): void {
   const wanted = new Map<string, PreferenceValue>(PINNED);
   if (overrides !== null && typeof overrides === 'object') {
@@ -165,7 +165,7 @@ function applySettings(rs: RunnerState, overrides: unknown, resolved: Record<str
   resolved.settings = Object.fromEntries(wanted);
 }
 
-/** The subjects of a start, in id-list order (`SubjectCollectionsDao.getByIds`: visible only). */
+/** The subjects of a start, in id-list order (visible only). */
 function subjectsFor(db: LearnerDb, ids: readonly number[]): SessionSubject[] {
   return ids.map((id) => {
     const t = db.table.get(id);
@@ -211,7 +211,7 @@ function kind(t: QuestionType): 'meaning' | 'reading' {
   return QUESTION_TYPE_INFO[t].meaning ? 'meaning' : 'reading';
 }
 
-/** `SessionDriver.spec`: the first rule list (id:kind, id, kind) that still has entries, else the default. */
+/** The first rule list (id:kind, id, kind) that still has entries, else the default. */
 function spec(step: Step, used: Map<string, number>, id: number, t: QuestionType): unknown {
   const rules = (step.rules ?? {}) as Record<string, unknown[]>;
   for (const key of [`${id}:${kind(t)}`, String(id), kind(t)]) {
@@ -262,7 +262,7 @@ function wrongText(db: LearnerDb, t: QuestionType, s: ContentSubject): string {
   throw new Error(`no wrong answer for ${s.id} ${t}`);
 }
 
-/** `SubjectDao.getKanjiByCharacters`: the first visible kanji with these characters, in id order. */
+/** The first visible kanji with these characters, in id order. */
 function kanjiByCharacters(db: LearnerDb, characters: string): ContentSubject | null {
   for (const s of db.content.subjects) {
     if (s.object === 'kanji' && s.characters === characters && db.table.get(s.id)!.hiddenAt === 0) return s;
@@ -283,7 +283,7 @@ function answer(rs: RunnerState, live: Live, step: Step, resolved: Record<string
   const only = typeof step.only === 'string' ? step.only : null;
   const app = step.advance === 'app';
   const advance = app || (typeof step.advance === 'boolean' ? step.advance : true);
-  const spacing = javaRound((typeof step.spacingSeconds === 'number' ? step.spacingSeconds : 0) * 1000);
+  const spacing = roundHalfUp((typeof step.spacingSeconds === 'number' ? step.spacingSeconds : 0) * 1000);
   const used = new Map<string, number>();
   const answers: unknown[] = [];
   let stopped: string | null = null;
@@ -403,7 +403,7 @@ function perform(s: Session, b: Button): void {
   }
 }
 
-/** The lesson presentation's item (`SessionDriver.presentation`). */
+/** The lesson presentation's item. */
 function presentation(live: Live): Record<string, unknown> {
   const item = live.session.currentItem;
   return {
@@ -417,7 +417,7 @@ function questionList(questions: readonly Question[]): unknown[] {
   return questions.map((q) => [q.item.id, q.type]);
 }
 
-/** `SessionDriver.state`. */
+/** The recorded session state. */
 function state(live: Live): Record<string, unknown> {
   const s = live.session;
   const current = s.currentQuestion;
@@ -447,7 +447,7 @@ function state(live: Live): Record<string, unknown> {
   };
 }
 
-/** `SessionDriver.perform`: the action, then `chooseQuestion`, then the recorded state and jobs. */
+/** The action, then `chooseQuestion`, then the recorded state and jobs. */
 const sessionAction: ActionHandler = ({ rs, step, resolved }) => {
   let live = liveOf(rs);
   live.jobs.length = 0;

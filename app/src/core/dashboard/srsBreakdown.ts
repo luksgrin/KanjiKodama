@@ -1,8 +1,6 @@
 /**
  * The dashboard's SRS breakdown: visible subjects per breakdown bucket (0 apprentice, 1 guru,
- * 2 master, 3 enlightened, 4 burned; initial and locked stages are left out). Java:
- * `LiveSrsBreakDown.computeBreakDown`, `model/SrsBreakDown.getSrsBreakdownCount`,
- * `SubjectViewsDao.getSrsBreakDownItems`.
+ * 2 master, 3 enlightened, 4 burned; initial and locked stages are left out).
  */
 
 import { num, progressRow, srsSystemOf, type LearnerDb } from '../progression';
@@ -24,9 +22,8 @@ export function computeSrsBreakdown(db: LearnerDb): number[] {
 }
 
 /**
- * The post-60 progression bar's counts (`SrsBreakDown.getPost60ShallowCount(0..6)` /
- * `getPost60DeepCount(0..10)`): every visible subject, locked and initial ones included
- * (`SubjectViewsDao.getSrsBreakDownItems`).
+ * The post-60 progression bar's counts (7 shallow or 11 deep buckets): every visible subject, locked
+ * and initial ones included.
  */
 export function computePost60Breakdown(db: LearnerDb, deep: boolean): number[] {
   const out = new Array<number>(deep ? 11 : 7).fill(0);

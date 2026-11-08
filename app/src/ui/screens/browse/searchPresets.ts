@@ -1,8 +1,8 @@
 /**
- * Search presets (`db/model/SearchPreset`, `SearchPresetDao`, `livedata/LiveSearchPresets`): a name, the
+ * Search presets: a name, the
  * search type (0 level, 1 keyword, 2 advanced) and its data (the level, the query or the advanced
- * parameters' JSON). Java keeps them in their own `search_preset` table, outside the progress file;
- * here they are the Dexie `meta` row `searchPresets` (a progress restore leaves them alone, as in Java).
+ * parameters' JSON). They are outside the progress file: the Dexie `meta` row `searchPresets` (a
+ * progress restore leaves them alone).
  *
  * Names starting with U+0000 are internal (the self-study default, `"\u0000SELF_STUDY_DEFAULT"`) and
  * not listed by `presetNames`. The self-study screen can use the same functions.
@@ -33,7 +33,7 @@ function sorted(presets: SearchPreset[]): SearchPreset[] {
   return presets.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 }
 
-/** `SearchPresetDao.getLivePresets`: every preset, by name. */
+/** Every preset, by name. */
 export async function loadPresets(kk: KkDb): Promise<readonly SearchPreset[]> {
   return sorted(parse((await kk.meta.get(SEARCH_PRESETS_META_KEY))?.value));
 }
@@ -48,22 +48,22 @@ async function update(kk: KkDb, change: (list: SearchPreset[]) => SearchPreset[]
   return next;
 }
 
-/** `SearchPresetDao.setPreset`: `INSERT OR REPLACE` by name. */
+/** Adds or replaces a preset by name. */
 export function savePreset(kk: KkDb, preset: SearchPreset): Promise<readonly SearchPreset[]> {
   return update(kk, (list) => [...list.filter((p) => p.name !== preset.name), { ...preset }]);
 }
 
-/** `SearchPresetDao.deletePreset`. */
+/** Deletes a preset. */
 export function deletePreset(kk: KkDb, name: string): Promise<readonly SearchPreset[]> {
   return update(kk, (list) => list.filter((p) => p.name !== name));
 }
 
-/** `LiveSearchPresets.getNames`: the user's presets (not the internal U+0000 ones). */
+/** The user's presets (not the internal U+0000 ones). */
 export function presetNames(presets: readonly SearchPreset[]): string[] {
   return presets.filter((p) => !p.name.startsWith('\u0000')).map((p) => p.name);
 }
 
-/** `LiveSearchPresets.getByName`. */
+/** The preset with this name, or null. */
 export function presetByName(presets: readonly SearchPreset[], name: string): SearchPreset | null {
   return presets.find((p) => p.name === name) ?? null;
 }

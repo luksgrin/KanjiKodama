@@ -1,5 +1,5 @@
 /**
- * Fast travel: `CurriculumUi.fastTravel` / `confirmTravel` as the same dialogs: "Checking…", then
+ * Fast travel, as dialogs: "Checking…", then
  * either the blocked message ("Fast travel" / why) or the list dialog "Fast travel from level N"
  * (`setItems`, Cancel), then "Travel to level M?" (Cancel / Travel), "Travelling…" and the welcome
  * message. Local mode only.

@@ -1,15 +1,13 @@
 /**
- * The Java app's eight themes (`enums/ActiveTheme.java`, `res/values/styles.xml` WK*Theme /
- * KanjiKodama*Theme, `res/values/colors.xml`), the Light Theme / Dark Theme choice
- * (`GlobalSettings.Display.getTheme`: `theme` while the system is light, `nightTheme` while it is dark)
- * and the theme customisations (`theme_customizations_<THEME>`, `ThemeCustomizationActivity`).
+ * The eight themes, the Light Theme / Dark Theme choice (`theme` while the system is light,
+ * `nightTheme` while it is dark) and the theme customisations (`theme_customizations_<THEME>`).
  *
  * The two KanjiKodama themes are `tokens.css` itself (`<html data-theme="light|dark">`). The six
- * upstream themes are applied as inline custom properties on `<html>` over the matching base
+ * other themes are applied as inline custom properties on `<html>` over the matching base
  * (`data-theme` = the AppCompat parent: light for "Wanikani", dark for the rest), with
  * `data-kk-theme` naming the active theme. Customised colours are inline properties too.
  *
- * Token ← Java attribute: `--color-text` colorPrimary, `--kk-muted` colorPrimaryLight (text on the
+ * Token ← theme attribute: `--color-text` colorPrimary, `--kk-muted` colorPrimaryLight (text on the
  * subject and browse-level colours), `--color-text-toned` colorPrimaryTonedDown, `--color-on-pastel`
  * colorPrimaryInverse, `--color-primary-dark` colorPrimaryDark, `--color-accent` colorAccent,
  * `--color-control-activated` colorControlActivated (switches, seek bars), `--color-bg`
@@ -42,7 +40,7 @@ export const LIGHT_THEME_KEY = 'theme';
 export const DARK_THEME_KEY = 'nightTheme';
 export const DEFAULT_LIGHT_THEME: ThemeId = 'KANJIKODAMA_LIGHT';
 export const DEFAULT_DARK_THEME: ThemeId = 'KANJIKODAMA_DARK';
-/** `Constants.NUM_THEME_CUSTOMIZATION_OPTIONS`. */
+/** The number of customisable colours. */
 export const NUM_THEME_CUSTOMIZATION_OPTIONS = 33;
 
 export function customizationKey(theme: ThemeId): string {
@@ -85,7 +83,7 @@ const BREEZE_PASSED = ['#20FCAA', '#1CDC9A'];
 const BREEZE_LP = ['#1A3A45', '#0D89E3', '#2599EC', '#3DA9F6', '#4DB1F7', '#5DB9F9', '#6DC1FA', '#7DC9FC', '#C1C0C1', '#1D2023'];
 const NORD_TEXT = ['#5E81AC', '#B48EAD', '#A3BE8C', '#A3BE8C'];
 
-/** The mm_btn colours every upstream theme declares. */
+/** The button colours every other theme declares. */
 const WK_BUTTON = {
   '--btn-fill': '#DDDDDD', '--btn-light': '#F2F2F2', '--btn-shade': '#BBBBBB', '--btn-outline': '#333333',
   '--color-shadow': 'rgb(0 0 0 / 0.333)', '--kk-shadow': 'rgb(0 0 0 / 0.333)',
@@ -131,7 +129,7 @@ function paletteTokens(p: Palette, kind: 'light' | 'dark', extra: Readonly<Recor
     // AppCompat's textColorPrimary (KanjiKodama overrides it with mmInk).
     '--color-pref-title': kind === 'light' ? 'rgb(0 0 0 / 0.87)' : '#FFFFFF',
     '--color-edit-line': kind === 'light' ? 'rgb(0 0 0 / 0.6)' : 'rgb(255 255 255 / 0.7)',
-    // SrsBreakDownView: the counts' shadow layer only in LIGHT and the KanjiKodama themes.
+    // SRS breakdown: the counts' shadow layer only in LIGHT and the KanjiKodama themes.
     '--srs-count-shadow': kind === 'light' ? 'var(--text-shadow-3px)' : 'none',
     // Roboto's includeFontPadding (yMax 1.056 / yMin 0.271 em against ascent 0.928 / descent 0.244).
     '--fp-top': '0.128em', '--fp-bottom': '0.027em',
@@ -283,17 +281,17 @@ export function serializeCustomizations(colors: readonly number[]): string {
   return JSON.stringify(colors.map((n) => n | 0));
 }
 
-/** An ARGB int (Java `int`) as `#RRGGBB`. */
+/** An ARGB int (32-bit) as `#RRGGBB`. */
 export function intToHex(color: number): string {
   return '#' + ((color >>> 0) & 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
 }
 
-/** `#RRGGBB` as an opaque ARGB Java int (`| Color.BLACK`). */
+/** `#RRGGBB` as an opaque ARGB 32-bit int. */
 export function hexToInt(hex: string): number {
   return (parseInt(hex.slice(1), 16) | 0xFF000000) | 0;
 }
 
-/** `getBaseColor(index)` of ThemeCustomizationActivity. */
+/** The theme's own colour at a customisation index. */
 export function baseColor(t: ThemeDef, index: number): string {
   if (index < 4) return t.subjectBucket[index]!;
   if (index < 11) return t.stage[index - 4]!;
@@ -365,7 +363,7 @@ export function systemPrefersDark(): boolean {
     && window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
-/** `GlobalSettings.Display.getTheme`: the night theme while the system is in dark mode. */
+/** The night theme while the system is in dark mode. */
 export function activeTheme(p: ThemePrefs, dark: boolean = systemPrefersDark()): ThemeDef {
   return THEMES[dark ? p.dark : p.light];
 }

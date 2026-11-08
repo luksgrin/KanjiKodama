@@ -151,7 +151,7 @@ describe('planReviewNotifications', () => {
 });
 
 describe('reviewNotificationText', () => {
-  it('matches NotificationWorker', () => {
+  it('has the notification texts', () => {
     expect(reviewNotificationText({ lessons: 0, totalReviews: 12 })).toEqual({
       title: 'New reviews available',
       body: '12 reviews available',

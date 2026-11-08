@@ -37,7 +37,7 @@ import { BASE, fixture, NOW } from './helpers';
 
 const HOUR = 3600_000;
 
-describe('formatTimestampForApi (TextUtil.formatTimestampForApi)', () => {
+describe('formatTimestampForApi', () => {
   it('prints ISO_OFFSET_DATE_TIME in UTC, fraction only when non-zero', () => {
     expect(formatTimestampForApi(0)).toBeNull();
     expect(formatTimestampForApi(1700000000000)).toBe('2023-11-14T22:13:20Z');
@@ -119,7 +119,7 @@ describe('API state and schedule', () => {
     expect(collectionUri('/v2/assignments', 0)).toBe('/v2/assignments');
   });
 
-  it('classifies statuses like ApiTask', () => {
+  it('classifies statuses', () => {
     expect([200, 201, 304, 401, 404, 422, 429, 500].map(classifyStatus)).toEqual(
       ['ok', 'ok', 'notModified', 'unauthorized', 'error', 'unprocessable', 'tooManyRequests', 'error']);
   });
@@ -135,7 +135,7 @@ describe('responses', () => {
     expect(parseCollectionPage({ data: [{ id: 1, data: {} }] })!.invalid).toBe(1);
   });
 
-  it('drops readings that are empty or "None" (GetSubjectsTask)', () => {
+  it('drops readings that are empty or "None"', () => {
     const page = parseCollectionPage(fixture('subjects-page2'))!;
     const cleaned = cleanSubjectData(page.items[0]!.data) as { readings: Array<{ reading: string }> };
     expect(cleaned.readings.map((r) => r.reading)).toEqual(['いち']);
@@ -173,7 +173,7 @@ describe('queue decisions', () => {
     expect(t).toMatchObject({ attempts: 2, nextAttemptAt: NOW + 60_000, lastError: 'HTTP 503' });
   });
 
-  it('builds the Java request bodies; times only when older than 5 minutes', () => {
+  it('builds the request bodies; times only when older than 5 minutes', () => {
     expect(startAssignmentBody(NOW - 60_000, NOW)).toEqual({ started_at: null });
     expect(startAssignmentBody(NOW - 10 * 60_000, NOW)).toEqual({ started_at: '2026-10-25T09:50:00Z' });
     expect(createReviewBody(10, 1, 2, NOW - 6 * 60_000, NOW)).toEqual({

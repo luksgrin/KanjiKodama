@@ -1,12 +1,10 @@
 /**
- * Settings → "Other actions" (`preferences.xml` category `about`, `PreferencesFragment`): About this
+ * Settings → "Other actions": About this
  * app, Data import / export, Reset UI confirmations and tutorials, Reset database, Backup your
- * settings, Restore your settings, with the Java titles, summaries, dialogs and toasts. "Support and
- * feedback" is hidden as in Java (`LocalMode`). The known limitations of a build are in About, as in
- * Java (no settings row).
+ * settings, Restore your settings, with their titles, summaries, dialogs and toasts. The known
+ * limitations of a build are in About (no settings row).
  *
- * `DataImportExportPage` is `DataImportExportActivity` (`activity_data_import_export.xml`), shown as
- * `/settings?screen=data_import_export`.
+ * `DataImportExportPage` is shown as `/settings?screen=data_import_export`.
  */
 import type { ReactNode } from 'react';
 import { useApp, useReady } from '../../hooks/useApp';
@@ -34,7 +32,7 @@ import './data.css';
 
 /** The sub-screen key of the data import/export page. */
 export const DATA_IMPORT_EXPORT_SCREEN = 'data_import_export';
-/** `android:label` of `DataImportExportActivity`. */
+/** The data import/export page's title. */
 export const DATA_IMPORT_EXPORT_TITLE = 'Data import/export';
 
 function ResetDatabaseMessage() {
@@ -97,7 +95,7 @@ export function OtherActionsCategory({ alerts, onResetTutorials }: { alerts: Ale
         alerts.close();
         platform.files.saveText(settingsBackupFileName(new Date(app.clock.now())), settingsBackupText(app.get().prefs)).then(
           (r) => { if (r === 'saved') toast('Settings backed up successfully.'); },
-          () => undefined, // Java: e.printStackTrace() only
+          () => undefined, // a failed save shows nothing
         );
       },
     },
@@ -118,11 +116,11 @@ export function OtherActionsCategory({ alerts, onResetTutorials }: { alerts: Ale
           try {
             const opened = await platform.files.openText();
             if (!opened) return;
-            const settings = parseSettingsBackup(opened.text); // all or nothing, like BackupActivity
+            const settings = parseSettingsBackup(opened.text); // all or nothing
             for (const [key, value] of Object.entries(settings)) await app.setPreference(key, value);
             toast('Settings restored successfully.');
           } catch {
-            // Java: e.printStackTrace() only, nothing restored
+            // a bad file: nothing restored
           }
         })();
       },
@@ -142,7 +140,7 @@ export function OtherActionsCategory({ alerts, onResetTutorials }: { alerts: Ale
   );
 }
 
-/** Java exports with `ACTION_SEND` (the share sheet); builds without one use the save picker. */
+/** Exports go to the share sheet (`ACTION_SEND`); builds without one use the save picker. */
 function share(files: FilesApi, name: string, text: string): Promise<SaveResult> {
   return files.shareText ? files.shareText(name, text) : files.saveText(name, text);
 }
@@ -157,7 +155,7 @@ export function DataImportExportPage() {
     try {
       await share(files, SEARCH_PRESETS_FILE, searchPresetsExportText(await loadPresets(app.db)));
     } catch {
-      // Java: the IOException ends the click handler (`safe`)
+      // a failed read ends the action
     }
   };
 
@@ -195,7 +193,7 @@ export function DataImportExportPage() {
     if (!opened) return;
     try {
       const known = new Set(content.content.subjects.map((s) => s.id));
-      // `SubjectDao.updateStars` updates existing subject rows only.
+      // Ratings only apply to subjects the content has.
       for (const [stars, ids] of parseStarRatingsImport(opened.text)) await setStarRatings(app.db, ids.filter((id) => known.has(id)), stars);
       toast('Import finished');
     } catch {

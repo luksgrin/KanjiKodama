@@ -1,5 +1,5 @@
 /**
- * `api/model/Reading`'s answer matching: exact match (on'yomi also in katakana) and the digraph
+ * Reading answer matching: exact match (on'yomi also in katakana) and the digraph
  * check (a regular kana typed where the reading has a small one, or the other way round).
  */
 import type { Reading } from '../content';
@@ -19,7 +19,7 @@ export function isKunYomi(r: Reading): boolean {
   return r.type === 'kunyomi';
 }
 
-/** `PseudoIme.toKatakana` with Java's null passthrough. */
+/** `toKatakana`, passing null through. */
 function katakanaOf(reading: string | null): string | null {
   return reading === null ? null : toKatakana(reading);
 }

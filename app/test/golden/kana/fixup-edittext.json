@@ -1,6 +1,5 @@
 {
   "area": "kana.fixupEditText",
-  "javaSource": "fragments/UnansweredSessionFragment TextWatcher -> util/PseudoIme.fixup on a real EditText",
   "cases": [
     {"name":"seq-1","input":{"edits":[{"insert":"n","at":-1}]},"output":{"editText":[{"value":"n","selStart":1,"selEnd":1,"fixupCalls":1,"maxDepth":1,"composing":[-1,-1]}],"editable":[{"value":"n","selStart":1,"selEnd":1,"fixupCalls":1,"maxDepth":1}],"dummy":["n"],"firstDiffFromDummy":null,"firstDiffFromDummyEditable":null}},
     {"name":"seq-2","input":{"edits":[{"insert":"n","at":-1},{"insert":"n","at":-1}]},"output":{"editText":[{"value":"n","selStart":1,"selEnd":1,"fixupCalls":1,"maxDepth":1,"composing":[-1,-1]},{"value":"ん","selStart":1,"selEnd":1,"fixupCalls":2,"maxDepth":2,"composing":[-1,-1]}],"editable":[{"value":"n","selStart":1,"selEnd":1,"fixupCalls":1,"maxDepth":1},{"value":"ん","selStart":1,"selEnd":1,"fixupCalls":2,"maxDepth":2}],"dummy":["n","ん"],"firstDiffFromDummy":null,"firstDiffFromDummyEditable":null}},

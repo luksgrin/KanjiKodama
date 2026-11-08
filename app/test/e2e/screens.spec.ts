@@ -4,7 +4,7 @@ import { checkScreen, openApp, tab, toolbarBack } from './helpers/app';
 import { subjectsAt } from './helpers/content';
 import { kanaToRomaji } from './helpers/romaji';
 
-test('curriculum switch WaniKani → JLPT and back (Java dialogs over Settings)', async ({ page }, info) => {
+test('curriculum switch WaniKani → JLPT and back (dialogs over Settings)', async ({ page }, info) => {
   await openApp(page, '/settings');
   await expect(page.getByTestId('link-curriculum')).toContainText('WaniKani order. Tap to switch; progress on every item is kept.');
   await page.getByTestId('link-curriculum').click();
@@ -28,7 +28,7 @@ test('curriculum switch WaniKani → JLPT and back (Java dialogs over Settings)'
   await tab(page, 'Home');
   await expect(page.getByTestId('level-duration')).toContainText(`You are level ${level} (`);
   await checkScreen(page, info, '22-dashboard-jlpt');
-  // Browse: Java's flat level grid in JLPT order too.
+  // Browse: the flat level grid in JLPT order too.
   await tab(page, 'Browse');
   await expect(page.getByTestId(`browse-level-${level}`)).toHaveAttribute('aria-current', 'true');
 
@@ -71,7 +71,7 @@ test('browse by level and search by romaji; item page', async ({ page }, info) =
   await checkScreen(page, info, '33-item-page-full', { fullPage: true });
 });
 
-test('settings: Java sub-screens, list dialogs, Advanced gate', async ({ page }, info) => {
+test('settings: sub-screens, list dialogs, Advanced gate', async ({ page }, info) => {
   await openApp(page);
   await tab(page, 'Settings');
   await expect(page.getByTestId('screen-review_settings')).toBeVisible();
@@ -82,7 +82,7 @@ test('settings: Java sub-screens, list dialogs, Advanced gate', async ({ page },
   await checkScreen(page, info, '40-settings-full', { strict: true, fullPage: true });
 
   // A sub-screen with the toolbar title, a list setting as a radio dialog. (Long toolbar titles are
-  // ellipsized as in Java, "REVIEW ADVAN…", so those screens' layout checks are not strict.)
+  // ellipsized, "REVIEW ADVAN…", so those screens' layout checks are not strict.)
   await page.getByTestId('screen-review_settings').click();
   await expect(page).toHaveURL(/#\/settings\?screen=review_settings$/);
   await expect(page.locator('select')).toHaveCount(0);
@@ -139,7 +139,7 @@ test('settings: Java sub-screens, list dialogs, Advanced gate', async ({ page },
   await expect(page.getByTestId('setting-enable_advanced')).toHaveAttribute('aria-checked', 'true');
 });
 
-test('fast travel: Java dialogs (blocked in WaniKani order)', async ({ page }, info) => {
+test('fast travel: dialogs (blocked in WaniKani order)', async ({ page }, info) => {
   await openApp(page, '/settings');
   await page.getByTestId('link-fast-travel').click();
   const msg = page.getByRole('dialog', { name: 'Fast travel' });

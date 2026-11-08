@@ -1,6 +1,5 @@
 {
   "area": "answers.unicodeTable",
-  "javaSource": "Character.getType and String.toLowerCase(Locale.ENGLISH) as util/FuzzyMatching.cleanString uses them, on Android (ICU 76.1.0.0, Unicode 16.0.0.0, API 36)",
   "cases": [
     {"name":"type-0000-001F","input":{"from":0,"to":31},"output":{"type":15,"class":"space"}},
     {"name":"type-0020-0020","input":{"from":32,"to":32},"output":{"type":12,"class":"space"}},

@@ -1,6 +1,5 @@
 /**
- * Level progression (`LevelProgressView`, `level_progress.xml`, `LevelProgressRowView`,
- * `LevelProgressBarView`): on the tile background, the bold "Level progression" heading, one row per
+ * Level progression: on the tile background, the bold "Level progression" heading, one row per
  * level and type with the 24 dp bar left (buckets 0 passed, 1..7 apprentice stages, 8 initiate, 9
  * locked; the level-up target line on the user's level for kanji) and "Lvl 4 kanji" (14 sp) right,
  * then the legend "Passed / Apprentice / Initiate / Locked". A row opens the search for that level and
@@ -12,7 +11,7 @@ import { defaultParameters, writeParameters } from '../../../core/search';
 import { useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 
-/** `SubjectType.levelProgressLabel`. */
+/** The bar labels per subject type. */
 const TYPE_LABEL: Readonly<Record<SubjectTypeName, string>> = {
   WANIKANI_RADICAL: 'radicals',
   WANIKANI_KANJI: 'kanji',
@@ -20,7 +19,7 @@ const TYPE_LABEL: Readonly<Record<SubjectTypeName, string>> = {
   WANIKANI_KANA_VOCAB: 'vocabulary',
 };
 
-/** `SubjectType.hasLevelUpTarget`. */
+/** The subject types with a level-up target (the 90 % mark). */
 const HAS_TARGET: ReadonlySet<SubjectTypeName> = new Set(['WANIKANI_KANJI']);
 
 export function LevelProgress({ bars, userLevel }: { bars: LevelProgressBar[]; userLevel: number }) {

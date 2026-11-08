@@ -1,14 +1,12 @@
 /**
- * The dashboard (`MainActivity`, `activity_main.xml`), in Java's order: the level line
- * (`LevelDurationView`), "Lessons: N  Reviews: N" (`AvailableSessionsView`), the upcoming line
- * (`UpcomingReviewsView`; the PWA adds the next review time), the start / resume buttons
- * (`SessionButtonsView`), then the panels the dashboard settings switch on: lesson/review breakdown
+ * The dashboard, top to bottom: the level line, "Lessons: N  Reviews: N", the upcoming line (the
+ * PWA adds the next review time), the start / resume buttons, then the panels the dashboard settings switch on: lesson/review breakdown
  * (`show_lesson_review_breakdown`, off), timeline (`show_timeline`), SRS breakdown
  * (`show_srs_breakdown`), level progression (`show_level_progression`), Jōyō and JLPT progress (off),
  * recent unlocks, critical condition and recently burned items (on).
  *
  * The PWA's own banners (install hint, backup reminder) sit right after the session buttons, so they
- * never push START below the fold on small phones. Not ported: the post-60 progression bar (local
+ * never push START below the fold on small phones. Not shown: the post-60 progression bar (local
  * mode never gets past level 60), the server error banners (server mode screens), the keyboard help
  * banner (no keyboard help screen in this app).
  */

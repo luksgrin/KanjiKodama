@@ -1,4 +1,4 @@
-{"area":"anki.answerText","javaSource":"model/Question.getAnkiAnswerRichText, enums/QuestionType.getAnkiAnswerRichText, db/model/Subject.getMeaningRichText / getRegularReadingRichText / getAcceptedOnYomiRichText / getAcceptedKunYomiRichText / getMeaningSynonymsRichText"}
+{"area":"anki.answerText"}
 {"name":"1","input":{"id":1,"object":"WANIKANI_RADICAL","characters":"一"},"output":{"WANIKANI_RADICAL_NAME":{"text":"Answer: Ground","bold":[],"shownStyled":false}}}
 {"name":"2","input":{"id":2,"object":"WANIKANI_RADICAL","characters":"ハ"},"output":{"WANIKANI_RADICAL_NAME":{"text":"Answer: Fins","bold":[],"shownStyled":false}}}
 {"name":"3","input":{"id":3,"object":"WANIKANI_RADICAL","characters":"丶"},"output":{"WANIKANI_RADICAL_NAME":{"text":"Answer: Drop","bold":[],"shownStyled":false}}}

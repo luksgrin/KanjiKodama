@@ -1,7 +1,7 @@
 import { ServerAddressError, isWaniKaniUrl, normalizeServerUrl, serverLabel } from '../../src/core/server';
 import { goldenSuite } from './harness';
 
-/** `AnswerGoldenSupport.attempt`: `{value}` or `{error, message}` with Java's exception class. */
+/** `{value}`, or `{error, message}` with the error's type name. */
 function attempt(call: () => string): { value: string } | { error: string; message: string } {
   try {
     return { value: call() };

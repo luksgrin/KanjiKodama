@@ -1,4 +1,4 @@
-/* Download audio (activity_download_audio.xml): a plain page (8 dp: .kk-main's gutter). Tokens only. */
+/* Download audio: a plain page (8 px: .kk-main's gutter). Tokens only. */
 .kk-audio p { margin: 0 0 var(--space-2); }
 .kk-audio-text { white-space: pre-line; }
 .kk-audio-large { font-size: var(--text-lg); }

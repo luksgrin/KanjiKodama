@@ -2,8 +2,7 @@
  * Bundled fonts only (no network), all SIL OFL 1.1; licenses in public/licenses/:
  * - Pixelify Sans: body text (Latin)                     OFL-pixelifysans.txt
  * - Silkscreen 400/700: headings, buttons, counters      OFL-silkscreen.txt
- * - Zen Maru Gothic Medium: bundled as in the Java app, which never uses it (Japanese is the system font)
- * Same files as the Java app (its res/font/).
+ * - Zen Maru Gothic Medium: bundled but not used (Japanese is the system font)
  */
 @font-face {
   font-family: 'Pixelify Sans';
@@ -18,9 +17,9 @@
   line-gap-override: 0%;
 }
 /* 'KK Android Metrics': only the space (U+0020, so it is the primary font of an element that lists it first)
-   with Roboto's line metrics (hhea ascent 1900 / descent 500 of 2048). SubjectInfoButtonView draws a glyph
-   at `textHeight / 2 - (ascent + descent) / 2` with the default Typeface (Roboto) metrics, the CJK face only
-   supplying the outlines; a `lang="ja"` element in the WebView would otherwise centre on the CJK face's
+   with Roboto's line metrics (hhea ascent 1900 / descent 500 of 2048). A big glyph (quiz question, title
+   tile, cards) is centred at `textHeight / 2 - (ascent + descent) / 2` with Roboto's metrics, the CJK face
+   only supplying the outlines; a `lang="ja"` element in the WebView would otherwise centre on the CJK face's
    taller metrics and sit ~0.09 em lower. Every other character falls through to the next family. */
 @font-face {
   font-family: 'KK Android Metrics';

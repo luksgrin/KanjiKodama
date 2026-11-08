@@ -1,27 +1,25 @@
 /**
- * WaniKani API v2 request and response shapes for server mode, as `tasks/ApiTask` and the
- * `Get*Task`s use them. Pure: builds URLs and bodies, parses responses; the HTTP lives in
- * `src/sync/`. Java: tasks/ApiTask, api/model/ApiUser, ApiSubscription, ApiStartAssignment,
- * ApiCreateReview, ApiUpdateStudyMaterial, util/TextUtil.formatTimestampForApi.
+ * WaniKani API v2 request and response shapes for server mode. Pure: builds URLs and bodies,
+ * parses responses; the HTTP lives in `src/sync/`.
  */
 
 import { parseTimestampFromApi, type ApiEnvelope } from '../importer/api';
 
-/** `Constants.API_VERSION`: the `Wanikani-Revision` header. */
+/** The `Wanikani-Revision` header. */
 export const API_REVISION = '20170710';
 /** `Identification.APP_NAME_UA`: User-Agent is `KanjiKodama/<version>`. */
 export const APP_NAME_UA = 'KanjiKodama';
-/** `Constants.NUM_API_TRIES`. */
+/** Tries per API call. */
 export const NUM_API_TRIES = 3;
-/** `Constants.API_RETRY_DELAY` (5 s). */
+/** The pause between tries (5 s). */
 export const API_RETRY_DELAY = 5_000;
-/** `ApiTask` connect timeout (10 s); read timeout one minute. */
+/** Connect timeout 10 s; read timeout one minute. */
 export const API_READ_TIMEOUT = 60_000;
-/** `ServerMode.migrate` read timeout: copying a whole account can take minutes. */
+/** The migrate call's read timeout: copying a whole account can take minutes. */
 export const MIGRATE_READ_TIMEOUT = 10 * 60_000;
 
 /**
- * `TextUtil.formatTimestampForApi`: `ISO_OFFSET_DATE_TIME` in UTC, e.g. `2023-11-14T22:13:20Z`,
+ * An API timestamp: ISO 8601 in UTC, e.g. `2023-11-14T22:13:20Z`,
  * `2023-11-14T22:13:20.5Z` (fraction only when non-zero, trailing zeros dropped). 0 gives null.
  */
 export function formatTimestampForApi(ms: number): string | null {
@@ -36,17 +34,17 @@ export function formatTimestampForApi(ms: number): string | null {
   return `${year}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}${frac}Z`;
 }
 
-/** `ApiTask.getApiCall`'s URL rule: absolute `http(s)://` URLs as is, else `base + uri`. */
+/** The URL rule: absolute `http(s)://` URLs as is, else `base + uri`. */
 export function apiUrl(baseUrl: string, uri: string): string {
   return uri.startsWith('https://') || uri.startsWith('http://') ? uri : baseUrl + uri;
 }
 
-/** A collection path with `?updated_after=` when there is a cursor (`Get*Task.runLocal`). */
+/** A collection path with `?updated_after=` when there is a cursor. */
 export function collectionUri(path: string, updatedAfter: number): string {
   return updatedAfter !== 0 ? `${path}?updated_after=${formatTimestampForApi(updatedAfter)}` : path;
 }
 
-/** The request headers of `ApiTask.getApiCall` / `postApiCall`. */
+/** The request headers of an API call. */
 export function apiHeaders(token: string, opts: { userAgent?: string; json?: boolean } = {}): Record<string, string> {
   const h: Record<string, string> = {
     Authorization: `Bearer ${token}`,
@@ -62,7 +60,7 @@ export function userAgent(version: string): string {
   return `${APP_NAME_UA}/${version}`;
 }
 
-/** How a response status is handled (`ApiTask.getApiCall` / `postApiCall` catch blocks). */
+/** How a response status is handled. */
 export type StatusClass = 'ok' | 'notModified' | 'unauthorized' | 'tooManyRequests' | 'unprocessable' | 'error';
 
 export function classifyStatus(status: number): StatusClass {
@@ -79,7 +77,7 @@ function isObject(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * `ApiTask.parseEntity`'s check: an entity needs `data`, `data_updated_at`, `id` and `object`;
+ * An entity needs `data`, `data_updated_at`, `id` and `object`;
  * otherwise the API is put in error and the entity is dropped (null).
  */
 export function parseEnvelope(v: unknown): (ApiEnvelope & { dataUpdatedAt: string | null }) | null {
@@ -98,13 +96,13 @@ export function parseEnvelope(v: unknown): (ApiEnvelope & { dataUpdatedAt: strin
 export interface CollectionPage {
   items: Array<ApiEnvelope & { dataUpdatedAt: string | null }>;
   nextUrl: string | null;
-  /** Entities that failed `parseEnvelope` (Java sets the API error flag for each). */
+  /** Entities that failed `parseEnvelope` (each sets the API error flag). */
   invalid: number;
 }
 
 /**
- * `ApiTask.collectionApiCall`, one page: `data` must be present (else null: the call failed);
- * `ApiTask.getNextUrl` reads `pages.next_url`.
+ * One page of a collection: `data` must be present (else null: the call failed); the next page is
+ * `pages.next_url`.
  */
 export function parseCollectionPage(body: unknown): CollectionPage | null {
   if (!isObject(body) || !('data' in body) || !Array.isArray(body.data)) return null;
@@ -120,13 +118,13 @@ export function parseCollectionPage(body: unknown): CollectionPage | null {
   return { items, nextUrl: next, invalid };
 }
 
-/** `api/model/ApiUser` with the fields server mode uses. */
+/** The user, with the fields server mode uses. */
 export interface ServerUser {
   /** The account id (a UUID on WaniKani); null when the server sends none. */
   id: string | null;
   username: string | null;
   level: number;
-  /** `GetUserTask`: `subscription.max_level_granted`, or `max_level_granted_by_subscription` without a subscription. */
+  /** `subscription.max_level_granted`, or `max_level_granted_by_subscription` without a subscription. */
   maxLevelGranted: number;
   /** `current_vacation_started_at` (epoch ms, 0 none). */
   vacationStartedAt: number;
@@ -143,7 +141,7 @@ function ms(v: unknown): number {
   return typeof v === 'string' ? parseTimestampFromApi(v.trim()) : 0;
 }
 
-/** `ApiTask.singleEntityApiCall("/v2/user", ApiUser.class)`: null when `data` is missing. */
+/** `GET /v2/user`: null when `data` is missing. */
 export function parseServerUser(body: unknown): ServerUser | null {
   if (!isObject(body) || !isObject(body.data)) return null;
   const d = body.data;
@@ -157,13 +155,13 @@ export function parseServerUser(body: unknown): ServerUser | null {
   };
 }
 
-/** `Constants.MONTH`. */
+/** A month, in ms. */
 const MONTH = 30 * 24 * 3600_000;
-/** `LocalMode.MAX_LEVEL`. */
+/** The number of levels. */
 export const MAX_LEVEL = 60;
 
 /**
- * `PropertiesDao.getUserMaxLevelGranted` in server mode: the stored value while it was checked less
+ * The highest level granted in server mode: the stored value while it was checked less
  * than a month ago, else 3 (the free levels).
  */
 export function effectiveMaxLevelGranted(stored: number, checkedAt: number, now: number): number {
@@ -182,12 +180,12 @@ function pastTime(at: number, now: number): string | null {
   return at > 0 && now - at > FIVE_MINUTES ? formatTimestampForApi(at) : null;
 }
 
-/** `ReportSessionItemTask` (lesson): `PUT /v2/assignments/:id/start` body. */
+/** A lesson: `PUT /v2/assignments/:id/start` body. */
 export function startAssignmentBody(startedAt: number, now: number): { started_at: string | null } {
   return { started_at: pastTime(startedAt, now) };
 }
 
-/** `ReportSessionItemTask` (review): `POST /v2/reviews` body. */
+/** A review: `POST /v2/reviews` body. */
 export function createReviewBody(subjectId: number, meaningIncorrect: number, readingIncorrect: number, at: number, now: number) {
   return {
     review: {
@@ -199,7 +197,7 @@ export function createReviewBody(subjectId: number, meaningIncorrect: number, re
   };
 }
 
-/** `SubmitStudyMaterialTask`: `POST /v2/study_materials` and `PUT /v2/study_materials/:id` body. */
+/** Notes and synonyms: `POST /v2/study_materials` and `PUT /v2/study_materials/:id` body. */
 export function studyMaterialBody(subjectId: number, meaningNote: string | null, readingNote: string | null, meaningSynonyms: readonly string[]) {
   return {
     study_material: {
@@ -211,14 +209,14 @@ export function studyMaterialBody(subjectId: number, meaningNote: string | null,
   };
 }
 
-/** `ReportSessionItemTask`: entities in a `POST /v2/reviews` response's `resources_updated`. */
+/** Entities in a `POST /v2/reviews` response's `resources_updated`. */
 export function reviewResourcesUpdated(body: unknown): { assignment: ApiEnvelope | null; reviewStatistic: ApiEnvelope | null } {
   if (!isObject(body) || !('id' in body) || !isObject(body.resources_updated)) return { assignment: null, reviewStatistic: null };
   const r = body.resources_updated;
   return { assignment: parseEnvelope(r.assignment), reviewStatistic: parseEnvelope(r.review_statistic) };
 }
 
-/** `ServerMode.migrate`: the token from a `POST /v2/migrate` response, or an error text. */
+/** The token from a `POST /v2/migrate` response, or an error text. */
 export function parseMigrateResponse(status: number, body: unknown): { token: string } | { error: string | null } {
   const token = isObject(body) ? body.token : undefined;
   if ((status === 200 || status === 409) && typeof token === 'string' && token !== '') return { token };
@@ -227,7 +225,7 @@ export function parseMigrateResponse(status: number, body: unknown): { token: st
 }
 
 /**
- * `GetSubjectsTask`: readings that are empty or "None" are dropped before storing (`Reading.isEmptyOrNone`).
+ * Subjects: readings that are empty or "None" are dropped before storing.
  * Returns a copy of `data`.
  */
 export function cleanSubjectData(data: Record<string, unknown>): Record<string, unknown> {

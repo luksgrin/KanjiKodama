@@ -1,13 +1,12 @@
-// Checks app/test/golden/manifest.json. The fixtures were generated from the Java app (Tier A: JVM
-// unit tests, Tier B: emulator scenarios), which is retired: `durtles/` was removed after commit
-// 94abf2e and the last fixtures came from fce990f (`durtlesCommit`). They can no longer be
-// regenerated, so they are frozen. See app/test/golden/README.md.
+// Checks app/test/golden/manifest.json: the reference results the core is tested against. They are
+// frozen (no tool writes them), so every file is listed with its sha256 and case count. See
+// app/test/golden/README.md.
 //
 // Usage (from app/): node scripts/golden-manifest.mjs [--check]
 //   --check  only verify that every listed file exists with the recorded sha256 and case count,
 //            and that no fixture file is unlisted; exit 1 otherwise. Writes nothing.
 //   (none)   refresh the `inputs` list (files the TS core writes, e.g. progress/ts-export/) and keep
-//            everything else. Refuses if a Java fixture changed, appeared or disappeared.
+//            everything else. Refuses if a reference fixture changed, appeared or disappeared.
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -19,9 +18,9 @@ const GENERATOR_VERSION = 1;
 const webDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(webDir, 'test', 'golden');
 const manifestPath = join(goldenDir, 'manifest.json');
-// exceptions.json is the TS port's list of accepted differences (test/golden/harness.ts), not a fixture.
+// exceptions.json is the list of accepted differences (test/golden/harness.ts), not a fixture.
 const NOT_FIXTURES = new Set(['manifest.json', 'README.md', 'exceptions.json']);
-/** Inputs the Java tests read (not fixtures): listed under `inputs` with their hash, no case count. */
+/** Inputs the scenarios read (not fixtures): listed under `inputs` with their hash, no case count. */
 const INPUT_FILES = new Set(['progress/android-export.json']);
 /** Directories of such inputs: the progress files written by the TS core (test/golden/progress-ts-inputs.ts). */
 const INPUT_DIRS = ['progress/ts-export/'];
@@ -49,11 +48,11 @@ function describeFixture(path, buf) {
       const c = JSON.parse(l);
       if (typeof c.name !== 'string' || !('input' in c) || !('output' in c)) throw new Error(`${path}: bad case line`);
     }
-    return { area: header.area, javaSource: header.javaSource, cases: lines.length - 1 };
+    return { area: header.area, cases: lines.length - 1 };
   }
   const doc = JSON.parse(text);
-  if (Array.isArray(doc.cases)) return { area: doc.area, javaSource: doc.javaSource, cases: doc.cases.length };
-  if (Array.isArray(doc.steps)) return { area: doc.area ?? 'scenario', javaSource: doc.javaSource, cases: doc.steps.length };
+  if (Array.isArray(doc.cases)) return { area: doc.area, cases: doc.cases.length };
+  if (Array.isArray(doc.steps)) return { area: doc.area ?? 'scenario', cases: doc.steps.length };
   throw new Error(`${path}: neither "cases" nor "steps"`);
 }
 
@@ -65,7 +64,7 @@ const inputs = walk(goldenDir).filter((p) => INPUTS.has(relPath(p))).map((p) => 
 const files = walk(goldenDir).filter((p) => !INPUTS.has(relPath(p))).map((p) => {
   const buf = readFileSync(p);
   const info = describeFixture(p, buf);
-  return { path: relative(goldenDir, p).split(sep).join('/'), area: info.area, javaSource: info.javaSource,
+  return { path: relative(goldenDir, p).split(sep).join('/'), area: info.area,
     cases: info.cases, bytes: buf.length, sha256: sha256(buf) };
 });
 
@@ -98,7 +97,7 @@ if (process.argv.includes('--check')) {
 }
 
 if (fixtureProblems.length) {
-  console.error('The Java fixtures are frozen (the Java app is retired) and must not change:');
+  console.error('The reference fixtures are frozen and must not change:');
   console.error(fixtureProblems.join('\n'));
   process.exit(1);
 }

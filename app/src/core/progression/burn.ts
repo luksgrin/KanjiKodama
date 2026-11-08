@@ -1,11 +1,6 @@
 /**
- * Burn and resurrect in local mode: `activities/ResurrectActivity.doInBackground` and
- * `activities/BurnActivity.doInBackground` with `WebClient.resurrect`/`burn` returning true
- * (`LocalMode.isEnabled()`: "the caller patches the local assignment"), and the eligibility checks
- * `db/model/Subject.isResurrectable`/`isBurnable`.
- *
- * Java's eligibility also needs a WaniKani web password (`GlobalSettings.Api.getWebPassword`) and
- * Android 5+; neither means anything offline, so only the stage rules are ported (see the item page).
+ * Burn and resurrect in local mode (the local assignment is patched directly), and the eligibility
+ * checks. Only the stage rules decide eligibility (see the item page).
  */
 
 import { num, patchAssignment, progressRow, srsSystemOf, type LearnerDb } from './db';
@@ -26,10 +21,10 @@ export function isBurnable(db: LearnerDb, id: number): boolean {
 }
 
 /**
- * `ResurrectActivity.doInBackground` (ResurrectActivity.java:158-161): back to the system's first
+ * Resurrect: back to the system's first
  * started stage (Apprentice I), available now, burnedAt 0, resurrectedAt now; unlockedAt, startedAt
- * and passedAt kept; `assignmentPatched` 1 (`SubjectSyncDao.patchAssignment`). Java patches whatever
- * the subject's state (the eligibility check only decides the counters): callers pass eligible ids.
+ * and passedAt kept; `assignmentPatched` 1 (`patchAssignment`). It patches whatever the subject's
+ * state (the eligibility check only decides the counters): callers pass eligible ids.
  */
 export function resurrectLocal(db: LearnerDb, id: number, now: number): void {
   const row = progressRow(db, id);
@@ -38,7 +33,7 @@ export function resurrectLocal(db: LearnerDb, id: number, now: number): void {
 }
 
 /**
- * `BurnActivity.doInBackground` (BurnActivity.java:158-161): to the completed (Burned) stage, no
+ * Burn: to the completed (Burned) stage, no
  * review scheduled (availableAt 0), burnedAt now, resurrectedAt 0; the rest as in `resurrectLocal`.
  */
 export function burnLocal(db: LearnerDb, id: number, now: number): void {

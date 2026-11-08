@@ -1,8 +1,8 @@
 /**
- * The answer field (Tier B kana fixtures): the app's fixup watcher on Android's editable, driven the
- * way the device tests drove it. See test/kana-android for the emulated Android side.
+ * The answer field (device kana fixtures): the app's fixup watcher on Android's editable, driven the
+ * way the fixtures record. See test/kana-android for the emulated Android side.
  */
-import { DummyEditable, fixup, JavaException } from '../../src/core/kana';
+import { DummyEditable, fixup, TypedError } from '../../src/core/kana';
 import { COMPOSING } from '../../src/core/kana/spanEditable';
 import { SimEditText, SimInputConnection } from '../kana-android/editText';
 import {
@@ -22,7 +22,7 @@ type Edit =
 
 const clampAt = (at: number, length: number): number => (at < 0 ? length : Math.min(at, length));
 
-/** `FixupEditTextGoldenTest.runEditText`: through the InputConnection (`ic`) or direct Editable calls. */
+/** Through the InputConnection (`ic`) or direct Editable calls. */
 function runEditText(edits: Edit[], ic: boolean): Record<string, unknown>[] {
   const edit = new SimEditText();
   edit.text.setSelection(0);
@@ -96,7 +96,7 @@ function runEditText(edits: Edit[], ic: boolean): Record<string, unknown>[] {
   });
 }
 
-/** `FixupEditTextGoldenTest.runDummy`: the Tier A model, one fixup per edit, no re-entrancy. */
+/** The plain model: one fixup per edit, no re-entrancy. */
 function runDummy(edits: Edit[]): (string | null)[] {
   let s = new DummyEditable('');
   return edits.map((e) => {
@@ -128,7 +128,7 @@ function runDummy(edits: Edit[]): (string | null)[] {
         return null;
       }
     } catch (err) {
-      if (!(err instanceof JavaException)) throw err;
+      if (!(err instanceof TypedError)) throw err;
     }
     return s.toString();
   });
@@ -169,7 +169,7 @@ type KeyOp = {
 
 const MODIFIER_KEY: Record<string, string> = { shift: 'SHIFT_LEFT', ctrl: 'CTRL_LEFT', alt: 'ALT_LEFT' };
 
-/** `FixupKeysGoldenTest.events`. */
+/** The key events of one key operation. */
 function keyEvents(op: KeyOp): SimKeyEvent[] {
   if (op.type !== undefined) return eventsForText(op.type, op.capsLock === true);
   if (op.key !== undefined) {
@@ -362,7 +362,7 @@ type SessionOp = {
 
 const isMeaningQuestion = (s: SimSessionScreen): boolean => s.session.current?.endsWith('_MEANING') === true;
 
-/** `KeysSessionGoldenTest.resolve`: the macros for the current question. */
+/** The macros for the current question. */
 function resolveTyped(screen: SimSessionScreen, s: string): string {
   if (!s.startsWith('@')) return s;
   const meaning = isMeaningQuestion(screen);
@@ -376,7 +376,7 @@ function typeKeys(screen: SimSessionScreen, text: string): void {
   for (const e of eventsForText(text)) screen.sendKey(e);
 }
 
-/** `KeysSessionGoldenTest.sendKey`: modifier downs, the key (plus auto-repeats), its up, modifier ups. */
+/** Modifier downs, the key (plus auto-repeats), its up, modifier ups. */
 function sendSessionKey(screen: SimSessionScreen, keyCode: string, mods: ('shift' | 'ctrl' | 'alt')[], repeat: number): void {
   const meta = new Set<Meta>(mods);
   for (const m of mods) screen.sendKey({ action: 'down', keyCode: MODIFIER_KEY[m] as string, repeat: 0, meta });

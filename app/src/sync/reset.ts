@@ -1,5 +1,5 @@
 /**
- * `AppDatabase.resetDatabase` in server mode: drop everything downloaded or queued (progress rows,
+ * "Reset database" in server mode: drop everything downloaded or queued (progress rows,
  * level progressions, the session, the queue, server subjects, `mm_state.*`, sync cursors and
  * flags). The connection (base URL, token), `mode` and `curriculum` stay.
  */

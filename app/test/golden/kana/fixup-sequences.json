@@ -1,6 +1,5 @@
 {
   "area": "kana.fixup",
-  "javaSource": "util/PseudoIme.fixup (DummyEditable, one call per edit)",
   "cases": [
     {"name":"seq-1","input":{"edits":[{"insert":"n","at":-1}]},"output":{"after":[{"value":"n"}]}},
     {"name":"seq-2","input":{"edits":[{"insert":"n","at":-1},{"insert":"n","at":-1}]},"output":{"after":[{"value":"n"},{"value":"ん"}]}},

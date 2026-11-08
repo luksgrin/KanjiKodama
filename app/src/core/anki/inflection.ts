@@ -2,7 +2,6 @@
  * Randomized inflections: with `review_randomize_inflections` (or the self-study one) on, a verb or
  * adjective question shows an inflected form and the revealed answer names it.
  *
- * Java: `util/InflectionUtil`, `model/Question.getInflectionForm` / `getInflection` / `getCharacters`.
  * Fixtures: `anki/answer-inflection.json` (every form, picked explicitly), `anki/inflection-random.json` (the random
  * pick), `scenarios/anki-randomize-inflections-*.json` (in sessions).
  */
@@ -12,7 +11,7 @@ type StemForm = 'DICTIONARY' | 'CONJUNCTIVE' | 'NAI' | 'IMPERATIVE' | 'VOLITIONA
 export type VerbType = 'ICHIDAN' | 'GODAN' | 'SURU';
 export type AdjectiveType = 'I' | 'NA_PLAIN' | 'NA_POLITE';
 
-/** `InflectionUtil.verbEndings`: name → [stem form, ending]. */
+/** Verb endings: name → [stem form, ending]. */
 const VERB_ENDINGS: ReadonlyMap<string, readonly [StemForm, string]> = new Map<string, readonly [StemForm, string]>([
   ['polite non past', ['CONJUNCTIVE', 'ます']],
   ['polite past', ['CONJUNCTIVE', 'ました']],
@@ -74,7 +73,7 @@ const GODAN: Readonly<Record<string, readonly string[]>> = {
 };
 const GODAN_INDEX: Partial<Record<StemForm, number>> = { CONJUNCTIVE: 0, NAI: 1, IMPERATIVE: 2, VOLITIONAL: 3, TE: 4 };
 
-/** `VerbEnding.getStem`: the stem the ending attaches to, or null when the verb doesn't fit. */
+/** The stem the ending attaches to, or null when the verb doesn't fit. */
 function verbStem(verb: string, verbType: VerbType, stemForm: StemForm): string | null {
   if (stemForm === 'DICTIONARY') return verb;
   if (verbType === 'SURU') {
@@ -82,7 +81,7 @@ function verbStem(verb: string, verbType: VerbType, stemForm: StemForm): string 
     const suru: Record<StemForm, string> = {
       DICTIONARY: 'する',
       CONJUNCTIVE: 'し',
-      // KanjiKodama fix (also in Java): the NAI endings already start with な, so the stem is し, not しな.
+      // The NAI endings already start with な, so the stem is し, not しな.
       NAI: 'し',
       IMPERATIVE: 'しろ',
       VOLITIONAL: 'しよう',
@@ -109,7 +108,7 @@ function verbStem(verb: string, verbType: VerbType, stemForm: StemForm): string 
   return prefix + (endings[GODAN_INDEX[stemForm] as number] as string);
 }
 
-/** `InflectionUtil.getConjugatedVerb`: the verb unchanged when the form doesn't apply. */
+/** The verb in the named form; unchanged when the form doesn't apply. */
 export function conjugatedVerb(verb: string, verbType: VerbType, endingName: string): string {
   const e = VERB_ENDINGS.get(endingName);
   if (e === undefined) throw new Error(`unknown verb ending ${endingName}`);
@@ -117,7 +116,7 @@ export function conjugatedVerb(verb: string, verbType: VerbType, endingName: str
   return stem === null ? verb : stem + e[1];
 }
 
-/** `InflectionUtil.adjectiveEndings`: name → [い, な plain, な polite]. */
+/** Adjective endings: name → [い, な plain, な polite]. */
 const ADJECTIVE_ENDINGS: ReadonlyMap<string, readonly [string, string, string]> = new Map<
   string,
   readonly [string, string, string]
@@ -131,7 +130,7 @@ const ADJECTIVE_ENDINGS: ReadonlyMap<string, readonly [string, string, string]> 
   ['negative conjunctive', ['くなくて', 'で', 'でして']],
 ]);
 
-/** `InflectionUtil.getDeclinedAdjective`. */
+/** The adjective in the named form. */
 export function declinedAdjective(adjective: string, adjectiveType: AdjectiveType, declension: string): string {
   const e = ADJECTIVE_ENDINGS.get(declension);
   if (e === undefined) throw new Error(`unknown adjective declension ${declension}`);
@@ -152,37 +151,36 @@ export function inflectionForm(partsOfSpeech: readonly string[]): InflectingPart
   return null;
 }
 
-/** Java `String.hashCode`. */
-function javaStringHash(s: string): number {
+/** The string hash (`s[0]*31^(n-1) + … + s[n-1]` over UTF-16 units, 32-bit). */
+function stringHashCode(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
   return h;
 }
 
 /**
- * The iteration order of a `java.util.HashMap<String, V>` filled with `keys` in this order (default capacity 16 and
+ * The iteration order of a hash map with string keys filled with `keys` in this order (default capacity 16 and
  * load factor 0.75, doubling while `size > 0.75 * capacity`): by bucket `(h ^ (h >>> 16)) & (capacity - 1)`, then
  * insertion order within a bucket (a resize keeps it). Buckets here stay far below the 8 entries that would turn one
  * into a tree.
  */
-export function javaHashMapKeyOrder(keys: readonly string[]): string[] {
+export function hashMapKeyOrder(keys: readonly string[]): string[] {
   let capacity = 16;
   while (keys.length > capacity * 0.75) capacity *= 2;
   const bucket = (k: string): number => {
-    const h = javaStringHash(k);
+    const h = stringHashCode(k);
     return (h ^ (h >>> 16)) & (capacity - 1);
   };
   return keys.map((k, i) => ({ k, i, b: bucket(k) })).sort((x, y) => x.b - y.b || x.i - y.i).map((e) => e.k);
 }
 
 /** `verbEndings.keySet().toArray()` / `adjectiveEndings.keySet().toArray()`: what the random pick indexes. */
-export const VERB_CONJUGATION_KEY_ORDER: readonly string[] = javaHashMapKeyOrder(VERB_CONJUGATIONS);
-export const ADJECTIVE_DECLENSION_KEY_ORDER: readonly string[] = javaHashMapKeyOrder(ADJECTIVE_DECLENSIONS);
+export const VERB_CONJUGATION_KEY_ORDER: readonly string[] = hashMapKeyOrder(VERB_CONJUGATIONS);
+export const ADJECTIVE_DECLENSION_KEY_ORDER: readonly string[] = hashMapKeyOrder(ADJECTIVE_DECLENSIONS);
 
 /**
- * `InflectionUtil.getRandomVerbConjugation` / `getRandomAdjectiveDeclension`:
- * `keySet().toArray()[(int) (Math.random() * size)]`. `rng.nextDouble()` stands for `Math.random()` (the app passes
- * an unseeded generator; golden tests a `JavaRandom` matching the Java seam `InflectionUtil.setRandomSourceForTesting`).
+ * A random verb conjugation / adjective declension: the key at `trunc(rng.nextDouble() * size)` in the hash map's key
+ * order (the app passes an unseeded generator; golden tests a `SeededRandom`).
  * Fixture: `anki/inflection-random.json`.
  */
 export function randomVerbConjugation(rng: Pick<Rng, 'nextDouble'>): string {

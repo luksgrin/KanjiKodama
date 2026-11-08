@@ -25,7 +25,7 @@ describe('session rows', () => {
   });
 });
 
-describe('session settings (GlobalSettings)', () => {
+describe('session settings', () => {
   it('gates the special buttons and Don\'t know on enable_advanced', () => {
     expect(specialButtonBehavior({ undo_button: 'SKIP' }, 1)).toBe('DISABLE');
     expect(specialButtonBehavior({ enable_advanced: true, undo_button: 'SKIP' }, 1)).toBe('SKIP');

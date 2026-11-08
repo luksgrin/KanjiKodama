@@ -1,6 +1,6 @@
 /**
- * Level test rounds, block scores, boundary, sampled levels, result, startAtResult. Java:
- * local/LevelTest. Fixtures: levelTest/*, scenarios/lt-*.
+ * Level test rounds, block scores, boundary, sampled levels, result, startAtResult. Fixtures:
+ * levelTest/*, scenarios/lt-*.
  *
  * `estimators.ts`: the pure estimators (levelTest/estimators.json). `status.ts`: the stored status.
  * `flow.ts`: the rounds, the result, start-at-result and the session hook over a `LearnerDb`.

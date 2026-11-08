@@ -1,6 +1,5 @@
 {
   "area": "server.normalize",
-  "javaSource": "local/ServerMode.normalize, label, isWaniKani",
   "cases": [
     {"name":"url-1","input":{"raw":"https://api.wanikani.com"},"output":{"normalize":{"value":"https://api.wanikani.com"},"labelOfRaw":"WaniKani","isWaniKaniRaw":true,"labelOfNormalized":"WaniKani","isWaniKaniNormalized":true}},
     {"name":"url-2","input":{"raw":"https://api.wanikani.com/"},"output":{"normalize":{"value":"https://api.wanikani.com"},"labelOfRaw":"api.wanikani.com","isWaniKaniRaw":false,"labelOfNormalized":"WaniKani","isWaniKaniNormalized":true}},

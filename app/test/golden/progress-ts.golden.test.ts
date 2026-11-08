@@ -1,13 +1,13 @@
 /**
- * `progress/ts-roundtrip.json` (`ScenarioGoldenTest#progressTsExports`): progress files the TS core
- * wrote (`progress/ts-export/`, see progress-ts-inputs.ts) restored and exported again by the Java
- * app. The Java export must equal the TS core's own restore + export of the same file semantically:
- * same keys, same value types (integral number, non-integral number, string, boolean, array,
- * object) and values; key order and the order of id'd rows (subjects in SQLite rowid order) are
- * ignored. `differences` (Java export vs. input) and `textIdentical` must also match.
+ * `progress/ts-roundtrip.json`: progress files the core wrote (`progress/ts-export/`, see
+ * progress-ts-inputs.ts), restored and exported again (the reference re-export). It must equal the
+ * core's own restore + export of the same file semantically: same keys, same value types (integral
+ * number, non-integral number, string, boolean, array, object) and values; key order and the order of
+ * id'd rows (subjects in SQLite rowid order) are ignored. `differences` (reference export vs. input)
+ * and `textIdentical` must also match.
  */
 
-import { JSONArray, JSONObject, JavaNumber, parseJsonObject, type JsonValue } from '../../src/core/progressFile/androidJson';
+import { JSONArray, JSONObject, TypedNumber, parseJsonObject, type JsonValue } from '../../src/core/progressFile/androidJson';
 import { createLearnerDb, exportFromDb, restoreIntoDb } from '../../src/core/progression';
 import { loadContentWithExtras } from './content';
 import { firstDifference, goldenSuite } from './harness';
@@ -32,21 +32,21 @@ function loadResources(): Promise<RunnerResources> {
   return resources;
 }
 
-/** `ScenarioRunner.emptyFile("WANIKANI")`. */
+/** An empty WaniKani-order progress file. */
 const EMPTY_FILE = JSON.stringify({
   format: 'kanjikodama-progress', version: 1, exportedAt: T0, userLevel: 1, levelProgression: [], subjects: [],
   curriculum: 'WANIKANI', probation: [], jumps: [],
 });
 
-/** An org.json value; JSONArray slots may hold Java null. */
+/** An org.json value; JSONArray slots may hold null. */
 type Json = JsonValue | null | undefined;
 
-/** Every semantic difference between two org.json trees (paths like the Java diff's). */
+/** Every semantic difference between two org.json trees (paths like the reference diff's). */
 function semanticDifferences(a: Json, b: Json, path: string, out: string[]): void {
   const kind = (v: Json): string => {
     if (v === undefined) return 'missing';
-    if (v === null) return 'Java null';
-    if (v instanceof JavaNumber) return v.type === 'Double' ? 'double' : 'integral';
+    if (v === null) return 'null';
+    if (v instanceof TypedNumber) return v.type === 'Double' ? 'double' : 'integral';
     if (v instanceof JSONObject) return 'object';
     if (v instanceof JSONArray) return 'array';
     return typeof v === 'symbol' ? 'null' : typeof v;
@@ -68,7 +68,7 @@ function semanticDifferences(a: Json, b: Json, path: string, out: string[]): voi
       const m = new Map<string, Json>();
       for (const x of xs) {
         const id = x instanceof JSONObject ? x.map.get('id') : undefined;
-        if (!(id instanceof JavaNumber)) return null;
+        if (!(id instanceof TypedNumber)) return null;
         m.set(String(id.value), x);
       }
       return m;
@@ -84,7 +84,7 @@ function semanticDifferences(a: Json, b: Json, path: string, out: string[]): voi
     }
     return;
   }
-  if (a instanceof JavaNumber && b instanceof JavaNumber) {
+  if (a instanceof TypedNumber && b instanceof TypedNumber) {
     const same = a.type === 'Double' ? a.doubleValue() === b.doubleValue() : a.longValue() === b.longValue();
     if (!same) out.push(`${path}: ${String(a.value)} vs ${String(b.value)}`);
     return;
@@ -94,8 +94,8 @@ function semanticDifferences(a: Json, b: Json, path: string, out: string[]): voi
 
 type Plain = null | boolean | number | string | Plain[] | { [k: string]: Plain };
 
-/** `ScenarioGoldenTest.diff`: arrays of objects with an "id" matched by id (plus an order check), others by index. */
-function javaDiff(path: string, a: Plain | undefined, b: Plain | undefined, out: unknown[]): void {
+/** Arrays of objects with an "id" matched by id (plus an order check), others by index. */
+function fieldDiff(path: string, a: Plain | undefined, b: Plain | undefined, out: unknown[]): void {
   const type = (v: Plain | undefined): string => (v === undefined ? 'missing' : v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
   if (a === undefined || b === undefined || type(a) !== type(b)) {
     if (!(a === undefined && b === undefined)) out.push({ path, input: a ?? null, output: b ?? null });
@@ -111,17 +111,17 @@ function javaDiff(path: string, a: Plain | undefined, b: Plain | undefined, out:
       const sameKeys = ma.size === mb.size && [...ma.keys()].every((k) => mb.has(k));
       if (oa.length === ob.length && sameKeys && oa.some((x, i) => x !== ob[i])) out.push({ path, orderDiffers: true });
       for (const id of [...new Set([...ma.keys(), ...mb.keys()])].sort((x, y) => x - y)) {
-        javaDiff(`${path}[id=${id}]`, ma.get(id), mb.get(id), out);
+        fieldDiff(`${path}[id=${id}]`, ma.get(id), mb.get(id), out);
       }
     } else {
-      for (let i = 0; i < Math.max(a.length, b.length); i++) javaDiff(`${path}[${i}]`, a[i], b[i], out);
+      for (let i = 0; i < Math.max(a.length, b.length); i++) fieldDiff(`${path}[${i}]`, a[i], b[i], out);
     }
     return;
   }
   if (typeof a === 'object' && a !== null && typeof b === 'object' && b !== null) {
     const ra = a as Record<string, Plain>;
     const rb = b as Record<string, Plain>;
-    for (const k of [...new Set([...Object.keys(ra), ...Object.keys(rb)])].sort()) javaDiff(`${path}/${k}`, ra[k], rb[k], out);
+    for (const k of [...new Set([...Object.keys(ra), ...Object.keys(rb)])].sort()) fieldDiff(`${path}/${k}`, ra[k], rb[k], out);
     return;
   }
   if (a !== b) out.push({ path, input: a, output: b });
@@ -132,13 +132,13 @@ goldenSuite<Input, Output>(
   async (input) => {
     const res = await loadResources();
     const text = readGoldenInput(input.file);
-    // ScenarioRunner.baseReset(1), then the clock pinned to the file's exportedAt.
+    // The base reset (seed 1), then the clock pinned to the file's exportedAt.
     const db = createLearnerDb(res.content, res.jlptKanji);
     restoreIntoDb(db, EMPTY_FILE, T0);
     restoreIntoDb(db, text, input.clockMs);
     const exported = exportFromDb(db, input.clockMs);
     const differences: unknown[] = [];
-    javaDiff('', JSON.parse(text) as Plain, JSON.parse(exported) as Plain, differences);
+    fieldDiff('', JSON.parse(text) as Plain, JSON.parse(exported) as Plain, differences);
     return { export: exported, differences, textIdentical: exported === text };
   },
   {
@@ -147,7 +147,7 @@ goldenSuite<Input, Output>(
       const a = actual as Output;
       const out: string[] = [];
       semanticDifferences(parseJsonObject(expected.export), parseJsonObject(a.export), '', out);
-      if (out.length > 0) return `Java export vs TS export: ${out.length} differences, first: ${out.slice(0, 5).join('; ')}`;
+      if (out.length > 0) return `reference export vs core export: ${out.length} differences, first: ${out.slice(0, 5).join('; ')}`;
       return firstDifference(a.differences, expected.differences, '$.differences')
         ?? firstDifference(a.textIdentical, expected.textIdentical, '$.textIdentical');
     },

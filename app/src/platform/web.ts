@@ -13,7 +13,6 @@ const capabilities: Capabilities = {
   backgroundSync: false,
   widget: false,
   cleartextHttp: false,
-  legacyMigration: false,
   autoBackup: false,
 };
 

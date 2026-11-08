@@ -1,7 +1,6 @@
 /**
  * Server-mode settings, flags and cursors in the Dexie `state` table (keys `mode` and `server.*`),
- * and the downloaded data written into the progress tables. Java keeps the same things in
- * `GlobalSettings.Api` and the `properties` table.
+ * and the downloaded data written into the progress tables.
  *
  * The token is stored in `state` too until the platform has a `SecretsApi` (plan: Platform sketch);
  * `TokenStore` is the seam to move it.
@@ -120,7 +119,7 @@ export class ServerStore {
     return { stored: await this.num(KEYS.maxLevelGranted), checkedAt: await this.num(KEYS.maxLevelCheckedAt) };
   }
 
-  /** Every `server.*` key except the connection (base URL, token): `AppDatabase.resetDatabase`'s properties. */
+  /** Every `server.*` key except the connection (base URL, token): what "Reset database" clears. */
   async clearSyncState(): Promise<void> {
     const keep = new Set<string>([KEYS.baseUrl, KEYS.token]);
     const keys = (await this.kk.state.where('key').startsWith(SERVER_PREFIX).primaryKeys()).filter((k) => !keep.has(k));

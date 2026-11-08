@@ -16,7 +16,7 @@ export function loaded(content: Content = smallContent()): LoadedContent {
 
 const WEB_CAPS: Capabilities = {
   notifications: false, audio: false, audioPlayback: false, audioDownload: false, haptics: false, backgroundSync: false, widget: false,
-  cleartextHttp: false, legacyMigration: false, autoBackup: false,
+  cleartextHttp: false, autoBackup: false,
 };
 
 export function fakePlatform(files: Partial<FilesApi> = {}, caps: Partial<Capabilities> = {}): Platform {

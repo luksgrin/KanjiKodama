@@ -1,10 +1,9 @@
 /**
- * `dashboard` (`ScenarioRunner.dashboard`): the timeline, level progress bars and SRS breakdown as the
- * app computes them (`LiveTimeLine`, `LiveLevelProgress`, `LiveSrsBreakDown`).
+ * `dashboard`: the timeline, level progress bars and SRS breakdown as the app computes them.
  *
- * The settings come from `rs.ext.prefs` (the scenario's SharedPreferences, by key, shared with the session
- * actions); without it the Java defaults apply. The step's `settings` are applied there first
- * (`SessionDriver.applyPreferences`: only those keys, null removes one; `resolved.settings` lists them).
+ * The settings come from `rs.ext.prefs` (the scenario's preferences, by key, shared with the session
+ * actions); without it the defaults apply. The step's `settings` are applied there first (only those
+ * keys, null removes one; `resolved.settings` lists them).
  */
 
 import {

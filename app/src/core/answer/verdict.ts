@@ -1,9 +1,9 @@
 /**
- * `model/AnswerVerdict`, `model/DigraphMatch` and `enums/CloseEnoughAction`, shaped like the
- * fixtures' verdict objects.
+ * Answer verdicts, digraph matches and the close-enough action, shaped like the fixtures' verdict
+ * objects.
  */
 
-/** `enums/CloseEnoughAction`: what a meaning answer that is close but not exact does. */
+/** What a meaning answer that is close but not exact does. */
 export type CloseEnoughAction =
   | 'SILENTLY_ACCEPT'
   | 'ACCEPT_WITH_TOAST'
@@ -20,10 +20,10 @@ export const CLOSE_ENOUGH_ACTIONS: readonly CloseEnoughAction[] = [
   'REJECT',
 ];
 
-/** `model/DigraphMatch` as `[regularKana, smallKana]`: the answer used one where the reading has the other. */
+/** `[regularKana, smallKana]`: the answer used one where the reading has the other. */
 export type DigraphMatch = readonly [regularKana: string, smallKana: string];
 
-/** `model/AnswerVerdict`. */
+/** The result of checking an answer. */
 export interface AnswerVerdict {
   readonly ok: boolean;
   /** Not accepted, but the user may try again (shake). */

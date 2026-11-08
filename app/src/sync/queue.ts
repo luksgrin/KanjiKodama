@@ -34,22 +34,22 @@ async function enqueue(kk: KkDb, task: QueuedTask, now: number): Promise<number>
   return (await kk.tasks.add({ kind: task.kind, payload: task.payload, createdAt: now, attempts: 0, nextAttemptAt: 0, lastError: null })) as number;
 }
 
-/** A finished lesson (`ReportSessionItemJob` → `ReportSessionItemTask` LESSON). */
+/** A finished lesson. */
 export function enqueueLessonStart(kk: KkDb, p: LessonStartPayload, now: number = Date.now()): Promise<number> {
   return enqueue(kk, { kind: 'lessonStart', payload: { ...p } }, now);
 }
 
-/** A finished review (`ReportSessionItemTask` REVIEW). */
+/** A finished review. */
 export function enqueueReview(kk: KkDb, p: ReviewPayload, now: number = Date.now()): Promise<number> {
   return enqueue(kk, { kind: 'review', payload: { ...p } }, now);
 }
 
-/** Notes and synonyms (`SaveStudyMaterialJob` → `SubmitStudyMaterialTask`). */
+/** Notes and synonyms. */
 export function enqueueStudyMaterial(kk: KkDb, p: StudyMaterialPayload, now: number = Date.now()): Promise<number> {
   return enqueue(kk, { kind: 'studyMaterial', payload: { ...p, meaningSynonyms: [...p.meaningSynonyms] } }, now);
 }
 
-/** `ServerMode.pendingUploads`. */
+/** The number of uploads still to send. */
 export async function pendingUploads(kk: KkDb): Promise<number> {
   return countPending(await kk.tasks.toArray());
 }
@@ -72,7 +72,7 @@ export interface FlushResult {
   remaining: number;
   /** Why the flush stopped early; null when the queue is empty or only not-yet-due tasks remain. */
   stop: null | { reason: 'rejected' } | { reason: 'failed'; message: string } | { reason: 'backoff'; until: number };
-  /** A sent review had `justPassed` (Java forces a late refresh): sync assignments again. */
+  /** A sent review had `justPassed`: sync assignments again. */
   refreshWanted: boolean;
 }
 
@@ -94,7 +94,7 @@ function failureMessage(r: CallResult): string {
   return r.kind === 'failed' ? r.message : r.kind;
 }
 
-/** Writes what a sent task's response carries (`ReportSessionItemTask` / `SubmitStudyMaterialTask`). */
+/** Writes what a sent task's response carries. */
 async function applyResponse(kk: KkDb, task: QueuedTask, body: unknown): Promise<void> {
   if (task.kind === 'lessonStart') {
     const e = parseEnvelope(body);
@@ -119,7 +119,7 @@ async function applyResponse(kk: KkDb, task: QueuedTask, body: unknown): Promise
     try {
       m = parseApiStudyMaterial(e);
     } catch {
-      return; // Java logs "Error parsing … response" and still deletes the task.
+      return; // an unreadable response still deletes the task
     }
     await mergeRow(kk, m.subjectId, (row) => mergeStudyMaterial(row, m));
   }
@@ -162,7 +162,7 @@ export async function flushQueue(kk: KkDb, client: ApiClient, now: () => number,
     if (r === null) {
       const req = taskRequest(task, { assignmentId, studyMaterialId }, now());
       if (req === null) {
-        // No assignment anywhere: Java deletes the task without sending.
+        // No assignment anywhere: the task is deleted without sending.
         await kk.tasks.delete(row.id!);
         result.dropped++;
         continue;

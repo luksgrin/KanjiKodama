@@ -1,9 +1,9 @@
-import { parseJavaUri, type ParsedUri } from './javaUri';
+import { parseUri, type ParsedUri } from './uriParser';
 
-/** `Constants.WANIKANI_API_BASE_URL`. */
+/** WaniKani's API base URL. */
 export const WANIKANI_API_BASE_URL = 'https://api.wanikani.com';
 
-/** The messages `ServerMode.normalize` throws with (as `IllegalArgumentException`). */
+/** The messages `normalizeServerUrl` throws with (as `IllegalArgumentException`). */
 export const NOT_A_SERVER_ADDRESS = 'This is not a valid server address.';
 export const NOT_HTTP = 'The server address must start with https:// or http://.';
 
@@ -16,7 +16,7 @@ export class ServerAddressError extends Error {
 }
 
 /** `String.trim`: strips chars <= U+0020 only. */
-function javaTrim(s: string): string {
+function trimControlChars(s: string): string {
   let start = 0;
   let end = s.length;
   while (start < end && s.charCodeAt(start) <= 0x20) {
@@ -45,21 +45,21 @@ function equalsIgnoreCase(a: string, b: string): boolean {
 
 function tryParse(s: string): ParsedUri | null {
   try {
-    return parseJavaUri(s);
+    return parseUri(s);
   } catch {
     return null;
   }
 }
 
 /**
- * `local/ServerMode.normalize`: clean up a typed URL. Adds https:// when no scheme was given, drops
+ * Cleans up a typed URL. Adds https:// when no scheme was given, drops
  * trailing slashes and then one `/v2` (case-insensitive). Keeps the case, a query, a fragment and a
  * port as typed.
  *
  * @throws ServerAddressError when it is not a usable http(s) URL
  */
 export function normalizeServerUrl(raw: string): string {
-  let s = javaTrim(raw);
+  let s = trimControlChars(raw);
   if (!s.includes('://')) {
     s = 'https://' + s;
   }
@@ -81,12 +81,12 @@ export function normalizeServerUrl(raw: string): string {
   return s;
 }
 
-/** `local/ServerMode.isWaniKani(baseUrl)`: WaniKani's own API (exact, case-insensitive). */
+/** WaniKani's own API (exact, case-insensitive). */
 export function isWaniKaniUrl(baseUrl: string): boolean {
   return equalsIgnoreCase(WANIKANI_API_BASE_URL, baseUrl);
 }
 
-/** `local/ServerMode.label`: "WaniKani", else the URL's host, else the URL itself. */
+/** "WaniKani", else the URL's host, else the URL itself. */
 export function serverLabel(baseUrl: string): string {
   if (isWaniKaniUrl(baseUrl)) {
     return 'WaniKani';

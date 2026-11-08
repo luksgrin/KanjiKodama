@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { audioCatalog, type AudioOwner, type PronunciationAudio } from '../core/audio';
-import { JavaRandom } from '../core/rng';
+import { SeededRandom } from '../core/rng';
 
 // In-memory files dir for the mocked @capacitor/filesystem: path -> base64 data. No real audio is
 // downloaded: CapacitorHttp is mocked too.
@@ -67,7 +67,7 @@ const owners: AudioOwner[] = [
 function setup() {
   const played: string[] = [];
   const player = { play: vi.fn(async (src: string) => void played.push(src)) };
-  const audio = createAndroidAudio({ player, rng: new JavaRandom(7) });
+  const audio = createAndroidAudio({ player, rng: new SeededRandom(7) });
   audio.setCatalog(audioCatalog(owners));
   return { audio, player, played };
 }

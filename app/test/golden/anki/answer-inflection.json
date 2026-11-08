@@ -1,6 +1,5 @@
 {
   "area": "anki.answerInflection",
-  "javaSource": "model/Question.getAnkiAnswerRichText and getCharacters with review_randomize_inflections",
   "cases": [
     {"name":"godan verb/2480/\"I hear\"","input":{"id":2480,"characters":"入る","partsOfSpeech":["intransitive verb","godan verb"],"form":"\"I hear\""},"output":{"WANIKANI_VOCAB_MEANING":{"characters":"入るそう","text":"Answer: To Enter, To Go In (\"I hear\")"},"WANIKANI_VOCAB_READING":{"characters":"入るそう","text":"Answer: はいる (\"I hear\")"}}},
     {"name":"godan verb/2480/\"[motion] and [do]\"","input":{"id":2480,"characters":"入る","partsOfSpeech":["intransitive verb","godan verb"],"form":"\"[motion] and [do]\""},"output":{"WANIKANI_VOCAB_MEANING":{"characters":"入りに + motion verb","text":"Answer: To Enter, To Go In (\"[motion] and [do]\")"},"WANIKANI_VOCAB_READING":{"characters":"入りに + motion verb","text":"Answer: はいる (\"[motion] and [do]\")"}}},

@@ -1,10 +1,10 @@
 /**
- * The Java session and level test dialogs (`AlertDialog.Builder` with up to three buttons): optional
- * warning icon (`setIcon(R.drawable.ic_baseline_warning_24px)`) and the title in the body font, the
+ * The session and level test dialogs (up to three buttons): an optional warning icon and the title in
+ * the body font, the
  * message (`\n` breaks lines), and flat text buttons in one row, neutral at the left, then negative and
  * positive at the right ("YES AND DON'T ASK AGAIN · NO · YES").
  *
- * Like Java's dialog window, it leaves the keyboard and the answer field alone: an overlay (scrim +
+ * It leaves the keyboard and the answer field alone: an overlay (scrim +
  * `role="alertdialog"`), not a modal `<dialog>` (`showModal` makes the page inert, which takes the focus
  * out of the answer field and closes the keyboard). While it is open:
  * - the focus stays where it was when that is a text field (the quiz's answer field, keyboard open);
@@ -12,7 +12,7 @@
  * - tapping a button doesn't move the focus (pointerdown is cancelled), so the keyboard stays;
  * - the page behind gets no taps (the scrim), no typing and no Enter (the field doesn't submit);
  * - Tab moves into the dialog and cycles through its buttons; Escape, the back gesture and a tap on the
- *   scrim press the negative button (Java: cancel), except while busy or without buttons;
+ *   scrim press the negative button (cancel), except while busy or without buttons;
  * - the title and message are announced (`aria-live`), the dialog is labelled by its title.
  */
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
@@ -25,7 +25,7 @@ export interface SessionDialogProps {
   /** Empty or absent: no title (`setTitle(null)`). */
   title?: string;
   message: string;
-  /** The warning icon before the title (Java's abandon / wrap-up / star rating confirmations). */
+  /** The warning icon before the title (the abandon / wrap-up / star rating confirmations). */
   warning?: boolean;
   noLabel?: string;
   /** The neutral button; hidden when `onYesDontAsk` is absent. */
@@ -37,7 +37,7 @@ export interface SessionDialogProps {
   onYes?(): void;
   /** Disables the buttons (work in progress). */
   busy?: boolean;
-  /** No buttons at all (Java's non-cancelable "Picking kanji…" box); back does nothing. */
+  /** No buttons at all (the non-cancelable "Picking kanji…" box); back does nothing. */
   noButtons?: boolean;
   /** Extra content under the message. */
   children?: ReactNode;
@@ -103,7 +103,7 @@ export function SessionDialog({
     };
   }, [open, host]);
 
-  // Keys and typing outside the dialog don't reach the page (Java's dialog window has the input focus).
+  // Keys and typing outside the dialog don't reach the page (the dialog has the input focus).
   useEffect(() => {
     if (!open) return;
     const inside = (t: EventTarget | null) => t instanceof Node && ref.current?.contains(t) === true;

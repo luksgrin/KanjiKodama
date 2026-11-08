@@ -57,7 +57,7 @@ async function render(caps: Partial<Platform['capabilities']>, audio: AudioApi) 
 }
 
 describe('audio screen', () => {
-  it('brackets of ten levels with the Java labels', () => {
+  it('brackets of ten levels with their labels', () => {
     const b = brackets({ levels: [{ level: 1, files: 4, bytes: 10, expected: 4 }, { level: 12, files: 1, bytes: 5, expected: 2 }], files: 5, bytes: 15 });
     expect(b.map((x) => `${x.min}-${x.max}`)).toEqual(['1-10', '11-20', '21-30', '31-40', '41-50', '51-60']);
     expect(bracketLabel(b[0]!)).toBe('Download finished');
@@ -78,13 +78,13 @@ describe('audio screen', () => {
     await act(async () => $(el, 'audio-abort')!.click());
     await flush();
     expect($(el, 'audio-last')?.textContent).toBe('1 downloaded, aborted.');
-    // Delete all, after the Java question.
+    // Delete all, after the question.
     await act(async () => $(el, 'audio-delete')!.click());
     expect(el.textContent).toContain('This will delete all audio files');
     await act(async () => [...el.querySelectorAll('button')].find((b) => b.textContent === 'Yes')!.click());
     await flush();
     expect(api.deleteAll).toHaveBeenCalled();
-    // The voice preference is in Settings → Audio settings, as in Java.
+    // The voice preference is in Settings → Audio settings.
     expect(el.textContent).not.toContain('Masculine');
     finish();
     app.dispose();

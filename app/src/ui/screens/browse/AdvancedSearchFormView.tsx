@@ -1,6 +1,5 @@
 /**
- * The advanced search form (`views/AdvancedSearchFormView`, layout `advanced_search.xml`) over core
- * `AdvancedSearchForm`: its fields, switches and sort order in the layout's order and texts, a Search
+ * The advanced search form over core `AdvancedSearchForm`: its fields, switches and sort order in the layout's order and texts, a Search
  * button above and below. Refine passes the current search's parameters (`injectParameters`).
  */
 import { Fragment, useId, useRef, useState, type ReactNode } from 'react';

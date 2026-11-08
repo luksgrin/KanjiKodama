@@ -1,10 +1,9 @@
 /**
- * Search results (`fragments/SearchResultFragment`, `fragment_search_result.xml`, with
- * `adapter/search/SearchResultAdapter`): the tutorial banner (`search_result_dismissed`),
+ * Search results: the tutorial banner (`search_result_dismissed`),
  * "<description>: n subject(s) found" (Large), the hits under collapsible headers in the search's sort
- * order (`resultView`; `search_result_top_header` / `_sub_header`: chevron, XLarge title, counts at the
- * right), the cards in a grid of (width + 10) / 90 columns, vocabulary as full rows (`SubjectCardBinder`).
- * The "Search result..." menu in the toolbar overflow (`res/menu/generic_options_menu.xml`): Refine search
+ * order (`resultView`; headers: chevron, XLarge title, counts at the right), the cards in a grid of
+ * (width + 10) / 90 columns, vocabulary as full rows.
+ * The "Search result..." menu in the toolbar overflow: Refine search
  * (not for keyword searches; the form opens above the list), Save preset, Start self-study quiz (when
  * there are hits; a running session just opens), Resurrect burned items / Burn resurrected items
  * (local mode), Set to ☆ … ★ (with `enable_star_ratings`). Title: the preset name or "Search results".
@@ -66,7 +65,7 @@ function stageName(tag: string, systems: readonly SrsSystem[]): string {
   return tag;
 }
 
-/** The header title of a `resultView` header label (`*HeaderItemViewHolder.bind`). */
+/** The header title of a `resultView` header label. */
 function headerTitle(label: string, count: number, systems: readonly SrsSystem[], searchTime: number): string {
   const colon = label.indexOf(':');
   const cls = label.slice(0, colon);
@@ -102,7 +101,7 @@ function oneReading(s: SearchSubject, katakana: boolean): string {
   return katakana && t.type === 'onyomi' ? toKatakana(r) : r;
 }
 
-/** `SearchResultFragment`: columns of the result grid for a screen width in dp. */
+/** Columns of the result grid for a screen width in px. */
 export function resultSpans(dpWidth: number): number {
   return Math.max(1, Math.trunc((dpWidth + 10) / 90));
 }
@@ -285,7 +284,7 @@ export function SearchResultsScreen() {
 
   return (
     <div className="kk-search-results">
-      {/* fragment_search_result.xml: the tutorial and the count sit above the RecyclerView, which alone scrolls. */}
+      {/* The tutorial and the count sit above the results, which alone scroll. */}
       <div className="kk-results-top">
       {tutorial && (
         <div className="kk-tip bleed" data-testid="results-tutorial">

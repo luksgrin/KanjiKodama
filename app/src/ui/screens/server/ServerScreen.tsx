@@ -1,7 +1,6 @@
 /**
- * Server connection (`local/ProgressPreferences` askServer / askWaniKaniKey / checkServer /
- * confirmServer / showServer / askLocal, `local/ServerMode`): the same steps and texts, on one
- * screen instead of a chain of dialogs.
+ * Server connection: ask for the server, the token, check it, confirm, show the connection, and go
+ * back to local mode, on one screen instead of a chain of dialogs.
  *
  * Local mode: address (presets WaniKani and OpenKani) and token, or "Use WaniKani token" (an OpenKani
  * server copies the WaniKani account once and gives back its own token), test, connect, the switch
@@ -37,7 +36,7 @@ export const PRESETS: readonly { label: string; url: string }[] = [
   { label: 'OpenKani', url: OPENKANI_URL },
 ];
 
-/** `ProgressPreferences.askServer`'s message. */
+/** The server question's message. */
 export const CONNECT_MESSAGE = 'In server mode the server decides SRS stages, unlocks and level-ups, and lessons and'
   + ' reviews are sent to it. JLPT order, the extra kanji, fast travel and the level test are'
   + ' only available in local mode.\n\nPaste a token for the server. An OpenKani server can'
@@ -74,7 +73,7 @@ type Note = { ok: boolean; text: string } | null;
 
 export function ServerScreen() {
   const { state } = useReady();
-  // Kept across the switch: the message of a mode switch shows in the other mode's view (Java's toast).
+  // Kept across the switch: the message of a mode switch shows in the other mode's view.
   const [note, setNote] = useState<Note>(null);
   useToolbar({ title: 'Server connection' });
   return state.mode === 'server' ? <ServerModeView note={note} setNote={setNote} /> : <ConnectView note={note} setNote={setNote} />;
@@ -298,7 +297,7 @@ function ServerModeView({ note, setNote }: { note: Note; setNote(n: Note): void 
   const [busy, setBusy] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [newToken, setNewToken] = useState('');
-  // Java's "V2 API token" (`api_key`) edit dialog opens with the saved token: prefill the field the same way.
+  // The "V2 API token" (`api_key`) field opens with the saved token.
   const keyRejected = status?.apiState === 'API_KEY_REJECTED';
   useEffect(() => {
     if (!keyRejected) return;

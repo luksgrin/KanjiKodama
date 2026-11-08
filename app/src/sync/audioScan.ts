@@ -1,14 +1,14 @@
 /**
- * "Auto-download audio for upcoming reviews" (`auto_download_audio`, Java default true) on Android:
- * which subjects' audio to fetch, as the Java app picks them.
+ * "Auto-download audio for upcoming reviews" (`auto_download_audio`, default true) on Android:
+ * which subjects' audio to fetch.
  *
- * - `LiveTimeLine.updateLocal`, at most every 12 hours: the available lessons and the reviews due
- *   within the timeline chart size (the `scanSubjects` of `computeTimeLine`), then every subject of
- *   the learner's level; `AudioUtil.scheduleDownloadTasks(…, 100)`.
- * - `Session.startNewSession`: the new session's subjects, also at most 100.
+ * - With the dashboard, at most every 12 hours: the available lessons and the reviews due within the
+ *   timeline chart size (the `scanSubjects` of `computeTimeLine`), then every subject of the
+ *   learner's level; at most 100 subjects.
+ * - When a session starts: the new session's subjects, also at most 100.
  *
  * Downloads run only on a connection the "Network access rule" allows
- * (`OnlineStatus.canDownloadAudio`: unmetered always, metered only with ALWAYS; the default is
+ * (unmetered always, metered only with ALWAYS; the default is
  * Wi-Fi only). The web build never downloads (it streams while online, owner decision).
  */
 import { availableLessonIds, timeLineChartSize, upcomingReviewIds } from '../core/dashboard';
@@ -17,30 +17,30 @@ import { prefBoolean, type Preferences } from '../core/settings';
 
 export const AUTO_DOWNLOAD_AUDIO_PREF = 'auto_download_audio';
 export const NETWORK_RULE_PREF = 'network_rule';
-/** `AudioUtil.scheduleDownloadTasks(…, 100)`. */
+/** The most subjects one scan downloads for. */
 export const AUDIO_SCAN_MAX = 100;
 /** `DAY/2` between timeline scans. */
 export const AUDIO_SCAN_INTERVAL_MS = 12 * 60 * 60 * 1000;
-/** `meta` key of `PropertiesDao.getLastAudioScanDate`. */
+/** `meta` key of the last audio scan's time. */
 export const LAST_AUDIO_SCAN_META_KEY = 'lastAudioScanDate';
 
 const HOUR = 60 * 60 * 1000;
 
-/** `GlobalSettings.Api.getAutoDownloadAudio`. */
+/** `auto_download_audio`. */
 export function autoDownloadAudio(prefs: Preferences): boolean {
   return prefBoolean(prefs, AUTO_DOWNLOAD_AUDIO_PREF, true);
 }
 
 export type NetworkRule = 'ALWAYS' | 'DOWNLOAD_WIFI_ONLY' | 'WIFI_ONLY';
 
-/** `GlobalSettings.Api.getNetworkRule` (default DOWNLOAD_WIFI_ONLY; an unknown value too). */
+/** `network_rule` (default DOWNLOAD_WIFI_ONLY; an unknown value too). */
 export function networkRule(prefs: Preferences): NetworkRule {
   const v = prefs[NETWORK_RULE_PREF];
   return v === 'ALWAYS' || v === 'WIFI_ONLY' ? v : 'DOWNLOAD_WIFI_ONLY';
 }
 
 /**
- * `OnlineStatus.canDownloadAudio`. `connection` is the Network Information API's `type` (the
+ * Whether audio may download now. `connection` is the Network Information API's `type` (the
  * Android WebView has it): 'none' is no connection, 'cellular' metered, 'wifi'/'ethernet' unmetered;
  * unknown counts as unmetered (the WebView reports a type, so this is only other browsers).
  */
@@ -50,7 +50,7 @@ export function canDownloadAudio(prefs: Preferences, connection: string | undefi
   return true;
 }
 
-/** The scan's subjects, in Java's order: lessons, upcoming reviews, then the current level. */
+/** The scan's subjects, in order: lessons, upcoming reviews, then the current level. */
 export function timelineScanSubjects(db: LearnerDb, prefs: Preferences, now: number, o: { maxLevel: number; vacationMode: boolean }): number[] {
   const out: number[] = [];
   if (!o.vacationMode) {

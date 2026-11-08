@@ -1,5 +1,5 @@
 /**
- * The JLPT curriculum order. Port of `local/JlptPlan`.
+ * The JLPT curriculum order.
  *
  * Lays the WaniKani subjects out in JLPT blocks (N5, N4, N3, N2, N1, then Obscure for kanji on no
  * JLPT list):
@@ -11,7 +11,7 @@
  *   holding kanji from its WaniKani level.
  *
  * The result depends on the order of `rows` (radicals without a kanji anchor keep row order within a
- * level), exactly as in Java.
+ * level), which the fixtures pin.
  */
 
 export const MAX_LEVELS = 60;
@@ -44,7 +44,7 @@ export function blockName(code: number): string {
 
 const INT_MAX = 2147483647;
 
-/** `Comparator.comparingInt(wkLevel).thenComparingInt(wkPosition).thenComparingLong(id)`. */
+/** By WaniKani level, then WaniKani position, then id. */
 function wkOrder(a: JlptPlanRow, b: JlptPlanRow): number {
   return compareNum(a.wkLevel, b.wkLevel) || compareNum(a.wkPosition, b.wkPosition) || compareNum(a.id, b.id);
 }

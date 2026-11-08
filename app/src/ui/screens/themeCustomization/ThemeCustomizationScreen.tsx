@@ -1,11 +1,11 @@
 /**
- * Theme customization (`ThemeCustomizationActivity`, `activity_theme_customization.xml`): a black
+ * Theme customization: a black
  * panel with the 33 customisable colours of the current theme in five labelled rows (subject types,
  * SRS stages, Apprentice/Guru subsections, level progression subsections, Anki mode colours), the
  * selected one in a dashed frame and described under the rows; then Reset (top left), "RGB values:"
  * (top right) and the HSL colour picker with its preview circle.
  *
- * Dragging the picker recolours the selection; letting go saves all 33 values as Java does
+ * Dragging the picker recolours the selection; letting go saves all 33 values
  * (`theme_customizations_<THEME>`, a JSON int list, 0 = the theme's own colour). Reset sets the
  * selection back to 0. The theme is the one in use right now (light or dark system mode); the app
  * applies the customised colours at once (App.tsx `ThemeSync`).

@@ -22,13 +22,12 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * `BackgroundSync` (src/platform/androidBackgroundSync.ts): schedule or cancel
- * {@link BackgroundSyncWorker} like the Java app's `BackgroundSyncWorker.scheduleOrCancelWork`:
- * periodic, 1 hour with 5 minutes flex, network connected, battery not low, a random first delay
+ * {@link BackgroundSyncWorker}: periodic, 1 hour with 5 minutes flex, network connected, battery not low, a random first delay
  * of up to an hour.
  */
 @CapacitorPlugin(name = "BackgroundSync")
 public class BackgroundSyncPlugin extends Plugin {
-    /** Java's JOB_TAG_NEW; also the unique work name. */
+    /** The work's tag and unique name. */
     public static final String WORK_NAME = "bgsync2";
 
     static void schedule(final Context context) {

@@ -1,5 +1,5 @@
 /**
- * The level test's rounds, result and start-at-result over a `LearnerDb` (`local/LevelTest`):
+ * The level test's rounds, result and start-at-result over a `LearnerDb`:
  * round 1 samples unmastered kanji of N5..N1, round 2 samples the boundary block's levels, the
  * result is the level after the last sampled level still known, and starting there sends the proven
  * kanji to Guru and puts everything below on probation over 7 days.
@@ -13,7 +13,7 @@ import { num, patchAssignment, progressRow, sqlIsZero, sqlNonZero, srsSystemOf, 
 import { afterChange, updateProgression } from '../progression/localProgression';
 import { describeBlockLevel, type CurriculumLayout } from '../curriculum';
 import { fastTravel } from '../fastTravel';
-import { shuffleInPlace, type JavaRandom } from '../rng';
+import { shuffleInPlace, type SeededRandom } from '../rng';
 import { HOUR } from '../time';
 import {
   KNOWN_THRESHOLD,
@@ -32,7 +32,7 @@ import {
 } from './estimators';
 import { discardLevelTest, levelTestStatus, setLevelTestStatus, type LevelTestStatus } from './status';
 
-/** `LevelTest.GURU_STAGE`: proven kanji go to stage 5. */
+/** Proven kanji go to stage 5. */
 const GURU_STAGE = 5;
 const ROUND_ACTIVE = 'level_test_round_active';
 const PROMPTED = 'level_test_prompted';
@@ -43,8 +43,7 @@ interface Levels extends LevelKnowledge {
 }
 
 /**
- * `LevelTest.levels`: kanji per JLPT-order level, from the visible kanji in id order (the order the
- * Java query returns them), mastered meaning `passedAt != 0`.
+ * Kanji per JLPT-order level, from the visible kanji in id order, mastered meaning `passedAt != 0`.
  */
 function levels(db: LearnerDb): Levels {
   const layout = layoutFor(db, 'JLPT');
@@ -63,14 +62,14 @@ function levels(db: LearnerDb): Levels {
   return { layout, count, blocks: layout.blocks, total, mastered, open };
 }
 
-/** `LevelTest.answers`: `mm_level_test` id → known. */
+/** `mm_level_test` id → known. */
 function answers(db: LearnerDb): Map<number, number> {
   const out = new Map<number, number>();
   for (const [id, row] of db.levelTest) out.set(id, row.known);
   return out;
 }
 
-/** `LevelTest.isRoundActive`: a level test round is the running self-study session (persisted). */
+/** A level test round is the running self-study session (persisted). */
 export function isRoundActive(db: LearnerDb): boolean {
   return db.state.get(ROUND_ACTIVE) === '1';
 }
@@ -79,17 +78,17 @@ function setRoundActive(db: LearnerDb, active: boolean): void {
   db.state.set(ROUND_ACTIVE, active ? '1' : '');
 }
 
-/** `LevelTest.prompted`: the dashboard already offered the next step once. */
+/** The dashboard already offered the next step once. */
 export function levelTestPrompted(db: LearnerDb): boolean {
   return db.state.get(PROMPTED) === '1';
 }
 
-/** `LevelTest.setPrompted`. */
+/** Records that the dashboard offered the next step. */
 export function setLevelTestPrompted(db: LearnerDb): void {
   db.state.set(PROMPTED, '1');
 }
 
-/** `LevelTest.startRound`: record the round's ids as unanswered, set the status and the round flag. */
+/** Record the round's ids as unanswered, set the status and the round flag. */
 function startRound(db: LearnerDb, round: number, ids: readonly number[], status: LevelTestStatus): number[] {
   for (const id of ids) db.levelTest.set(id, { round, known: -1 });
   setLevelTestStatus(db, status);
@@ -99,12 +98,12 @@ function startRound(db: LearnerDb, round: number, ids: readonly number[], status
 }
 
 /**
- * `LevelTest.startRound1`: forget any earlier test, then pick up to 6 unmastered kanji per block,
- * N5 first, each block's pool shuffled with `rng` (`ObjectSupport.newRandom()`: a fresh generator,
- * seeded like the shared one in tests). Returns the subject ids for the round's self-study session;
+ * Forget any earlier test, then pick up to 6 unmastered kanji per block,
+ * N5 first, each block's pool shuffled with `rng` (a fresh generator, seeded like the shared one in
+ * tests). Returns the subject ids for the round's self-study session;
  * empty when nothing is left to test (the test is then done).
  */
-export function startRound1(db: LearnerDb, rng: Pick<JavaRandom, 'nextInt'>): number[] {
+export function startRound1(db: LearnerDb, rng: Pick<SeededRandom, 'nextInt'>): number[] {
   discardLevelTest(db);
   const lv = levels(db);
   const ids: number[] = [];
@@ -121,21 +120,21 @@ export function startRound1(db: LearnerDb, rng: Pick<JavaRandom, 'nextInt'>): nu
   return startRound(db, 1, ids, 'ROUND1');
 }
 
-/** `LevelTest.blockScores`: the per-block picture so far. */
+/** The per-block picture so far. */
 export function levelTestBlockScores(db: LearnerDb): BlockScore[] {
   return blockScores(levels(db), answers(db));
 }
 
-/** `LevelTest.boundaryBlock(Context, AppDatabase)`. */
+/** The boundary block from the answers so far. */
 export function levelTestBoundaryBlock(db: LearnerDb): number {
   return boundaryBlock(levelTestBlockScores(db));
 }
 
 /**
- * `LevelTest.startRound2`: up to 3 kanji not asked yet from each sampled level of the boundary block,
+ * Up to 3 kanji not asked yet from each sampled level of the boundary block,
  * each level's pool shuffled with `rng`. Empty when round 2 isn't needed (the result is ready).
  */
-export function startRound2(db: LearnerDb, rng: Pick<JavaRandom, 'nextInt'>): number[] {
+export function startRound2(db: LearnerDb, rng: Pick<SeededRandom, 'nextInt'>): number[] {
   const lv = levels(db);
   const given = answers(db);
   const block = boundaryBlock(blockScores(lv, given));
@@ -154,7 +153,7 @@ export function startRound2(db: LearnerDb, rng: Pick<JavaRandom, 'nextInt'>): nu
   return startRound(db, 2, ids, 'ROUND2');
 }
 
-/** `LevelTest.Result`: the test's verdict. */
+/** The test's verdict. */
 export interface LevelTestResult {
   level: number;
   description: string | null;
@@ -165,7 +164,7 @@ export interface LevelTestResult {
   minutesPerDay: number;
 }
 
-/** `LevelTest.result`. */
+/** The test's result. */
 export function levelTestResult(db: LearnerDb): LevelTestResult {
   const lv = levels(db);
   const given = answers(db);
@@ -212,7 +211,7 @@ function firstLevelOf(lv: Levels, block: number, fallback: number): number {
   return fallback;
 }
 
-/** A finished session's item as `LevelTest.onSessionFinishing` reads it (`SessionItem`). */
+/** A finished session's item as `onSessionFinishing` reads it. */
 export interface FinishedSessionItem {
   id: number;
   /** `SessionItem.hasIncorrectAnswers`. */
@@ -224,11 +223,11 @@ export interface FinishedSessionItem {
 }
 
 /**
- * `LevelTest.onSessionFinishing` (with the `record` it starts): when a self-study session that is a
+ * When a self-study session that is a
  * level test round finishes, before its items are cleared, record the answers (wrong at least once:
  * 0; finished without a wrong answer: 1). The round flag is cleared either way. Nothing is recorded
  * when the session's items aren't exactly the round's ids (an ordinary self-study) or when fewer
- * than half of them were answered (mostly abandoned). The caller passes `localMode` (`LocalMode.isEnabled`).
+ * than half of them were answered (mostly abandoned). The caller passes `localMode`.
  */
 export function onSessionFinishing(db: LearnerDb, sessionType: string, items: readonly FinishedSessionItem[],
   localMode = true): void {
@@ -259,7 +258,7 @@ function record(db: LearnerDb, sessionIds: ReadonlySet<number>, results: Readonl
   db.state.set(PROMPTED, '');
 }
 
-/** `LevelTest.Outcome`: what starting at the result did. */
+/** What starting at the result did. */
 export interface LevelTestOutcome {
   level: number;
   proven: number;
@@ -268,7 +267,7 @@ export interface LevelTestOutcome {
 }
 
 /**
- * `LevelTest.startAtResult`: switch to JLPT order if needed, send the proven kanji not passed yet to
+ * Switch to JLPT order if needed, send the proven kanji not passed yet to
  * Guru (taking them off probation), then fast travel to the result with probation spread over 7
  * days, or just update progression when the result isn't above the current level. Discards the test.
  */

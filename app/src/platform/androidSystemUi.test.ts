@@ -18,7 +18,7 @@ describe('colour helpers', () => {
     expect(blend([255, 255, 255, 1], [0, 0, 0, 0.5])).toEqual([128, 128, 128, 1]);
     expect(toHex(blend([46, 71, 86, 1], [0, 0, 0, 0]))).toBe('#2e4756');
   });
-  it('picks icon colours like the Java app (light icons on the dark toolbar)', () => {
+  it('picks icon colours for the bar colour (light icons on the dark toolbar)', () => {
     expect(isLight([46, 71, 86, 1])).toBe(false); // toolbar
     expect(isLight([245, 169, 184, 1])).toBe(true); // kanji pink
     expect(isLight([234, 247, 239, 1])).toBe(true); // page background
@@ -46,7 +46,7 @@ describe('imeHintsFor', () => {
     el.lang = lang;
     return el;
   };
-  it('answer fields follow the keyboard input settings (Java getter defaults when unset)', () => {
+  it('answer fields follow the keyboard input settings (the defaults when unset)', () => {
     expect(imeHintsFor(input('kk-answer', 'en'))).toMatchObject({ answerField: true, noPersonalizedLearning: true, forceAscii: false, hintLocale: '' });
     setAnswerKeyboardPrefs({ force_ascii_meaning: true, enable_no_learning: false, enable_auto_correct_reading: true, ime_hint_meaning: true });
     expect(imeHintsFor(input('kk-answer', 'en'))).toEqual({

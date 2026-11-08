@@ -44,7 +44,7 @@ export async function dump(kk: KkDb): Promise<Record<string, unknown[]>> {
   return out;
 }
 
-/** A progress file as the Java app writes it (only the given parts). */
+/** A progress file (only the given parts). */
 export function progressFile(parts: Record<string, unknown> = {}): string {
   return JSON.stringify({
     format: 'kanjikodama-progress', version: 1, exportedAt: 1760659200000, userLevel: 1, curriculum: 'WANIKANI',

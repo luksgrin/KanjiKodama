@@ -33,8 +33,8 @@ export function dispatchBackButton(canGoBack: boolean): 'handled' | 'history' | 
     window.history.back();
     return 'history';
   }
-  // Like the Java app's back on the main screen (Android 12+ moves a root activity to the
-  // background instead of finishing it): the state stays as it is.
+  // Back on the main screen moves the app to the background (as Android 12+ does for a root
+  // activity) instead of finishing it: the state stays as it is.
   void App.minimizeApp();
   return 'minimized';
 }
@@ -57,10 +57,9 @@ export const androidLifecycle: LifecycleApi = {
 };
 
 /**
- * `util/HapticUtil`. On Android 11+ Java uses View.performHapticFeedback(CONFIRM / REJECT); below,
- * a one-shot vibration of 100 ms (correct), 300 ms (wrong), 200 ms (retry). The WebView's
- * navigator.vibrate (VIBRATE permission in the manifest) gives the latter on every version, so no
- * haptics plugin is needed. Both Java settings are off by default.
+ * Haptic feedback: a one-shot vibration of 100 ms (correct), 300 ms (wrong), 200 ms (retry), through
+ * the WebView's navigator.vibrate (VIBRATE permission in the manifest), so no haptics plugin is
+ * needed. Both settings are off by default.
  */
 const VIBRATE_MS: Record<HapticKind, number> = { correct: 100, wrong: 300, retry: 200, tap: 20 };
 

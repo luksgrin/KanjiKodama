@@ -1,7 +1,6 @@
 /**
- * Keyboard help (`KeyboardHelpActivity`, `activity_keyboard_help.xml`, `Constants.KEYBOARD_HELP_DOCUMENT_*`):
- * six HTML text blocks with 8 dp padding; under the intro a "Keyboard settings" button, under the
- * next four a row (8 dp padding) with "Do it" and "Keyboard settings". "Do it" changes the keyboard
+ * Keyboard help: six HTML text blocks with 8 px padding; under the intro a "Keyboard settings" button,
+ * under the next four a row (8 px padding) with "Do it" and "Keyboard settings". "Do it" changes the keyboard
  * settings as the text recommends and confirms with "Keyboard settings updated". "Keyboard settings"
  * opens the Keyboard input settings sub-screen (`goToPreferencesActivity("keyboard_settings")`).
  *

@@ -1,7 +1,6 @@
 /**
  * The running audio download, outside React: it keeps going when the learner leaves the screen
- * (the Java app's downloads run in a background service) and the screen shows it again on return.
- * One download at a time (Java: one `DownloadAudioTask` queue).
+ * and the screen shows it again on return. One download at a time.
  */
 import type { AudioApi, AudioDownloadResult } from '../../../platform';
 

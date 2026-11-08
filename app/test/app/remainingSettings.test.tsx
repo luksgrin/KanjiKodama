@@ -12,7 +12,7 @@ import { createMemoryLocation } from '../../src/app/router';
 import { computePost60Breakdown } from '../../src/core/dashboard';
 import { createLearnerDb, updateProgress } from '../../src/core/progression';
 import type { Capabilities } from '../../src/platform';
-import { searchEngines, searchUrl, javaUrlEncode } from '../../src/ui/components/subject/searchEngines';
+import { searchEngines, searchUrl, formUrlEncode } from '../../src/ui/components/subject/searchEngines';
 import { SETTINGS_SCREENS } from '../../src/ui/screens/settings/schema';
 import { isLightColor, post60Segments, segmentLabel } from '../../src/ui/screens/dashboard/Post60Progress';
 import { hasGlyphs, readGlyphCoverage } from '../../src/ui/theme/fontCmap';
@@ -68,23 +68,22 @@ function dialogButton(el: ParentNode, label: string): HTMLButtonElement {
 
 const ANDROID: Partial<Capabilities> = { audio: true, audioPlayback: true, audioDownload: true, notifications: true, audioFocus: true, imeFlags: true };
 
-describe('schema: every visible preferences.xml row, in XML order', () => {
-  const xml = readFileSync(join(process.cwd(), 'test/fixtures/java/preferences.xml'), 'utf8');
-  // Hidden in Java too (isPreferenceVisible=false / LocalMode), or asked on their own screens.
+describe('schema: every visible row of the settings layout, in order', () => {
+  const layout = JSON.parse(readFileSync(join(process.cwd(), 'test/fixtures/settings-layout.json'), 'utf8')) as {
+    rows: Record<string, string[]>;
+  };
+  // Never shown as rows (hidden, or asked on their own screens).
   const NOT_LISTED = ['api_key_help', 'api_key', 'audio_location', 'web_password', 'not_always_hide_wk_mnemonic'];
   for (const g of SETTINGS_SCREENS) {
     it(g.id, () => {
-      const start = xml.indexOf(`app:key="${g.id}"`);
-      const end = xml.indexOf('</PreferenceScreen>', start);
-      const javaKeys = [...xml.slice(start, end).matchAll(/(?:app|android):key="(\w+)"/g)].map((m) => m[1]!).slice(1)
-        .filter((k) => !NOT_LISTED.includes(k));
-      expect(g.rows.map((r) => r.key)).toEqual(javaKeys);
+      const keys = (layout.rows[g.id] ?? []).filter((k) => !NOT_LISTED.includes(k));
+      expect(g.rows.map((r) => r.key)).toEqual(keys);
     });
   }
 });
 
 describe('Font settings', () => {
-  it('lists the Java rows; the selection page toggles selected_fonts as a JSON list', async () => {
+  it('lists the rows; the selection page toggles selected_fonts as a JSON list', async () => {
     const { el, app } = await render('/settings?screen=font_settings');
     const rows = [...el.querySelectorAll('[data-testid^="setting-"]')].map((e) => e.getAttribute('data-testid'));
     expect(rows).toEqual([
@@ -133,7 +132,7 @@ describe('Font settings', () => {
     app.dispose();
   });
 
-  it('reads selected_fonts like GlobalSettings.Font (JSON or space-separated)', () => {
+  it('reads selected_fonts (JSON or space-separated)', () => {
     expect(selectedFonts({})).toEqual([]);
     expect(selectedFonts({ selected_fonts: '["2","x.ttf"]' })).toEqual(['2', 'x.ttf']);
     expect(selectedFonts({ selected_fonts: '2  5' })).toEqual(['2', '5']);
@@ -154,7 +153,7 @@ describe('Font settings', () => {
 });
 
 describe('Notifications and other settings', () => {
-  it('Android: the notification rows and the five search engines with the Java defaults', async () => {
+  it('Android: the notification rows and the five search engines with their defaults', async () => {
     const { el, app } = await render('/settings?screen=other_settings', ANDROID);
     expect($(el, 'setting-notification_update_frequency')!.textContent).toBe('Notification update frequencyOnly for new reviews');
     expect($(el, 'setting-notification_priority')!.textContent).toBe('Notification priorityDefault');
@@ -188,12 +187,12 @@ describe('Notifications and other settings', () => {
   it('search engine slots, URLs and the encoding (URLEncoder)', () => {
     expect(searchEngines({}).map((e) => e.name)).toEqual(['Wiktionary', 'Jisho']);
     expect(searchEngines({ search_engine_1_tag: '', search_engine_4_tag: 'A', search_engine_4: 'u%s' }).map((e) => e.name)).toEqual(['Jisho', 'A']);
-    expect(javaUrlEncode('a b~!')).toBe('a+b%7E%21');
+    expect(formUrlEncode('a b~!')).toBe('a+b%7E%21');
     expect(searchUrl(searchEngines({})[1]!, '日本')).toBe('https://jisho.org/search/%E6%97%A5%E6%9C%AC');
   });
 });
 
-describe('title long press (SubjectInfoButtonView)', () => {
+describe('title long press', () => {
   const longPress = async (el: HTMLElement) => {
     await act(async () => { el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })); });
   };
@@ -223,7 +222,7 @@ describe('title long press (SubjectInfoButtonView)', () => {
     expect(document.documentElement.classList.contains('kk-action-mode')).toBe(false);
   });
 
-  it('an image-only radical gets the Java toast instead', async () => {
+  it('an image-only radical gets a toast instead', async () => {
     const el = await headline(subject(1, 'radical', 1));
     await longPress($(el, 'subject-tile')!);
     expect($(document.body, 'title-action-mode')).toBeNull();
@@ -266,7 +265,7 @@ describe('post-60 progression', () => {
     expect(deep[10]).toBe(1);
   });
 
-  it('labels, reversal and text colours as Post60ProgressBarView', () => {
+  it('labels, reversal and text colours of the post-60 bar', () => {
     const w = (s: string) => s.length * 6;
     expect(segmentLabel(1, 3, 100, w, 2)).toBe('33.3%');
     expect(segmentLabel(1, 3, 20, w, 2)).toBe('33%');

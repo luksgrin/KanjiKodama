@@ -1,9 +1,9 @@
-/* Dashboard (activity_main.xml). dp = CSS px; tokens from ui/theme. */
+/* Dashboard. Tokens from ui/theme. */
 
 .kk-dashboard { display: flex; flex-direction: column; }
 .kk-dashboard > * + * { margin-top: 8px; }
 
-/* LevelDurationView / UpcomingReviewsView: WK.TextView.Normal, centred. */
+/* The level line / upcoming reviews line: 16 px, centred. */
 .kk-level-duration,
 .kk-upcoming p {
   margin: 0;
@@ -14,7 +14,7 @@
 }
 .kk-dashboard > .kk-upcoming { margin-top: 2px; }
 
-/* AvailableSessionsView: labels Large (20sp), counts XLarge (34sp), baselines aligned, spread evenly. */
+/* Available sessions: labels 20px, counts 34px, baselines aligned, spread evenly. */
 .kk-available {
   display: flex;
   justify-content: space-evenly;
@@ -26,20 +26,20 @@
 .kk-dashboard > .kk-available { margin-top: 4px; }
 .kk-available-item { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
 .kk-available-label { font-size: 20px; padding: var(--fp-top) 0 var(--fp-bottom); }
-/* layout-w360dp/available_sessions.xml: labels XLarge (26 sp). */
+/* From 360px wide: labels 26px. */
 @media (min-width: 360px) { .kk-available-label { font-size: 26px; } }
 .kk-available-count { font-size: 34px; line-height: normal; }
 .kk-available-count.small { font-size: 30px; }
 
-/* SessionButtonsView: one centred row, 10dp side margins, 8dp above/below. */
+/* Session buttons: one centred row, 10px side margins, 8px above/below. */
 .kk-session-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 12px; margin: 8px 0; }
-/* Both buttons on one row as in Java's LinearLayout, down to ~360px; narrower phones wrap. */
+/* Both buttons on one row, down to ~360px; narrower phones wrap. */
 .kk-session-buttons > .kk-btn { white-space: nowrap; }
 .kk-dashboard > .kk-session-buttons { margin-top: 12px; }
 
-/* main_activity_view_background: window fill, 3dp ink outline, 14dp corners, hard 4/6dp shadow.
-   The shape's stroke rounds to whole device px (3dp = 8 px at 2.625) where Chromium floors a border
-   width (7 px): + 0.05px gives Java's width at the common densities (2, 2.625, 2.75, 3). */
+/* The panel: window fill, 3px ink outline, 14px corners, hard 4/6px shadow. Chromium floors a border
+   width to whole device px (3px = 7 device px at 2.625): + 0.05px rounds it to 8, as a native shape
+   draws it, at the common densities (2, 2.625, 2.75, 3). */
 .kk-dash-panel {
   background: var(--color-surface);
   border: calc(var(--border-pixel) + 0.05px) solid var(--btn-outline);
@@ -55,7 +55,7 @@
 .kk-dash-panel.kk-timeline { padding: 0; overflow: hidden; }
 .kk-timeline svg { display: block; font-family: 'Pixelify Sans', sans-serif; } /* TimeLineBarChart: always the pixel font, whatever the theme */
 .kk-timeline svg.scrollable { touch-action: pan-y; cursor: grab; }
-/* Java: strokeWidth 0 = a one-device-pixel hairline. */
+/* A one-device-pixel hairline. */
 .kk-tl-line { stroke: var(--color-text); stroke-width: 0.5; }
 .kk-tl-text { fill: var(--color-text); }
 .kk-tl-levelup { fill: var(--color-level-up); }
@@ -66,7 +66,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
-  /* srs_breakdown.xml: the tiles keep 8 dp from the panel's own padding (5 dp) on every side, 4 dp apart. */
+  /* The tiles keep 8 px from the panel's own padding (5 px) on every side, 4 px apart. */
   padding: 13px;
 }
 .kk-srs-tile {
@@ -92,7 +92,7 @@
   font-size: 34px;
   line-height: 84px;
   text-align: center;
-  /* SrsBreakDownView.setShadowLayer(3, 1, 1, black): device pixels (--text-shadow-3px). */
+  /* Shadow layer (3, 1, 1, black) in device pixels (--text-shadow-3px). */
   text-shadow: var(--srs-count-shadow, var(--text-shadow-3px));
   color: var(--color-on-pastel);
 }
@@ -103,7 +103,7 @@
 .kk-srs-tile.burned { background: var(--color-stage-burned); }
 /* Below ~300px a tile can't hold "Enlightened" at 13px beside the 12dp margin: shrink the margin. */
 @media (max-width: 340px) { .kk-srs-name { left: 6px; font-size: 12px; } }
-/* layout-w480dp/srs_breakdown.xml: the five tiles in one row, 72 dp high, 32 sp counts, 11 sp names. */
+/* From 480px wide: the five tiles in one row, 72 px high, 32 px counts, 11 px names. */
 @media (min-width: 480px) {
   .kk-dash-panel.kk-srs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .kk-srs-tile { height: 72px; }
@@ -113,7 +113,7 @@
 
 /* Level progression: tile background, bar left (24dp), label right (Small 14sp). */
 .kk-lp { background: var(--color-surface); padding: 2px 0 4px; color: var(--color-text); }
-/* Java's TableLayout: one label column as wide as the longest label, so all bars end at the same x. */
+/* One label column as wide as the longest label, so all bars end at the same x. */
 @supports (grid-template-columns: subgrid) {
   .kk-lp { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
   .kk-lp > * { grid-column: 1 / -1; }
@@ -125,7 +125,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  /* 24dp bar rows 4dp apart as in Java; the tap area reaches 8px above and below (rows overlap). */
+  /* 24px bar rows 4px apart; the tap area reaches 8px above and below (rows overlap). */
   margin-top: -12px;
   padding: 8px 0;
   border: 0;
@@ -166,8 +166,8 @@
   font-family: var(--font-body);
   cursor: pointer;
   text-shadow: var(--text-shadow-3px);
-  /* live_subject_table_row.xml: 4 dp margins around a 16 sp line (Japanese face: 24 dp): 32 dp rows,
-     4 dp apart (Java ~36 dp pitch; below the 40 px tap floor, e2e exemption in test/e2e/helpers/app.ts). */
+  /* 4 px margins around a 16 px line (Japanese face: 24 px): 32 px rows, 4 px apart (below the 40 px
+     tap floor, e2e exemption in test/e2e/helpers/app.ts). */
   line-height: 1.5;
 }
 .kk-subject-row.radical { background: var(--color-radical); }
@@ -189,7 +189,7 @@
 /* PWA banners after the session buttons. */
 .kk-dashboard > .kk-banner { margin-bottom: 0; }
 
-/* Post60ProgressView: the bold title centred with 4dp padding, then the 24dp bar (Post60ProgressBarView). */
+/* Post-60 progression: the bold title centred with 4px padding, then the 24px bar. */
 .kk-post60 { display: flex; flex-direction: column; }
 .kk-post60-title { margin: 0; padding: 4px; align-self: center; font-size: var(--text-md); font-weight: 700; line-height: normal; }
 .kk-post60-bar { display: block; width: 100%; height: 24px; }

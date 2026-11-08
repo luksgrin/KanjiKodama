@@ -15,7 +15,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import type { Content } from '../../src/core/content';
 import { makeContent } from '../../src/core/content';
-import { JSONArray, JSONObject, JavaNumber, parseJsonValue, type JsonValue } from '../../src/core/progressFile/androidJson';
+import { JSONArray, JSONObject, TypedNumber, parseJsonValue, type JsonValue } from '../../src/core/progressFile/androidJson';
 import { KkDb } from '../../src/storage/db';
 import { loadLearnerDb, saveLearnerDb } from '../../src/storage/progressRepo';
 import { ProgressImportError, importProgress, previewImport } from '../../src/progress/importFile';
@@ -28,9 +28,9 @@ import { dump, freshName, openDb } from './helpers';
 const EXPORT_FILE = 'progress/android-export.json';
 const readGolden = (file: string): string => readFileSync(join(GOLDEN_DIR, file), 'utf8');
 
-/** A plain value keeping the Java number type: integral numbers as "I:<n>", doubles as "D:<n>". */
+/** A plain value keeping the number type: integral numbers as "I:<n>", doubles as "D:<n>". */
 function typed(v: JsonValue | null): unknown {
-  if (v instanceof JavaNumber) return `${v.type === 'Double' ? 'D' : 'I'}:${v.toString()}`;
+  if (v instanceof TypedNumber) return `${v.type === 'Double' ? 'D' : 'I'}:${v.toString()}`;
   if (v instanceof JSONArray) return v.values.map(typed);
   if (v instanceof JSONObject) return Object.fromEntries([...v.map].map(([k, x]) => [k, typed(x)]));
   return v;
@@ -139,7 +139,7 @@ describe.skipIf(!hasContentDb())(`progress files through Dexie with the real con
         await importProgress(kk, text, { content, jlptKanji, now: 1792298260372 });
         restored++;
       } catch (e) {
-        // Passes describe but fails in the restore (as in Java): nothing changed.
+        // Passes describe but fails in the restore: nothing changed.
         expect(e, c.name).toBeInstanceOf(ProgressImportError);
         expect(await dump(kk), c.name).toEqual(before);
         continue;

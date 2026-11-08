@@ -14,7 +14,7 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: var(--text-md); /* WK.TextView.Normal 16sp */
+  font-size: var(--text-md); /* 16px */
   line-height: normal; /* Android: each line as tall as its fonts (fonts.css rounds the metrics as Android does) */
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
@@ -24,10 +24,8 @@ body {
   font-family: var(--font-ja);
 }
 
-/* Java headings are the body font in bold (WK.TextView.*.Bold); Silkscreen is only on the
-   toolbar (WKToolbarTheme), its menus and the quiz header texts. Buttons: the WK.Button styles name
-   Silkscreen as android:fontFamily, but AppCompat applies the theme's app:fontFamily (Pixelify Sans)
-   first, so Java's buttons are Pixelify Sans in capitals (textAllCaps). */
+/* Headings are the body font in bold; Silkscreen is only on the toolbar, its menus and the quiz
+   header texts. Buttons are Pixelify Sans in capitals. */
 h1, h2, h3 {
   font-family: var(--font-body);
   font-weight: 700;
@@ -62,9 +60,8 @@ button { font: inherit; color: inherit; }
   flex-direction: column;
 }
 
-/* Toolbar: androidx Toolbar, ?attr/actionBarSize 56dp, WKToolbarTheme (Silkscreen, white on
-   toolbarColorBackground; the subject colour with its text colour in sessions / item pages),
-   elevation 4dp; white title and icons also on the subject colours. The status bar above it has
+/* Toolbar: 56px, Silkscreen, white on the toolbar colour (the subject colour with its text colour in
+   sessions / item pages), elevation 4px; white title and icons also on the subject colours. The status bar above it has
    the same colour (padding-top = the inset). */
 .kk-toolbar {
   --tb-bg: var(--color-toolbar-bg);
@@ -105,7 +102,7 @@ button { font: inherit; color: inherit; }
   flex: 1;
   min-width: 0;
   padding-left: 16px; /* contentInsetStartWithNavigation 72dp = 56dp button + 16dp */
-  margin-right: 12px; /* the Java title ellipsizes ~9-19 dp before the first action (measured: "SEARCH RESUL…", "BROWSE / SEA…") */
+  margin-right: 12px; /* the title ellipsizes ~9-19 px before the first action ("SEARCH RESUL…", "BROWSE / SEA…") */
 }
 .kk-toolbar-title.no-back { padding-left: 16px; }
 .kk-toolbar-title h1 {
@@ -128,7 +125,7 @@ button { font: inherit; color: inherit; }
   white-space: nowrap;
 }
 .kk-toolbar-overflow { flex: none; position: relative; }
-.kk-toolbar-overflow > .kk-toolbar-btn { width: 40px; padding: 0 5.33px 0 0; } /* the dots 2.67 dp left of centre, as measured on Java (ActionButton.Overflow) */
+.kk-toolbar-overflow > .kk-toolbar-btn { width: 40px; padding: 0 5.33px 0 0; } /* the dots 2.67 px left of centre */
 .kk-toolbar-search {
   flex: 1;
   min-width: 0;
@@ -158,9 +155,8 @@ button { font: inherit; color: inherit; }
 .kk-toolbar-search input::placeholder { color: inherit; opacity: 0.6; }
 .kk-toolbar-search input::-webkit-search-cancel-button { display: none; }
 
-/* Overflow popup: ThemeOverlay.AppCompat.Dark popup as the Java app draws it (#303030, 48dp rows,
-   16sp white Silkscreen from WKToolbarTheme, 8dp elevation), overlapping its anchor 4dp from the
-   top right. */
+/* Overflow popup: dark (#303030, 48px rows, 16px white Silkscreen, 8px elevation), overlapping its
+   anchor 4px from the top right. */
 .kk-toolbar-menu {
   position: absolute;
   top: 0;
@@ -227,7 +223,7 @@ button { font: inherit; color: inherit; }
   width: 100%;
   max-width: var(--content-max-width);
   margin: 0 auto;
-  /* The Java layouts' 8dp margins. */
+  /* 8px margins. */
   padding: var(--main-gutter) calc(var(--safe-right) + var(--main-gutter)) calc(var(--safe-bottom) + var(--main-gutter)) calc(var(--safe-left) + var(--main-gutter));
 }
 
@@ -237,10 +233,9 @@ button { font: inherit; color: inherit; }
 @keyframes kk-enter-forward { from { opacity: 0; transform: translateX(32px); } }
 @keyframes kk-enter-back { from { opacity: 0; transform: translateX(-32px); } }
 
-/* Session fragment transitions (enums/FragmentTransitionAnimation + res/anim): the entering fragment
-   translates in from a full width (the fragment container: the screen) with decelerate_interpolator
-   (1 - (1 - t)², exactly this cubic), the leaving one (exitingFragment.ts) out by a full width with
-   accelerate_interpolator (t²), both over the same 150 ms, the leaving one underneath. */
+/* Session screen transitions: the entering screen translates in from a full width, decelerating
+   (1 - (1 - t)², exactly this cubic), the leaving one (exitingFragment.ts) out by a full width,
+   accelerating (t²), both over the same 150 ms, the leaving one underneath. */
 .kk-slide-rtl { animation: kk-slide-rtl 150ms cubic-bezier(0.3333, 0.6667, 0.6667, 1); }
 .kk-slide-ltr { animation: kk-slide-ltr 150ms cubic-bezier(0.3333, 0.6667, 0.6667, 1); }
 .kk-slide-exit-rtl { animation: kk-slide-exit-rtl 150ms cubic-bezier(0.3333, 0, 0.6667, 0.3333) forwards; }
@@ -249,8 +244,8 @@ button { font: inherit; color: inherit; }
 @keyframes kk-slide-ltr { from { transform: translateX(calc(-100% - 2 * var(--main-gutter))); } }
 @keyframes kk-slide-exit-rtl { to { transform: translateX(calc(-100% - 2 * var(--main-gutter))); } }
 @keyframes kk-slide-exit-ltr { to { transform: translateX(calc(100% + 2 * var(--main-gutter))); } }
-/* Display settings "Use slide animations to transition between quiz questions" off
-   (SessionActivity: no FragmentTransitionAnimation). app/theme.ts sets the attribute. */
+/* Display settings "Use slide animations to transition between quiz questions" off: no slide.
+   app/theme.ts sets the attribute. */
 :root[data-slide-animations='off'] .kk-slide-exit-rtl,
 :root[data-slide-animations='off'] .kk-slide-exit-ltr,
 :root[data-slide-animations='off'] .kk-slide-rtl,
@@ -286,10 +281,10 @@ button { font: inherit; color: inherit; }
 .kk-toast.kk-toast-out { opacity: 0; transition: opacity 250ms ease-in; }
 @keyframes kk-toast-in { from { opacity: 0; } }
 
-/* ---- Buttons: the Java app's mm_btn pixel pill ---- */
+/* ---- Buttons: the pixel pill ---- */
 
-/* res/drawable/mm_btn_normal.xml is a layer-list of four pills (shape rectangle, corners 999dp: Android
-   clamps the radius to half the shorter side) and a highlight, all inside the view's bounds:
+/* The button is a stack of four pills (corners clamped to half the shorter side) and a highlight, all
+   inside the view's bounds:
      O1  outline  top 5dp                      O2  outline  bottom 5dp       (together: outline, corners (H-5dp)/2)
      S   shade    3dp left/top/right, 8dp bottom
      F   fill     3dp left/top/right, 12dp bottom
@@ -312,7 +307,7 @@ button { font: inherit; color: inherit; }
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  /* WK.Button.Normal: minHeight 52dp (rounded to device px), padding 22 / 6 / 22 / 14 dp. */
+  /* Min height 52px (rounded to device px), padding 22 / 6 / 22 / 14 px. */
   min-height: var(--kk-btn-h, 52px);
   min-width: 88px; /* Widget.AppCompat.Button */
   padding: 6px 22px 14px;
@@ -383,7 +378,7 @@ button { font: inherit; color: inherit; }
     linear-gradient(var(--btn-light), var(--btn-light)) calc(var(--kk-l-x) + var(--kk-l-r)) var(--kk-l-y) / calc(100% - 2 * var(--kk-l-x) - 2 * var(--kk-l-r)) var(--kk-br3) no-repeat,
     var(--btn-fill);
 }
-/* mm_btn_pressed.xml: the outline pill from 5dp down and the shade 3dp in, 8dp from the top: the pill sinks
+/* Pressed: the outline pill from 5px down and the shade 3px in, 8px from the top: the pill sinks
    into its shadow; no fill, no highlight; the text stays. */
 .kk-btn:active:not(:disabled) { background: transparent; }
 .kk-btn:active:not(:disabled)::before {
@@ -395,7 +390,7 @@ button { font: inherit; color: inherit; }
   bottom: var(--kk-bt3);
   background: var(--btn-shade);
 }
-/* mm_btn.xml state_enabled=false: the normal drawable under a #66FFFFFF pill over the whole bounds (the text
+/* Disabled: the normal look under a 40 % white (#66FFFFFF) pill over the whole bounds (the text
    keeps its colour). The pill covers the shade and the fill; on the outline it also lightens the few px
    outside the bounds' pill (O's corners are tighter than H/2). */
 .kk-btn:disabled {
@@ -415,7 +410,7 @@ button { font: inherit; color: inherit; }
 }
 /* Focus. Android draws a focused view's default focus highlight (colorControlHighlight over the view's
    bounds, on top) only out of touch mode: after a D-pad / Tab / arrow key, never after a touch (in touch mode
-   a Button can't even take the focus, so Java's requestFocus() on Next / Finish does nothing on a phone).
+   a Button can't even take the focus, so focusing Next / Finish shows nothing on a phone).
    focusMode.ts keeps :root.kk-nontouch in step; the browser's own ring stays off. */
 .kk-btn:focus-visible { outline: none; }
 :root.kk-nontouch .kk-btn:focus {
@@ -427,7 +422,7 @@ button { font: inherit; color: inherit; }
 :root.kk-nontouch .kk-btn:focus:not(:active)::after { box-shadow: inset 0 0 0 999px var(--kk-focus-hl); }
 .kk-btn.small { --kk-btn-h: 40px; padding: 5px 19px 15px; font-size: 13px; }
 .kk-btn.block { display: flex; width: 100%; }
-/* Java has one button style (res/drawable/mm_btn.xml): secondary looks the same. */
+/* There is one button style: secondary looks the same. */
 .kk-btn.secondary { --btn-text: var(--btn-secondary-text); }
 .kk-btn.danger { --btn-text: var(--color-on-subject); --btn-fill: var(--color-kanji); --btn-light: #FADDE6; --btn-shade: var(--color-kanji-strong); }
 .kk-btn.radical { --btn-text: var(--color-on-subject); --btn-fill: var(--color-radical); --btn-light: #D6E8F8; --btn-shade: var(--color-radical-strong); }
@@ -501,13 +496,13 @@ a.kk-row { color: inherit; text-decoration: none; }
 /* ---- Dialog ---- */
 
 .kk-dialog {
-  /* Java AlertDialog (AppCompat): floating background, 2 dp corners, 24 dp elevation. */
+  /* Alert dialog: floating background, 2 px corners, 24 px elevation. */
   border: 0;
   border-radius: 2px;
   background: var(--color-dialog);
   color: var(--color-text);
-  /* Measured on the Java app: 26.7 dp from the screen edges, 18 dp above the title, 4 dp below the
-     buttons (54 dp, 4 dp above them, 12 dp from the sides, side by side). */
+  /* 26.7 px from the screen edges, 18 px above the title, 4 px below the buttons (54 px, 4 px above
+     them, 12 px from the sides, side by side). */
   padding: 18px 24px 4px;
   width: min(400px, calc(100vw - 53.33px));
   max-height: calc(100dvh - 48px);

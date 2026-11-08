@@ -1,9 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-// Same identity as the Java app (issue #3, step 6): app.kanjikodama.wk, so the release APK installs
-// over it (same key, android/keystore.properties) and the legacy migration finds its data. The Gradle
-// build types set the installed id: release app.kanjikodama.wk, debug app.kanjikodama.wk.debug, and
-// app.kanjikodama.wk.web for both with -PsideBySide (android/app/build.gradle).
+// The app's id. The Gradle build types set the installed id: release app.kanjikodama.wk, debug
+// app.kanjikodama.wk.debug, and app.kanjikodama.wk.web for both with -PsideBySide
+// (android/app/build.gradle).
 const config: CapacitorConfig = {
   appId: 'app.kanjikodama.wk',
   appName: 'KanjiKodama',
@@ -21,7 +20,7 @@ const config: CapacitorConfig = {
       style: 'DEFAULT',
     },
     LocalNotifications: {
-      // Status-bar icon of the Java app (tools/make_logo.py → res/drawable/ic_stat_name.xml).
+      // Status-bar icon (tools/make_logo.py → res/drawable/ic_stat_name.xml).
       smallIcon: 'ic_stat_name',
     },
   },

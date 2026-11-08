@@ -1,4 +1,4 @@
-/** The running self-study quiz (also the level test rounds): `SessionActivity` for SELF_STUDY sessions. */
+/** The running self-study quiz (also the level test rounds): the session screen for SELF_STUDY sessions. */
 import { SessionScreen } from '../../components/session/SessionScreen';
 
 export function SelfStudyQuizScreen() {

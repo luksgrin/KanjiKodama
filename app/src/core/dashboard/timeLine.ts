@@ -1,29 +1,27 @@
 /**
  * The dashboard timeline: available lessons and reviews, the upcoming reviews per hour slot, and the
- * next review beyond the chart. Java: `LiveTimeLine.computeTimeLine`, `model/TimeLine`,
- * `SubjectCollectionsDao.getAvailableLessonItems/getUpcomingReviewItems/getLevelUpIds`,
- * `SubjectAggregatesDao.getNextLongTermReviewDate/Count`.
+ * next review beyond the chart.
  */
 
 import { HOUR, topOfHour } from '../time';
 import { num, progressRow, sqlIsZero, sqlNonZero, type LearnerDb } from '../progression';
 
-/** `LocalMode.MAX_LEVEL`: `PropertiesDao.getUserMaxLevelGranted` in local mode. */
+/** The highest level granted in local mode. */
 export const LOCAL_MAX_LEVEL_GRANTED = 60;
 
-/** `GlobalSettings.Dashboard.getTimeLineChartSize` default. */
+/** `timeline_chart_size_shown` default. */
 export const DEFAULT_TIME_LINE_SIZE = 24;
 
 export interface TimeLineOptions {
   /** `timeline_chart_size`, in hours. */
   size: number;
-  /** `PropertiesDao.getUserMaxLevelGranted` (60 in local mode). */
+  /** The highest level granted (60 in local mode). */
   maxLevel?: number;
-  /** `PropertiesDao.getVacationMode`: no lessons or reviews at all. */
+  /** Vacation mode: no lessons or reviews at all. */
   vacationMode?: boolean;
 }
 
-/** `model/TimeLine`, with subject ids instead of subjects. */
+/** The timeline, with subject ids instead of subjects. */
 export interface TimeLine {
   /** The top of the hour the timeline was made in: slot 0. */
   firstSlot: number;
@@ -61,7 +59,7 @@ function inRange(db: LearnerDb, id: number, maxLevel: number): boolean {
 }
 
 /**
- * `SubjectCollectionsDao.getLevelUpIds`: the current level's kanji and their components, empty at the
+ * The level-up ids: the current level's kanji and their components, empty at the
  * last level.
  */
 export function levelUpIds(db: LearnerDb, userLevel: number, maxLevel: number): Set<number> {
@@ -130,7 +128,7 @@ function nextLongTermReviews(db: LearnerDb, maxLevel: number, from: number): [nu
   return [date, count];
 }
 
-/** `LiveTimeLine.computeTimeLine` at `now`. */
+/** The timeline at `now`. */
 export function computeTimeLine(db: LearnerDb, now: number, options: TimeLineOptions): TimeLine {
   const maxLevel = options.maxLevel ?? LOCAL_MAX_LEVEL_GRANTED;
   const userLevel = db.progress.userLevel;
@@ -156,7 +154,7 @@ export function computeTimeLine(db: LearnerDb, now: number, options: TimeLineOpt
     const availableAt = num(row, 'availableAt');
     if (availableAt === 0) continue;
     if (availableAt < now) t.availableReviews.push(id);
-    // (int) (delay / HOUR): Java long division truncates toward zero.
+    // Integer division truncates toward zero.
     const slot = Math.max(0, Math.trunc((availableAt - firstSlot) / HOUR));
     if (slot < t.slots.length) {
       t.slots[slot]!.push(id);

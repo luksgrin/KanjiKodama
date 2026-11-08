@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build content/private/wk-content.db from the private WaniKani dump in wani-data/.
 
-The dump is in Smouldering Durtles' own table format. This script keeps only content
+The dump is a SQL dump of the subject and SRS system tables. This script keeps only content
 (subjects and SRS systems), converts NULL timestamps to 0 (the app's "never"), and resets all
 progress so the app starts fresh (app/scripts/build-content.ts reads it). The output is git-ignored: WaniKani content is licensed to
 the owner for internal use only and must never be committed.
@@ -10,7 +10,7 @@ Without a local dump, the cleaned file is downloaded from the private KanjiKodam
 pinned in tools/wk-content.lock.json (needs the gh CLI logged in) and checked against its sha256.
 If neither is available the script exits 0, so builds without the content still succeed.
 
-The table layout is the Java app's Room schema (version 68), kept as tools/wk-content-schema.json.
+The table layout is kept as tools/wk-content-schema.json (schema version 68).
 
 Usage (from the repo root): python3 tools/build_wk_asset.py [dump.sql] [out.db]
 """

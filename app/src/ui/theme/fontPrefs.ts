@@ -1,11 +1,9 @@
 /**
- * Font settings sizes (`GlobalSettings.Font`), by the Java keys and defaults. SeekBarPreferences store
- * ints; sizes are sp, used 1:1 as CSS px.
+ * Font settings sizes, by their keys and defaults. Slider settings store ints; sizes are used as CSS px.
  *
- * Where Java applies them: `max_font_size_lesson` lesson presentation title (LessonSessionFragment),
- * `max_font_size_quiz` the item info title after answering / in Anki mode (AnsweredSessionFragment,
- * AnkiSessionFragment), `max_font_size_browse` the item page title (SubjectInfoFragment) — 0 hides
- * the title; `max_font_size_quiz_text` the question text's height cap (AbstractSessionFragment);
+ * Where they apply: `max_font_size_lesson` lesson presentation title, `max_font_size_quiz` the item
+ * info title after answering / in Anki mode, `max_font_size_browse` the item page title — 0 hides the
+ * title; `max_font_size_quiz_text` the question text's height cap;
  * `font_size_question_edit` the answer field; `font_size_subject_info` the item info body
  * (core `fontSizeSubjectInfo`); `font_size_live_subject_table` the dashboard tables;
  * `font_size_anki_answer` the Anki answer and synonyms.

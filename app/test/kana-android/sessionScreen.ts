@@ -1,14 +1,13 @@
 /**
  * Test-side emulation of the session screen around the answer field for `kana/keys-session.json`:
- * `SessionActivity` switching between `UnansweredSessionFragment` (answer field, Submit and Don't know
- * buttons) and `AnsweredSessionFragment` (Next button, focused), with keys routed by focus the way
- * `ViewRootImpl` does.
+ * the session switching between the unanswered screen (`UnansweredSessionFragment` in the fixture:
+ * answer field, Submit and Don't know buttons) and the answered one (`AnsweredSessionFragment`: Next
+ * button, focused), with keys routed by focus the way Android does.
  *
  * The session itself is a stub for the fixture's one-item self-study session (kanji 一, seed 1, so the
- * reading question comes first); question choice and the progress text follow `model/Session`
- * (`getProgressText`: "Wrapup: " once every active item is started; finished/live items). The answer
- * check is the ported one (`core/answer` `submitCheck`). Replace the stub with `core/session` once it
- * exists.
+ * reading question comes first); question choice and the progress text follow the session
+ * ("Wrapup: " once every active item is started; finished/live items). The answer check is
+ * `core/answer` `submitCheck`.
  */
 import type { ContentSubject } from '../../src/core/content';
 import type { QuestionType } from '../../src/core/answer';
@@ -95,7 +94,7 @@ export class SimSessionScreen {
   private showUnanswered(): void {
     this.fragment = 'UnansweredSessionFragment';
     this.fieldActive = true;
-    // The fragment's watcher: active tag and kana question, as in UnansweredSessionFragment.
+    // The field's watcher: active tag and kana question.
     const watcher = new FixupWatcher(() => this.fieldActive, () => this.isKana());
     this.field = new SimKeyField(this.clipboard, (actionId, e) => this.onEditorAction(actionId, e), watcher);
     this.focus = 'questionEdit';

@@ -1,4 +1,4 @@
-{"area":"answers.checkSubjects","javaSource":"db/model/Subject parsing + enums/SubjectType.getPossibleQuestionTypes"}
+{"area":"answers.checkSubjects"}
 {"name":"subject-1","input":{"id":1,"object":"radical","characters":"一","hiddenAt":0,"meanings":[{"meaning":"Ground","primary":true,"accepted_answer":true}],"auxiliaryMeanings":[],"readings":null},"output":{"questionTypes":["WANIKANI_RADICAL_NAME"],"questionTypesOnKun":["WANIKANI_RADICAL_NAME"]}}
 {"name":"subject-2","input":{"id":2,"object":"radical","characters":"ハ","hiddenAt":0,"meanings":[{"meaning":"Fins","primary":true,"accepted_answer":true}],"auxiliaryMeanings":[],"readings":null},"output":{"questionTypes":["WANIKANI_RADICAL_NAME"],"questionTypesOnKun":["WANIKANI_RADICAL_NAME"]}}
 {"name":"subject-3","input":{"id":3,"object":"radical","characters":"丶","hiddenAt":0,"meanings":[{"meaning":"Drop","primary":true,"accepted_answer":true}],"auxiliaryMeanings":[],"readings":null},"output":{"questionTypes":["WANIKANI_RADICAL_NAME"],"questionTypesOnKun":["WANIKANI_RADICAL_NAME"]}}

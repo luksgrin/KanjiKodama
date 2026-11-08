@@ -2,7 +2,7 @@
  * Focused checks of core/session's selection and question order against the session start steps
  * recorded in the golden scenarios, before the session engine replays them end to end: for every
  * `sessionStart` the selected items (order and bucket) and the first question must match, drawing
- * from the scenario's shared seeded random in the same order as Java. The queue is taken from the
+ * from the scenario's shared seeded random in the recorded order. The queue is taken from the
  * fixture (building it is the engine's job).
  */
 
@@ -15,7 +15,7 @@ import { settingsOrdering } from '../../src/core/session/ordering';
 import { selectSessionSubjects } from '../../src/core/session/selection';
 import type { SessionContext, SessionSubject } from '../../src/core/session/types';
 import { contentSubject, progressRow, srsSystemOf, tableRow, type LearnerDb } from '../../src/core/progression';
-import { JavaRandom, shuffleInPlace } from '../../src/core/rng';
+import { SeededRandom, shuffleInPlace } from '../../src/core/rng';
 import type { Preferences } from '../../src/core/settings';
 import { hasContentDb, loadContentWithExtras } from '../golden/content';
 import { loadJlptKanji, startScenario, type StartInput } from '../golden/scenario/runner';
@@ -74,7 +74,7 @@ describe.skipIf(!hasContentDb())('session selection and first question vs. recor
         if (resolved.ids.length === 0 || session === undefined) continue;
 
         const prefs = resolved.settings;
-        const rngBefore = Object.assign(Object.create(JavaRandom.prototype) as JavaRandom, rs.rng);
+        const rngBefore = Object.assign(Object.create(SeededRandom.prototype) as SeededRandom, rs.rng);
         const userLevel = rs.db.progress.userLevel;
         const subjects = resolved.ids.map((id) => orderSubject(rs.db, id, rs.now, prefs));
         const sel = selectSessionSubjects(subjects, args.type, prefs,
@@ -119,7 +119,7 @@ function prefixOf(type: StartType): string {
 }
 
 /** `Session.populateItems`' selection steps the way the engine drives `settingsOrdering`. */
-function viaOrdering(db: LearnerDb, type: StartType, prefs: Preferences, now: number, ids: number[], rng: JavaRandom): [number, number][] {
+function viaOrdering(db: LearnerDb, type: StartType, prefs: Preferences, now: number, ids: number[], rng: SeededRandom): [number, number][] {
   const ctx: SessionContext = { db, prefs, now, rng };
   const subjects: SessionSubject[] = ids.map((id) => ({
     id, content: contentSubject(db, id), table: tableRow(db, id), progress: progressRow(db, id), srsSystem: srsSystemOf(db, id),

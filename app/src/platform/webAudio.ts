@@ -6,7 +6,7 @@
  * deleting are Android only (`capabilities.audioDownload`).
  */
 import { chooseAudio, type AudioCatalog, type VoicePreference } from '../core/audio';
-import { JavaRandom, type Rng } from '../core/rng';
+import { SeededRandom, type Rng } from '../core/rng';
 import type { AudioApi } from './index';
 
 export interface WebAudioOptions {
@@ -21,7 +21,7 @@ const NOTHING_CACHED: ReadonlyMap<number, ReadonlySet<string>> = new Map();
 export function createWebAudio(options: WebAudioOptions = {}): AudioApi {
   const createAudio = options.createAudio ?? ((src: string) => new Audio(src));
   const online = options.online ?? (() => typeof navigator === 'undefined' || navigator.onLine !== false);
-  const rng = options.rng ?? new JavaRandom(Date.now());
+  const rng = options.rng ?? new SeededRandom(Date.now());
   let catalog: AudioCatalog | null = null;
   let current: Pick<HTMLAudioElement, 'play' | 'pause'> | null = null;
   let lastWasMale = false;

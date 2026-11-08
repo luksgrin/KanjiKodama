@@ -1,17 +1,14 @@
 /**
- * Review notifications, planned ahead. The Java app wakes up at the top of every hour
- * (`services/BackgroundAlarmReceiver`, `AlarmManager.setAndAllowWhileIdle`) and lets
- * `services/NotificationWorker` post when the newest available review got newer (the default
- * `notification_update_frequency` ONLY_NEW_REVIEWS), with the counts of
- * `SubjectAggregatesDao.getAlertContext(maxLevel, now)`.
+ * Review notifications, planned ahead. A notification is posted at the top of an hour when the newest
+ * available review got newer (the default `notification_update_frequency` ONLY_NEW_REVIEWS), with
+ * the counts at that hour.
  *
- * The Capacitor app can't run code every hour, so it schedules those posts in advance (after each
+ * The app can't run code every hour, so it schedules those posts in advance (after each
  * session, on pause, on resume): one notification per future hour in which reviews become
  * available, carrying the counts at that hour, for the next 7 days, at most 64.
  *
- * Times are epoch ms and hours are `topOfHour` hours (UTC-aligned, like Java's
- * `ObjectSupport.getTopOfHour`), so daylight saving changes don't move anything; in a time zone
- * with a half-hour offset the notification comes at :30 local time, as in the Java app.
+ * Times are epoch ms and hours are `topOfHour` hours (UTC-aligned), so daylight saving changes don't
+ * move anything; in a time zone with a half-hour offset the notification comes at :30 local time.
  */
 
 import { availableLessonIds, LOCAL_MAX_LEVEL_GRANTED } from '../dashboard/timeLine';
@@ -37,9 +34,9 @@ export const REVIEW_NOTIFICATION_WINDOW = 7 * DAY;
 export const MAX_REVIEW_NOTIFICATIONS = 64;
 
 export interface ReviewNotificationOptions {
-  /** `PropertiesDao.getUserMaxLevelGranted` (60 in local mode). */
+  /** The highest level granted (60 in local mode). */
   maxLevel?: number;
-  /** `PropertiesDao.getVacationMode`: nothing to notify. */
+  /** Vacation mode: nothing to notify. */
   vacationMode?: boolean;
   /** Defaults to `REVIEW_NOTIFICATION_WINDOW`. */
   window?: number;
@@ -47,13 +44,13 @@ export interface ReviewNotificationOptions {
   cap?: number;
 }
 
-/** `GlobalSettings.Other.getEnableNotifications`: `enable_notifications`, default true. */
+/** `enable_notifications`, default true. */
 export function enableNotifications(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'enable_notifications', true);
 }
 
 /**
- * The hour whose alarm first counts a review available at `availableAt`: Java counts
+ * The hour whose alarm first counts a review available at `availableAt`: the alarm counts
  * `availableAt < now` with `now` just after the top of the hour, so an on-the-hour time counts in
  * its own hour and anything later in the next one.
  */
@@ -104,7 +101,7 @@ export function planReviewNotifications(db: LearnerDb, now: number, options: Rev
   return out;
 }
 
-/** `NotificationWorker.postNotification`: title and text, word for word. */
+/** The notification's title and text. */
 export function reviewNotificationText(t: Pick<ReviewTime, 'lessons' | 'totalReviews'>): { title: string; body: string } {
   if (t.lessons > 0) {
     return {
@@ -115,7 +112,7 @@ export function reviewNotificationText(t: Pick<ReviewTime, 'lessons' | 'totalRev
   return { title: 'New reviews available', body: `${t.totalReviews} reviews available` };
 }
 
-/** The Java app's channel (`NotificationWorker.postNotification`, Android 8+). */
+/** The notification channel (Android 8+). */
 export const REVIEW_NOTIFICATION_CHANNEL = {
   id: 'NewReviewsChannel',
   name: 'NewReviewsChannel',

@@ -1,9 +1,6 @@
 /**
  * Which subjects a new session gets and in which order: shuffle (if the order asks for it), sort by
  * the session comparator, trim to the size limit with the selection rules, then the buckets.
- *
- * Java: `model/SubjectSelectionRules`, `Session.trimSelection`, `Session.populateItems` (the part
- * before the items are created), `Session.startNew*Session`.
  */
 
 import type { Rng } from '../rng';
@@ -146,7 +143,7 @@ export interface SessionSelection {
   maxSize: number;
 }
 
-/** What the order needs beyond the settings (`PropertiesDao`, `SubjectCollectionsDao.getLevelUpIds`). */
+/** What the order needs beyond the settings (the user level, the level-up ids). */
 export interface SelectionContext {
   userLevel: number;
   /** `getUserMaxLevelGranted`: `LOCAL_MAX_LEVEL_GRANTED` in local mode. */
@@ -156,11 +153,11 @@ export interface SelectionContext {
 }
 
 /**
- * The selection part of `Session.startNew*Session` + `populateItems`: shuffle with the shared
- * random (`ObjectSupport.shuffleInPlace`) if the order shuffles, stable sort, trim to the session's
+ * The selection part of starting a session: shuffle with the shared random (`shuffleInPlace`) if
+ * the order shuffles, stable sort, trim to the session's
  * size limit with the selection rules, then buckets with the (possibly shuffle-after-selection)
  * comparator. `subjects` is the list the session is started with, in the caller's order; it must
- * not be empty (Java throws IllegalArgumentException).
+ * not be empty (throws IllegalArgumentException).
  */
 export function selectSessionSubjects(subjects: readonly OrderSubject[], type: StartType, prefs: Preferences,
   ctx: SelectionContext, rng: Pick<Rng, 'nextInt'>): SessionSelection {

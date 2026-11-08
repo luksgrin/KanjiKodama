@@ -1,9 +1,8 @@
 /**
- * The subject info under an answered question and in the lesson presentation (`SubjectInfoView` with
- * container type ANSWERED_QUESTION / LESSON_PRESENTATION): the item page with the info dump's flags, the
- * headline's reveal button ("Show answer" / "Show more" / "Show all") and the audio button in the headline's
- * buttons column, as Java. Synonyms ("+", `SubjectInfoView.prepareAddSynonymButton`) can be added here; the
- * notes are edited from the session menu's "My notes..." (`StudyMaterialsActivity`); a new synonym counts
+ * The subject info under an answered question and in the lesson presentation: the item page with the
+ * info dump's flags, the headline's reveal button ("Show answer" / "Show more" / "Show all") and the
+ * audio button in the headline's buttons column. Synonyms ("+") can be added here; the notes are edited
+ * from the session menu's "My notes..."; a new synonym counts
  * for the next answer.
  */
 import { maxFontSizeQuiz } from '../../theme/fontPrefs';
@@ -23,7 +22,7 @@ export interface SessionItemInfoProps {
   /** The reveal button's label; null hides it (`SubjectInfoDump.getShowRevealButton`). */
   revealLabel: string | null;
   onReveal(): void;
-  /** Headline tile size: 128 in the lesson presentation, 28 under an answered question (Java defaults). */
+  /** Headline tile size: 128 in the lesson presentation, 28 under an answered question (the defaults). */
   maxFontSize?: number;
 }
 

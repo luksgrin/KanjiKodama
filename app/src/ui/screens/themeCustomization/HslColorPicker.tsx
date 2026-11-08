@@ -1,11 +1,10 @@
 /**
- * Pikolo's `HSLColorPicker` as `ThemeCustomizationActivity` configures it (`SelfishColorPicker`,
- * 300 dp high, arc_width 14 dp, indicator_radius 12 dp, indicator_stroke_width 4 dp): the hue ring
+ * An HSL colour picker (300 px high, arcs 14 px wide, indicators 12 px with a 4 px stroke): the hue ring
  * outside (red at the right, clockwise), inside it the saturation arc on the left (grey at the
  * bottom → full colour at the top) and the lightness arc on the right (black at the top → white at
  * the bottom), each with a round indicator filled with the current colour. Dragging an indicator
- * changes that component (`onChange`, Java `onColorSelected`); letting go reports the end
- * (`onChangeEnd`, `onColorSelectionEnd`, where the activity saves). The preview circle
+ * changes that component (`onChange`); letting go reports the end (`onChangeEnd`, where the screen
+ * saves). The preview circle
  * (`colorPickerPreview`, 100 dp) sits in the middle.
  */
 import { useRef, type PointerEvent as ReactPointerEvent } from 'react';

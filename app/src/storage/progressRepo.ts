@@ -6,12 +6,12 @@
  * - `LearnerSnapshot`: everything stored, without content (enough for the progress-file export).
  * - `LearnerDb` (core `progression/db`): the snapshot joined with the content. The subject table's
  *   layout (level and lesson position in the current order, JLPT blocks) is not stored: it is
- *   recomputed from the content and the stored `ordering` (`Curriculum.applyOrdering`), so a content
+ *   recomputed from the content and the stored `ordering` (`applyOrdering`), so a content
  *   update re-lays the table and keeps the progress.
  *
  * Rows of subjects the current content doesn't have ("orphans", after a content update) stay in the
- * database untouched by `saveLearnerDb` but are not loaded into a `LearnerDb`, like the Java app's
- * subject table, which has no row for them. Only a progress-file restore removes them.
+ * database untouched by `saveLearnerDb` but are not loaded into a `LearnerDb`. Only a progress-file
+ * restore removes them.
  */
 import type { Content } from '../core/content';
 import { emptyProgress, type ProgressState } from '../core/progressFile';

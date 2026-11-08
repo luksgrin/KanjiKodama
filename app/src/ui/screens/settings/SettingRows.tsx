@@ -6,17 +6,16 @@
  * - ListPreference: the chosen entry as summary; tap → a single-choice dialog (title, radio list,
  *   Cancel) that closes on a pick;
  * - EditTextPreference: the value as summary; tap → a dialog with a text field, Cancel / OK
- *   (EditLimitedIntPreference: out of range → the Java toast, nothing stored);
+ *   (a limited integer: out of range → a toast, nothing stored);
  * - SeekBarPreference: the seek bar and its value under the title, saved when released;
  * - NumberRangePreference: "Min 3", "1 - 5", "Unlimited"; tap → the Min / Max dialog.
  * - TaggedUrlPreference: the name as summary; tap → the Name / URL dialog.
  *
- * Changes go through `app.setPreference` (same keys and value types as Java's `SharedPreferences`);
- * the theme follows its keys by itself (App.tsx `ThemeSync`).
- * Turning on `enable_advanced` asks first, like `PreferencesFragment`.
+ * Changes go through `app.setPreference`; the theme follows its keys by itself (App.tsx `ThemeSync`).
+ * Turning on `enable_advanced` asks first.
  */
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
-import { advancedEnabled, javaParseInt, type Preferences, type PreferenceValue } from '../../../core/settings';
+import { advancedEnabled, parseIntOrNull, type Preferences, type PreferenceValue } from '../../../core/settings';
 import { rescheduleReviewNotifications } from '../../../platform/reviewNotifications';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate } from '../../hooks/useRoute';
@@ -96,7 +95,7 @@ function BoolRow({ def, prefs, disabled, write }: { def: BoolSetting; prefs: Pre
 function ListRow({ def, prefs, disabled, write }: { def: ListSetting; prefs: Preferences; disabled: boolean; write: Write }) {
   const [open, setOpen] = useState(false);
   const stored = shownValue(def, prefs);
-  // The theme lists: an unknown stored value means the default theme (`GlobalSettings.Display.getTheme`).
+  // The theme lists: an unknown stored value means the default theme.
   const value = def.options.some(([v]) => v === stored) || def.entrySummary === undefined ? stored : def.default;
   const entry = def.options.find(([v]) => v === value)?.[1];
   const summary = def.summary ?? (entry !== undefined && def.entrySummary !== undefined ? def.entrySummary.replace('%s', entry) : entry ?? '');
@@ -139,7 +138,7 @@ function TextRow({ def, prefs, disabled, write }: { def: TextSetting; prefs: Pre
     const draft = ref.current?.value ?? stored;
     setOpen(false);
     if (def.min !== undefined || def.max !== undefined) {
-      const n = javaParseInt(draft);
+      const n = parseIntOrNull(draft);
       if (n === null) { toast('Invalid Number'); return; }
       if ((def.min !== undefined && n < def.min) || (def.max !== undefined && n > def.max)) {
         toast(`Please use a number between ${def.min ?? ''} and ${def.max ?? ''}`, { long: true });
@@ -197,8 +196,8 @@ function RangeRow({ def, prefs, disabled, write }: { def: RangeSetting; prefs: P
     setOpen(false);
     const apply = (which: 'min' | 'max', field: HTMLInputElement | null, stored: number) => {
       const t = (field?.value ?? text(stored)).trim();
-      // Integer.parseInt failing leaves the value unchanged (the dialog's safe()).
-      const n = t === '' ? -1 : javaParseInt(t);
+      // A value that isn't an integer leaves the setting unchanged.
+      const n = t === '' ? -1 : parseIntOrNull(t);
       if (n === null || n < -1) return;
       if (n !== stored) write(`${def.key}_${which}`, n);
     };
@@ -225,7 +224,7 @@ function RangeRow({ def, prefs, disabled, write }: { def: RangeSetting; prefs: P
   );
 }
 
-/** `TaggedUrlPreferenceDialogFragment`'s message. */
+/** The search engine dialog's message. */
 export const TAGGED_URL_MESSAGE = 'Search engines are shown when long-pressing on a subject title. In the URL, "%s" will be replaced'
   + ' with the search query.';
 
@@ -307,7 +306,7 @@ export function useSettingWriter(): { write: Write; dialog: ReactNode } {
     <AlertDialog open={askAdvanced} warning title="Enable advanced settings?" testId="dialog-enable-advanced"
       onCancel={() => setAskAdvanced(false)}
       negative={{ label: 'No', onClick: () => answer(false) }} positive={{ label: 'Yes', onClick: () => answer(true) }}>
-      {/* Java renders the message as HTML: the same text with its two bold parts. */}
+      {/* The message with its two bold parts. */}
       <p className="kk-alert-message">
         <b>Warning:</b>{ENABLE_ADVANCED_WARNING.slice('Warning:'.length, ENABLE_ADVANCED_WARNING.indexOf('only change'))}
         <b>only change these settings if you are an experienced user</b>

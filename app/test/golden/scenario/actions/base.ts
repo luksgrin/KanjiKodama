@@ -1,6 +1,5 @@
 /**
- * The runner's own actions (`ScenarioRunner.perform`): snapshots, direct lesson and review reports
- * (`ReportSessionItemJob` without a session), grinding, restores, content hiding, progression.
+ * The runner's own actions: snapshots, direct lesson and review reports (without a session), grinding, restores, content hiding, progression.
  */
 
 import {
@@ -15,7 +14,7 @@ import {
 import { firstDifference } from '../../harness';
 import {
   argNumber,
-  javaRound,
+  roundHalfUp,
   readGoldenInput,
   type ActionContext,
   type ActionHandler,
@@ -29,7 +28,7 @@ function ids(value: unknown): number[] {
 }
 
 /**
- * `ScenarioRunner.Timing`: the per-answer clock of a lesson or review step (`spacingSeconds`,
+ * The per-answer clock of a lesson or review step (`spacingSeconds`,
  * `offsetsSeconds`, `delayedReport`, `reportAfterSeconds`); without those keys every answer is
  * reported at the step's clock.
  */
@@ -46,19 +45,19 @@ class Timing {
   constructor(private readonly rs: RunnerState, step: Step, count: number) {
     this.active = 'spacingSeconds' in step || 'offsetsSeconds' in step || 'delayedReport' in step || 'reportAfterSeconds' in step;
     this.start = rs.now;
-    this.spacing = javaRound(argNumber(step, 'spacingSeconds', 0) * 1000);
+    this.spacing = roundHalfUp(argNumber(step, 'spacingSeconds', 0) * 1000);
     this.offsets = Array.isArray(step.offsetsSeconds) ? (step.offsetsSeconds as number[]) : null;
     if (this.offsets !== null && this.offsets.length !== count) {
       throw new Error(`offsetsSeconds has ${this.offsets.length} entries for ${count} answers`);
     }
     this.delayed = step.delayedReport === true;
-    this.reportAfter = javaRound(argNumber(step, 'reportAfterSeconds', 0) * 1000);
+    this.reportAfter = roundHalfUp(argNumber(step, 'reportAfterSeconds', 0) * 1000);
   }
 
   answer(index: number, id: number, type: 'LESSON' | 'REVIEW', meaningWrong: number, readingWrong: number): void {
     const { rs } = this;
     if (this.offsets !== null) {
-      const target = this.start + javaRound(this.offsets[index]! * 1000);
+      const target = this.start + roundHalfUp(this.offsets[index]! * 1000);
       if (target < rs.now) throw new Error('offsetsSeconds must not decrease');
       rs.now = target;
     } else if (index > 0 && this.spacing > 0) {
@@ -88,7 +87,7 @@ class Timing {
 
 type Pair = [number, number];
 
-/** `ScenarioRunner.wrongFor`: {meaningWrong, readingWrong} of one review. */
+/** {meaningWrong, readingWrong} of one review. */
 function wrongFor(rs: RunnerState, step: Step, id: number, usedOnce: Set<number> | null): Pair {
   const key = String(id);
   rs.reviewCounter++;
@@ -138,7 +137,7 @@ function visibleProbation(db: LearnerDb): number[] {
   return [...db.progress.probation.keys()].filter((id) => db.table.get(id)?.hiddenAt === 0);
 }
 
-/** `ScenarioRunner.satisfied`: the grind's stop condition. */
+/** The grind's stop condition. */
 function satisfied(rs: RunnerState, until: Record<string, unknown>): boolean {
   const { db } = rs;
   if (until.onlyLastProbationSlot === true) {
@@ -161,7 +160,7 @@ function list(value: unknown): number[] {
   return (Array.isArray(value) ? value : [value]).map(Number);
 }
 
-/** `ScenarioRunner.grind`: rounds of all lessons, then the clock to the next due review and all due reviews. */
+/** Rounds of all lessons, then the clock to the next due review and all due reviews. */
 const grind: ActionHandler = ({ rs, step, resolved }) => {
   const until = (step.until ?? {}) as Record<string, unknown>;
   const max = argNumber(step, 'maxRounds', 100);
@@ -169,7 +168,7 @@ const grind: ActionHandler = ({ rs, step, resolved }) => {
   const rounds: Record<string, unknown>[] = [];
   let ok = false;
   let stuck = false;
-  const spacing = javaRound(argNumber(step, 'spacingSeconds', 0) * 1000);
+  const spacing = roundHalfUp(argNumber(step, 'spacingSeconds', 0) * 1000);
   let round = 0;
   while (round < max) {
     if (satisfied(rs, until)) {
@@ -225,8 +224,7 @@ const grind: ActionHandler = ({ rs, step, resolved }) => {
 };
 
 /**
- * `ScenarioRunner.progressFile`: the text of a restore spec. A `generate`d file is taken from what the
- * Java runner recorded (`resolved.file`).
+ * The text of a restore spec. A `generate`d file is taken from the recorded `resolved.file`.
  */
 export function progressFileText(rs: RunnerState, spec: Record<string, unknown>, recorded: Record<string, unknown>): string {
   if ('pushed' in spec) return readGoldenInput(String(spec.pushed));
@@ -240,11 +238,11 @@ export function progressFileText(rs: RunnerState, spec: Record<string, unknown>,
     if (!('file' in recorded)) throw new Error('generate without a recorded file');
     return JSON.stringify(recorded.file);
   }
-  if ('file' in spec) throw new Error(`start file assets are not ported: ${String(spec.file)}`);
+  if ('file' in spec) throw new Error(`start file assets are not supported: ${String(spec.file)}`);
   throw new Error(`bad progress spec ${JSON.stringify(spec)}`);
 }
 
-/** Drops whatever a running session or other action group keeps, as the Java reset deletes session items. */
+/** Drops whatever a running session or other action group keeps, as a reset deletes session items. */
 function dropSession(rs: RunnerState): void {
   delete rs.ext.session;
 }
@@ -266,7 +264,7 @@ const exportRestore: ActionHandler = ({ rs, resolved }) => {
   return { identical: firstDifference(JSON.parse(first), JSON.parse(second)) === null };
 };
 
-/** `ScenarioRunner.hideSelect`: visible subjects by {object, level, maxStage, limit (1)}, in level/lesson order. */
+/** Visible subjects by {object, level, maxStage, limit (1)}, in level/lesson order. */
 function hideSelect(db: LearnerDb, where: Record<string, unknown>): number[] {
   const rows: { id: number; level: number; pos: number }[] = [];
   for (const s of db.content.subjects) {
@@ -286,7 +284,7 @@ function hideSelect(db: LearnerDb, where: Record<string, unknown>): number[] {
   return out;
 }
 
-/** `ScenarioRunner.setHidden`: a test-only content change of hiddenAt, then progression (unless update: false). */
+/** A test-only content change of hiddenAt, then progression (unless update: false). */
 function setHidden(rs: RunnerState, step: Step, hide: boolean): unknown {
   const value = hide ? rs.now : 0;
   const targets = step.ids === 'changed'

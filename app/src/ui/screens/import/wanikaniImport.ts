@@ -1,6 +1,6 @@
 /**
- * `tasks/WaniKaniImporter` for local mode: check a WaniKani token (`checkToken`), download the
- * account's progress (`download`: assignments, review statistics, study materials, level
+ * The WaniKani import for local mode: check a WaniKani token (`checkToken`), download the account's
+ * progress (`download`: assignments, review statistics, study materials, level
  * progressions), then the screen applies it with core `applyWaniKaniImport` through `app.write`.
  * HTTP goes through the platform's `HttpApi` and the sync client (rate limiter, retries, pages).
  */
@@ -13,7 +13,7 @@ import { ServerError, checkConnection } from '../../../sync/engine';
 export interface ImportTarget {
   http: HttpApi;
   token: string;
-  /** Java imports from the configured base URL, which is WaniKani's in local mode. */
+  /** The base URL to import from: WaniKani's in local mode. */
   baseUrl?: string;
   appVersion?: string;
   clock?: Clock;
@@ -25,7 +25,7 @@ export interface ImportTarget {
 const COLLECTIONS = ['assignments', 'review_statistics', 'study_materials', 'level_progressions'] as const;
 
 /**
- * `WaniKaniImporter.checkToken`: the account behind the token, changing nothing.
+ * The account behind the token, changing nothing.
  * @throws ServerError "WaniKani rejected this API token." / "Could not reach WaniKani. …"
  */
 export function checkWaniKaniToken(t: ImportTarget): Promise<ServerUser> {
@@ -33,7 +33,7 @@ export function checkWaniKaniToken(t: ImportTarget): Promise<ServerUser> {
 }
 
 /**
- * `WaniKaniImporter.download`: everything, changing nothing.
+ * Downloads everything, changing nothing.
  * @throws ServerError "The download from WaniKani was interrupted. Local progress was not changed."
  */
 export async function downloadWaniKani(t: ImportTarget, user: ServerUser): Promise<WaniKaniDownload> {

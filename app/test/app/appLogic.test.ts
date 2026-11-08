@@ -54,7 +54,7 @@ describe('router', () => {
 describe('dashboard data', () => {
   const now = Date.UTC(2026, 9, 25, 9, 30);
 
-  it('ports the UpcomingReviewsView texts', () => {
+  it('builds the upcoming reviews texts', () => {
     const ldb = createLearnerDb(smallContent(), NO_JLPT);
     let d = computeDashboard(ldb, {}, now);
     expect(d.upcomingText).toBeNull();
@@ -80,7 +80,7 @@ describe('dashboard data', () => {
     for (const g of groups) expect(g.block).toMatch(/^(N[1-5]|Obscure), level \d+ of \d+$/);
   });
 
-  it('formats like the Java helpers', () => {
+  it('formats wait times and dates', () => {
     expect(waitTimeInformal(0)).toBe('now');
     expect(waitTimeInformal(90 * MINUTE)).toBe('in 90 min');
     expect(waitTimeInformal(5 * HOUR)).toBe('in 5 hours');

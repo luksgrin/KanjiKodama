@@ -1,14 +1,13 @@
 /**
- * The Java app's toolbar (AbstractActivity + res/menu/main_options_menu.xml /
- * generic_options_menu.xml): title (and subtitle), back arrow on every screen but the dashboard,
+ * The toolbar: title (and subtitle), back arrow on every screen but the dashboard,
  * the "ifRoom" actions as icons (Search, Dashboard, Mute) and an overflow menu (⋮) with the rest in
- * the Java menu order.
+ * menu order.
  *
  * Screens configure it with `useToolbar({...})` (any component may call it; later calls' defined
- * fields override earlier ones, actions are merged). Screen actions whose `id` is a Java menu id
- * without the `action_` prefix (`session_log`, `abandon_session`, `wrapup_session`,
+ * fields override earlier ones, actions are merged). Screen actions whose `id` is a menu id
+ * (`session_log`, `abandon_session`, `wrapup_session`,
  * `view_last_finished`, `back_to_presentation`, `study_materials`, `sync_subject`,
- * `search_result_refine`, …) are placed at the Java position; an action with the id of a built-in
+ * `search_result_refine`, …) are placed at their menu position; an action with the id of a built-in
  * item (`settings`, `search`, `dashboard`, `mute`, `download_audio`, `browse`, `fast_travel`,
  * `level_test`, `self_study`, `sync_now`, `about`) replaces its fields (`hidden: true` hides it).
  * Other ids go before "About...".
@@ -23,12 +22,12 @@ export interface ToolbarAction {
   label: string;
   icon?: string;
   onSelect(): void;
-  /** Shown as an icon in the toolbar (Java `showAsAction="ifRoom"`); else in the overflow menu. */
+  /** Shown as an icon in the toolbar; else in the overflow menu. */
   showAsAction?: boolean;
   /** A checkable menu item (rendered with a check box). */
   checked?: boolean;
   disabled?: boolean;
-  /** Hides the item (mainly to hide a built-in one, as Java's `setVisible(false)`). */
+  /** Hides the item (mainly to hide a built-in one). */
   hidden?: boolean;
 }
 
@@ -39,7 +38,7 @@ export interface ToolbarOptions {
   actions?: ToolbarAction[];
   /** true: back arrow → back; a function: back arrow calls it; false: no arrow. Default: every screen but the dashboard. */
   back?: boolean | (() => void);
-  /** Text put into the search box when it is opened (Java `getPrefillSearchQuery`). */
+  /** Text put into the search box when it is opened. */
   searchPrefill?: string;
 }
 

@@ -1,6 +1,5 @@
 {
   "area": "answers.matchingKanjiDevice",
-  "javaSource": "GlobalSettings.AdvancedOther.getShakeOnMatchingKanji, model/MatchingKanji.lookupCharacters, db/dao/SubjectDao.getKanjiByCharacters",
   "cases": [
     {"name":"setting/absent/absent","input":{"enable_advanced":null,"shake_on_matching_kanji":null},"output":{"value":false}},
     {"name":"setting/absent/true","input":{"enable_advanced":null,"shake_on_matching_kanji":true},"output":{"value":false}},

@@ -1,13 +1,11 @@
 /**
- * Start a self-study quiz (`activities/SelfStudyStartActivity`): the tutorial text, the search presets
- * (Start / Delete) and the advanced search form; the matching subjects become a self-study session
- * (`Session.startNewSelfStudySession`), which never touches SRS. The form's parameters are kept as the
- * internal preset `"\u0000SELF_STUDY_DEFAULT"` and fill the form next time, as in Java.
+ * Start a self-study quiz: the tutorial text, the search presets (Start / Delete) and the advanced
+ * search form; the matching subjects become a self-study session, which never touches SRS. The form's
+ * parameters are kept as the internal preset `"\u0000SELF_STUDY_DEFAULT"` and fill the form next time.
  *
- * Layout as `activity_self_study_start.xml`: the tutorial box with Dismiss, "Search presets:" (spinner,
+ * Layout: the tutorial box with Dismiss, "Search presets:" (spinner,
  * Start, Delete, divider), "Selection criteria for self-study:" and the form; "Preset deleted" and "No
- * subjects found for self-study!" are toasts. While a session runs, Java closes this screen; here it
- * offers Resume.
+ * subjects found for self-study!" are toasts. While a session runs it offers Resume.
  */
 import { useMemo, useState } from 'react';
 import { writeParameters, type AdvancedSearchParameters } from '../../../core/search';
@@ -39,7 +37,7 @@ export const SELF_STUDY_TUTORIAL = 'From this screen you can start a self-study 
 export const NO_SUBJECTS = 'No subjects found for self-study!';
 
 /**
- * The subjects of a search (`SearchUtil.searchSubjects(type, data)`), for "Start self-study quiz" from the
+ * The subjects of a search, for "Start self-study quiz" from the
  * search results too. Returns their ids in result order.
  */
 export function useSelfStudySearch(): (type: SearchType, data: string) => number[] {

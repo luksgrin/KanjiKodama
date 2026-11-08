@@ -1,6 +1,6 @@
 /**
- * Golden test harness: replays the Java app's fixtures (app/test/golden/, see README.md there)
- * against the TypeScript port.
+ * Golden test harness: replays the frozen reference fixtures (app/test/golden/, see README.md there)
+ * against the core.
  *
  * A module registers adapters in its own `test/golden/<area>.golden.test.ts`:
  *
@@ -35,7 +35,6 @@ export interface GoldenCase<I = unknown, O = unknown> {
 
 export interface FixtureHeader {
   area: string;
-  javaSource?: string;
   description?: string;
 }
 

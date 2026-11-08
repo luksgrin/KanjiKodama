@@ -1,15 +1,11 @@
 /**
- * The HTML the Java app builds for each line of the subject info, rendered with `WkMarkup` (the same
- * `TextUtil.renderHtml` path). Pure.
- *
- * Java: `db/model/Subject` (`get*RichText`, `getOneMeaning`, `getOneReading`, `getJoyoGradeAsString`,
- * `getJlptLevelAsString`, `getSimpleInfoTitle`), `enums/SubjectType` (`getComponentsHeaderText`).
+ * The HTML for each line of the subject info, rendered with `WkMarkup`. Pure.
  */
 import type { ContentSubject, Reading, SubjectObject } from '../../../core/content';
 import { toKatakana } from '../../../core/kana';
 import { escapeHtml } from '../../../core/text/richText';
 
-/** Java `ObjectSupport.isEmpty(String)`. */
+/** Null or empty. */
 export function isEmpty(s: string | null | undefined): boolean {
   return s === null || s === undefined || s.length === 0;
 }
@@ -21,12 +17,12 @@ const TYPE_TITLES: Readonly<Record<SubjectObject, string>> = {
   kana_vocabulary: 'kana-only vocabulary',
 };
 
-/** `SubjectType.getSimpleInfoTitle(level)`: "Level 5 kanji". */
+/** "Level 5 kanji". */
 export function simpleInfoTitle(object: SubjectObject, level: number): string {
   return `Level ${level} ${TYPE_TITLES[object]}`;
 }
 
-/** `SubjectType.getComponentsHeaderText`. */
+/** The components section's header ("Used radicals:" / "Used kanji:"). */
 export function componentsHeaderText(object: SubjectObject): string {
   return object === 'radical' ? '' : object === 'kanji' ? 'Used radicals:' : 'Used kanji:';
 }
@@ -100,12 +96,12 @@ export function synonymsHtml(synonyms: readonly string[]): string {
   return `<b>My synonyms</b>: ${escapeHtml(synonyms.join(', '))}`;
 }
 
-/** `getPartsOfSpeechRichText` (not escaped, as in Java). */
+/** The parts of speech line (not escaped). */
 export function partsOfSpeechHtml(partsOfSpeech: readonly string[]): string {
   return `<b>Part of speech</b>: ${partsOfSpeech.join(', ')}`;
 }
 
-/** `Stream.reduce` of `getOneMeaning`/`getOneReading`: the first primary, else the last accepted, else the last. */
+/** One meaning / reading: the first primary, else the last accepted, else the last. */
 function pickOne<T extends { primary: boolean; accepted_answer: boolean }>(list: readonly T[]): T | null {
   if (list.length === 0) return null;
   let t = list[0] as T;
@@ -153,7 +149,7 @@ const INFO_TITLE_LABELS: Readonly<Record<SubjectObject, string>> = {
 
 /**
  * `Subject.getInfoTitle("", "")`: "力 (level 3 kanji)", the toolbar title of the item page and the lesson
- * presentation (`SubjectType.getInfoTitleLabel`).
+ * presentation.
  */
 export function infoTitle(subject: Pick<ContentSubject, 'characters' | 'slug' | 'id' | 'object'>, level: number): string {
   return `${subjectTitle(subject)} (level ${level} ${INFO_TITLE_LABELS[subject.object]})`;

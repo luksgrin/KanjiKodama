@@ -1,8 +1,8 @@
 /**
  * Glue between the learner, the content file and core `search/`: the subject list the search sees
  * (`SearchSubject`s with the current curriculum's levels, progress and star ratings), the three search
- * types of `SearchUtil.searchSubjects(type, parameters)` as the results screen runs them
- * (`SearchResultFragment.onViewCreatedLocal`), and small display helpers of the result cards.
+ * types (level, keyword, advanced) as the results screen runs them, and small display helpers of the
+ * result cards.
  */
 import type { Database } from 'sql.js';
 import type { ContentSubject } from '../../../core/content';
@@ -30,7 +30,7 @@ import {
 import { findSrsSystem, type SrsStage, type SrsSystem } from '../../../core/srs';
 import { DAY, HOUR, MINUTE } from '../../../core/time';
 
-/** `SearchResultFragment.searchType`: 0 level, 1 keyword, 2 advanced. */
+/** The search type: 0 level, 1 keyword, 2 advanced. */
 export type SearchType = 0 | 1 | 2;
 
 const textsCache = new WeakMap<Database, Map<number, SubjectSearchText>>();
@@ -128,7 +128,7 @@ export function isRomajiQuery(query: string): boolean {
 }
 
 /**
- * The romaji query in hiragana (`PseudoIme.simulateInput`, katakana folded to hiragana), or null when
+ * The romaji query in hiragana (`simulateInput`, katakana folded to hiragana), or null when
  * it isn't romaji or doesn't convert to kana entirely.
  */
 export function romajiToKana(query: string): string | null {
@@ -162,7 +162,7 @@ export interface SearchRun {
   parameters: AdvancedSearchParameters | null;
 }
 
-/** `SearchResultFragment.onViewCreatedLocal`'s background part: the hits, the sort order and the parameters. */
+/** Runs a search: the hits, the sort order and the parameters. */
 export function runSearch(
   subjects: readonly SearchSubject[],
   type: SearchType,
@@ -199,7 +199,7 @@ export function runSearch(
   return { subjects: hits, sortOrder: p.sortOrder, parameters: p };
 }
 
-/** `SearchResultFragment.newInstance`: the description in "…: n subject(s) found". */
+/** The description in "…: n subject(s) found". */
 export function searchDescription(type: SearchType, data: string): string {
   if (type === 0) return `Level ${data}`;
   if (type === 1) return `'${data}'`;
@@ -207,15 +207,15 @@ export function searchDescription(type: SearchType, data: string): string {
 }
 
 /**
- * The stage a result card shows: `Subject.getSrsStage`, the stored stage (`SubjectCardBinder.bindNormal`).
- * In local mode a subject that isn't unlocked yet keeps stage 0, so it shows "Initiate" as in Java;
+ * The stage a result card shows: the stored stage. In local mode a subject that isn't unlocked yet
+ * keeps stage 0, so it shows "Initiate";
  * only the WaniKani sync's -999 is Locked (no progress line).
  */
 export function cardStage(s: SearchSubject, systems: readonly SrsSystem[]): SrsStage {
   return findSrsSystem(systems, s.srsSystemId).getStage(s.srsStage);
 }
 
-/** `ObjectSupport.getShortWaitTimeAsInformalString`: now, 12m, 5h, 3d (rounded). */
+/** A short wait time: now, 12m, 5h, 3d (rounded). */
 export function shortWaitTime(waitTime: number): string {
   if (waitTime <= 0) return 'now';
   if (waitTime < HOUR) return `${Math.trunc((waitTime + MINUTE / 2) / MINUTE)}m`;
@@ -224,7 +224,7 @@ export function shortWaitTime(waitTime: number): string {
 }
 
 /**
- * `SubjectCardBinder.bindNormal`: the card's progress line, "Guru I - 3h" (vocabulary: the full stage
+ * The card's progress line, "Guru I - 3h" (vocabulary: the full stage
  * name; others the short one), just the stage without a review, nothing when locked.
  */
 export function cardProgressText(s: SearchSubject, stage: SrsStage, now: number): string | null {
@@ -234,7 +234,7 @@ export function cardProgressText(s: SearchSubject, stage: SrsStage, now: number)
   return `${name} - ${shortWaitTime(s.availableAt - now)}`;
 }
 
-/** `HeaderItemViewHolder.bindCommon`: "2 locked, 1 not started, 3 in progress, 1 passed, 4 burned". */
+/** "2 locked, 1 not started, 3 in progress, 1 passed, 4 burned". */
 export function headerDetails(subjects: readonly SearchSubject[], systems: readonly SrsSystem[], passedAt: (id: number) => number): string {
   let locked = 0;
   let initial = 0;

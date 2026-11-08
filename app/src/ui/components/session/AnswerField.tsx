@@ -1,7 +1,6 @@
 /**
- * The quiz answer field (`UnansweredSessionFragment.questionEdit`). For reading questions romaji becomes
- * kana through the core's port of the app's TextWatcher (`PseudoIme.fixup` over the edited range,
- * re-entrant like on Android, `core/kana/answerField.ts`).
+ * The quiz answer field. For reading questions romaji becomes kana through the core's text watcher
+ * (`fixup` over the edited range, re-entrant, `core/kana/answerField.ts`).
  *
  * Keyboards differ a lot, so nothing here relies on key codes:
  * - IME composition (iOS Japanese, Gboard and SwiftKey word suggestions, Samsung Keyboard even for Latin
@@ -13,8 +12,8 @@
  *   `insertParagraph` beforeinput events count too. An Enter that only commits a composition doesn't submit.
  * - The field is uncontrolled (React never rewrites it mid-composition); `lang="ja"` on reading fields;
  *   the keyboard attributes follow the Keyboard input settings (`answerInputAttributes`: no
- *   autocorrect/autocapitalize/spellcheck by default, Java's `TYPE_TEXT_FLAG_NO_SUGGESTIONS`).
- * - While a session dialog is open the field doesn't submit (the dialog has Java's input focus).
+ *   autocorrect/autocapitalize/spellcheck by default).
+ * - While a session dialog is open the field doesn't submit (the dialog has the input focus).
  */
 import { forwardRef, useEffect, useImperativeHandle, useRef, type FormEvent } from 'react';
 import { FixupWatcher, newAnswerEditable, type SpanEditable } from '../../../core/kana';
@@ -30,20 +29,20 @@ export interface AnswerFieldHandle {
 export interface AnswerFieldProps {
   /** A reading question: romaji → kana, `lang="ja"`. */
   kana: boolean;
-  /** Java `Question.getHint(false)`: "答え" for readings, "Your response" for meanings. */
+  /** The hint: "答え" for readings, "Your response" for meanings. */
   placeholder: string;
-  /** `question.getTitle()` (the field's accessible name, like Java's content description). */
+  /** The question's title (the field's accessible name). */
   label: string;
   /** Changes for every new question: clears the field and focuses it. */
   questionKey: string;
-  /** The text to start with (`FloatingUiState.getCurrentAnswer`). */
+  /** The text to start with (the answer typed so far). */
   initial?: string;
   readOnly?: boolean;
   /** Center the text (`center_caret`). */
   centered?: boolean;
   /** Font size in px (`font_size_question_edit`). */
   fontSize?: number;
-  /** Keyboard attributes (Keyboard input settings); default: Java's defaults for the question kind. */
+  /** Keyboard attributes (Keyboard input settings); default: the defaults for the question kind. */
   input?: AnswerInputAttributes;
   onChange(text: string): void;
   onSubmit(): void;

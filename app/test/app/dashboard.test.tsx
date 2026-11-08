@@ -48,14 +48,14 @@ const text = (el: HTMLElement, testId: string): string | null => el.querySelecto
 const has = (el: HTMLElement, testId: string): boolean => el.querySelector(`[data-testid="${testId}"]`) !== null;
 
 describe('dashboard', () => {
-  it('shows the Java panels in Java order', async () => {
+  it('shows the panels in order', async () => {
     const { el, app } = await render();
     expect(text(el, 'level-duration')).toMatch(/^You are level 1\. Your time on this level is \d+\.\d days\.$/);
     expect(text(el, 'available-sessions')).toBe('Lessons:0Reviews:1');
     expect(text(el, 'reviews-count')).toBe('1');
     expect(text(el, 'lessons-count')).toBe('0');
     expect(text(el, 'upcoming-text')).toBe('1 reviews available now, 1 in next 24h');
-    // PWA (no notifications): the next review in Java's "Next review:" format.
+    // PWA (no notifications): the next review in the "Next review:" format.
     expect(text(el, 'next-review')).toBe(`Next review: ${formatTimestamp(T0 + 3 * HOUR)}`);
     // One start button for what is available.
     expect(has(el, 'start-reviews')).toBe(true);
@@ -173,7 +173,7 @@ describe('dashboard', () => {
     expect(has(el, 'timeline')).toBe(false);
     expect(text(el, 'srs-apprentice')).toBeNull();
     expect(el.querySelector('[data-testid="level-1"]')).toBeNull();
-    // The session counts and the upcoming line stay (Java has no setting for them).
+    // The session counts and the upcoming line stay (no setting hides them).
     expect(text(el, 'reviews-count')).toBe('1');
     app.dispose();
   });
@@ -193,7 +193,7 @@ describe('dashboard', () => {
 });
 
 describe('dashboard helpers', () => {
-  it('ports the Java formatting and grid rules', () => {
+  it('formats and lays out the grids', () => {
     expect(monthDay(Date.UTC(2026, 9, 17, 12))).toBe('Oct 17');
     expect([0, 3, 7, 12, 27, 120, 1034].map(roundUpInterval)).toEqual([1, 3, 5, 20, 30, 200, 2000]);
     expect(daysAtLevel({ level: 6, since: T0 - 13.84 * DAY }, T0).toFixed(1)).toBe('13.8');

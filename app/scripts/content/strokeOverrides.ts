@@ -1,7 +1,6 @@
 /**
- * `util/ReferenceDataUtil.STROKE_DATA_OVERRIDE` of the Java app (Smouldering Durtles): stroke data for
- * subjects whose characters are missing from `stroke_data.json` or wrong there, by subject id. Extracted
- * verbatim from ReferenceDataUtil.java (59 entries).
+ * Stroke data for subjects whose characters are missing from `stroke_data.json` or wrong there, by
+ * subject id (59 entries).
  */
 export const STROKE_DATA_OVERRIDE: Readonly<Record<number, readonly string[]>> = {
   75: [

@@ -1,7 +1,6 @@
 /**
- * `local/ProgressStore.restore` and `export` over a `LearnerDb`: the progress file applied the way
- * the Java app does it (reset, apply, adopt the file's curriculum mode, set the level, recompute
- * unlocks), and the file written from the current state.
+ * Restore and export over a `LearnerDb`: the progress file applied (reset, apply, adopt the file's
+ * curriculum mode, set the level, recompute unlocks), and the file written from the current state.
  */
 
 import { exportProgress, restoreProgress, type DateStyle } from '../progressFile';
@@ -13,9 +12,8 @@ import { afterChange } from './localProgression';
 const RESTORE_STYLE: DateStyle = { locale: 'en-US', timeZone: 'UTC' };
 
 /**
- * `ProgressStore.restore`: replace all progress with the file's. Throws the Java exception of a bad
- * file and leaves the state untouched. Any running session must be dropped by the caller (the Java
- * reset deletes the session items).
+ * Replaces all progress with the file's. Throws a typed error on a bad file and leaves the state
+ * untouched. Any running session must be dropped by the caller (a reset deletes the session items).
  */
 export function restoreIntoDb(db: LearnerDb, json: string, now: number): void {
   const next = restoreProgress(json, new Set(db.table.keys()), RESTORE_STYLE);
@@ -26,7 +24,7 @@ export function restoreIntoDb(db: LearnerDb, json: string, now: number): void {
   afterChange(db, now);
 }
 
-/** `ProgressStore.export`: the file text at `now` (the `exportedAt`). */
+/** The file text at `now` (the `exportedAt`). */
 export function exportFromDb(db: LearnerDb, now: number): string {
   return exportProgress(db.progress, now);
 }

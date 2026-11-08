@@ -1,6 +1,5 @@
 {
   "area": "curriculum.placement",
-  "javaSource": "local/Placement.of",
   "cases": [
     {"name":"edge-no-levels","input":{"kanjiTotal":[],"kanjiPassed":[]},"output":{"level":1,"backfill":0}},
     {"name":"edge-one-empty-level","input":{"kanjiTotal":[0],"kanjiPassed":[0]},"output":{"level":1,"backfill":0}},

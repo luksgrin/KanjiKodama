@@ -1,5 +1,5 @@
 /**
- * `local/LocalProgression`: what the WaniKani server does after reviews, done locally.
+ * Local progression: what the WaniKani server does after reviews, done locally.
  *
  * - The user levels up when at least 90 % of the current level's visible kanji have passed (reached
  *   Guru). Levels never go down, and stop at the curriculum's last level.
@@ -15,7 +15,7 @@ import { currentMaxLevel, forceLessonAvailable, num, progressRow, sqlNonZero, ty
 
 const LEVEL_UP_SHARE = 0.9;
 
-/** `LocalProgression.levelComplete`: some visible kanji on the level, and ceil(90 %) of them passed. */
+/** Some visible kanji on the level, and ceil(90 %) of them passed. */
 function levelComplete(db: LearnerDb, level: number): boolean {
   let total = 0;
   let done = 0;
@@ -30,7 +30,7 @@ function levelComplete(db: LearnerDb, level: number): boolean {
 }
 
 /**
- * `LocalProgression.update`: recompute the level (and the level progression rows) and unlock what
+ * Recomputes the level (and the level progression rows) and unlock what
  * became available, at `now`. Returns the number of new unlocks.
  */
 export function updateProgression(db: LearnerDb, now: number): number {
@@ -64,7 +64,7 @@ export function updateProgression(db: LearnerDb, now: number): number {
   return toUnlock.length;
 }
 
-/** `ProgressStore.afterChange`: recompute unlocks after progress changed wholesale. */
+/** Recomputes unlocks after progress changed wholesale. */
 export function afterChange(db: LearnerDb, now: number): void {
   updateProgression(db, now);
 }

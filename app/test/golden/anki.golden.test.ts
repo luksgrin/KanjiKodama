@@ -14,7 +14,7 @@ import {
   type AdjectiveType,
   type VerbType,
 } from '../../src/core/anki/inflection';
-import { JavaRandom } from '../../src/core/rng';
+import { SeededRandom } from '../../src/core/rng';
 import { meaningSynonymsRichText } from '../../src/core/answer/synonymsRichText';
 import { parseMeaningSynonyms, parseStudyMaterialJob, serializeSynonymsColumn } from '../../src/core/answer/synonyms';
 import { writeStringList } from '../../src/core/answer/jackson';
@@ -63,7 +63,7 @@ goldenSuite<Record<string, unknown>, unknown>(
     const content = await loadContentWithExtras();
     const subject = content.byId.get(input.id as number) as ContentSubject;
     if (c.name.startsWith('synonyms/')) {
-      // AnkiGoldenTest: SaveStudyMaterialJob stores the list, the subject reads the column back.
+      // The save job stores the list, the subject reads the column back.
       const job = parseStudyMaterialJob(writeStringList([String(input.id), '', '', ...(input.synonyms as string[])]));
       const synonyms = parseMeaningSynonyms(serializeSynonymsColumn(job.meaningSynonyms));
       const rich = meaningSynonymsRichText(synonyms);
@@ -109,8 +109,8 @@ interface InflectionPick {
 const SAMPLE_VERBS: [string, VerbType][] = [['飲む', 'GODAN'], ['食べる', 'ICHIDAN'], ['勉強する', 'SURU']];
 const SAMPLE_ADJECTIVES: [string, AdjectiveType][] = [['大きい', 'I'], ['静か', 'NA_PLAIN'], ['静か', 'NA_POLITE']];
 
-/** InflectionGolden.pick: one random pick and the sample words in that form. */
-function inflectionPick(kind: string, rng: Pick<JavaRandom, 'nextDouble'>): InflectionPick {
+/** One random pick and the sample words in that form. */
+function inflectionPick(kind: string, rng: Pick<SeededRandom, 'nextDouble'>): InflectionPick {
   if (kind === 'verb') {
     const name = randomVerbConjugation(rng);
     return { name, forms: SAMPLE_VERBS.map(([v, t]) => conjugatedVerb(v, t, name)) };
@@ -127,7 +127,7 @@ goldenSuite<{ kind?: string; doubles?: number[]; seed?: number; kinds?: string[]
       const rng = { nextDouble: () => ds.shift() as number };
       return { picks: input.doubles.map(() => inflectionPick(input.kind as string, rng)) };
     }
-    const rng = new JavaRandom(input.seed as number);
+    const rng = new SeededRandom(input.seed as number);
     return { picks: (input.kinds as string[]).map((k) => inflectionPick(k, rng)) };
   },
 );

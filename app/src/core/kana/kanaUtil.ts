@@ -1,10 +1,8 @@
-/**
- * Port of `util/KanaUtil`.
- */
+/** Kana conversions. */
 
 /**
- * `KanaUtil.convertKatakanaToHiragana`: full-width katakana U+30A1–U+30FE minus 0x60, and half-width
- * katakana U+FF66–U+FF9D minus 0xCF25 (Java's exact arithmetic, which maps half-width forms onto
+ * Katakana to hiragana: full-width katakana U+30A1–U+30FE minus 0x60, and half-width
+ * katakana U+FF66–U+FF9D minus 0xCF25 (exactly this arithmetic, which maps half-width forms onto
  * unrelated characters around U+3041); everything else unchanged, char by char.
  */
 export function convertKatakanaToHiragana(text: string): string {

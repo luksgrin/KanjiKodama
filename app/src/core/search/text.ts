@@ -1,6 +1,5 @@
 /**
- * The text search of `util/SearchUtil`: Browse's search box (`searchSubjects(1, query)`) and its
- * drop-down suggestions (`searchSubjectSuggestions`).
+ * The text search: Browse's search box and its drop-down suggestions.
  *
  * Matching is SQL `LIKE '%term%'` per term on the precomputed `searchTarget` (never notes or
  * synonyms): ASCII letters match case-insensitively, everything else exactly, `%`/`_`/`\` literally.
@@ -10,31 +9,31 @@
 import type { SearchSubject } from './subject';
 import { oneMeaning } from './subject';
 
-/** `Constants.MAX_SEARCH_HITS`. */
+/** The most hits a search returns. */
 export const MAX_SEARCH_HITS = 250;
 
-/** `SearchUtil.TERM_PATTERN`: `[\p{Z}\s]` (Java's `\s` is ASCII whitespace). */
+/** Term separators: Unicode separators and ASCII whitespace. */
 const TERM_PATTERN = /[\p{Z} \t\n\x0B\f\r]/u;
 
-/** Java `String.split(regex)` drops trailing empty strings; empty terms are skipped anyway. */
+/** Splits on the separators; empty terms are skipped. */
 function splitTerms(query: string): string[] {
   return query.split(TERM_PATTERN).filter((t) => t.length > 0);
 }
 
-/** `SearchUtil.splitTermsForJava`: the words, upper-cased (`Locale.ROOT`). */
-export function splitTermsForJava(query: string): string[] {
+/** The words, upper-cased (locale-independent). */
+export function splitSearchTerms(query: string): string[] {
   return splitTerms(query).map((t) => t.toUpperCase());
 }
 
 /**
- * `SearchUtil.splitTermsForSql` without the LIKE escaping (`\` → `\\`, `%` → `\%`, `_` → `\_`):
- * the port matches literally, so the escaped form is only of interest to the fixture.
+ * The terms for the LIKE match, without its escaping (`\` → `\\`, `%` → `\%`, `_` → `\_`): the
+ * search matches literally, so the escaped form is only of interest to the fixture.
  */
 export function splitTermsForSql(query: string): string[] {
   return splitTerms(query);
 }
 
-/** The escaped LIKE pattern body Java builds for a term. */
+/** The escaped LIKE pattern body for a term. */
 export function escapeLikeTerm(term: string): string {
   return term.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
 }
@@ -44,7 +43,7 @@ function asciiLower(s: string): string {
   return s.replace(/[A-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 32));
 }
 
-/** `column LIKE '%term%' ESCAPE '\'` for one escaped-in-Java term: a literal substring test. */
+/** `column LIKE '%term%' ESCAPE '\'` for one escaped term: a literal substring test. */
 function likeContains(column: string | null, term: string): boolean {
   if (column === null) return false;
   return asciiLower(column).includes(asciiLower(term));
@@ -58,7 +57,7 @@ function isLetterOrDigit(c: string): boolean {
 }
 
 /**
- * `SearchUtil.getRanking(haystack, term, weight)`: every hit of the (upper-case) term in the
+ * The ranking of one term in one text: every hit of the (upper-case) term in the
  * upper-cased haystack counts 1, plus 1 at a word start and 1 at a word end; times the weight.
  */
 export function getRanking(haystack: string | null | undefined, term: string, weight: number): number {
@@ -76,7 +75,7 @@ export function getRanking(haystack: string | null | undefined, term: string, we
   }
 }
 
-/** `SearchUtil.getSearchRanking(subject, terms)`. */
+/** A subject's ranking for the terms. */
 export function getSearchRanking(subject: SearchSubject, terms: readonly string[]): number {
   let ranking = 0;
   for (const term of terms) {
@@ -115,13 +114,13 @@ function visibleInScanOrder(subjects: readonly SearchSubject[]): SearchSubject[]
 }
 
 function rank(hits: readonly SearchSubject[], query: string): RankedSubject[] {
-  const javaTerms = splitTermsForJava(query);
-  const ranked = hits.map((subject) => ({ subject, ranking: getSearchRanking(subject, javaTerms) }));
-  // Collections.sort: stable, ranking descending.
+  const terms = splitSearchTerms(query);
+  const ranked = hits.map((subject) => ({ subject, ranking: getSearchRanking(subject, terms) }));
+  // Stable sort, ranking descending.
   return ranked.sort((a, b) => b.ranking - a.ranking);
 }
 
-/** `SearchUtil.searchSubjects(1, query)` (the private `searchSubjects(CharSequence)`): ranked hits. */
+/** The search box's ranked hits. */
 export function searchByText(subjects: readonly SearchSubject[], query: string): RankedSubject[] {
   const terms = splitTermsForSql(query);
   if (terms.length === 0) return [];
@@ -129,8 +128,8 @@ export function searchByText(subjects: readonly SearchSubject[], query: string):
   return rank(hits, query);
 }
 
-/** Java `String.trim()`: strips chars <= U+0020 only. */
-function javaTrim(s: string): string {
+/** Strips chars <= U+0020 only. */
+function trimControlChars(s: string): string {
   let start = 0;
   let end = s.length;
   while (start < end && s.charCodeAt(start) <= 0x20) start++;
@@ -139,12 +138,12 @@ function javaTrim(s: string): string {
 }
 
 /**
- * `SearchUtil.searchSubjectSuggestions(query)`: needs 3 chars after `trim`; matches on the
+ * The suggestions: needs 3 chars after `trim`; matches on the
  * characters (`smallSearchTarget`) first and, when that gives fewer than 250, on `searchTarget`
  * instead; both cut at 250 in scan order before ranking.
  */
 export function searchSuggestions(subjects: readonly SearchSubject[], query: string): RankedSubject[] {
-  if (javaTrim(query).length < 3) return [];
+  if (trimControlChars(query).length < 3) return [];
   const terms = splitTermsForSql(query);
   if (terms.length === 0) return [];
   const visible = visibleInScanOrder(subjects);

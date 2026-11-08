@@ -1,6 +1,5 @@
 {
   "area": "anki.modeSettings",
-  "javaSource": "GlobalSettings.getAnkiMode(sessionType, questionType)",
   "cases": [
     {"name":"000","input":{"enable_advanced":false,"anki_mode_lesson_meaning":false,"anki_mode_lesson_reading":false,"anki_mode_review_meaning":false,"anki_mode_review_reading":false,"anki_mode_self_study_meaning":false,"anki_mode_self_study_reading":false},"output":{"LESSON":[],"REVIEW":[],"SELF_STUDY":[],"NONE":[]}},
     {"name":"001","input":{"enable_advanced":false,"anki_mode_lesson_meaning":true,"anki_mode_lesson_reading":false,"anki_mode_review_meaning":false,"anki_mode_review_reading":false,"anki_mode_self_study_meaning":false,"anki_mode_self_study_reading":false},"output":{"LESSON":[],"REVIEW":[],"SELF_STUDY":[],"NONE":[]}},

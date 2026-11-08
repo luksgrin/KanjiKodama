@@ -1,6 +1,5 @@
 {
   "area": "progress.roundTrip",
-  "javaSource": "local/ProgressStore.restore + export",
   "cases": [
     {"name":"restore-then-export","input":{"file":"progress/android-export.json","clockMs":1792298260372,"from":"empty base state"},"output":{"differences":[],"textIdentical":true}},
     {"name":"second-round","input":{"of":"restore-then-export","clockMs":1792298260372},"output":{"differences":[],"textIdentical":true}}

@@ -4,12 +4,11 @@
  * strokeDiagramGhostColor (--color-stroke-ghost).
  */
 .kk-item {
-  /* subject_info.xml is a vertical LinearLayout: every view has its own top margin and nothing
-     collapses (a flex column does the same). */
+  /* A vertical stack: every block has its own top margin and nothing collapses (a flex column). */
   display: flex;
   flex-direction: column;
   color: var(--color-text, #2E4756);
-  /* Java TextViews: no extra line spacing, each line as tall as the fonts on it (Pixelify Sans 1.2 em,
+  /* No extra line spacing, each line as tall as the fonts on it (Pixelify Sans 1.2 em,
      a line with Japanese text grows to the CJK face's ~1.45 em): CSS line-height normal does the same. */
   line-height: normal;
   overflow-wrap: break-word;
@@ -22,8 +21,8 @@
   font-weight: 400;
 }
 /* Android's CJK face has one weight: draw <b> (the primary reading) heavier, as Android's fake bold.
-   Java's Pixelify Sans bold is fake bold too (same advances as regular), so long bold meanings wrap
-   where Java's do; the section headers keep the real bold. */
+   Pixelify Sans bold is fake bold too (same advances as regular), so long bold meanings wrap as on
+   Android; the section headers keep the real bold. */
 .kk-item .kk-headline b {
   font-weight: 400;
   -webkit-text-stroke: 0.035em currentColor;
@@ -55,7 +54,7 @@
   padding: var(--fp-top) 0 var(--fp-bottom);
 }
 
-/* Headline (subject_info_headline_narrow.xml): the big title tile, "Level 3 kanji", the meanings and
+/* Headline (narrow layout): the big title tile, "Level 3 kanji", the meanings and
    readings (20 sp), the buttons column at the right. */
 .kk-headline {
   display: flex;
@@ -65,14 +64,14 @@
 }
 .kk-subject-tile {
   flex: none;
-  text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView: setShadowLayer(3, 1, 1, black) */
-  /* SubjectInfoButtonView: 12 dp top, 8 dp bottom, 16 dp sides. */
+  text-shadow: var(--text-shadow-3px-glyph); /* shadow layer (3, 1, 1, black) */
+  /* 12 px top, 8 px bottom, 16 px sides. */
   min-width: 1em;
   padding: 12px 16px 8px;
   border: 0;
   border-radius: 12px; /* small_rounded_corners */
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
-  /* Font size set inline: min(max_font_size_*, width that fits). Glyph box = font size, as Java. */
+  /* Font size set inline: min(max_font_size_*, width that fits). Glyph box = font size. */
   font-size: 64px;
   line-height: 1;
   text-align: center;
@@ -84,8 +83,8 @@
 .kk-headline-reading { font-size: 1.25em; line-height: 1.25; padding: var(--fp-top) 0 var(--fp-bottom); }
 .kk-headline-buttons { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2, 8px); max-width: 45%; }
 .kk-headline-buttons .kk-reveal-btn { white-space: nowrap; }
-/* subject_info_headline_wide.xml: the title and the tile centred (tile 4 dp below the title), then the
-   meanings and readings at the left and the buttons column at the right, 8 dp below the tile. */
+/* Headline (wide layout): the title and the tile centred (tile 4 px below the title), then the
+   meanings and readings at the left and the buttons column at the right, 8 px below the tile. */
 .kk-headline--wide { flex-direction: column; align-items: stretch; gap: 0; }
 .kk-headline--wide > .kk-headline-title { align-self: center; text-align: center; }
 .kk-headline--wide > .kk-subject-tile { align-self: center; margin-top: 4px; }
@@ -120,8 +119,8 @@
 
 /* WaniKani markup */
 .kk-wk-tag {
-  /* WaniKaniTagHandler.ButtonStyleSpan: TextPaint.bgColor (the glyphs' ascent..descent box, square,
-     no padding) and the text colour, bold. */
+  /* The background over the glyphs' ascent..descent box (square, no padding) and the text colour,
+     bold. */
   color: var(--color-on-subject, #2E4756);
   border-radius: 0;
   padding: 0;
@@ -145,8 +144,8 @@
 .kk-synonyms { display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--space-1, 4px); margin: 4px 0 0; }
 .kk-synonyms-text { min-width: 0; }
 .kk-add-synonym {
-  /* addSynonymButton (WK.TextView.InlineButton, 8 dp start margin, 6 dp side padding): Java's size,
-     under the 40 px tap floor (e2e exemption "add-synonym" in test/e2e/helpers/app.ts). */
+  /* The inline button (8 px start margin, 6 px side padding), under the 40 px tap floor (e2e exemption
+     "add-synonym" in test/e2e/helpers/app.ts). */
   appearance: none;
   flex: none;
   display: inline-grid;
@@ -200,8 +199,7 @@
   filter: blur(0.33em);
 }
 
-/* Subject cards (SubjectGridView, subject_card_*.xml): 2 dp margins, 3 dp padding, small rounded
-   corners, elevation 4 dp; floor((width + 10) / 90) columns; vocabulary rows span the width (3 columns
+/* Subject cards: 2 px margins, 3 px padding, small rounded corners, elevation 4 px; floor((width + 10) / 90) columns; vocabulary rows span the width (3 columns
    from 6). The text colours are the --color-card-ink-* tokens (SubjectCardBinder.styleCardText in the
    KanjiKodama themes, colorPrimaryLight with a shadow in the others). */
 .kk-link-grid {
@@ -209,9 +207,7 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
-  /* SubjectGridView (RigidGridLayout): setChildMargin(2 dp) on every side of each card, the cards' own
-     XML margins are ignored: 4 dp between cards across and down, 2 dp from the edges (measured on the
-     Java app: 11 device px apart at 420 dpi). The session screens use the same view. */
+  /* 4 px between cards across and down, 2 px from the edges. The session screens use the same view. */
   gap: 4px;
   margin: 4px 0 0;
   padding: 2px;
@@ -247,8 +243,8 @@
   cursor: pointer;
 }
 span.kk-link-button { cursor: default; }
-.kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; } /* SubjectInfoButtonView.setSizeSp(24) */
-/* SubjectInfoButtonView glyphs centre on Roboto's metrics (--font-glyph, fonts.css), not the CJK face's. */
+.kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; }
+/* Tile glyphs centre on Roboto's metrics (--font-glyph, fonts.css), not the CJK face's. */
 .kk-item .kk-subject-tile,
 .kk-item .kk-subject-tile .kk-ja,
 .kk-item .kk-link-chars,
@@ -264,7 +260,7 @@ span.kk-link-button { cursor: default; }
 .kk-link-reading { font-size: 16px; line-height: 1.25; }
 .kk-link-progress,
 .kk-link-level { font-size: 14px; }
-/* subject_card_vocabulary.xml: characters left, the texts right-aligned at the right. */
+/* Vocabulary card: characters left, the texts right-aligned at the right. */
 .kk-link--wide .kk-link-button { flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 7px; }
 .kk-link--wide .kk-link-chars { margin-top: 0; flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .kk-link--wide .kk-link-text { align-items: flex-end; text-align: end; flex: 1; }
@@ -308,7 +304,7 @@ span.kk-link-button { cursor: default; }
 .kk-pitch-dot--hollow { fill: var(--color-surface, #F8FDF9); }
 
 /* Details table */
-/* The details table (subject_info.xml TableLayout): labels right-aligned and bold, the value right after. */
+/* The details table: labels right-aligned and bold, the value right after. */
 .kk-subject-details { border-collapse: collapse; font-size: inherit; margin: 4px auto 0 0; }
 /* detailsTable: each TableRow 2 dp from the top and start, each cell another 2 dp. */
 .kk-subject-details th { text-align: end; font-weight: 700; padding: calc(4px + var(--fp-top)) 0 var(--fp-bottom) 4px; vertical-align: top; white-space: nowrap; }
@@ -318,7 +314,7 @@ span.kk-link-button { cursor: default; }
 .kk-notes-dialog { width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 32px); }
 .kk-notes-dialog-body { max-height: calc(100dvh - 200px); overflow-y: auto; }
 
-/* Star rating (StarRatingView). */
+/* Star rating. */
 .kk-star-rating {
   display: inline-flex;
   gap: var(--space-1);

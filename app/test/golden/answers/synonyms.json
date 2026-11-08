@@ -1,6 +1,5 @@
 {
   "area": "answers.synonyms",
-  "javaSource": "enums/QuestionType.checkAnswer with db/model/Subject.getMeaningSynonyms, jobs/SaveStudyMaterialJob, db/dao/SubjectSyncDao.serializeToJsonString, api/model/ApiStudyMaterial",
   "cases": [
     {"name":"subject-1","input":{"id":1,"object":"radical","characters":"一","hiddenAt":0,"meanings":[{"meaning":"Ground","primary":true,"accepted_answer":true}],"auxiliaryMeanings":[],"readings":null},"output":{"questionTypes":["WANIKANI_RADICAL_NAME"]}},
     {"name":"subject-6","input":{"id":6,"object":"radical","characters":"亅","hiddenAt":0,"meanings":[{"meaning":"Barb","primary":true,"accepted_answer":true}],"auxiliaryMeanings":[{"meaning":"Bark","type":"blacklist"}],"readings":null},"output":{"questionTypes":["WANIKANI_RADICAL_NAME"]}},

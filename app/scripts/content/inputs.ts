@@ -1,6 +1,6 @@
 /**
- * Reads the builder's inputs from the repository: `content/inputs/` (committed open data, moved there
- * from the retired Java app) and `content/private/wk-content.db` (git-ignored).
+ * Reads the builder's inputs from the repository: `content/inputs/` (committed open data) and
+ * `content/private/wk-content.db` (git-ignored).
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

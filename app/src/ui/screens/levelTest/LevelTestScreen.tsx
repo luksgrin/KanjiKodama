@@ -1,9 +1,8 @@
 /**
- * The kanji level test (`local/CurriculumUi.levelTest`, `offerRound2`, `showResult`, `startRound` over core
- * `levelTest/`), with Java's texts and choices. Java shows each step as a dialog over the current screen;
- * here the step is the screen's content and its buttons are the dialog's (negative, neutral, positive).
+ * The kanji level test (over core `levelTest/`): each step is the screen's content and its buttons
+ * are a dialog's (negative, neutral, positive).
  * A round is a self-study session (`/self-study/quiz`); when it ends the app comes back here and the next
- * step shows, as Java's dashboard offers it on resume.
+ * step shows.
  */
 import { useState } from 'react';
 import { blockName, describeLevel } from '../../../core/curriculum';
@@ -19,7 +18,7 @@ import {
   startRound2,
   type LevelTestOutcome,
 } from '../../../core/levelTest';
-import { JavaRandom } from '../../../core/rng';
+import { SeededRandom } from '../../../core/rng';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useLocation, useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
@@ -72,7 +71,7 @@ export function outcomeMessage(o: LevelTestOutcome, here: string | null): string
 interface Step {
   title?: string;
   message: string;
-  /** Java's negative, neutral and positive buttons. */
+  /** The negative, neutral and positive buttons. */
   negative?: { label: string; run(): void };
   neutral?: { label: string; run(): void };
   positive?: { label: string; run(): void };
@@ -101,14 +100,14 @@ export function LevelTestScreen() {
   const startRound = (round: 1 | 2) => work(round === 1 ? 'Picking kanji…' : 'Picking kanji for round 2…', async () => {
     if (rt.get().session?.state !== 'INACTIVE') return;
     const seed = Math.floor(Math.random() * 2 ** 47);
-    const ids = await app.write((db) => (round === 1 ? startRound1(db, new JavaRandom(seed)) : startRound2(db, new JavaRandom(seed))));
+    const ids = await app.write((db) => (round === 1 ? startRound1(db, new SeededRandom(seed)) : startRound2(db, new SeededRandom(seed))));
     if (ids.length === 0) return; // the status is ROUND2_DONE now: the result shows
     if (await rt.start('SELF_STUDY', ids, { levelTestRound: round })) navigate(paths.selfStudyQuiz());
   });
   const discard = () => work('Discarding…', async () => {
     await app.write((db) => discardLevelTest(db));
   });
-  // The dialog closes over the dashboard (Java shows it there): back to it.
+  // The dialog belongs over the dashboard: back to it.
   const close = () => location.home();
 
   let step: Step;
@@ -119,7 +118,7 @@ export function LevelTestScreen() {
   } else if (!snap.loaded || session === null) {
     step = { message: 'Checking…' };
   } else if (session.state !== 'INACTIVE') {
-    // sessionRunning: Busy.message(activity, null, SESSION_RUNNING).
+    // A session is running: the message.
     step = { message: SESSION_RUNNING, positive: { label: 'OK', run: close } };
   } else {
     const status = levelTestStatus(learner);
@@ -170,7 +169,7 @@ export function LevelTestScreen() {
     }
   }
 
-  // Busy.run: a message-only box that can't be cancelled while the work runs.
+  // A message-only box that can't be cancelled while the work runs.
   const shown: Step = busy !== null ? { message: busy } : step;
   const noButtons = shown.negative === undefined && shown.positive === undefined;
   return (

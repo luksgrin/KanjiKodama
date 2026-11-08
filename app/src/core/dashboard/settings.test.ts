@@ -10,9 +10,9 @@ import {
 } from './settings';
 
 // No golden scenario changes the dashboard settings (real-progress uses the defaults); these pin the
-// GlobalSettings.Dashboard getters' parsing.
+// dashboard settings getters' parsing.
 describe('dashboard settings', () => {
-  it('uses the Java defaults', () => {
+  it('uses the defaults', () => {
     expect(timeLineChartSize({})).toBe(24);
     expect(showOverLevelProgression({})).toBe(false);
     expect(limitPreviousLevelProgression({})).toBe(false);

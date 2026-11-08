@@ -1,4 +1,4 @@
-{"area":"kana.readings","javaSource":"util/PseudoIme.simulateInput, toKatakana; util/KanaUtil.convertKatakanaToHiragana"}
+{"area":"kana.readings"}
 {"name":"reading-1","input":{"reading":"あ","romaji":"a","romajiKatakana":"A"},"output":{"simulateInput":{"value":"あ"},"simulateInputKatakana":{"value":"ア"},"toKatakana":"ア","convertKatakanaToHiragana":"あ"}}
 {"name":"reading-2","input":{"reading":"あい","romaji":"ai","romajiKatakana":"AI"},"output":{"simulateInput":{"value":"あい"},"simulateInputKatakana":{"value":"アイ"},"toKatakana":"アイ","convertKatakanaToHiragana":"あい"}}
 {"name":"reading-3","input":{"reading":"あいかわらず","romaji":"aikawarazu","romajiKatakana":"AIKAWARAZU"},"output":{"simulateInput":{"value":"あいかわらず"},"simulateInputKatakana":{"value":"アイカワラズ"},"toKatakana":"アイカワラズ","convertKatakanaToHiragana":"あいかわらず"}}

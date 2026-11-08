@@ -1,7 +1,6 @@
 /**
  * The subject info lines for the user's study materials.
  *
- * Java: `db/model/Subject.getMeaningSynonymsRichText`, `getMeaningNoteRichText`, `getReadingNoteRichText`.
  * Fixtures: `answers/synonyms-ui-device.json`, `anki/answer-text.jsonl` (`synonyms/*`).
  */
 import { escapeHtml, renderHtml, type RichText } from '../text/richText';

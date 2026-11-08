@@ -1,14 +1,12 @@
 /**
- * Import progress from WaniKani (`ProgressPreferences.askToken` / `checkToken`, `WaniKaniImporter`)
- * as the Java dialogs: "Import from WaniKani" with the token field (Cancel / Next), "Checking the
+ * Import progress from WaniKani, as dialogs: "Import from WaniKani" with the token field (Cancel / Next), "Checking the
  * token…", "Override local progress?" (Cancel / Import and override), "Importing from WaniKani…" and
  * the summary. The download replaces local progress through core `applyWaniKaniImport`
- * (`persist: 'replace'`: rows of subjects the content lacks are dropped too, as
- * `ProgressStore.resetProgress` does). Local mode only, so the server is WaniKani's, as Java's
- * `ApiTask.getBaseUrl()` returns in local mode.
+ * (`persist: 'replace'`: rows of subjects the content lacks are dropped too, as a full reset does).
+ * Local mode only, so the server is WaniKani's.
  *
- * The token field shows the saved token (`GlobalSettings.Api.getApiKey()`, blanks removed); a token
- * WaniKani accepts is saved (`WaniKaniImporter.checkToken` keeps it, a rejected one is not). It is
+ * The token field shows the saved token (blanks removed); a token WaniKani accepts is saved (a rejected
+ * one is not). It is
  * the same token as server mode's, kept in the platform secrets (`app.tokenStore()`), never in the
  * progress database, files or logs.
  */

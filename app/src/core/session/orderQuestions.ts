@@ -1,11 +1,9 @@
 /**
- * Which question a running session asks next: `Session.chooseQuestion`'s filters (back to back,
+ * Which question a running session asks next: the filters (back to back,
  * reading first, meaning first, the 10-started-items cap, delayed items after a wrong answer) and
  * the random pick within the first bucket.
  *
  * The session engine owns its question and item types; it passes an accessor so this works on them.
- *
- * Java: `Session.chooseQuestion`, `SessionItem.isStarted`, `SessionItem.hasPendingReadingAndMeaning`.
  */
 
 import { QUESTION_TYPE_INFO, type QuestionType } from '../answer';
@@ -47,7 +45,7 @@ function narrow<Q>(list: readonly Q[], keep: (q: Q) => boolean): readonly Q[] {
  * The question pick of `Session.chooseQuestion` for a session that is active and has questions
  * (the lesson presentation, finishing and empty cases are the engine's). `questions` are the open
  * questions in queue order, `items` all session items. Draws one `nextInt` from the shared random,
- * then counts every item's choice delay down by one, as Java does. The engine sets the current
+ * then counts every item's choice delay down by one. The engine sets the current
  * question, item and choice reason.
  */
 export function chooseNextQuestion<Q, I>(questions: readonly Q[], items: readonly I[], flags: QuestionChoiceFlags,

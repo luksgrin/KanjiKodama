@@ -7,7 +7,7 @@
  * - `subject`: the static columns of the WaniKani `subject` table (no progress columns), plus the
  *   extra kanji and words (ids from 100000). `level`/`lessonPosition` are the WaniKani order (extras on
  *   level 61), as the Android app's table holds them after the content import. `frequency`,
- *   `joyoGrade` and `jlptLevel` are the reference data (`LoadReferenceDataTask`), precomputed.
+ *   `joyoGrade` and `jlptLevel` are the reference data, precomputed.
  * - `srs_system`: as in `wk-content.db`.
  * - `subject_order`: both curriculum orders per subject: `wkLevel`/`wkPosition` and
  *   `jlptLevel`/`jlptPosition` (here `jlptLevel` is the JLPT-order *level*, 1..58, not the N-level
@@ -15,11 +15,10 @@
  * - `jlpt_block`: `level` → `block` (5 = N5 … 1 = N1, 0 = Obscure) of the JLPT order.
  * - `jlpt_kanji`: `jlpt-kanji.tsv` (`characters` → N-level), so the app can lay the JLPT order out
  *   again at run time (hiding subjects, switching curriculum).
- * - `stroke_data`, `pitch_info`: `id` → JSON text, exactly what the Java app stores in
- *   `subject.strokeData`/`subject.pitchInfo` (`ReferenceDataUtil.getStrokeData`/`getPitchInfo`); only
- *   subjects that have one. Kept out of `subject` so loading the subjects stays small.
- * - `title_image`: `id` → JSON `TitleImage` (`content/titleImages.ts`), the radicals the Java app draws
- *   as an image (`Subject.getTitleImageId`); optional (older files lack it: the slug is shown instead).
+ * - `stroke_data`, `pitch_info`: `id` → JSON text (stroke paths; `[reading, partOfSpeech,
+ *   pitchNumber]` entries); only subjects that have one. Kept out of `subject` so loading the subjects stays small.
+ * - `title_image`: `id` → JSON `TitleImage` (`content/titleImages.ts`), the radicals drawn as an image
+ *   instead of a character; optional (older files lack it: the slug is shown instead).
  * - `kanji_part`, `kanji_sound`, `series`, `series_member`: `sound-components.db` (Parts/Sound), as is.
  * - `content_meta`: `key` → `value` (`schemaVersion`, `variant`, source versions).
  */
@@ -119,13 +118,13 @@ export function readContentFile(db: Database, manifest: ContentManifest | null =
   };
 }
 
-/** `subject.strokeData` of the Java app: JSON array of stroke paths, or null. */
+/** A subject's stroke data: JSON array of stroke paths, or null. */
 export function strokeData(db: Database, id: number): string | null {
   const r = all(db, 'SELECT data FROM stroke_data WHERE id = ?', [id])[0];
   return r === undefined ? null : String(r[0]);
 }
 
-/** `subject.pitchInfo` of the Java app: JSON array of `[reading, partOfSpeech, pitchNumber]`, or null. */
+/** A subject's pitch info: JSON array of `[reading, partOfSpeech, pitchNumber]`, or null. */
 export function pitchInfo(db: Database, id: number): string | null {
   const r = all(db, 'SELECT data FROM pitch_info WHERE id = ?', [id])[0];
   return r === undefined ? null : String(r[0]);

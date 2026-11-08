@@ -63,7 +63,7 @@ describe('scheduleReviews', () => {
     { at: H10 + HOUR, newReviews: 1, totalReviews: 4, lessons: 5 },
   ];
 
-  it('hands the native side one plan for the single notification, with the Java texts', async () => {
+  it('hands the native side one plan for the single notification, with its texts', async () => {
     granted();
     await expect(api.scheduleReviews(times, { now: NOW, current: { lessons: 5, reviews: 1 } })).resolves.toBe(2);
     expect(plugin.schedule).toHaveBeenCalledTimes(1);
@@ -125,7 +125,7 @@ describe('rescheduleReviewNotifications', () => {
       { now: NOW, current: { lessons: 0, reviews: 0 }, style: { frequency: 'ONLY_NEW_REVIEWS', priority: 'DEFAULT', category: 'RECOMMENDATION' } });
   });
 
-  it('passes the Notification settings (unknown values: the Java defaults)', async () => {
+  it('passes the Notification settings (unknown values: the defaults)', async () => {
     const a2 = { ...androidNotifications, scheduleReviews: vi.fn().mockResolvedValue(1), cancelAll: vi.fn() };
     const prefs = { notification_update_frequency: 'CONTINUOUSLY', notification_priority: 'HIGH', notification_category: 'BOGUS' };
     await rescheduleReviewNotifications(a2, db, prefs, NOW);

@@ -1,9 +1,8 @@
 /**
  * The server-mode sync engine: test a connection, get a token through `/v2/migrate`, sync now
- * (user → uploads → collections, in `Get*Task` priority order), status for the UI.
+ * (user → uploads → collections, in priority order), status for the UI.
  *
- * Java: local/ServerMode (check, migrate), tasks/WaniKaniImporter.checkToken, tasks/Get*Task,
- * api/ApiState, services/ApiTaskService. One sync runs at a time (`syncNow` joins a running one).
+ * One sync runs at a time (`syncNow` joins a running one).
  * No background sync: the app calls `syncNow` on open and on resume (open question 3 of the plan).
  */
 import { parseApiStudyMaterial } from '../core/answer/synonyms';
@@ -68,7 +67,7 @@ export interface EngineDeps {
   clock?: Clock;
   limiter?: RateLimiter;
   tokens?: TokenStore;
-  /** Tries per call and the pause between them (Java: 3, 5 s). Tests shorten them. */
+  /** Tries per call and the pause between them (3, 5 s). Tests shorten them. */
   tries?: number;
   retryDelay?: number;
 }
@@ -85,7 +84,7 @@ export interface ConnectionTarget {
 }
 
 /**
- * `ServerMode.check`: the account behind a token on a server, without changing anything.
+ * The account behind a token on a server, without changing anything.
  * @throws ServerError "<server> rejected this API token." / "Could not reach <server>. …"
  */
 export async function checkConnection(t: ConnectionTarget): Promise<ServerUser> {
@@ -98,8 +97,8 @@ export async function checkConnection(t: ConnectionTarget): Promise<ServerUser> 
 }
 
 /**
- * `ServerMode.migrate`: an OpenKani-style server copies the WaniKani account once and returns its
- * own token (also when it copied it before: 409). One attempt, no rate limiter (as in Java).
+ * An OpenKani-style server copies the WaniKani account once and returns its own token (also when it
+ * copied it before: 409). One attempt, no rate limiter.
  */
 export async function migrateFromWaniKani(o: { http: HttpApi; baseUrl: string; wkApiKey: string; appVersion?: string }): Promise<string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json; charset=utf-8' };
@@ -155,7 +154,7 @@ export interface SyncResult {
   message: string | null;
   steps: StepReport[];
   uploads: FlushResult | null;
-  /** The server's account differs from the one stored: local server data was reset (`GetUserTask`). */
+  /** The server's account differs from the one stored: local server data was reset. */
   accountChanged: boolean;
 }
 
@@ -231,7 +230,7 @@ export class SyncEngine {
   }
 
   /**
-   * Sync now. `manual` (the learner's "Sync now" / retry, `RetryApiErrorJob`): clears the error
+   * Sync now. `manual` (the learner's "Sync now" / retry): clears the error
    * state and ignores upload backoff. Never runs while the token is rejected (`setToken` first).
    * Joins a sync already running.
    */
@@ -273,7 +272,7 @@ export class SyncEngine {
     const client = await this.client();
     if (client === null) return finish(false, null);
 
-    // Uploads need the OK state (`ReportSessionItemTask.canRun`): the user first unless it is fresh.
+    // Uploads need the OK state: the user first unless it is fresh.
     let steps: SyncStep[];
     if (!uploadsOnly) steps = syncSteps(await this.store.cursors(), this.clock.now());
     else steps = state === 'OK' ? ['uploads'] : ['user', 'uploads'];
@@ -324,7 +323,7 @@ export class SyncEngine {
     return finish(true, null);
   }
 
-  /** `GetUserTask.runLocal`. */
+  /** Syncs the user. */
   private async syncUser(client: ApiClient, result: SyncResult): Promise<StepReport['outcome']> {
     const r = await client.get('/v2/user', { conditional: true });
     const now = this.clock.now();
@@ -368,7 +367,7 @@ export class SyncEngine {
     return 'ok';
   }
 
-  /** `GetSubjectsTask`, `GetAssignmentsTask`, … : one collection, written page by page. */
+  /** One collection, written page by page. */
   private async syncCollection(client: ApiClient, name: CollectionName): Promise<CollectionResult> {
     const start = this.clock.now();
     const uri = collectionUri(collectionPath(name), updatedAfter(await this.store.cursors(), name));
@@ -381,7 +380,7 @@ export class SyncEngine {
       r = { kind: 'failed', status: 'badJson', message: e instanceof Error ? e.message : String(e) };
     }
     if (r.kind === 'ok' || r.kind === 'notModified') {
-      // `GetSrsSystemsTask` deletes and re-inserts; here the old list stays until the new one is complete.
+      // The old list stays until the new one is complete.
       if (name === 'spaced_repetition_systems' && r.kind === 'ok') await this.store.set(KEYS.srsSystems, srs);
       await this.store.setCursor(name, start);
       await this.store.markApiSuccess(this.clock.now());

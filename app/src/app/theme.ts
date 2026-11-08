@@ -1,5 +1,5 @@
 /**
- * The theme as the Java app picks it (`GlobalSettings.Display.getTheme`): the Light Theme (`theme`)
+ * The theme: the Light Theme (`theme`)
  * while the system is light, the Dark Theme (`nightTheme`) while it is dark, plus that theme's
  * customised colours (`theme_customizations_<THEME>`). `ui/theme/themes.ts` has the themes and puts
  * them on <html> (`data-theme`, `data-kk-theme`, inline tokens). The choice is mirrored in
@@ -72,7 +72,7 @@ export function applyTheme(p: ThemePrefs): ThemeKind {
   return t.kind;
 }
 
-/** `GlobalSettings.Display.getSlideAnimations` (default on). */
+/** The `slide_animations` setting (default on). */
 export function applySlideAnimations(prefs: Readonly<Record<string, unknown>>): void {
   const on = prefs[SLIDE_KEY] !== false;
   const root = document.documentElement;

@@ -1,6 +1,6 @@
 /**
  * The yellow "Please take a moment to review some hints for your keyboard settings" box at the top
- * of the dashboard (`activity_main.xml` keyboardHelpView, `MainActivity`): shown until DISMISS
+ * of the dashboard: shown until DISMISS
  * (`keyboard_help_dismissed`, reset by "Reset UI confirmations and tutorials"); VIEW opens Keyboard
  * help. Only where the keyboard settings it explains exist (`imeFlags`: the Android build).
  */

@@ -1,10 +1,10 @@
 /**
- * The session order and selection settings (`GlobalSettings.AdvancedLesson`, `AdvancedReview`,
- * `AdvancedSelfStudy`, `Review`, `AdvancedOther`), with Java's defaults, the `enable_advanced` gate
- * and the fallbacks for invalid values. The session start reads these for its own type only; `NONE`
- * gets the defaults the `GlobalSettings.get*(SessionType)` switches give it.
+ * The session order and selection settings (advanced lesson, review and self-study settings, and a
+ * few review and other settings), with their defaults, the `enable_advanced` gate and the fallbacks
+ * for invalid values. The session start reads these for its own type only; `NONE` gets the
+ * defaults.
  *
- * Java: `GlobalSettings`. Fixtures: `scenarios/session-order-*`, `session-size-review`,
+ * Fixtures: `scenarios/session-order-*`, `session-size-review`,
  * `session-sequence-*`.
  */
 
@@ -35,19 +35,18 @@ export const SESSION_PRIORITIES = [
 ] as const;
 export type SessionPriority = (typeof SESSION_PRIORITIES)[number];
 
-/** `Constants.DEFAULT_OVERDUE_THRESHOLD` (a Java `float`). */
+/** The default overdue threshold (a 32-bit float). */
 export const DEFAULT_OVERDUE_THRESHOLD = Math.fround(0.2);
 
 /**
- * `SharedPreferences.getString(key, null)`: null when absent. Android throws a ClassCastException for
- * a value stored with another type; the callers here never meet one, so it reads as absent.
+ * A stored string, or null when absent. A value stored with another type reads as absent too.
  */
 function prefString(prefs: Preferences, key: string): string | null {
   const v = prefs[key];
   return typeof v === 'string' ? v : null;
 }
 
-/** `SharedPreferences.getInt(key, defaultValue)`. A non-number reads as absent (see `prefString`). */
+/** A stored integer, or the default. A non-number reads as absent (see `prefString`). */
 function prefInt(prefs: Preferences, key: string, defaultValue: number): number {
   const v = prefs[key];
   return typeof v === 'number' ? v : defaultValue;
@@ -55,8 +54,8 @@ function prefInt(prefs: Preferences, key: string, defaultValue: number): number 
 
 const DIGIT = /^\p{Nd}$/u;
 
-/** `Integer.parseInt(s)`: an optional sign and decimal digits (any script) within int range; null where Java throws. */
-export function javaParseInt(s: string): number | null {
+/** A strict integer: an optional sign and decimal digits (any script) within int range; else null. */
+export function parseIntOrNull(s: string): number | null {
   let i = 0;
   let negative = false;
   if (s.startsWith('+') || s.startsWith('-')) {
@@ -94,56 +93,56 @@ function advancedBoolean(prefs: Preferences, key: string): boolean {
   return advancedEnabled(prefs) && prefBoolean(prefs, key, false);
 }
 
-/** `AdvancedLesson.getOrder`: `lesson_order`, default `LEVEL_THEN_TYPE`. */
+/** `lesson_order`, default `LEVEL_THEN_TYPE`. */
 export function lessonOrder(prefs: Preferences): LessonOrder {
   if (!advancedEnabled(prefs)) return 'LEVEL_THEN_TYPE';
   return enumPref(prefs, 'lesson_order', Object.keys(LESSON_ORDERS) as LessonOrder[], 'LEVEL_THEN_TYPE');
 }
 
-/** `AdvancedReview.getOrder` / `AdvancedSelfStudy.getOrder`: `review_order` / `self_study_order`, default `SHUFFLE`. */
+/** `review_order` / `self_study_order`, default `SHUFFLE`. */
 export function reviewOrder(prefs: Preferences, type: 'REVIEW' | 'SELF_STUDY'): ReviewOrder {
   if (!advancedEnabled(prefs)) return 'SHUFFLE';
   return enumPref(prefs, `${prefix(type)}_order`, REVIEW_ORDERS, 'SHUFFLE');
 }
 
-/** `GlobalSettings.getOrderReversed(type)`: `<type>_order_reversed`. */
+/** `<type>_order_reversed`. */
 export function orderReversed(prefs: Preferences, type: SessionType): boolean {
   return type !== 'NONE' && advancedBoolean(prefs, `${prefix(type)}_order_reversed`);
 }
 
-/** `GlobalSettings.getOrderOverdueFirst(type)`: reviews and self-study only. */
+/** `<type>_order_overdue_first`: reviews and self-study only. */
 export function orderOverdueFirst(prefs: Preferences, type: SessionType): boolean {
   return (type === 'REVIEW' || type === 'SELF_STUDY') && advancedBoolean(prefs, `${prefix(type)}_order_overdue_first`);
 }
 
-/** `GlobalSettings.getOrderPriority(type)`: `<type>_order_priority`, default `NONE` (`NONE` reads self-study's). */
+/** `<type>_order_priority`, default `NONE` (`NONE` reads self-study's). */
 export function orderPriority(prefs: Preferences, type: SessionType): SessionPriority {
   if (!advancedEnabled(prefs)) return 'NONE';
   return enumPref(prefs, `${prefix(type === 'NONE' ? 'SELF_STUDY' : type)}_order_priority`, SESSION_PRIORITIES, 'NONE');
 }
 
-/** `GlobalSettings.getShuffleAfterSelection(type)`: `<type>_shuffle_after_selection`. */
+/** `<type>_shuffle_after_selection`. */
 export function shuffleAfterSelection(prefs: Preferences, type: SessionType): boolean {
   return type !== 'NONE' && advancedBoolean(prefs, `${prefix(type)}_shuffle_after_selection`);
 }
 
-/** `GlobalSettings.getBackToBack(type)`: `<type>_back_to_back`. */
+/** `<type>_back_to_back`. */
 export function backToBack(prefs: Preferences, type: SessionType): boolean {
   return type !== 'NONE' && advancedBoolean(prefs, `${prefix(type)}_back_to_back`);
 }
 
-/** `GlobalSettings.getReadingFirst(type)`: `<type>_reading_first`. */
+/** `<type>_reading_first`. */
 export function readingFirst(prefs: Preferences, type: SessionType): boolean {
   return type !== 'NONE' && advancedBoolean(prefs, `${prefix(type)}_reading_first`);
 }
 
-/** `GlobalSettings.getMeaningFirst(type)`: `<type>_meaning_first`. */
+/** `<type>_meaning_first`. */
 export function meaningFirst(prefs: Preferences, type: SessionType): boolean {
   return type !== 'NONE' && advancedBoolean(prefs, `${prefix(type)}_meaning_first`);
 }
 
 /**
- * `GlobalSettings.getRandomizeInflections(type)`: never for lessons; `review_randomize_inflections` for reviews,
+ * Randomized inflections: never for lessons; `review_randomize_inflections` for reviews,
  * `self_study_randomize_inflections` otherwise (self-study and NONE); advanced only, default false.
  */
 export function randomizeInflections(prefs: Preferences, type: SessionType): boolean {
@@ -152,7 +151,6 @@ export function randomizeInflections(prefs: Preferences, type: SessionType): boo
 }
 
 /**
- * `Review.gexMaxLessonSessionSize` / `gexMaxReviewSessionSize` / `getMaxSelfStudySessionSize`:
  * `max_<type>_session_size`, a string; the default (5 lessons, 100 otherwise) when it is empty, not
  * a number or below 1. Not an advanced setting.
  */
@@ -160,28 +158,27 @@ export function maxSessionSize(prefs: Preferences, type: 'LESSON' | 'REVIEW' | '
   const fallback = type === 'LESSON' ? 5 : 100;
   const value = prefString(prefs, `max_${prefix(type)}_session_size`);
   if (value === null || value === '') return fallback;
-  const n = javaParseInt(value);
+  const n = parseIntOrNull(value);
   return n === null || n < 1 ? fallback : n;
 }
 
 /**
- * `AdvancedOther.getOverdueThreshold`: `overdue_threshold` (a percentage string) as a Java `float`
- * fraction; the default 0.2 without advanced settings or for empty, invalid or values below 1.
+ * `overdue_threshold` (a percentage string) as a 32-bit float fraction; the default 0.2 without advanced settings or for empty, invalid or values below 1.
  */
 export function overdueThreshold(prefs: Preferences): number {
   if (!advancedEnabled(prefs)) return DEFAULT_OVERDUE_THRESHOLD;
   const value = prefString(prefs, 'overdue_threshold');
   if (value === null || value === '') return DEFAULT_OVERDUE_THRESHOLD;
-  const n = javaParseInt(value);
+  const n = parseIntOrNull(value);
   return n === null || n < 1 ? DEFAULT_OVERDUE_THRESHOLD : Math.fround(Math.fround(n) / Math.fround(100));
 }
 
-/** `AdvancedOther.getKanjiModeOnKun`: `kanji_mode_onkun`, quiz on'yomi and kun'yomi separately. */
+/** `kanji_mode_onkun`, quiz on'yomi and kun'yomi separately. */
 export function kanjiModeOnKun(prefs: Preferences): boolean {
   return advancedBoolean(prefs, 'kanji_mode_onkun');
 }
 
-/** The twelve raw `<type>_subjects_*` values `SubjectSelectionRules` is built from (-1 = no rule). */
+/** The twelve raw `<type>_subjects_*` values the selection rules are built from (-1 = no rule). */
 export interface SubjectSelectionSettings {
   currentMin: number;
   currentMax: number;
@@ -198,9 +195,8 @@ export interface SubjectSelectionSettings {
 }
 
 /**
- * `GlobalSettings.getSubjectSelectionRules(type)`'s twelve getters: `<type>_subjects_<kind>_<min|max>`
- * ints, -1 without advanced settings, when absent, and for `NONE`. The lesson kana-only minimum reads
- * `lesson_subjects_kana_vocabulary_min` (the key the settings screen writes; fixed in Java on 2026-10-18).
+ * The selection rules: `<type>_subjects_<kind>_<min|max>` ints, -1 without advanced settings, when absent, and for `NONE`. The lesson kana-only minimum reads
+ * `lesson_subjects_kana_vocabulary_min` (the key the settings screen writes).
  */
 export function subjectSelectionSettings(prefs: Preferences, type: SessionType): SubjectSelectionSettings {
   const read = (kind: string): number =>

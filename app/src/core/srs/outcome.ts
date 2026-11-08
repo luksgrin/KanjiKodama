@@ -26,7 +26,7 @@ export interface SrsProgress {
   lastIncorrectAnswer: number;
 }
 
-/** `SubjectSyncDao.patchAssignment`: a subject that isn't unlocked is stored at stage -999. */
+/** Patches the assignment: a subject that isn't unlocked is stored at stage -999. */
 function patchAssignment(p: SrsProgress, stageId: number, startedAt: number, availableAt: number, passedAt: number,
   burnedAt: number): SrsProgress {
   return {
@@ -39,7 +39,7 @@ function patchAssignment(p: SrsProgress, stageId: number, startedAt: number, ava
   };
 }
 
-/** `ReportSessionItemJob.processLessonFinished`: the first started stage, due at the top of the hour. */
+/** A finished lesson: the first started stage, due at the top of the hour. */
 function lessonFinished(system: SrsSystem, p: SrsProgress, ts: number): SrsProgress {
   const stage = system.firstStartedStage;
   const available = ts + stage.interval + 30 * SECOND;
@@ -47,7 +47,7 @@ function lessonFinished(system: SrsSystem, p: SrsProgress, ts: number): SrsProgr
 }
 
 /**
- * `ReportSessionItemJob.processReviewFinished`: the new stage, due time, passed/burned times, and the
+ * A finished review: the new stage, due time, passed/burned times, and the
  * review statistics.
  */
 function reviewFinished(system: SrsSystem, p: SrsProgress, meaningWrong: number, readingWrong: number,
@@ -103,7 +103,7 @@ function reviewFinished(system: SrsSystem, p: SrsProgress, meaningWrong: number,
   };
 }
 
-/** `SubjectSyncDao.patchReviewStatistic`'s leech score (not part of the progress file). */
+/** The review statistic's leech score (not part of the progress file). */
 export function leechScore(p: Pick<SrsProgress, 'meaningIncorrect' | 'meaningCurrentStreak' | 'readingIncorrect'
   | 'readingCurrentStreak'>): number {
   const streak = (n: number): number => (n === 0 ? 0.5 : Math.pow(n, 1.5));
@@ -126,8 +126,8 @@ export interface ReportedItem {
 export interface ReportOutcome {
   progress: SrsProgress;
   /**
-   * A review took the subject to a passed stage for the first time. Java's `justPassed` is this and
-   * "has amalgamations"; it only drives the server-mode sync reminder (local mode unlocks through
+   * A review took the subject to a passed stage for the first time. The server-mode `justPassed` is
+   * this and "has amalgamations"; it only drives the server-mode sync reminder (local mode unlocks through
    * progression instead).
    */
   firstPassed: boolean;
@@ -136,7 +136,7 @@ export interface ReportOutcome {
 }
 
 /**
- * `jobs/ReportSessionItemJob.runLocal`, the subject's own row: a finished lesson starts the subject,
+ * A lesson or review result, the subject's own row: a finished lesson starts the subject,
  * a finished review moves its stage and statistics; any wrong answer sets `lastIncorrectAnswer`.
  * Side effects on other rows (unlocks, fast-travel probation, the session item) are elsewhere.
  */

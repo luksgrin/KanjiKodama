@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { audioCatalog, type PronunciationAudio } from '../core/audio';
-import { JavaRandom } from '../core/rng';
+import { SeededRandom } from '../core/rng';
 import { createWebAudio } from './webAudio';
 
 const audio = (sourceId: number, gender: string, contentType = 'audio/mpeg'): PronunciationAudio => ({
@@ -13,7 +13,7 @@ function setup(online = true, fail = false) {
   const created: { src: string; play: ReturnType<typeof vi.fn>; pause: ReturnType<typeof vi.fn> }[] = [];
   const api = createWebAudio({
     online: () => online,
-    rng: new JavaRandom(1),
+    rng: new SeededRandom(1),
     createAudio: (src) => {
       const el = { src, play: vi.fn(async () => { if (fail) throw new Error('NotAllowedError'); }), pause: vi.fn() };
       created.push(el);

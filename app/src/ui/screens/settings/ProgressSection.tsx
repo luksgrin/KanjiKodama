@@ -1,8 +1,8 @@
 /**
- * Settings → the "Progress" category (`preferences.xml` + `local/ProgressPreferences`): Server
+ * Settings → the "Progress" category: Server
  * connection, Curriculum order, Kanji level test, Fast travel, Save progress to a file, Restore
- * progress from a file, Import progress from WaniKani, with the Java summaries; the local-only rows
- * are hidden in server mode (`LocalMode.LOCAL_PREFERENCES`).
+ * progress from a file, Import progress from WaniKani, with their summaries; the local-only rows
+ * are hidden in server mode.
  *
  * Save: the picker / share sheet, then "Progress saved.". Restore: pick, "Override local progress?"
  * with the file's summary and the override warning (Cancel / Restore and override), "Restoring

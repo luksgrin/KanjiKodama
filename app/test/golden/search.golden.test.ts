@@ -37,7 +37,7 @@ import {
   getSearchRanking,
   searchByText,
   searchSuggestions,
-  splitTermsForJava,
+  splitSearchTerms,
   splitTermsForSql,
 } from '../../src/core/search/text';
 import { contentDb, EXTRA_DB_PATH, loadContentWithExtras } from './content';
@@ -120,7 +120,7 @@ function searchBase(): Promise<SearchBase> {
   return basePromise;
 }
 
-/** `StudyMaterialsSupport.isBlank`: whitespace and space characters only. */
+/** Whitespace and space characters only. */
 const isBlank = (s: string | null): boolean => s === null || /^[\p{Z}\t\n\x0B\f\r\x1C-\x1F]*$/u.test(s);
 
 function subjects(base: SearchBase, progress: (s: ContentSubject) => SubjectSearchProgress, hiddenAt: (s: ContentSubject) => number): SearchSubject[] {
@@ -157,7 +157,7 @@ goldenSuite<Record<string, unknown>, unknown>('search/ranking.json', (input) => 
   }
   const query = input.query as string;
   if (!('subject' in input)) {
-    return { java: splitTermsForJava(query), sql: splitTermsForSql(query).map(escapeLikeTerm) };
+    return { terms: splitSearchTerms(query), sql: splitTermsForSql(query).map(escapeLikeTerm) };
   }
   const s = input.subject as RankingSubjectInput;
   const subject: SearchSubject = {
@@ -188,7 +188,7 @@ goldenSuite<Record<string, unknown>, unknown>('search/ranking.json', (input) => 
     readingNote: s.readingNote,
     meaningSynonyms: jsonArray<string | null>(s.meaningSynonyms).filter((x): x is string => !isBlank(x)),
   };
-  const terms = splitTermsForJava(query);
+  const terms = splitSearchTerms(query);
   return { terms, ranking: getSearchRanking(subject, terms) };
 });
 
@@ -207,7 +207,7 @@ goldenSuite<Record<string, unknown>, unknown>(
     const state = ctx.state as { groups?: Map<string, SearchSubject[]> };
     state.groups ??= new Map();
     if ('saveStudyMaterialJobData' in input) {
-      // SaveStudyMaterialJob for each: [id, meaningNote, readingNote, ...synonyms], empty/blank synonyms dropped.
+      // A save job for each: [id, meaningNote, readingNote, ...synonyms], empty/blank synonyms dropped.
       const materials = new Map<number, StudyMaterial>();
       for (const data of input.saveStudyMaterialJobData as string[][]) {
         const [id = '0', meaningNote = null, readingNote = null, ...synonyms] = data;
@@ -284,7 +284,7 @@ interface GroupState {
 const DUMP_COLUMNS = ['id', 'level', 'object', 'srsSystemId', 'srsStage', 'unlockedAt', 'availableAt', 'burnedAt',
   'lastIncorrectAnswer', 'leechScore', 'typeCode', 'hiddenAt'];
 
-/** `AdvancedSearchGoldenTest.stateDump` of a state. */
+/** The recorded state dump of a state. */
 function stateDump(all: readonly SearchSubject[]): unknown {
   const rows = all
     .filter((s) => s.srsStage !== 0 || s.unlockedAt !== 0 || s.availableAt !== 0 || s.burnedAt !== 0
@@ -318,9 +318,9 @@ goldenSuite<Record<string, unknown>, Record<string, unknown>>(
     }
     if (c.name.startsWith('group/')) {
       const g = input as unknown as GroupInput;
-      // The state is the device's database after ProgressStore.restore and LocalProgression.update, which the
-      // fixture records as this case's output (`rows`): progression is ported in wave 2, so the search reads
-      // that dump here and the dump comparison is checked by the progression port.
+      // The state is the database after a restore and `updateProgression`, which the
+      // fixture records as this case's output (`rows`): the search reads that dump here, and the scenarios
+      // check the progression itself.
       const expected = c.output as { rows: (number | string)[][] };
       const rows = new Map(expected.rows.map((r) => [r[0] as number, r]));
       const hidden = new Set(g.hiddenIds);
@@ -356,7 +356,7 @@ goldenSuite<Record<string, unknown>, Record<string, unknown>>(
       p = parseParameters(json);
     } catch (e) {
       if (!(e instanceof JacksonError)) throw e;
-      return { count: result.length, ids, sortOrder: null, screenParseError: e.javaClass };
+      return { count: result.length, ids, sortOrder: null, screenParseError: e.errorType };
     }
     if (p === null) return { count: result.length, ids, sortOrder: null, screenParseError: 'NullPointerException' };
     return { count: result.length, ids, sortOrder: p.sortOrder, view: viewOut(resultView(result, p.sortOrder, group.clockMs, base.systems)) };

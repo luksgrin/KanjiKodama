@@ -1,4 +1,4 @@
-/** Auto-download audio (`auto_download_audio`): the Java scan rules and the device glue that runs them. */
+/** Auto-download audio (`auto_download_audio`): the scan rules and the device glue that runs them. */
 import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AudioApi, AudioDownloadResult } from '../../src/platform';
@@ -19,7 +19,7 @@ import { KkDb } from '../../src/storage/db';
 const DONE: AudioDownloadResult = { downloaded: 1, failed: 0, bytes: 10, aborted: false };
 
 describe('audio scan rules', () => {
-  it('reads the settings with the Java defaults', () => {
+  it('reads the settings with their defaults', () => {
     expect(autoDownloadAudio({})).toBe(true);
     expect(autoDownloadAudio({ auto_download_audio: false })).toBe(false);
     expect(networkRule({})).toBe('DOWNLOAD_WIFI_ONLY');

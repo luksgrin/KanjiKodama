@@ -1,6 +1,6 @@
 /**
- * The Unicode behavior `util/FuzzyMatching.cleanString` gets from Android: `Character.getType` and
- * `String.toLowerCase(Locale.ENGLISH)`, frozen from the device (Android 16, ICU 76.1, Unicode 16) in
+ * The Unicode behavior answer cleaning relies on: character types and English lower-casing, frozen
+ * from an Android device (Android 16, ICU 76.1, Unicode 16) in
  * `unicodeData.ts`, so the result doesn't depend on the JavaScript engine's Unicode version.
  */
 import { CLASS_CODES, CLASS_STARTS, LETTER_CASE_STARTS, LOWER_PAIRS } from './unicodeData';
@@ -27,7 +27,7 @@ function rangeIndex(starts: readonly number[], cp: number): number {
   return lo;
 }
 
-/** cleanString's class of a code point (from `Character.getType` on the device). */
+/** cleanString's class of a code point (from the device's character types). */
 export function cleanClass(cp: number): CleanClass {
   return CLASS_CODES[rangeIndex(CLASS_STARTS, cp)] as CleanClass;
 }

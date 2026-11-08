@@ -1,10 +1,7 @@
 /**
  * "Parts and sound": which part of a kanji carries its meaning and which its sound, the phonetic
- * series and how this kanji's on'yomi fits it. Builds the same HTML as the Java app (rendered with
- * `WkMarkup`). The lookups are behind {@link SoundLookup}; {@link dbSoundLookup} reads them from the
+ * series and how this kanji's on'yomi fits it. Builds HTML (rendered with `WkMarkup`). The lookups are behind {@link SoundLookup}; {@link dbSoundLookup} reads them from the
  * content file's Parts/Sound tables and the subjects.
- *
- * Java: `local/SoundComponents` (`renderHtml`, `core`, `classify`, `displayName`, `wkKanjiLevel`).
  */
 import type { Database } from 'sql.js';
 import type { Content, ContentSubject } from '../../../core/content';
@@ -35,7 +32,7 @@ export interface SeriesMember {
   match: string;
 }
 
-/** What `SoundComponents.renderHtml` reads. */
+/** What the HTML is built from. */
 export interface SoundLookup {
   /** `kanji_part` rows of a kanji, by ordinal. */
   parts(literal: string): KanjiPart[];
@@ -53,7 +50,7 @@ export interface SoundLookup {
 
 const DEVOICED = 'がかぎきぐくげけごこざさじしずすぜせぞそだたぢちづつでてどとばはびひぶふべへぼほぱはぴひぷふぺへぽほ';
 
-/** `SoundComponents.core`: collapse voicing (first kana) and a trailing long vowel. */
+/** Collapse voicing (first kana) and a trailing long vowel. */
 export function soundCore(hiragana: string): string {
   let s = '';
   for (let i = 0; i < hiragana.length; i++) {
@@ -78,7 +75,7 @@ export function soundCore(hiragana: string): string {
   return s;
 }
 
-/** `SoundComponents.classify`. */
+/** How the kanji's reading relates to the series reading. */
 export function classifySound(actual: string, seriesReading: string): SoundMatch {
   if (actual === seriesReading) return 'exact';
   return soundCore(actual) === soundCore(seriesReading) ? 'variant' : 'irregular';
@@ -87,7 +84,7 @@ export function classifySound(actual: string, seriesReading: string): SoundMatch
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const rank = (m: string): number => (m === 'exact' ? 0 : m === 'variant' ? 1 : 2);
 
-/** `SoundComponents.renderHtml`: the section's HTML, or null when there is nothing to say (or not a kanji). */
+/** The section's HTML, or null when there is nothing to say (or not a kanji). */
 export function soundComponentsHtml(subject: Pick<ContentSubject, 'object' | 'characters' | 'readings'>, lookup: SoundLookup): string | null {
   const literal = subject.characters;
   if (subject.object !== 'kanji' || literal === null) return null;
@@ -147,7 +144,7 @@ export function soundComponentsHtml(subject: Pick<ContentSubject, 'object' | 'ch
 
   const series = lookup.series(seriesId);
   if (series !== null && series.coreMembers > 1) {
-    html += `${javaRound(series.reliability * 100)}% of the ${series.coreMembers} common <ja>${esc(phonetic)}</ja>-series kanji follow this reading.`;
+    html += `${roundHalfUp(series.reliability * 100)}% of the ${series.coreMembers} common <ja>${esc(phonetic)}</ja>-series kanji follow this reading.`;
   }
   const taught: [number, SeriesMember][] = [];
   for (const m of lookup.members(seriesId, literal)) {
@@ -163,8 +160,8 @@ export function soundComponentsHtml(subject: Pick<ContentSubject, 'object' | 'ch
   return html;
 }
 
-/** Java `Math.round(double)`: floor(x + 0.5). */
-function javaRound(x: number): number {
+/** Round half up: floor(x + 0.5). */
+function roundHalfUp(x: number): number {
   return Math.floor(x + 0.5);
 }
 
@@ -182,8 +179,7 @@ function all(db: Database, sql: string, params: (string | number)[]): unknown[][
 
 /**
  * The lookups over the content file (Parts/Sound tables) and the subjects. `kanjiLevel` is the subject's
- * level in `content` (WaniKani order); pass `levelOf` to use the current curriculum's level instead (the
- * Java app reads its subject table, whose levels follow the chosen order).
+ * level in `content` (WaniKani order); pass `levelOf` to use the current curriculum's level instead.
  */
 export function dbSoundLookup(db: Database, content: Content, levelOf?: (subject: ContentSubject) => number): SoundLookup {
   let byChars: Map<string, ContentSubject[]> | null = null;

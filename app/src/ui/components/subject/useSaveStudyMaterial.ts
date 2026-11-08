@@ -1,8 +1,7 @@
 /**
- * Saving synonyms and notes from an item page (`SaveStudyMaterialJob`): the subject columns
- * `runLocal` writes, persisted, and in server mode also the study-material upload
- * (`db.assertSubmitStudyMaterialTask`). The item page screen and the session's item info both use it,
- * as Java's `SubjectInfoView` offers the "+" (add synonym) wherever it shows.
+ * Saving synonyms and notes from an item page: the subject columns, persisted, and in server mode
+ * also the study-material upload. The item page screen and the session's item info both use it, as
+ * the subject info offers the "+" (add synonym) wherever it shows.
  */
 import { useCallback, useState } from 'react';
 import { updateProgress } from '../../../core/progression';

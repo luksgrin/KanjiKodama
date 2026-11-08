@@ -1,6 +1,5 @@
 /*
- * Data import/export (`activity_data_import_export.xml`): 8 dp padding, a WK.TextView.Large (20 sp)
- * line, a WK.TextView.Normal (16 sp) line 8 dp below, then four wrap_content WK.Button.Normal
+ * Data import/export: 8 px padding, a 20 px line, a 16 px line 8 px below, then four content-wide
  * buttons stacked, the first 8 dp below the text.
  */
 .kk-data-page {

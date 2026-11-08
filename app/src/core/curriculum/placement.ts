@@ -1,5 +1,5 @@
 /**
- * Where a learner lands after switching curriculum order. Port of `local/Placement`.
+ * Where a learner lands after switching curriculum order.
  *
  * The learner is placed on the first level where they have mastered (passed, Guru or above) less than
  * {@link PLACEMENT_THRESHOLD} of the kanji. Every kanji below that level that is not mastered yet is

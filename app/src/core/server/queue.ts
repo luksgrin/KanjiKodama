@@ -1,14 +1,11 @@
 /**
  * The server-mode upload queue: what a queued task sends and what to do with the answer.
- * Java: tasks/ReportSessionItemTask (lesson start, review), tasks/SubmitStudyMaterialTask, the
- * `task_definition` order (`ORDER BY priority, id`) and `ApiTask.postApiCall`'s status handling.
+ * Tasks: lesson start, review, notes and synonyms; sent in `priority, id` order.
  *
- * Differences from Java, on purpose:
- * - A study material that failed to send stays queued (Java drops it after the retries).
+ * - A study material that failed to send stays queued.
  * - The queue stops at the first task that still fails after the retries and backs off
- *   (`backoffDelay`), so later tasks never overtake it. Java stops the same way (the API goes into
- *   the error state) but then waits for the next sync or the learner's retry; the backoff only adds
- *   a floor between automatic attempts.
+ *   (`backoffDelay`), so later tasks never overtake it; the API goes into the error state until
+ *   the next sync or the learner's retry, and the backoff adds a floor between automatic attempts.
  */
 
 import {
@@ -21,7 +18,7 @@ import type { HttpMethod } from './types';
 
 export interface LessonStartPayload {
   subjectId: number;
-  /** 0 when unknown: looked up when sending (`ReportSessionItemTask.findAssignmentId`). */
+  /** 0 when unknown: looked up when sending. */
   assignmentId: number;
   /** When the lesson was done (epoch ms). */
   at: number;
@@ -33,7 +30,7 @@ export interface ReviewPayload {
   meaningIncorrect: number;
   readingIncorrect: number;
   at: number;
-  /** `justPassed`: Java then forces a late refresh (here: the caller syncs right after). */
+  /** The subject just passed: the caller syncs right after. */
   justPassed: boolean;
 }
 
@@ -101,7 +98,7 @@ export interface TaskRequest {
 /**
  * What to send for a task. `studyMaterialId` and `assignmentId` are the current stored values for
  * the subject (0 none). Null: nothing can be sent (a lesson whose assignment is still unknown after
- * the lookup); Java then deletes the task.
+ * the lookup); the task is then deleted.
  */
 export function taskRequest(t: QueuedTask, stored: { assignmentId: number; studyMaterialId: number }, now: number): TaskRequest | null {
   switch (t.kind) {
@@ -124,7 +121,7 @@ export function taskRequest(t: QueuedTask, stored: { assignmentId: number; study
   }
 }
 
-/** `ReportSessionItemTask.findAssignmentId`'s fallback lookup. */
+/** The fallback lookup of a subject's assignment id. */
 export function assignmentLookupUri(subjectId: number): string {
   return `/v2/assignments?subject_ids=${subjectId}`;
 }
@@ -183,7 +180,7 @@ export function parseStoredTask(t: StoredTask): QueuedTask | null {
   }
 }
 
-/** `ServerMode.pendingUploads`: answers, lesson starts and notes still to send. */
+/** Answers, lesson starts and notes still to send. */
 export function countPending(tasks: readonly StoredTask[]): number {
   return tasks.filter((t) => isTaskKind(t.kind)).length;
 }

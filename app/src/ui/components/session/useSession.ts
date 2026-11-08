@@ -20,7 +20,7 @@ export function useSession(): { rt: SessionRuntime; snap: SessionSnapshot } {
 }
 
 /**
- * For other screens (the dashboard's Resume button, Java `SessionButtonsView`): whether a session is
+ * For other screens (the dashboard's Resume button): whether a session is
  * running and which route shows it.
  */
 export function useActiveSession(): { active: boolean; type: SessionType } {

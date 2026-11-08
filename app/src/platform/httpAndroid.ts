@@ -1,6 +1,6 @@
 /**
  * Server-mode HTTP on the Android build: `CapacitorHttp` (native `HttpURLConnection`, no CORS,
- * `http://` LAN servers allowed when cleartext is permitted). Sets User-Agent like the Java app.
+ * `http://` LAN servers allowed when cleartext is permitted). Sets the app's User-Agent.
  *
  * CapacitorHttp hands back JSON bodies already parsed (whenever the response's Content-Type is JSON,
  * whatever `responseType` says); they are turned back into text so callers parse one way.

@@ -1,4 +1,4 @@
-/** Mode switches (`local/ServerMode`): no silent loss of unsent uploads, the importer path back. */
+/** Mode switches: no silent loss of unsent uploads, the importer path back. */
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 
@@ -68,7 +68,7 @@ describe('server → local', () => {
     expect(await pendingUploads(kk)).toBe(0);
     expect(await new ServerStore(kk).mode()).toBe('local');
     expect((await kk.state.get('userLevel'))?.value).toBe(1);
-    // Level 1 unlocked from the bundled content (LocalProgression.update).
+    // Level 1 unlocked from the bundled content (updateProgression).
     expect((await kk.subjects.get(1))?.unlockedAt).toBe(NOW);
     expect(await kk.serverSubjects.count()).toBe(0);
     // The connection is kept for next time.

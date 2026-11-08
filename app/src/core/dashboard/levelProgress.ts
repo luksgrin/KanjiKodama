@@ -1,8 +1,6 @@
 /**
  * The dashboard's level progress bars: per level and subject type, the subjects by SRS bucket.
- * Kana-only vocabulary is counted in the vocabulary bar (fixed in Java 2026-10-18).
- * Java: `LiveLevelProgress.computeLevelProgress`, `model/LevelProgress`,
- * `SubjectViewsDao.getLevelProgressTotalItems/PassedItems`, `getLevelProgressSubjects`.
+ * Kana-only vocabulary is counted in the vocabulary bar.
  */
 
 import { SUBJECT_TYPE_BY_OBJECT, type SubjectTypeName } from '../content';
@@ -15,7 +13,7 @@ export interface LevelProgressOptions {
   limitPreviousLevelProgression: boolean;
   /** `previous_level_progression_limit_amount`. */
   limitAmount: number;
-  /** `PropertiesDao.getUserMaxLevelGranted` (60 in local mode). */
+  /** The highest level granted (60 in local mode). */
   maxLevelGranted: number;
 }
 
@@ -37,7 +35,7 @@ function barType(type: SubjectTypeName): SubjectTypeName {
   return type === 'WANIKANI_KANA_VOCAB' ? 'WANIKANI_VOCAB' : type;
 }
 
-/** `LiveLevelProgress.computeLevelProgress`. */
+/** The level progress bars. */
 export function computeLevelProgress(db: LearnerDb, options: LevelProgressOptions): LevelProgressBar[] {
   const userLevel = db.progress.userLevel;
   const maxLevel = options.showOverLevelProgression ? options.maxLevelGranted : userLevel;

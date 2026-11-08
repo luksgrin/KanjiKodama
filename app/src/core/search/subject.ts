@@ -7,7 +7,7 @@
 import type { AuxiliaryMeaning, ContentSubject, Meaning, Reading, SubjectObject } from '../content';
 import { SUBJECT_TYPE_BY_OBJECT, type SubjectTypeName } from '../content';
 
-/** `api/model/ContextSentence`. */
+/** A context sentence. */
 export interface ContextSentence {
   en: string | null;
   ja: string | null;
@@ -116,7 +116,7 @@ export function searchSubject(
   };
 }
 
-/** `SubjectType.getOrder`: radicals 10, kanji 20, vocabulary and kana vocabulary 30. */
+/** Radicals 10, kanji 20, vocabulary and kana vocabulary 30. */
 export function typeOrder(object: SubjectObject): number {
   return object === 'radical' ? 10 : object === 'kanji' ? 20 : 30;
 }
@@ -143,7 +143,7 @@ export function oneMeaning(meanings: readonly Meaning[]): string | null {
   return t.meaning;
 }
 
-/** `ExtraContent.searchTarget` and the `smallSearchTarget` it stores (the characters). */
+/** The search target and the `smallSearchTarget` (the characters). */
 export function extraSearchTargets(
   characters: string,
   meanings: readonly Meaning[],

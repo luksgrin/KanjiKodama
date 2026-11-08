@@ -1,9 +1,7 @@
 /**
- * About (`AboutActivity`, `activity_about.xml`, `Constants.ABOUT_DOCUMENT`): toolbar "About
- * KanjiKodama", then one text document with 8 dp padding, links in the accent colour. Same text,
- * with this build's components and fonts instead of the Android app's (Jackson, Lottie, JSoup,
- * OkHttp, Pikolo; the quiz font list), then what Java has elsewhere or not at all: install steps
- * (web build), known limitations, version and storage.
+ * About: toolbar "About KanjiKodama", then one text document with 8 px padding, links in the accent
+ * colour: credits, this build's components and fonts, install steps (web build), known limitations,
+ * version and storage.
  */
 import { Fragment, useEffect, useState } from 'react';
 import { dateTime, megabytes } from '../../../app/format';

@@ -1,16 +1,16 @@
 /**
- * The progress `ProgressStore` saves and restores, as plain data: the subject progress columns,
+ * The progress a progress file saves and restores, as plain data: the subject progress columns,
  * the level progression rows, the user level, the curriculum mode, probation and jumps. `export`
- * writes the file text byte for byte like the Java app (Android `org.json`, indent 1); `restore`
- * applies a file the way the Java app's SQL does, including SQLite's column affinity.
+ * writes the file text byte for byte (`org.json`, indent 1); `restore` applies a file, including
+ * SQLite's column affinity for the stored values.
  *
- * Not here (the caller's job, as in `ProgressStore.restore`): `Curriculum.adopt` (re-laying the
- * levels for the mode) and `afterChange` (`LocalProgression.update`, which may unlock subjects).
+ * Not here (the caller's job): adopting the curriculum (re-laying the levels for the mode) and
+ * `afterChange` (`updateProgression`, which may unlock subjects).
  */
 
 import {
-  JavaException,
-  JavaNumber,
+  TypedError,
+  TypedNumber,
   JSONArray,
   JSONObject,
   JSON_NULL,
@@ -48,7 +48,7 @@ import {
   type SubjectProgressRow,
 } from './format';
 
-/** Everything `ProgressStore` reads and writes. */
+/** Everything a progress file holds. */
 export interface ProgressState {
   userLevel: number;
   curriculum: CurriculumMode;
@@ -62,7 +62,7 @@ export interface ProgressState {
   jumps: Jump[];
 }
 
-/** `ProgressStore.resetProgress` (the progress part): level 1, nothing started, no history. */
+/** A full reset (the progress part): level 1, nothing started, no history. */
 export function emptyProgress(curriculum: CurriculumMode = 'WANIKANI'): ProgressState {
   return {
     userLevel: 1,
@@ -84,12 +84,12 @@ export function subjectRow(state: ProgressState, id: number): SubjectProgressRow
 function sqlToJson(value: SqlValue): JsonValue | undefined {
   if (value === null) return undefined;
   if (typeof value === 'string') return value;
-  return Number.isInteger(value) ? JavaNumber.long(BigInt(value)) : JavaNumber.double(value);
+  return Number.isInteger(value) ? TypedNumber.long(BigInt(value)) : TypedNumber.double(value);
 }
 
 function rowObject(id: number | null, cols: readonly string[], row: Record<string, SqlValue>): JSONObject {
   const o = new JSONObject();
-  if (id !== null) o.map.set('id', JavaNumber.long(BigInt(id)));
+  if (id !== null) o.map.set('id', TypedNumber.long(BigInt(id)));
   for (const c of cols) {
     const v = sqlToJson(row[c] ?? null);
     if (v !== undefined) o.map.set(c, v);
@@ -110,15 +110,14 @@ function isSaved(row: SubjectProgressRow): boolean {
 }
 
 /**
- * `ProgressStore.export(db)`: the file text, byte for byte (`JSONObject.toString(1)`). `now` is
- * the `exportedAt` (`Clock.now()`).
+ * The file text, byte for byte (`JSONObject.toString(1)`). `now` is the `exportedAt`.
  */
 export function exportProgress(state: ProgressState, now: number): string {
   const root = new JSONObject();
   root.map.set('format', FORMAT);
-  root.map.set('version', JavaNumber.int(VERSION));
-  root.map.set('exportedAt', JavaNumber.long(BigInt(now)));
-  root.map.set('userLevel', JavaNumber.int(state.userLevel));
+  root.map.set('version', TypedNumber.int(VERSION));
+  root.map.set('exportedAt', TypedNumber.long(BigInt(now)));
+  root.map.set('userLevel', TypedNumber.int(state.userLevel));
 
   const levels = new JSONArray();
   const lpRows = [...state.levelProgression.values()].sort(
@@ -139,7 +138,7 @@ export function exportProgress(state: ProgressState, now: number): string {
   const probation = new JSONArray();
   for (const [id, since] of [...state.probation].sort((a, b) => a[0] - b[0])) {
     const p = new JSONArray();
-    p.values.push(JavaNumber.long(BigInt(id)), JavaNumber.long(BigInt(since)));
+    p.values.push(TypedNumber.long(BigInt(id)), TypedNumber.long(BigInt(since)));
     probation.values.push(p);
   }
   root.map.set('probation', probation);
@@ -147,7 +146,7 @@ export function exportProgress(state: ProgressState, now: number): string {
   const sortedJumps = state.jumps.map((j, i) => ({ j, i })).sort((a, b) => (a.j.at - b.j.at) || (a.i - b.i));
   for (const { j } of sortedJumps) {
     const row = new JSONArray();
-    row.values.push(JavaNumber.long(BigInt(j.at)), JavaNumber.int(j.fromLevel), JavaNumber.int(j.toLevel));
+    row.values.push(TypedNumber.long(BigInt(j.at)), TypedNumber.int(j.fromLevel), TypedNumber.int(j.toLevel));
     jumps.values.push(row);
   }
   root.map.set('jumps', jumps);
@@ -156,13 +155,13 @@ export function exportProgress(state: ProgressState, now: number): string {
 
 // --- Restore ---
 
-/** How `SQLiteProgram` binds a value from `JSONObject.opt` (`DatabaseUtils.bindObjectToProgram`). */
+/** How SQLite gets a value read from the file (`JSONObject.opt`): its bound type. */
 type Bound = null | { kind: 'long'; value: bigint } | { kind: 'double'; value: number } | { kind: 'text'; value: string };
 
 function bind(value: JsonValue | null | undefined): Bound {
   if (value === undefined || value === null || value === JSON_NULL) return null;
   if (typeof value === 'boolean') return { kind: 'long', value: value ? 1n : 0n };
-  if (value instanceof JavaNumber) {
+  if (value instanceof TypedNumber) {
     return value.type === 'Double' ? { kind: 'double', value: value.doubleValue() } : { kind: 'long', value: value.longValue() };
   }
   if (typeof value === 'string') return { kind: 'text', value };
@@ -201,8 +200,8 @@ function store(b: Bound, affinity: 'integer' | 'text'): SqlValue {
   return n === null ? b.value : n;
 }
 
-function notNullFailed(table: string, column: string): JavaException {
-  return new JavaException(
+function notNullFailed(table: string, column: string): TypedError {
+  return new TypedError(
     'android.database.sqlite.SQLiteConstraintException',
     `NOT NULL constraint failed: ${table}.${column} (code 1299 SQLITE_CONSTRAINT_NOTNULL)`,
   );
@@ -212,13 +211,13 @@ const TEXT_SET: ReadonlySet<string> = new Set(TEXT_COLUMNS);
 const SUBJECT_SET: ReadonlySet<string> = new Set(SUBJECT_COLUMNS);
 
 /**
- * `ProgressStore.restore(db, json)` up to the transaction's end: `describe` first, then reset all
+ * A restore up to the transaction's end: `describe` first, then reset all
  * progress and apply the file. Only subjects in `knownIds` (the content) are updated and only
- * their probation is kept, like the SQL. Returns the new state; throws the Java exception on a bad
+ * their probation is kept. Returns the new state; throws a typed error on a bad
  * file, leaving `state` untouched (the transaction rolls back).
  *
- * The caller then sets the curriculum (`Curriculum.adopt`; the returned state already carries the
- * file's mode) and runs `LocalProgression.update`.
+ * The caller then sets the curriculum (the returned state already carries the file's mode) and runs
+ * `updateProgression`.
  */
 export function restoreProgress(json: string, knownIds: ReadonlySet<number>, style: DateStyle): ProgressState {
   describe(json, style);
@@ -259,7 +258,7 @@ export function restoreProgress(json: string, knownIds: ReadonlySet<number>, sty
         if (row[c] === null) throw notNullFailed('level_progression', c);
       }
       if (typeof row.id !== 'number' || !Number.isInteger(row.id)) {
-        throw new JavaException('android.database.sqlite.SQLiteDatatypeMismatchException', 'datatype mismatch (code 20 SQLITE_MISMATCH)');
+        throw new TypedError('android.database.sqlite.SQLiteDatatypeMismatchException', 'datatype mismatch (code 20 SQLITE_MISMATCH)');
       }
       next.levelProgression.set(row.id, row);
     }

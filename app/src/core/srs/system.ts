@@ -4,7 +4,7 @@ import { DAY, HOUR, MINUTE, SECOND, WEEK } from '../time';
 /** The id of the Locked pseudo stage every system has (`SrsSystem` adds it in its constructor). */
 export const LOCKED_STAGE_ID = -999;
 
-/** `util/TextUtil.getRomanNumeral`. */
+/** A Roman numeral (I, II, …). */
 export function romanNumeral(number: number): string {
   let n = number;
   if (n < 1) {
@@ -24,7 +24,7 @@ export function romanNumeral(number: number): string {
   return s;
 }
 
-/** One stage of an `SrsSystem` (`model/SrsSystem.Stage`). Names and buckets are set by `finish`. */
+/** One stage of an `SrsSystem`. Names and buckets are set by `finish`. */
 export class SrsStage {
   name = '';
   shortName = '';
@@ -71,7 +71,7 @@ export class SrsStage {
   }
 
   /**
-   * `Stage.getNewStage`: the stage after a review with `numIncorrect` wrong answers (meaning and
+   * The stage after a review with `numIncorrect` wrong answers (meaning and
    * reading together). Correct moves up one; otherwise down `ceil(n/2)` stages, twice that from a
    * passed stage; clamped to [first started stage, burned]. Works on list positions, so Locked
    * (-999) and Initiate count as stages below the first started one.
@@ -99,7 +99,7 @@ export class SrsStage {
     return stages[index]!;
   }
 
-  /** `Stage.compareTo`: Locked < Initiate < Apprentice… < Guru… < Master < Enlightened < Burned. */
+  /** Locked < Initiate < Apprentice… < Guru… < Master < Enlightened < Burned. */
   compareTo(o: SrsStage): number {
     if (this.isLocked) return o.isLocked ? 0 : -1;
     if (o.isLocked) return 1;
@@ -189,7 +189,7 @@ export class SrsStage {
 }
 
 /**
- * `model/SrsSystem`: stages by id, with the four special stage ids. Build with `addStage` calls in
+ * An SRS system: stages by id, with the four special stage ids. Build with `addStage` calls in
  * any order, then `finish()`, which sorts the stages and names them (Apprentice I…, Guru I…, Master,
  * Enlightened, Burned).
  */
@@ -299,7 +299,7 @@ export class SrsSystem {
   }
 }
 
-/** ms per `interval_unit` (`LiveSrsSystems.updateLocal`); unknown or missing units are seconds. */
+/** ms per `interval_unit`; unknown or missing units are seconds. */
 function intervalUnit(unit: string | null | undefined): number {
   switch (unit) {
     case 'milliseconds':
@@ -317,7 +317,7 @@ function intervalUnit(unit: string | null | undefined): number {
   }
 }
 
-/** `LiveSrsSystems.updateLocal`: an `SrsSystem` from a content row. */
+/** An `SrsSystem` from a content row. */
 export function srsSystemFromData(data: SrsSystemData): SrsSystem {
   const system = new SrsSystem(data.id, data.name, data.unlockingStagePosition,
     data.startingStagePosition, data.passingStagePosition, data.burningStagePosition);
@@ -336,7 +336,7 @@ function classic(id: number, name: string, intervals: readonly number[]): SrsSys
 }
 
 /**
- * `LiveSrsSystems.getDefaultValue`: the built-in systems used when the DB has none. Same stages and
+ * The built-in systems used when the DB has none. Same stages and
  * intervals as the content DB's `srs_system` rows 1 and 2 (only the names differ).
  */
 export function fallbackSrsSystems(): readonly SrsSystem[] {
@@ -354,7 +354,7 @@ function buildFallback(): readonly SrsSystem[] {
   ];
 }
 
-/** `SrsSystemRepository.getSrsSystem`: the system with that id, else the first fallback system. */
+/** The system with that id, else the first fallback system. */
 export function findSrsSystem(systems: readonly SrsSystem[], id: number): SrsSystem {
   return systems.find((s) => s.id === id) ?? fallbackSrsSystems()[0]!;
 }

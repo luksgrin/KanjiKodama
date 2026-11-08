@@ -1,11 +1,7 @@
 /**
  * The order a session puts its subjects in: the lesson/review/self-study order setting, reversed,
- * overdue first and the priority setting, combined into one comparator the way
- * `Session.startNew*Session` does. Equal subjects (comparator 0) share a bucket; the session picks
+ * overdue first and the priority setting, combined into one comparator. Equal subjects (comparator 0) share a bucket; the session picks
  * questions at random within the first bucket (see `orderQuestions.ts`).
- *
- * Java: `enums/LessonOrder`, `enums/ReviewOrder`, `enums/SessionPriority`, `Subject.isOverdue`,
- * `SubjectCollectionsDao.getLevelUpIds`, `Session.startNew*Session`.
  */
 
 import type { SubjectObject } from '../content';
@@ -43,10 +39,10 @@ export interface OrderSubject {
   readonly overdue: boolean;
 }
 
-/** `java.util.Comparator<Subject>`: negative, zero or positive. */
+/** A comparator: negative, zero or positive. */
 export type SubjectComparator = (a: OrderSubject, b: OrderSubject) => number;
 
-/** `SubjectType.getOrder`. */
+/** The subject types' sort order. */
 export const TYPE_ORDER: Readonly<Record<SubjectObject, number>> = {
   radical: 10,
   kanji: 20,
@@ -54,11 +50,11 @@ export const TYPE_ORDER: Readonly<Record<SubjectObject, number>> = {
   kana_vocabulary: 30,
 };
 
-/** `LocalMode.MAX_LEVEL`: `PropertiesDao.getUserMaxLevelGranted` in local mode, whatever the curriculum. */
+/** The highest level granted in local mode, whatever the curriculum. */
 export const LOCAL_MAX_LEVEL_GRANTED = 60;
 
 /**
- * `Subject.isOverdue`: at least `threshold` (a Java float) of the stage's interval has passed since
+ * Overdue: at least `threshold` (a 32-bit float) of the stage's interval has passed since
  * the review became available. Initiate counts as overdue; locked, burned and not-yet-available don't.
  */
 export function isOverdue(availableAt: number, unlockedAt: number, stage: SrsStage, now: number, threshold: number): boolean {
@@ -67,7 +63,7 @@ export function isOverdue(availableAt: number, unlockedAt: number, stage: SrsSta
   if (stage.isCompleted) return false;
   const since = now - availableAt;
   if (since <= 0) return false;
-  // double / long, compared with the float widened to double; a 0 interval gives Infinity like Java.
+  // double / long, compared with the float widened to double; a 0 interval gives Infinity.
   return since / stage.interval >= threshold;
 }
 
@@ -88,7 +84,7 @@ export function orderSubject(db: LearnerDb, id: number, now: number, prefs: Pref
 }
 
 /**
- * `SubjectCollectionsDao.getLevelUpIds(userLevel, maxLevel)`: the visible kanji of the user's level
+ * The level-up ids: the visible kanji of the user's level
  * (in the table's current order) and their components; empty at or above `maxLevel`.
  */
 export function levelUpIds(db: LearnerDb, userLevel: number, maxLevel: number): Set<number> {
@@ -112,7 +108,7 @@ const byLevel: SubjectComparator = (a, b) => compareInt(a.level, b.level);
 const byType: SubjectComparator = (a, b) => compareInt(a.typeOrder, b.typeOrder);
 const bySrs: SubjectComparator = (a, b) => a.srsStage.compareTo(b.srsStage);
 
-/** `Comparator.thenComparing`. */
+/** The comparators in turn: the first non-zero result. */
 export function thenComparing(...comparators: SubjectComparator[]): SubjectComparator {
   return (a, b) => {
     for (const c of comparators) {
@@ -163,7 +159,7 @@ export function priorityComparator(priority: SessionPriority, base: SubjectCompa
       if (userLevel >= maxLevel) return base;
       return thenComparing((a, b) => compareBoolean(!b.passed && levelUp.has(b.id), !a.passed && levelUp.has(a.id)), base);
     case 'CURRENT_LEVEL_RADICAL_KANJI_FIRST': {
-      // SubjectType.isVocabulary is false for kana-only vocabulary, so it counts as "radical/kanji" here.
+      // Kana-only vocabulary doesn't count as vocabulary here, so it counts as "radical/kanji".
       const first = (s: OrderSubject): boolean => s.level === userLevel && s.object !== 'vocabulary';
       return thenComparing((a, b) => compareBoolean(first(b), first(a)), base);
     }

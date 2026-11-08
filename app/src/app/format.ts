@@ -1,7 +1,7 @@
-/** Small display formatters ported from the Java app's text helpers. */
+/** Small display formatters (relative times, dates, clock times). */
 import { DAY, HOUR, MINUTE } from '../core/time';
 
-/** `ObjectSupport.getWaitTimeAsInformalString`: "now", "in 5 min", "in 3 hours", "in 2 days". */
+/** A wait time in words: "now", "in 5 min", "in 3 hours", "in 2 days". */
 export function waitTimeInformal(waitTime: number): string {
   if (waitTime <= 0) return 'now';
   if (waitTime < HOUR * 2) return `in ${Math.trunc((waitTime + MINUTE / 2) / MINUTE)} min`;
@@ -9,7 +9,7 @@ export function waitTimeInformal(waitTime: number): string {
   return `in ${Math.trunc((waitTime + DAY / 2) / DAY)} days`;
 }
 
-/** `ObjectSupport.getShortWaitTimeAsInformalString`: "now", "5m", "3h", "2d". */
+/** A short wait time: "now", "5m", "3h", "2d". */
 export function waitTimeShort(waitTime: number): string {
   if (waitTime <= 0) return 'now';
   if (waitTime < HOUR) return `${Math.trunc((waitTime + MINUTE / 2) / MINUTE)}m`;
@@ -19,7 +19,7 @@ export function waitTimeShort(waitTime: number): string {
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-/** Whether the device uses a 24-hour clock (the Java app asks `DateFormat.is24HourFormat`). */
+/** Whether the device uses a 24-hour clock. */
 export function uses24HourClock(locale?: string): boolean {
   try {
     const hc = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
@@ -29,7 +29,7 @@ export function uses24HourClock(locale?: string): boolean {
   }
 }
 
-/** `TextUtil.formatShortTimeForDisplay`: "14:00" or "2pm" / "2.30pm", optionally with the weekday. */
+/** A short clock time: "14:00" or "2pm" / "2.30pm", optionally with the weekday. */
 export function shortTime(ts: number, includeDayOfWeek: boolean, h24: boolean = uses24HourClock()): string {
   const d = new Date(ts);
   const hour = d.getHours();
@@ -54,7 +54,7 @@ export function megabytes(bytes: number): string {
   return `${(bytes / 1e6).toFixed(1)} MB`;
 }
 
-/** `TextUtil.formatTimestampForDisplay`: medium date and short time in the user's locale; "" for 0. (Same as components/subject `formatTimestamp`; this one keeps the dashboard bundle small.) */
+/** Medium date and short time in the user's locale; "" for 0. (Same as components/subject `formatTimestamp`; this one keeps the dashboard bundle small.) */
 export function formatTimestamp(ms: number): string {
   if (ms === 0) return '';
   const d = new Date(ms);

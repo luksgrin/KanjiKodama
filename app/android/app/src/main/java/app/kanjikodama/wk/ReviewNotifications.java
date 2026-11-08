@@ -1,15 +1,14 @@
 /*
- * The review notification, as the Java app's services/NotificationWorker posts it: ONE notification
- * (id 1) on the "NewReviewsChannel" channel, updated in place, public on the lock screen, sound only
- * when new reviews became available. Notification settings (stored with each plan, `style`):
- * `notification_priority` → channel importance (`NotificationPriority.getManagerImportance`) and
- * compat priority, `notification_category` → the category, `notification_update_frequency` → when a
- * shown notification is updated with changed counts (`NotificationWorker.processAlarmHelper`): only
- * for new reviews (default), once per hour (at most once per clock hour; a change later in the hour
- * is posted at the next top of the hour), or continuously.
+ * The review notification: ONE notification (id 1) on the "NewReviewsChannel" channel, updated in
+ * place, public on the lock screen, sound only when new reviews became available. Notification
+ * settings (stored with each plan, `style`): `notification_priority` → channel importance and compat
+ * priority, `notification_category` → the category, `notification_update_frequency` → when a shown
+ * notification is updated with changed counts: only for new reviews (default), once per hour (at
+ * most once per clock hour; a change later in the hour is posted at the next top of the hour), or
+ * continuously.
  *
- * The Java app recomputes the counts at its hourly alarm. This app can't run its JS then, so it hands
- * over the plan (core planReviewNotifications: one entry per future hour in which reviews become
+ * The app can't run its JS at the alarm, so it hands over the plan (core
+ * planReviewNotifications: one entry per future hour in which reviews become
  * available, with the counts at that hour); an inexact AlarmManager alarm at the next entry posts or
  * updates the notification and arms the alarm for the entry after it. The plan survives reboots and
  * app updates (ReviewNotificationReceiver re-arms on BOOT_COMPLETED / MY_PACKAGE_REPLACED).
@@ -36,12 +35,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public final class ReviewNotifications {
-    /** `NotificationWorker`: `notificationManager.notify(1, ...)`. */
+    /** The one notification's id. */
     static final int NOTIFICATION_ID = 1;
     static final String CHANNEL_ID = "NewReviewsChannel";
     private static final String CHANNEL_NAME = "NewReviewsChannel";
     private static final String CHANNEL_DESCRIPTION = "New reviews available";
-    /** The channel @capacitor/local-notifications used to create; removed (the Java app has only one). */
+    /** The channel @capacitor/local-notifications used to create; removed (only one channel is used). */
     private static final String LEGACY_DEFAULT_CHANNEL = "default";
     static final String ACTION_POST = "app.kanjikodama.wk.REVIEW_NOTIFICATION";
 
@@ -52,7 +51,7 @@ public final class ReviewNotifications {
     private static final String KEY_FREQUENCY = "frequency";
     private static final String KEY_PRIORITY = "priority";
     private static final String KEY_CATEGORY = "category";
-    /** Top of the hour of the last post or update (`PropertiesDao.getLastNotificationUpdate`). */
+    /** Top of the hour of the last post or update. */
     private static final String KEY_LAST_UPDATE_HOUR = "lastUpdateHour";
     /** The counts last shown (`getLastNotificationAlertContext`). */
     private static final String KEY_LAST_LESSONS = "lastLessons";
@@ -294,8 +293,8 @@ public final class ReviewNotifications {
             am.cancel(pi);
             return;
         }
-        // Inexact and allowed in Doze, as the Java app's BackgroundAlarmReceiver
-        // (setAndAllowWhileIdle, RTC_WAKEUP); no SCHEDULE_EXACT_ALARM needed.
+        // Inexact and allowed in Doze (setAndAllowWhileIdle, RTC_WAKEUP); no SCHEDULE_EXACT_ALARM
+        // needed.
         am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi);
     }
 
@@ -347,7 +346,7 @@ public final class ReviewNotifications {
         if (nm == null) {
             return;
         }
-        // `notification_priority` → the channel's importance, as NotificationWorker (Android keeps the
+        // `notification_priority` → the channel's importance (Android keeps the
         // importance of an existing channel once the user changed it there).
         final NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, priority(context)[0]);
         channel.setDescription(CHANNEL_DESCRIPTION);
@@ -378,7 +377,7 @@ public final class ReviewNotifications {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID);
     }
 
-    /** `NotificationWorker.postNotification`. */
+    /** Posts or updates the notification. */
     private static void post(final Context context, final String title, final String body, final boolean needsSound) {
         if (!notificationsAllowed(context)) {
             return;

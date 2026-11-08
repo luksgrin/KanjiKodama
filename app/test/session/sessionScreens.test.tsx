@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 /**
- * The session, summary, level test and item page screens against the Java layouts: toolbar title and
+ * The session, summary, level test and item page screens: toolbar title and
  * colour, the session menu items, the session log, the summary's blocks and button order, the level test
- * as a dialog over the dashboard, the Java answer field.
+ * as a dialog over the dashboard, the answer field.
  */
 import 'fake-indexeddb/auto';
 import { act } from 'react';
@@ -27,7 +27,7 @@ describe('quiz screen', () => {
     await waitFor(() => q(el, 'submit'), 'question');
     expect(title(el)).toBe(q(el, 'question-type')?.textContent);
     expect(toolbar(el).getAttribute('style')).toContain('var(--color-kanji)');
-    // The Java answer field: centred underlined field with the hint; the menu is not on the question view.
+    // The answer field: centred underlined field with the hint; the menu is not on the question view.
     const input = el.querySelector<HTMLInputElement>('input.kk-answer')!;
     expect(input.placeholder).toMatch(/^(Your response|答え)$/);
     expect(q(el, 'session-menu')).toBeNull();
@@ -47,7 +47,7 @@ describe('quiz screen', () => {
     expect(el.querySelector('.kk-quiz-info .kk-headline-buttons [data-testid="reveal"]')).not.toBeNull();
   });
 
-  it('wraps up with Java\'s toast and dialog', async () => {
+  it('wraps up with the toast and dialog', async () => {
     const { el } = await renderApp('/reviews', { setup: dueReviews([1, 2, 10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
     await openMenu(el);
@@ -78,7 +78,7 @@ describe('session log', () => {
     const headers = [...log.querySelectorAll('.kk-log-title')].map((h) => h.textContent);
     expect(headers[headers.length - 1]).toBe('Items not started');
     expect(log.querySelector('[data-testid="log-header-notstarted"] .kk-log-details')?.textContent).toMatch(/^\d+ items?$/);
-    // Not started: "?" and not clickable; the status lines as Java.
+    // Not started: "?" and not clickable; the status lines.
     const unstarted = log.querySelector('[data-testid="log-header-notstarted"]')!.parentElement!;
     expect(unstarted.querySelector('.kk-log-unknown')?.textContent).toBe('?');
     expect(unstarted.querySelector('button.kk-log-row')).toBeNull();
@@ -164,7 +164,7 @@ describe('item page', () => {
   });
 });
 
-describe('Java placement and focus', () => {
+describe('placement and focus', () => {
   it('puts Don\'t know | Submit after a spacer at the bottom, Next in the grown header and at the bottom', async () => {
     const { el } = await renderApp('/reviews', { setup: dueReviews([10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
@@ -176,7 +176,7 @@ describe('Java placement and focus', () => {
     await typeText(el, 'banana');
     await click(q(el, 'submit'));
     const next = await waitFor(() => q(el, 'next'), 'answered');
-    // nextButton in the question view, focused (Java's highlight); nextButton2 in the bottom row.
+    // Next in the question view, focused; the second Next in the bottom row.
     expect(q(el, 'question-view')?.contains(next)).toBe(true);
     expect(next.className).toContain('kk-btn-focus');
     expect(document.activeElement).toBe(next);
@@ -201,7 +201,7 @@ describe('Java placement and focus', () => {
     expect(dialog.getAttribute('aria-labelledby')).not.toBeNull();
     expect(document.activeElement).toBe(input);
     expect(el.querySelector('dialog[open]')).toBeNull();
-    // Enter in the field: nothing (the dialog has the input focus in Java).
+    // Enter in the field: nothing (the dialog has the input focus).
     await act(async () => {
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
       input.form!.requestSubmit();

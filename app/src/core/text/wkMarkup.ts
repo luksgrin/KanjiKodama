@@ -1,11 +1,10 @@
 /**
- * WaniKani's mnemonic markup as the Android app renders it: `TextUtil.renderHtml` is
- * `HtmlCompat.fromHtml(source, FROM_HTML_MODE_COMPACT, null, new WaniKaniTagHandler())`, i.e. Android's
- * `Html` (TagSoup parser) plus the tag handler for `<radical>`/`<rd>`, `<kanji>`/`<kan>`,
+ * WaniKani's mnemonic markup as Android's `Html` (TagSoup parser, `FROM_HTML_MODE_COMPACT`) renders it,
+ * plus the tag handling for `<radical>`/`<rd>`, `<kanji>`/`<kan>`,
  * `<vocabulary>`/`<voc>`, `<kana_vocabulary>`/`<kanavoc>`, `<reading>` and `<ja>`.
  *
  * Parsed into a small, safe tree (plain strings and known tags only, never raw HTML) that a UI maps to
- * elements. What is ported:
+ * elements. What is handled:
  * - Text whitespace as Android's `Html` collapses it: a space, CR or LF is dropped after a space or a
  *   line break (or at the very start) and otherwise becomes one space; tabs, NBSP, U+3000 stay.
  * - `<br>` is a line break (`"\n"`); `<p>`/`<div>`/`<blockquote>`/`<li>`/`<h1-6>` start and end on a new
@@ -16,11 +15,9 @@
  *   open element is ignored; elements still open at the end are closed there (so
  *   `<reading>car</kanji> (か).` marks "car (か)." as the reading, as on the device). Unknown tags keep
  *   their text (`<span>`, `<font>` …). TagSoup's restarting of formatting elements across a misnested
- *   end tag (`<b>a<i>b</b>c</i>`) is not ported: `c` is plain here.
- * - `<a href>` keeps its href (the UI decides what is clickable); `<title-image-N>` (only in the Java
- *   app's own titles, never in content) is ignored.
- *
- * Java: `util/TextUtil.renderHtml`, `components/WaniKaniTagHandler`, Android `Html.fromHtml`.
+ *   end tag (`<b>a<i>b</b>c</i>`) is not reproduced: `c` is plain here.
+ * - `<a href>` keeps its href (the UI decides what is clickable); `<title-image-N>` (never in
+ *   content) is ignored.
  */
 
 /** The WaniKani subject tags (canonical names; `rd`, `kan`, `voc`, `kanavoc` map to these). */

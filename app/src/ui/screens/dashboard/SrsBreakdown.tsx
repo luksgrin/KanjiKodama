@@ -1,7 +1,6 @@
 /**
- * SRS breakdown (`SrsBreakDownView`, `srs_breakdown.xml`): five 84 dp tiles, three on the first row and
- * two on the second, stage name (13 sp) top-left, count (34 sp, shadowed) centred. A tap opens the
- * search for that stage group (`goToSearchResult(2, …)`).
+ * SRS breakdown: five 84 px tiles, three on the first row and two on the second, stage name (13 px)
+ * top-left, count (34 px, shadowed) centred. A tap opens the advanced search for that stage group.
  */
 import { defaultParameters, writeParameters } from '../../../core/search';
 import { fallbackSrsSystems, type SrsSystem } from '../../../core/srs';
@@ -13,7 +12,7 @@ const CLASSES = ['apprentice', 'guru', 'master', 'enlightened', 'burned'] as con
 
 /** The `srsStages` tags each tile searches for. */
 export function srsBreakdownTags(index: number, given: readonly SrsSystem[]): string[] {
-  // SrsSystemRepository.getSystems: the built-in systems when the database has none.
+  // The built-in systems when the database has none.
   const systems = given.length > 0 ? given : fallbackSrsSystems();
   if (index === 0) {
     const n = Math.max(0, ...systems.map((s) => s.numPrePassedStages));

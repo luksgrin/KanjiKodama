@@ -22,7 +22,7 @@ interface Delta {
   subjectCount: number;
 }
 
-/** Applies `ScenarioRunner.exportRecord`'s delta to the previous export. */
+/** Applies a snapshot's export delta to the previous export. */
 function applyDelta(before: ExportFile, delta: Delta): ExportFile {
   const rows = new Map(before.subjects.map((r) => [r.id, r]));
   for (const id of delta.subjectsRemoved) rows.delete(id);

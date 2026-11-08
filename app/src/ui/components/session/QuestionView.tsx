@@ -1,11 +1,10 @@
 /**
- * The top of every quiz screen (`AbstractSessionFragment.onViewCreatedCommon`, layouts
- * `fragment_*_question.xml`): the question view in the subject type's colour with the progress counter
+ * The top of every quiz screen: the question view in the subject type's colour with the progress counter
  * (top left), special button 3 (top left, after the counter), the SRS indicator (top centre), special
  * button 1 (top right), special button 2 (bottom left), the custom toasts (SRS change, close enough,
  * alternatives), the answered screen's check mark / cross at the right, the subject's characters
  * (inflected when the question has an inflection); below it the question type banner (meaning: white,
- * reading: black, Java's hint colours, 22 sp) with `Question.getTitle()`. The session menu is in the
+ * reading: black, 22 sp) with the question's title. The session menu is in the
  * toolbar (`useSessionMenu`).
  */
 import { useEffect, type ReactNode } from 'react';

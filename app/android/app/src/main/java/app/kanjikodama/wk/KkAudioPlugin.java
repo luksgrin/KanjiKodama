@@ -17,7 +17,7 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 /**
- * Vocab audio playback as the Java app's `AudioUtil.playAudioPost26` does it (src/platform/androidAudio.ts):
+ * Native vocab audio playback (src/platform/androidAudio.ts):
  * a MediaPlayer with speech audio attributes, and with `use_audio_focus` (default true) a transient
  * "may duck" audio focus request first (other players pause or lower their volume; playback stops
  * when the focus is lost; no playback when it is refused), abandoned 1.5 s after the end. Without

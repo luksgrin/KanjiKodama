@@ -139,7 +139,7 @@ describe('settings schema', () => {
     expect(new Set(main).size).toBe(main.length);
   });
 
-  it('has the dashboard settings the dashboard reads, with the Java keys and defaults', () => {
+  it('has the dashboard settings the dashboard reads, with their keys and defaults', () => {
     const rows = new Map(SETTINGS_SCREENS.flatMap((g) => g.rows).filter((r) => r.type !== 'info' && r.type !== 'action').map((r) => [r.key, r]));
     for (const k of ['show_recent_unlocks', 'show_critical_condition', 'show_burned_items']) expect(rows.get(k)).toMatchObject({ type: 'bool', default: true });
     for (const k of ['show_jlpt_progress', 'show_joyo_progress', 'show_lesson_review_breakdown', 'show_waterfall_line']) expect(rows.get(k)).toMatchObject({ type: 'bool', default: false });
@@ -149,16 +149,15 @@ describe('settings schema', () => {
     expect(rows.get('font_size_live_subject_table')).toMatchObject({ type: 'slider', default: 16, min: 10, max: 32 });
   });
 
-  it('lists the sub-screens in preferences.xml order', () => {
-    const xml = readFileSync(join(process.cwd(), 'test/fixtures/java/preferences.xml'), 'utf8');
-    const javaOrder = [...xml.matchAll(/<PreferenceScreen\s+app:key="(\w+)"/g)].map((m) => m[1]!);
+  it('lists the sub-screens in the settings layout order', () => {
+    const layout = JSON.parse(readFileSync(join(process.cwd(), 'test/fixtures/settings-layout.json'), 'utf8')) as { screens: string[] };
     const ours = [...SETTINGS_SCREENS, ...ADVANCED_GROUPS].map((g) => g.id);
-    expect(javaOrder.filter((k) => ours.includes(k))).toEqual(ours);
+    expect(layout.screens.filter((k) => ours.includes(k))).toEqual(ours);
   });
 });
 
 describe('settings screen', () => {
-  it('shows the Java root: sub-screens, then Advanced settings, Progress and Other actions', async () => {
+  it('shows the root: sub-screens, then Advanced settings, Progress and Other actions', async () => {
     const { el, app } = await render('/settings', { caps: { audioPlayback: true } });
     const rows = [...$(el, 'settings-root')!.querySelectorAll(':scope > li > .kk-pref .kk-pref-title')].map((t) => t.textContent);
     // The web build has nothing to download: no "Audio download settings".
@@ -172,7 +171,7 @@ describe('settings screen', () => {
     app.dispose();
   });
 
-  it('changes basic settings through the Java dialogs, with the Java keys and types', async () => {
+  it('changes basic settings through the dialogs, with their keys and types', async () => {
     const { el, app, location } = await render('/settings');
     await click($(el, 'screen-review_settings'));
     expect(location.get()).toBe('/settings?screen=review_settings');
@@ -216,7 +215,7 @@ describe('settings screen', () => {
     app.dispose();
   });
 
-  it('EditLimitedIntPreference: disabled until its dependency is on, rejects out-of-range values with the Java toast', async () => {
+  it('limited integer row: disabled until its dependency is on, rejects out-of-range values with a toast', async () => {
     const { el, app } = await render('/settings?screen=dashboard_settings');
     const amount = $(el, 'setting-previous_level_progression_limit_amount') as HTMLButtonElement;
     expect(amount.disabled).toBe(true);
@@ -256,7 +255,7 @@ describe('settings screen', () => {
     r2.app.dispose();
   });
 
-  it('gates the advanced sub-screens behind enable_advanced, with the Java warning', async () => {
+  it('gates the advanced sub-screens behind enable_advanced, with the warning', async () => {
     const { el, app, location } = await render('/settings');
     expect($(el, 'screen-advanced_lesson_settings')).toBeNull();
     // A deep link while off shows the root.
@@ -336,7 +335,7 @@ describe('settings screen', () => {
     android.app.dispose();
   });
 
-  it('resets UI confirmations and tutorials after the Java question', async () => {
+  it('resets UI confirmations and tutorials after the question', async () => {
     const { el, app } = await render('/settings');
     await app.setPreference('ui_confirm_abandon_session', false);
     await app.setPreference('start_self_study_dismissed', true);
@@ -386,7 +385,7 @@ describe('progress: save and restore', () => {
 });
 
 describe('curriculum and fast travel', () => {
-  it('switches to JLPT order through the Java dialogs, then fast travels', async () => {
+  it('switches to JLPT order through the dialogs, then fast travels', async () => {
     const { el, app } = await render('/settings', { jlpt: true });
     await click($(el, 'link-curriculum'));
     const choose = await waitFor('dialog-curriculum', el);
@@ -470,7 +469,7 @@ describe('WaniKani import', () => {
     app.dispose();
   });
 
-  it('drops progress rows of subjects the content lacks, as Java\'s resetProgress does', async () => {
+  it('drops progress rows of subjects the content lacks, as a full reset does', async () => {
     // Subject 11 has progress, then a content update drops it: an orphan row the normal saves keep.
     const seed = makeApp();
     await seed.app.start();
@@ -492,7 +491,7 @@ describe('WaniKani import', () => {
     app.dispose();
   });
 
-  it('shows the Java message for a rejected token and changes nothing', async () => {
+  it('shows the message for a rejected token and changes nothing', async () => {
     http.on('GET', `${WK}/v2/user`, json(401, fixture('error-401')));
     const { el, app } = await render('/settings');
     await startImport(el, 'bad');

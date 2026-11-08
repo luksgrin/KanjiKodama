@@ -1,24 +1,23 @@
 /**
- * The settings the session screens read (Java `GlobalSettings.AdvancedOther`, `Review`, `SubjectInfo`,
- * `Audio`, `Display`, `Keyboard`, `UiConfirmations`) and the behaviour enums behind them
- * (`enums/SpecialButtonBehavior`, `enums/DontKnowButtonBehavior`, `enums/SubjectInfoDump`). Pure: the
- * session state the enums' `canShow` reads comes in as arguments.
+ * The settings the session screens read (advanced, review, subject info, audio, display, keyboard
+ * and confirmation settings) and the behaviour enums behind them (special buttons, the Don't know
+ * button, the info dump). Pure: the session state `canShow` reads comes in as arguments.
  */
 import { QUESTION_TYPE_INFO, type QuestionType } from '../answer/questionType';
 import type { ContentSubject } from '../content';
 import { advancedEnabled, prefBoolean, type Preferences, type SessionType } from './index';
 
-/** `enums/SpecialButtonBehavior`. */
+/** What a special button does. */
 export const SPECIAL_BUTTON_BEHAVIORS = [
   'DISABLE', 'UNDO_AND_MARK_CORRECT', 'UNDO_AND_RETRY_NOW', 'UNDO_AND_PUT_BACK', 'SKIP', 'TOGGLE_LIGHTNING_MODE',
 ] as const;
 export type SpecialButtonBehavior = (typeof SPECIAL_BUTTON_BEHAVIORS)[number];
 
-/** `enums/DontKnowButtonBehavior`. */
+/** When the Don't know button shows. */
 export const DONT_KNOW_BUTTON_BEHAVIORS = ['DISABLE', 'ENABLE', 'ONLY_IF_IGNORE_HIDDEN'] as const;
 export type DontKnowButtonBehavior = (typeof DONT_KNOW_BUTTON_BEHAVIORS)[number];
 
-/** `enums/SubjectInfoDump`. */
+/** How much of the subject info shows after answering. */
 export const SUBJECT_INFO_DUMPS = ['NOTHING', 'ANSWERS_ONLY', 'HIDE_UNQUIZZED', 'HIDE_READING_RELATED', 'ALL'] as const;
 export type SubjectInfoDump = (typeof SUBJECT_INFO_DUMPS)[number];
 
@@ -30,7 +29,7 @@ function enumPref<T extends string>(prefs: Preferences, key: string, values: rea
 const SPECIAL_BUTTON_KEYS = { 1: 'undo_button', 2: 'ignore_button', 3: 'special_button_3' } as const;
 
 /**
- * `GlobalSettings.AdvancedOther.getSpecialButton1/2/3Behavior`: `undo_button` (1, top right), `ignore_button`
+ * The special buttons: `undo_button` (1, top right), `ignore_button`
  * (2, bottom left), `special_button_3` (3, top left); DISABLE unless advanced settings are on.
  */
 export function specialButtonBehavior(prefs: Preferences, button: 1 | 2 | 3): SpecialButtonBehavior {
@@ -82,7 +81,7 @@ export function specialButtonLabel(b: SpecialButtonBehavior, lightningModeActive
   }
 }
 
-/** `GlobalSettings.AdvancedOther.getDontKnowButtonBehavior`: ENABLE unless advanced settings are on. */
+/** The Don't know button: ENABLE unless advanced settings are on. */
 export function dontKnowButtonBehavior(prefs: Preferences): DontKnowButtonBehavior {
   if (!advancedEnabled(prefs)) return 'ENABLE';
   return enumPref(prefs, 'dont_know_button', DONT_KNOW_BUTTON_BEHAVIORS, 'ENABLE');
@@ -100,13 +99,13 @@ export function dontKnowCanShow(prefs: Preferences, s: SessionButtonState): bool
   }
 }
 
-/** `GlobalSettings.SubjectInfo.getInfoDump(questionType, correct)`: `{meaning,reading}_info_dump[_incorrect]`. */
+/** `{meaning,reading}_info_dump[_incorrect]`. */
 export function infoDump(prefs: Preferences, questionType: QuestionType, correct: boolean): SubjectInfoDump {
   const kind = QUESTION_TYPE_INFO[questionType].meaning ? 'meaning' : 'reading';
   return enumPref(prefs, `${kind}_info_dump${correct ? '' : '_incorrect'}`, SUBJECT_INFO_DUMPS, 'ANSWERS_ONLY');
 }
 
-/** The lesson presentation's starting dump (`SubjectInfoView.getSubjectInfoDump`, LESSON_PRESENTATION). */
+/** The lesson presentation's starting dump. */
 export function lessonInfoDump(prefs: Preferences): SubjectInfoDump {
   return prefBoolean(prefs, 'hide_lesson_readings', false) ? 'HIDE_READING_RELATED' : 'ALL';
 }
@@ -120,7 +119,7 @@ export interface InfoDumpFlags {
 }
 
 /**
- * `SubjectInfoDump.getShow*(question)` for the current question (`question` null: no question, e.g. the lesson
+ * What the info dump shows for the current question (`question` null: no question, e.g. the lesson
  * presentation). `done` is the item's question1Done..question4Done.
  */
 export function infoDumpFlags(dump: SubjectInfoDump, question: { type: QuestionType; done: readonly boolean[] } | null): InfoDumpFlags {
@@ -173,7 +172,7 @@ export function infoDumpNextStage(dump: SubjectInfoDump): SubjectInfoDump {
   }
 }
 
-/** `GlobalSettings.Keyboard.getNextButtonDelay`: seconds (a float string; below 1 or unreadable: 0). */
+/** `next_button_delay`: seconds (a float string; below 1 or unreadable: 0). */
 export function nextButtonDelay(prefs: Preferences): number {
   const v = prefs.next_button_delay;
   if (v === null || v === undefined || v === '') return 0;
@@ -183,70 +182,70 @@ export function nextButtonDelay(prefs: Preferences): number {
   return f;
 }
 
-/** `GlobalSettings.Review.getEnableSrsIndicator` (default false). */
+/** `enable_srs_indicator` (default false). */
 export function enableSrsIndicator(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'enable_srs_indicator', false);
 }
 
-/** `GlobalSettings.Review.getShowAnswerToast` (default true): the check mark / X after answering. */
+/** `show_answer_toast` (default true): the check mark / X after answering. */
 export function showAnswerToast(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'show_answer_toast', true);
 }
 
-/** `GlobalSettings.Review.getEnableSrsToast` (default true). */
+/** `enable_srs_toast` (default true). */
 export function enableSrsToast(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'enable_srs_toast', true);
 }
 
-/** `GlobalSettings.Review.getEnableAlternativesToast` (default false). */
+/** `enable_alternatives_toast` (default false). */
 export function enableAlternativesToast(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'enable_alternatives_toast', false);
 }
 
-/** `GlobalSettings.Other.getEnableStarRatings` (default false). */
+/** `enable_star_ratings` (default false). */
 export function enableStarRatings(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'enable_star_ratings', false);
 }
 
-/** `GlobalSettings.getAutoPlay(sessionType)`: `autoplay_lessons` for lessons, else `autoplay_reviews` (default true). */
+/** `autoplay_lessons` for lessons, else `autoplay_reviews` (default true). */
 export function autoPlay(prefs: Preferences, type: SessionType): boolean {
   return prefBoolean(prefs, type === 'LESSON' ? 'autoplay_lessons' : 'autoplay_reviews', true);
 }
 
-/** `GlobalSettings.Audio.getAutoplayLessonPresentation` (default true). */
+/** `autoplay_lesson_presentation` (default true). */
 export function autoplayLessonPresentation(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'autoplay_lesson_presentation', true);
 }
 
-/** `GlobalSettings.Audio.getAutoplayAnkiReveal` (default true). */
+/** `autoplay_anki_reveal` (default true). */
 export function autoplayAnkiReveal(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'autoplay_anki_reveal', true);
 }
 
-/** `GlobalSettings.Display.getSwapAnkiButtons` (default false). */
+/** `swap_anki_buttons` (default false). */
 export function swapAnkiButtons(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'swap_anki_buttons', false);
 }
 
-/** `GlobalSettings.UiConfirmations.getUiConfirmAbandonSession` (default true). */
+/** `ui_confirm_abandon_session` (default true). */
 export function uiConfirmAbandonSession(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'ui_confirm_abandon_session', true);
 }
 
-/** `GlobalSettings.UiConfirmations.getUiConfirmWrapupSession` (default true). */
+/** `ui_confirm_wrapup_session` (default true). */
 export function uiConfirmWrapupSession(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'ui_confirm_wrapup_session', true);
 }
 
-/** `AdvancedOther.getIndicateKanjiReadingType`: `indicate_kanji_reading_type`, false without `enable_advanced`. */
+/** `indicate_kanji_reading_type`, false without `enable_advanced`. */
 export function indicateKanjiReadingType(prefs: Preferences): boolean {
   return advancedEnabled(prefs) && prefBoolean(prefs, 'indicate_kanji_reading_type', false);
 }
 
-/** `enums/KanjiAcceptedReadingType`. */
+/** Which kinds of accepted readings a kanji has. */
 export type KanjiAcceptedReadingType = 'ONYOMI' | 'KUNYOMI' | 'NEITHER' | 'BOTH';
 
-/** `Subject.getKanjiAcceptedReadingType`: which kinds of accepted readings a kanji has. */
+/** Which kinds of accepted readings a kanji has. */
 export function kanjiAcceptedReadingType(subject: ContentSubject): KanjiAcceptedReadingType {
   if (subject.object !== 'kanji') return 'NEITHER';
   const on = subject.readings.some((r) => r.accepted_answer && r.type === 'onyomi');

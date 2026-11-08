@@ -1,6 +1,5 @@
 {
   "area": "kana.fixupKeys",
-  "javaSource": "fragments/UnansweredSessionFragment TextWatcher + handleEditorAction on a real EditText, hardware key events and clipboard paste",
   "cases": [
     {"name":"env","input":{},"output":{"editorInfoImeOptions":33554438,"editorInfoInputType":524289,"keyListener":"android.text.method.TextKeyListener","movementMethod":"android.text.method.ArrowKeyMovementMethod","focused":true,"imeActive":false,"keyboardType":4,"modifierBehavior":0,"sdk":36}},
     {"name":"keys-na","input":{"ops":[{"type":"n"},{"type":"a"},{"key":"ENTER"}]},"output":{"keys":[{"value":"n","selStart":1,"selEnd":1,"fixupCalls":1,"maxDepth":1,"handled":[true,false]},{"value":"な","selStart":1,"selEnd":1,"fixupCalls":2,"maxDepth":2,"handled":[true,false]},{"value":"な","selStart":1,"selEnd":1,"fixupCalls":0,"maxDepth":0,"handled":[true,true],"actions":[{"actionId":0,"event":"down","keyCode":"KEYCODE_ENTER","returned":true}],"submits":["な"]}],"inputConnection":[{"value":"n","selStart":1,"selEnd":1,"fixupCalls":1,"maxDepth":1},{"value":"な","selStart":1,"selEnd":1,"fixupCalls":2,"maxDepth":2},{"value":"な","selStart":1,"selEnd":1,"fixupCalls":0,"maxDepth":0}],"inputConnectionStoppedAt":null,"firstDiffFromInputConnection":null}},

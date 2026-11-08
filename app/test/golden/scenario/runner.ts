@@ -1,18 +1,16 @@
 /**
- * Replays the golden scenarios (`scenarios/*.json`, recorded by the Java `ScenarioRunner` and
- * `SessionDriver` of the retired Java app, `durtles/app/src/androidTest/.../golden/`, last in commit
- * 94abf2e) on the TypeScript core. The scenario definitions are in `app/test/golden-scenarios/`.
+ * Replays the golden scenarios (`scenarios/*.json`, frozen reference results) on the core. The
+ * scenario definitions are in `app/test/golden-scenarios/`.
  *
  * One fixture case per step: case "00-start" restores the start file into a fresh learner database
- * (the Java base reset: seeded randomness, clock at T0, empty WaniKani-order progress), every later
- * case moves the clock as its args say, runs the action from the `actions` table and records the
- * same snapshot Java does. An action no file implements fails its step with "not implemented:
+ * (the base reset: seeded randomness, clock at T0, empty WaniKani-order progress), every later
+ * case moves the clock as its args say, runs the action from the `actions` table and takes the
+ * recorded snapshot. An action no file implements fails its step with "not implemented:
  * <action>", so the coverage report shows exactly what is missing.
  *
- * `input.resolved` (what the Java runner resolved: picked ids, timings, generated files) is compared
- * with what the TypeScript action resolves; a mismatch fails the step too. The one thing taken from
- * it is a `generate`d progress file (`resolved.file`): the Java runner records it so consumers never
- * re-implement the generator.
+ * `input.resolved` (the recorded picked ids, timings, generated files) is compared with what the
+ * action resolves; a mismatch fails the step too. The one thing taken from it is a `generate`d
+ * progress file (`resolved.file`), so the generator never needs re-implementing.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -20,8 +18,8 @@ import type { Content } from '../../../src/core/content';
 import { parseJlptKanjiTsv, type CurriculumMode } from '../../../src/core/curriculum';
 import { fastTravelStatus } from '../../../src/core/fastTravel';
 import { levelTestStatus } from '../../../src/core/levelTest';
-import { JavaException as KanaJavaException } from '../../../src/core/kana';
-import { JavaException as JsonJavaException } from '../../../src/core/progressFile';
+import { TypedError as KanaTypedError } from '../../../src/core/kana';
+import { TypedError as JsonTypedError } from '../../../src/core/progressFile';
 import {
   createLearnerDb,
   currentLevelDescription,
@@ -34,11 +32,11 @@ import {
   sqlNonZero,
   type LearnerDb,
 } from '../../../src/core/progression';
-import { JavaRandom } from '../../../src/core/rng';
+import { SeededRandom } from '../../../src/core/rng';
 import { HOUR } from '../../../src/core/time';
 import { firstDifference } from '../harness';
 
-/** `ScenarioRunner.T0`: 2026-01-05T09:17:00Z, deliberately not on the hour. */
+/** 2026-01-05T09:17:00Z, deliberately not on the hour. */
 export const T0 = 1767604620000;
 
 /** The scenario step as recorded (`input.args`): the action name plus its arguments. */
@@ -66,8 +64,8 @@ export interface RunnerState {
   db: LearnerDb;
   /** The pinned clock (`Clock.now()`). */
   now: number;
-  /** `ObjectSupport.seedRandom(seed)`: the app's shared Random. */
-  rng: JavaRandom;
+  /** The app's shared random, seeded. */
+  rng: SeededRandom;
   readonly seed: number;
   /** The export text of every snapshot so far, for `restore {fromStep}`. */
   readonly exports: string[];
@@ -86,9 +84,9 @@ export interface RunnerState {
 export interface ActionContext {
   rs: RunnerState;
   step: Step;
-  /** To fill, like the Java runner's `resolved` map; compared with `recorded` afterwards. */
+  /** To fill, like the recorded `resolved` map; compared with `recorded` afterwards. */
   resolved: Record<string, unknown>;
-  /** What the Java runner resolved (`input.resolved`). */
+  /** What the recording resolved (`input.resolved`). */
   recorded: Record<string, unknown>;
 }
 
@@ -102,7 +100,7 @@ export interface RunnerResources {
 
 const REPO = new URL('../../../../', import.meta.url);
 
-/** `content/inputs/jlpt-kanji.tsv` (committed, not private; the Java app's asset). */
+/** `content/inputs/jlpt-kanji.tsv` (committed, not private). */
 export function loadJlptKanji(): Map<string, number> {
   return parseJlptKanjiTsv(readFileSync(new URL('content/inputs/jlpt-kanji.tsv', REPO), 'utf8'));
 }
@@ -126,7 +124,7 @@ export function startScenario(name: string, input: StartInput, res: RunnerResour
     name,
     db: createLearnerDb(res.content, res.jlptKanji),
     now: T0,
-    rng: new JavaRandom(BigInt(input.seed)),
+    rng: new SeededRandom(BigInt(input.seed)),
     seed: input.seed,
     exports: [],
     exportDelta,
@@ -139,7 +137,7 @@ export function startScenario(name: string, input: StartInput, res: RunnerResour
   return rs;
 }
 
-/** `ScenarioRunner.snapshot`: the state every case records. */
+/** The state every case records. */
 export function snapshot(rs: RunnerState, result: unknown): Record<string, unknown> {
   const { db, now } = rs;
   const text = exportFromDb(db, now);
@@ -157,7 +155,7 @@ export function snapshot(rs: RunnerState, result: unknown): Record<string, unkno
     counts: counts(db, now),
     fastTravel: fastTravelStatus(db, now),
     levelTest: levelTestStatus(db),
-    // Local mode never shows the sync reminder (PropertiesDao.getSyncReminder).
+    // Local mode never shows the sync reminder.
     reminders: { syncReminder: false },
     [delta ? 'exportDelta' : 'export']: record,
   };
@@ -183,7 +181,7 @@ function counts(db: LearnerDb, now: number): { lessons: number; reviews: number;
   return { lessons, reviews, reviewsNext24h: next24h };
 }
 
-/** `ScenarioRunner.exportRecord` in delta mode: what changed since the previous snapshot. */
+/** The export in delta mode: what changed since the previous snapshot. */
 function exportDelta(before: Record<string, unknown>, now: Record<string, unknown>): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
   for (const [name, value] of Object.entries(now)) {
@@ -200,12 +198,12 @@ function exportDelta(before: Record<string, unknown>, now: Record<string, unknow
   return { fields, subjectsChanged: changed, subjectsRemoved: [...old.keys()], subjectCount: ((now.subjects ?? []) as unknown[]).length };
 }
 
-/** `Math.round(double)` of Java (half up). */
-export function javaRound(x: number): number {
+/** Round half up. */
+export function roundHalfUp(x: number): number {
   return Math.floor(x + 0.5);
 }
 
-/** A number argument (`JsonNode.asDouble(default)`). */
+/** A number argument, or the default. */
 export function argNumber(step: Record<string, unknown>, key: string, fallback: number): number {
   const v = step[key];
   return typeof v === 'number' ? v : fallback;
@@ -214,11 +212,11 @@ export function argNumber(step: Record<string, unknown>, key: string, fallback: 
 /** Moves the clock as a step's `advanceHours`/`advanceSeconds`/`atHours`/`atMs`/`atLastProbationSlot` say. */
 function moveClock(rs: RunnerState, step: Step, resolved: Record<string, unknown>): void {
   const advance = argNumber(step, 'advanceHours', 0);
-  if (advance !== 0) rs.now += javaRound(advance * HOUR);
+  if (advance !== 0) rs.now += roundHalfUp(advance * HOUR);
   const advanceSeconds = argNumber(step, 'advanceSeconds', 0);
-  if (advanceSeconds !== 0) rs.now += javaRound(advanceSeconds * 1000);
+  if (advanceSeconds !== 0) rs.now += roundHalfUp(advanceSeconds * 1000);
   if ('atHours' in step) {
-    const target = T0 + javaRound(argNumber(step, 'atHours', 0) * HOUR);
+    const target = T0 + roundHalfUp(argNumber(step, 'atHours', 0) * HOUR);
     if (target < rs.now) throw new Error(`atHours ${String(step.atHours)} is in the past`);
     rs.now = target;
   }
@@ -237,7 +235,7 @@ function moveClock(rs: RunnerState, step: Step, resolved: Record<string, unknown
   }
 }
 
-/** `ScenarioRunner.lastProbationSlot`: the latest availableAt of the visible probation items, 0 without any. */
+/** The latest availableAt of the visible probation items, 0 without any. */
 export function lastProbationSlot(db: LearnerDb): number {
   let max: number | null = null;
   for (const id of db.progress.probation.keys()) {
@@ -257,8 +255,8 @@ export class NotImplemented extends Error {
 }
 
 /**
- * Runs one step case: clock, action, resolved check, snapshot. App exceptions (`JavaException`) are
- * recorded as the step's result like the Java runner does; anything else fails the case.
+ * Runs one step case: clock, action, resolved check, snapshot. App exceptions (`TypedError`) are
+ * recorded as the step's result; anything else fails the case.
  */
 export function runStep(rs: RunnerState, input: StepInput, actions: Readonly<Record<string, ActionHandler>>): Record<string, unknown> {
   const step = input.args;
@@ -272,8 +270,8 @@ export function runStep(rs: RunnerState, input: StepInput, actions: Readonly<Rec
   try {
     result = handler({ rs, step, resolved, recorded: input.resolved });
   } catch (e) {
-    if (e instanceof KanaJavaException || e instanceof JsonJavaException) {
-      result = { error: e.javaClass, message: e.message };
+    if (e instanceof KanaTypedError || e instanceof JsonTypedError) {
+      result = { error: e.errorType, message: e.message };
     } else {
       throw e;
     }

@@ -1,5 +1,5 @@
 /**
- * 5-level jumps, cooldown, probation, onReviewed, workload estimate. Java: local/FastTravel. Fixtures:
+ * 5-level jumps, cooldown, probation, onReviewed, workload estimate. Fixtures:
  * scenarios/ft-*, scenarios/time-probation-*.
  */
 export {

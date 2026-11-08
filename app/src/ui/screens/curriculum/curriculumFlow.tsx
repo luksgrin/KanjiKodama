@@ -1,8 +1,8 @@
 /**
- * Curriculum order: `CurriculumUi.chooseCurriculum` / `confirmSwitch` as the same dialogs over
+ * Curriculum order: choosing and confirming a switch, as dialogs over
  * Settings: the single-choice dialog "Curriculum order" (radio buttons, Cancel), then "Working out
  * where you would land…", "Switch to JLPT order?" (Cancel / Switch), "Reordering lessons…" and the
- * result message. Local mode only (`LocalMode.LOCAL_PREFERENCES`).
+ * result message. Local mode only.
  *
  * `useCurriculumFlow` is started from the Settings row; the `/settings/curriculum` route
  * (`CurriculumScreen`) shows Settings with the flow started.
@@ -19,7 +19,7 @@ const MODES: readonly { mode: CurriculumMode; label: string }[] = [
   { mode: 'JLPT', label: 'JLPT order: N5, N4, N3, N2, N1, then Obscure (kanji on no JLPT list). Allows fast travel.' },
 ];
 
-/** The Settings row's summary (`ProgressPreferences.attach`). */
+/** The Settings row's summary. */
 export function curriculumSummary(mode: CurriculumMode): string {
   return `${CURRICULUM_MODE_LABEL[mode]}. Tap to switch; progress on every item is kept.`;
 }

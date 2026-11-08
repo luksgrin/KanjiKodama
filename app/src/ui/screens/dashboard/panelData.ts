@@ -1,14 +1,11 @@
 /**
- * Data of the dashboard panels that `app/dashboardData.ts` doesn't compute, read from the learner the
- * way the Java queries read the subject table:
- * - `LiveLevelDuration` (level and the date it was reached: `LevelProgressionDao.getLevelReachedDate`,
- *   else `SubjectAggregatesDao.getLevelReachedDate`, else now);
- * - `LiveRecentUnlocks`, `LiveCriticalCondition`, `LiveBurnedItems` (`SubjectCollectionsDao`);
- * - `LiveJlptProgress`, `LiveJoyoProgress` (`SubjectAggregatesDao.getJlptProgress/getJoyoProgress`,
- *   `JlptProgress.addItem`);
- * - `LessonReviewBreakdownView` counts;
- * - the `TimeLineBarChart` data sets (`buildDataSetSrsStage`, `buildDataSetNextSrsStage`,
- *   `buildDataSetItemType`).
+ * Data of the dashboard panels that `app/dashboardData.ts` doesn't compute, read from the learner:
+ * - the level duration (level and the date it was reached: the level progression's, else the
+ *   subjects', else now);
+ * - recent unlocks, critical condition, burned items;
+ * - JLPT and Jōyō progress;
+ * - the lesson/review breakdown counts;
+ * - the timeline's data sets (by SRS stage, next SRS stage, item type).
  */
 import { SUBJECT_TYPE_BY_OBJECT, type ContentSubject } from '../../../core/content';
 import { num, progressRow, srsSystemOf, type LearnerDb } from '../../../core/progression';
@@ -16,7 +13,7 @@ import type { TimeLine } from '../../../core/dashboard';
 import type { Preferences } from '../../../core/settings';
 import { DAY, HOUR } from '../../../core/time';
 
-/** `Constants.MONTH`. */
+/** A month, in ms. */
 export const MONTH = 30 * DAY;
 
 function visible(learner: LearnerDb, s: ContentSubject): boolean {
@@ -38,7 +35,7 @@ export interface LevelDuration {
   since: number;
 }
 
-/** `LiveLevelDuration.updateLocal`. */
+/** The level and the date it was reached. */
 export function levelDuration(learner: LearnerDb, now: number): LevelDuration {
   const level = learner.progress.userLevel;
   let since = 0;
@@ -111,7 +108,7 @@ export function recentUnlocks(learner: LearnerDb, now: number): TableSubject[] {
     .map((s) => ({ subject: s, extra: monthDay(at(s)) }));
 }
 
-/** `getCriticalCondition(SrsSystemRepository.getCriticalConditionFilter())`: worst first, at most 10. */
+/** Critical condition items: worst first, at most 10. */
 export function criticalCondition(learner: LearnerDb): TableSubject[] {
   const pct = (s: ContentSubject) => num(progressRow(learner, s.id), 'percentageCorrect');
   return learner.content.subjects
@@ -128,7 +125,7 @@ export function criticalCondition(learner: LearnerDb): TableSubject[] {
     .map((s) => ({ subject: s, extra: `${pct(s)}%` }));
 }
 
-/** `getBurnedItems(SrsSystemRepository.getBurnedFilter(), now - MONTH)`: newest first, at most 10. */
+/** Items burned in the last month: newest first, at most 10. */
 export function burnedItems(learner: LearnerDb, now: number): TableSubject[] {
   const cutoff = now - MONTH;
   const at = (s: ContentSubject) => num(progressRow(learner, s.id), 'burnedAt');
@@ -208,7 +205,7 @@ export function lessonReviewBreakdown(learner: LearnerDb, t: TimeLine): LessonRe
 export type TimeLineChartStyle = 'SRS_STAGE' | 'NEXT_SRS_STAGE' | 'ITEM_TYPE';
 export type TimeLineChartGridStyle = 'OFF' | 'FOR_BARS' | 'FOR_WATERFALL';
 
-/** `GlobalSettings.Dashboard.getTimeLineChartStyle`: `timeline_chart_style`, default SRS_STAGE. */
+/** `timeline_chart_style`, default SRS_STAGE. */
 export function timeLineChartStyle(prefs: Preferences): TimeLineChartStyle {
   const v = prefs.timeline_chart_style;
   return v === 'NEXT_SRS_STAGE' || v === 'ITEM_TYPE' ? v : 'SRS_STAGE';
@@ -287,7 +284,7 @@ export function timeLineDataSet(learner: LearnerDb, t: TimeLine, style: TimeLine
   return { entries, colors: STAGE_COLORS.slice(0, 4), labels: ['Apprentice', 'Guru', 'Master', 'Enlightened'], maxBarCount, totalCount };
 }
 
-/** `TimeLineBarChart.roundUpInterval`. */
+/** Rounds a chart maximum up to a tidy interval. */
 export function roundUpInterval(value: number): number {
   if (!Number.isFinite(value) || value <= 0) return 1;
   if (value < 5) return value;

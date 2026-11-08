@@ -1,7 +1,6 @@
 /**
  * Search engines 1–5 (Notifications and other settings, `TaggedUrlPreference`): the names and URLs
- * the subject title's long-press menu offers (`GlobalSettings.Other.hasSearchEngine`,
- * `getSearchEngineName`, `getSearchEngineUrl`; `SubjectInfoButtonView`).
+ * the subject title's long-press menu offers.
  */
 import type { Preferences } from '../../../core/settings';
 
@@ -39,8 +38,8 @@ export function searchEngines(prefs: Preferences): SearchEngine[] {
   return out;
 }
 
-/** `URLEncoder.encode(s, "UTF-8")`: form encoding (space → "+", only `A-Za-z0-9.-*_` kept). */
-export function javaUrlEncode(s: string): string {
+/** Form encoding, UTF-8 (space → "+", only `A-Za-z0-9.-*_` kept). */
+export function formUrlEncode(s: string): string {
   return encodeURIComponent(s)
     .replace(/%20/g, '+')
     .replace(/[!'()~]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
@@ -48,6 +47,6 @@ export function javaUrlEncode(s: string): string {
 
 /** The URL for `characters`: every "%s" replaced by the encoded query. */
 export function searchUrl(engine: SearchEngine, characters: string): string {
-  const q = javaUrlEncode(characters);
+  const q = formUrlEncode(characters);
   return engine.url.replace(/%s/g, () => q);
 }

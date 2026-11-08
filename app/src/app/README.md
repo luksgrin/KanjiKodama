@@ -8,7 +8,7 @@ binds to it in `ui/hooks/`.
 Status `idle` → `loading` (`storage`, `content`, `progress`) → `ready`, or `error` with an `AppError`
 (`content-missing`, `content-invalid`, `db-blocked`, `db-closed`, `db-failed`; `retryable` → "Try
 again" calls `start()` again). The DB and the content load in parallel; then `hydrateLearnerDb`,
-`Curriculum.ensureOrdering` and `LocalProgression.update` (local mode only: `state.mode !== 'server'`),
+`applyOrdering` (when the stored order isn't the chosen curriculum) and `updateProgression` (local mode only: `state.mode !== 'server'`),
 persisted. `ensurePersistence` runs in the background (`state.persistence`).
 
 ## Reading state
@@ -42,7 +42,7 @@ is set and the error is rethrown. The clock is injected (`deps.clock`; tests use
 
 Rows of subjects the content lacks ("orphans", after a content update) are kept by every save and
 exported in the progress file, except `'replace'` and `restoreProgress`, which replace all progress
-like Java's `ProgressStore.resetProgress`.
+as a full reset does.
 
 Other actions: `setPreference(key, value)`, `saveProgress()` (call straight from the tap handler:
 the file text is built synchronously so iOS keeps the user activation), `exportProgressFile()`,

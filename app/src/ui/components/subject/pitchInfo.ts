@@ -1,13 +1,10 @@
 /**
- * Pitch accent records and the diagram geometry. Pure.
- *
- * Java: `model/PitchInfo`, `util/PitchInfoDeserializer`, `db/model/Subject.getPitchInfoFor` /
- * `hasPitchInfo`, `views/PitchInfoView` (labels), `views/PitchInfoDiagramView` (mora split, dots).
+ * Pitch accent records, their labels and the diagram geometry (mora split, dots). Pure.
  */
 import type { ContentSubject } from '../../../core/content';
 import { toKatakana } from '../../../core/kana';
 
-/** `model/PitchInfo`: the reading in katakana (null: applies to any reading), part of speech, accent number. */
+/** A pitch record: the reading in katakana (null: applies to any reading), part of speech, accent number. */
 export interface PitchInfo {
   reading: string | null;
   partOfSpeech: string | null;
@@ -56,7 +53,7 @@ export function hasPitchInfo(subject: Pick<ContentSubject, 'object' | 'readings'
   return infos.some((p) => p.reading === null);
 }
 
-/** The readings the headline shows a pitch block for, with their records (`SubjectInfoHeadlineView`). */
+/** The readings the headline shows a pitch block for, with their records. */
 export function pitchBlocks(subject: Pick<ContentSubject, 'readings'>, infos: readonly PitchInfo[]): { kana: string; infos: PitchInfo[] }[] {
   const out: { kana: string; infos: PitchInfo[] }[] = [];
   for (const r of subject.readings) {
@@ -67,11 +64,11 @@ export function pitchBlocks(subject: Pick<ContentSubject, 'readings'>, infos: re
   return out;
 }
 
-/** `PitchInfoDiagramView.KANA_DIGRAPHS`: small kana that join the previous kana into one mora. */
+/** Small kana that join the previous kana into one mora. */
 export const KANA_DIGRAPHS = 'ぁぃぅぇぉゃゅょゎゕゖァィゥェォャュョヮヵヶ';
 
 /**
- * `PitchInfoDiagramView.prepare`'s mora split: the end offset (in chars) of each mora. A kana followed by
+ * The end offset (in chars) of each mora. A kana followed by
  * a small kana from {@link KANA_DIGRAPHS} is one mora with it (`っ` and `ー` count as their own mora).
  */
 export function moraEnds(text: string): number[] {
@@ -103,7 +100,7 @@ export function pitchKind(pitchNumber: number, numMora: number): PitchKind {
 
 const KIND_LABELS: Readonly<Record<PitchKind, string>> = { heiban: '平板', atamadaka: '頭高', nakadaka: '中高', odaka: '尾高' };
 
-/** `PitchInfoView`'s label: `[n] 平板 (part of speech)`. */
+/** A pitch record's label: `[n] 平板 (part of speech)`. */
 export function pitchLabel(info: PitchInfo, numMora: number): string {
   let s = `[${info.pitchNumber}] ${KIND_LABELS[pitchKind(info.pitchNumber, numMora)]}`;
   if (info.partOfSpeech !== null && info.partOfSpeech !== '') s += ` (${info.partOfSpeech})`;
@@ -119,8 +116,7 @@ export interface PitchDot {
 }
 
 /**
- * The dots of the diagram, x in em, assuming full-width kana (one em each), which is how the Java view's
- * measured positions come out for kana text: dot `i` sits over the middle of mora `i`, the extra dot over
+ * The dots of the diagram, x in em, assuming full-width kana (one em each): dot `i` sits over the middle of mora `i`, the extra dot over
  * the next (particle) position.
  */
 export function pitchDots(text: string, pitchNumber: number): PitchDot[] {

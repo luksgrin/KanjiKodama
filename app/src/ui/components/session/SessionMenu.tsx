@@ -1,11 +1,10 @@
 /**
- * The session part of Java's options menu (`res/menu/generic_options_menu.xml`,
- * `AbstractActivity.onCreateOptionsMenuHelper` / `onOptionsItemSelected`) as toolbar actions: Session
+ * The session part of the options menu as toolbar actions: Session
  * log..., Last completed item..., Back to lesson presentation..., Abandon session, Wrap up session, My
- * notes..., each visible as Java decides, with the same confirmations ("Yes and don't ask again" turns
+ * notes..., each visible when it applies, with confirmations ("Yes and don't ask again" turns
  * `ui_confirm_*` off) and toasts ("Session abandoned", "Session wrapping up..."). Settings, Mute,
  * Download audio, Browse/search... and About... are the toolbar's built-in items; Self-study quiz is
- * hidden while a session runs (`selfStudyItem.setVisible(session.isInactive())`).
+ * hidden while a session runs.
  */
 import { useState, type ReactNode } from 'react';
 import type { Session } from '../../../core/session';
@@ -106,7 +105,7 @@ export function useSessionMenu(rt: SessionRuntime, session: Session | null, subj
     },
     { id: 'study_materials', label: 'My notes...', hidden: subjectId === null, onSelect: () => setNotes(subjectId) },
     { id: 'self_study', label: 'Self-study quiz', hidden: !inactive, onSelect: () => navigate(paths.selfStudy()) },
-    // The session toolbar has room for Search and Dashboard only: Mute goes to the overflow (Java screenshots).
+    // The session toolbar has room for Search and Dashboard only: Mute goes to the overflow.
     {
       id: 'mute', label: isMuted(prefs) ? 'Unmute' : 'Mute', showAsAction: false,
       onSelect: () => void app.setPreference(MUTE_PREF, !isMuted(prefs)),

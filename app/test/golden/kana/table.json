@@ -1,6 +1,5 @@
 {
   "area": "kana.table",
-  "javaSource": "util/PseudoIme.KANA_MAP via simulateInput",
   "cases": [
     {"name":"key--","input":{"romaji":"-"},"output":{"mapValue":"ー","simulateInput":{"value":"ー"}}},
     {"name":"key-A","input":{"romaji":"A"},"output":{"mapValue":"ア","simulateInput":{"value":"ア"}}},

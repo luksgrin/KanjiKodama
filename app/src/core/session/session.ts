@@ -1,12 +1,11 @@
 /**
- * The lesson, review and self-study session: `model/Session` with `model/Question` and
- * `db/model/SessionItem`, as a state machine over an explicit environment (learner database,
- * preferences, clock, the shared random, the stored session). The jobs the Java session schedules
- * (`ReportSessionItemJob`, `UpdateSessionItemJob`, `AbandonSessionItemJob`, `FinishSessionJob`) run at
- * once, in order, as the app's single job thread does; `env.jobs` lists them like the app's queue.
+ * The lesson, review and self-study session with its questions and items, as a state machine over an
+ * explicit environment (learner database, preferences, clock, the shared random, the stored session).
+ * The jobs the session schedules (report, update, abandon, finish) run at once, in order;
+ * `env.jobs` lists them by name.
  *
- * The UI side of `FloatingUiState` the logic reads (current answer, last verdict, lingering in
- * lightning mode) is part of the session.
+ * The UI state the logic reads (current answer, last verdict, lingering in lightning mode) is part of
+ * the session.
  */
 
 import { possibleQuestionTypes, QUESTION_TYPE_INFO, type QuestionType } from '../answer/questionType';
@@ -18,7 +17,7 @@ import { isKunYomi, isOnYomi } from '../answer/reading';
 import type { ContentSubject } from '../content';
 import { contentSubject, num, progressRow, srsSystemOf, tableRow, type LearnerDb } from '../progression/db';
 import { reportLocal, type LocalReport } from '../progression/report';
-import type { JavaRandom, Rng } from '../rng';
+import type { SeededRandom, Rng } from '../rng';
 import { shuffleInPlace } from '../rng';
 import { ankiAnswerRichText } from '../anki/answerText';
 import { inflectedCharacters, inflectionForm, randomInflection } from '../anki/inflection';
@@ -41,12 +40,12 @@ import type {
 /** A job as the app's queue holds it: simple class name and data string. */
 export type JobRecord = [string, string];
 
-/** What the level test needs from the session (`LevelTest.isRoundActive`, `LevelTest.onSessionFinishing`). */
+/** What the level test needs from the session (`isRoundActive`, `onSessionFinishing`). */
 export interface SessionHooks {
   levelTestRoundActive(db: LearnerDb): boolean;
   onSessionFinishing(db: LearnerDb, type: SessionType, items: readonly SessionItem[], now: number): void;
   /**
-   * `ReportSessionItemJob.runLocal` for one finished item. Absent: local mode (`reportLocal`). Server
+   * Reports one finished item. Absent: local mode (`reportLocal`). Server
    * mode passes one that predicts locally and queues the upload (`src/sync/serverSession.ts`).
    */
   report?(db: LearnerDb, report: LocalReport & { assignmentId: number }, now: number): void;
@@ -58,11 +57,10 @@ export interface SessionEnv {
   prefs: Preferences;
   /** `Clock.now()`. */
   now: number;
-  readonly rng: JavaRandom;
+  readonly rng: SeededRandom;
   /**
-   * `Math.random()`, the source of the randomized inflection picks (`InflectionUtil`; a separate generator from
-   * `rng`). The app passes an unseeded generator; golden tests a `JavaRandom`, like the Java seam
-   * `InflectionUtil.setRandomSourceForTesting`.
+   * The source of the randomized inflection picks (a separate generator from `rng`). The app passes an
+   * unseeded generator; golden tests a `SeededRandom`.
    */
   readonly inflectionRng: Pick<Rng, 'nextDouble'>;
   readonly stored: StoredSession;
@@ -71,7 +69,7 @@ export interface SessionEnv {
   readonly hooks: SessionHooks;
 }
 
-/** The `level_test_round_active` flag (`LevelTest.isRoundActive`). */
+/** The `level_test_round_active` flag. */
 export function levelTestRoundActive(db: LearnerDb): boolean {
   return db.state.get('level_test_round_active') === '1';
 }
@@ -87,34 +85,34 @@ export function emptyStoredSession(): StoredSession {
   return { sessionType: 'NONE', sessionOnkun: false, currentItemId: 0, currentQuestionType: null, items: new Map() };
 }
 
-/** The stored items in `order` (`SessionItemDao.getAll`). */
+/** The stored items in `order`. */
 export function storedRows(stored: StoredSession): SessionItemRow[] {
   return [...stored.items.values()].sort((a, b) => a.order - b.order);
 }
 
-/** `GlobalSettings.Review.getCloseEnoughAction`: `close_enough_action`, SILENTLY_ACCEPT when absent or unknown. */
+/** `close_enough_action`, SILENTLY_ACCEPT when absent or unknown. */
 export function closeEnoughAction(prefs: Preferences): CloseEnoughAction {
   const v = prefs.close_enough_action;
   return typeof v === 'string' && (CLOSE_ENOUGH_ACTIONS as readonly string[]).includes(v)
     ? (v as CloseEnoughAction) : 'SILENTLY_ACCEPT';
 }
 
-/** `GlobalSettings.Other.getRequireOnInKatakana`. */
+/** `require_onyomi_in_katakana`. */
 export function requireOnInKatakana(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'require_onyomi_in_katakana', false);
 }
 
-/** `GlobalSettings.Review.getEnableLightningMode` (default true). */
+/** `enable_lightning_mode` (default true). */
 export function enableLightningMode(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'enable_lightning_mode', true);
 }
 
-/** `GlobalSettings.AdvancedOther.getKanjiModeOnKun`. */
+/** `kanji_mode_onkun`. */
 function kanjiModeOnKun(prefs: Preferences): boolean {
   return advancedEnabled(prefs) && prefBoolean(prefs, 'kanji_mode_onkun', false);
 }
 
-/** `GlobalSettings.Review.getDelayResultUpload`. */
+/** `delay_result_upload`. */
 function delayResultUpload(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'delay_result_upload', false);
 }
@@ -223,15 +221,15 @@ export class Session {
   correct = false;
   items: SessionItem[] = [];
   questions: Question[] = [];
-  /** Top first, like `Deque.push`/`pop`. */
+  /** Top first (a stack). */
   history: Question[] = [];
   comparator: SubjectComparator = () => 0;
   loaded = false;
-  /** `FloatingUiState.getCurrentAnswer`. */
+  /** The answer as typed so far. */
   currentAnswer = '';
-  /** `FloatingUiState.lingerOnAnswer`. */
+  /** Lightning mode lingers on the answered question. */
   lingerOnAnswer = false;
-  /** `FloatingUiState.lastVerdict`. */
+  /** The last answer's verdict. */
   lastVerdict: AnswerVerdict | null = null;
 
   constructor(private readonly env: SessionEnv) {}
@@ -289,7 +287,7 @@ export class Session {
     return enableLightningMode(this.env.prefs) && !this.lightningModeTemporarilyDisabled;
   }
 
-  /** `SessionActivity`'s lightning decision (`Session.lightningAdvancesNow`). */
+  /** Whether lightning mode moves on right after a correct answer. */
   lightningAdvancesNow(lightningMode: boolean): boolean {
     if (lightningMode && this.answered && this.correct && this.lastVerdict !== null && this.lastVerdict.nearMatch
       && closeEnoughAction(this.env.prefs) === 'ACCEPT_WITH_TOAST_NO_LM') {
@@ -303,7 +301,7 @@ export class Session {
     return sessionSubject(this.env.db, item.id);
   }
 
-  // --- randomized inflections (model/Question) --------------------------------------------------
+  // --- randomized inflections ------------------------------------------------------------
 
   /**
    * `Question.getInflectionForm(subject, sessionType)`: with randomized inflections on for this session type, the
@@ -315,10 +313,10 @@ export class Session {
   }
 
   /**
-   * `Question.getInflection(subject, sessionType)`: the question's inflection, picked on first use with
+   * The question's inflection, picked on first use with
    * `env.inflectionRng` and kept (a question picked once keeps it even if the setting changes); null when the setting
-   * is off or the subject doesn't inflect. Java calls it from `getCharacters` (the question's characters on screen)
-   * and `getAnkiAnswerRichText` (the revealed answer), so the pick happens when the question is first shown.
+   * is off or the subject doesn't inflect. The question's characters on screen and the revealed Anki answer both read
+   * it, so the pick happens when the question is first shown.
    */
   questionInflection(q: Question): string | null {
     if (q.inflection !== null) return q.inflection;
@@ -790,7 +788,7 @@ export class Session {
     this.checkQuestions();
   }
 
-  private context(): { db: LearnerDb; prefs: Preferences; now: number; rng: JavaRandom } {
+  private context(): { db: LearnerDb; prefs: Preferences; now: number; rng: SeededRandom } {
     return { db: this.env.db, prefs: this.env.prefs, now: this.env.now, rng: this.env.rng };
   }
 
@@ -860,7 +858,7 @@ export class Session {
     this.checkQuestions();
   }
 
-  /** The summary's Finish with delayed reporting (`SummarySessionFragment.doInBackground`): report the PENDING items. */
+  /** The summary's Finish with delayed reporting: report the PENDING items. */
   reportPending(): SessionItemRow[] {
     const pending = storedRows(this.env.stored).filter((r) => r.state === 'PENDING');
     for (const r of pending) {
@@ -875,7 +873,7 @@ function stringOrNull(v: unknown): string | null {
   return typeof v === 'string' ? v : null;
 }
 
-/** `ReportSessionItemJob.runLocal`: the stored item becomes REPORTED, then the local report. */
+/** The report job: the stored item becomes REPORTED, then the local report. */
 function runReportJob(env: SessionEnv, id: number, type: SessionType, meaningIncorrect: number, readingIncorrect: number,
   timestamp: number, assignmentId = 0): void {
   const row = env.stored.items.get(id);

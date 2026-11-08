@@ -1,5 +1,5 @@
 /**
- * The database side of `local/Curriculum` over a `LearnerDb`: rewriting the subject table into an
+ * The curriculum's database side over a `LearnerDb`: rewriting the subject table into an
  * order, adopting a restored file's mode, switching with placement, and the preview. The pure parts
  * (layouts, placement, descriptions) are in `core/curriculum`.
  */
@@ -18,7 +18,7 @@ import {
 import { currentMaxLevel, forceLessonAvailable, progressRow, sqlIsZero, sqlNonZero, type LearnerDb } from './db';
 import { afterChange, updateProgression } from './localProgression';
 
-/** `Curriculum.layout`: the order's level and position of every subject, from the WaniKani order. */
+/** The order's level and position of every subject, from the WaniKani order. */
 export function layoutFor(db: LearnerDb, target: CurriculumMode): CurriculumLayout {
   const subjects: LayoutSubject[] = db.content.subjects.map((s) => ({
     id: s.id,
@@ -30,7 +30,7 @@ export function layoutFor(db: LearnerDb, target: CurriculumMode): CurriculumLayo
   return curriculumLayout(target, subjects, db.wkOrder, db.jlptKanji);
 }
 
-/** `Curriculum.applyOrdering`: rewrite the table's level and lesson position. Does not move the learner. */
+/** Rewrite the table's level and lesson position. Does not move the learner. */
 export function applyOrdering(db: LearnerDb, target: CurriculumMode): void {
   const layout = layoutFor(db, target);
   if (layout.placement.size === 0) return;
@@ -45,13 +45,13 @@ export function applyOrdering(db: LearnerDb, target: CurriculumMode): void {
   db.blocks = [...layout.blocks];
 }
 
-/** `Curriculum.adopt`: take a mode without placing the learner (a restored file carries its own level). */
+/** Take a mode without placing the learner (a restored file carries its own level). */
 export function adoptCurriculum(db: LearnerDb, target: CurriculumMode): void {
   if (db.ordering !== target) applyOrdering(db, target);
   db.progress.curriculum = target;
 }
 
-/** `Curriculum.preview`: where switching to `target` would place the learner; changes nothing. */
+/** Where switching to `target` would place the learner; changes nothing. */
 export function previewCurriculum(db: LearnerDb, target: CurriculumMode): CurriculumPreview {
   const layout = layoutFor(db, target);
   const kanji = db.content.subjects
@@ -61,7 +61,7 @@ export function previewCurriculum(db: LearnerDb, target: CurriculumMode): Curric
 }
 
 /**
- * `Curriculum.place`: place the learner in the current order, unlock the backfill kanji as lessons,
+ * Place the learner in the current order, unlock the backfill kanji as lessons,
  * clear the level progression, set the level and update progression.
  */
 export function placeLearnerInDb(db: LearnerDb, now: number): Placement {
@@ -84,7 +84,7 @@ export function placeLearnerInDb(db: LearnerDb, now: number): Placement {
   return placement;
 }
 
-/** `Curriculum.switchTo`: switch order and place the learner. */
+/** Switch order and place the learner. */
 export function switchCurriculum(db: LearnerDb, target: CurriculumMode, now: number): Placement {
   applyOrdering(db, target);
   db.progress.curriculum = target;

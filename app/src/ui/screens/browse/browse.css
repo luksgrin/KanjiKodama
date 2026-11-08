@@ -1,9 +1,7 @@
-/* Browse, search form and search results (fragment_browse_overview.xml, fragment_search_result.xml,
-   subject_card_*.xml, search_result_*_header.xml). dp = CSS px; theme tokens, plus the Java constants
-   of the yellow tutorial box (customToastColorBackground #FFFF80, black text) and the KanjiKodama
-   card text colours (SubjectCardBinder.styleCardText). */
+/* Browse, search form and search results. Theme tokens, plus the fixed colours of the yellow tutorial
+   box (#FFFF80, black text) and the KanjiKodama card text colours. */
 
-/* Tutorial box (rounded_corners + WK.TextView.CustomToast + WK.Button.Borderless.CustomToast). */
+/* Tutorial box (rounded, toast text, borderless buttons). */
 .kk-tip {
   background: #FFFF80;
   color: #000;
@@ -11,7 +9,7 @@
   padding: 8px 8px 0;
   margin-bottom: 12px;
 }
-/* fragment_search_result.xml: the tutorial box has no outer margin (edge to edge under the toolbar). */
+/* Search results: the tutorial box has no outer margin (edge to edge under the toolbar). */
 .kk-tip.bleed { margin: 0 0 12px; }
 .kk-tip-text { margin: 0; font-size: 16px; white-space: pre-line; padding: var(--fp-top) 0 var(--fp-bottom); }
 .kk-tip-actions { display: flex; }
@@ -58,9 +56,9 @@
 
 .kk-browse-levels {
   display: grid;
-  /* BrowseOverviewFragment.render: a stretched TableLayout inside the 8 dp padding; each cell has a 2 dp
-     left and top margin, each row a 6 dp top margin (8 dp between rows); the table 8 dp below the
-     text, ending 2 dp short of the right padding (measured). Cells ~37 x 31 dp on a 411 dp phone: smaller than the 40 px tap floor, as in Java (e2e
+  /* A stretched table inside the 8 px padding; each cell has a 2 px left and top margin, each row a
+     6 px top margin (8 px between rows); the table 8 px below the text, ending 2 px short of the
+     right padding. Cells ~37 x 31 px on a 411 px phone: smaller than the 40 px tap floor (e2e
      exemption in test/e2e/helpers/app.ts). */
   gap: 8px 2px;
   margin: 16px 2px 0;
@@ -85,9 +83,8 @@
 .kk-browse-level.current { background: var(--kk-mint-hi); }
 .kk-browse-level:focus-visible { outline: 2px solid var(--color-text); outline-offset: -2px; }
 
-/* EditText (abc_edit_text_material): a 43 dp view with 4 dp insets at the sides, the text ~2 dp above
-   its centre, the 1 dp underline 10 dp above the bottom (2 dp, accent, when focused); hint and line
-   in --color-edit-line (measured on the Java app). */
+/* Text fields: a 43 px view with 4 px insets at the sides, the text ~2 px above its centre, the 1 px
+   underline 10 px above the bottom (2 px, accent, when focused); hint and line in --color-edit-line. */
 .kk-browse input[type='text'],
 .kk-search-results input[type='text'],
 .kk-advanced-search input[type='text'],
@@ -118,11 +115,11 @@
 .kk-browse-query { display: flex; align-items: baseline; margin-top: 8px; } /* LinearLayout baselineAligned */ /* the field's 4 dp inset is the gap to Search */
 .kk-browse-query input { flex: 1 1 auto; }
 
-/* Advanced search form (advanced_search.xml): a TableLayout, shrinkColumns="*" (tableColumns.ts sets
-   the two columns). Labels WK.TextView.Normal with 4 dp end margin; EditTexts 18 sp, ems 2 / 4
-   (34.7 / 77 dp underline inside 4 dp insets, 43 dp tall), underline and hint colorControlNormal;
-   SwitchCompat rows 27 dp with the labels right-aligned to the bottom; group headers 16 dp above;
-   the Search buttons at the start of column 2. Measured on the Java app (420 dpi). */
+/* Advanced search form: a two-column table whose columns shrink to fit (tableColumns.ts sets them).
+   Labels with 4 px end margin; text fields 18 px, 2 / 4 characters wide (34.7 / 77 px underline
+   inside 4 px insets, 43 px tall), underline and hint colorControlNormal; switch rows 27 px with the
+   labels right-aligned to the bottom; group headers 16 px above; the Search buttons at the start of
+   column 2. */
 .kk-advanced-search {
   display: grid;
   grid-template-columns: auto auto;
@@ -158,8 +155,8 @@
 .kk-adv-switch input:checked + .kk-adv-switch-track .kk-adv-switch-thumb { transform: translateX(19px); background: var(--color-control-activated); }
 .kk-adv-switch input:focus-visible + .kk-adv-switch-track { outline: 2px solid var(--color-text); outline-offset: 6px; }
 
-/* Spinner (AppCompat, not underlined): the selected item's text and the grey drop-down triangle at
-   the end, ~28 dp tall, as wide as the widest item (measured on the Java app). */
+/* Drop-down (not underlined): the selected item's text and the grey drop-down triangle at the end,
+   ~28 px tall, as wide as the widest item. */
 .kk-browse select,
 .kk-search-results select,
 .kk-advanced-search select {
@@ -184,7 +181,7 @@
 .kk-browse select:focus-visible,
 .kk-search-results select:focus-visible,
 .kk-advanced-search select:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
-/* Results: fragment_search_result.xml has no padding: the headers span the screen and the cards
+/* Results: no padding: the headers span the screen and the cards
    (2 dp margins) start 2 dp from its edges, so the screen bleeds out of .kk-main's gutter. */
 .kk-search-results { margin: 0 calc(-1 * var(--main-gutter)); }
 /* LinearLayout / RecyclerView: margins add up (tutorial 12 dp + count 4 dp, header 2 dp + 2 dp); flex
@@ -246,10 +243,10 @@
 .kk-card.vocabulary, .kk-card.kana_vocabulary { background: var(--color-vocab); --card-ink: var(--color-card-ink-vocab); }
 .kk-card-chars {
   margin-top: 4px;
-  text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView paint.setShadowLayer(3, 1, 1, black) */
-  font-family: var(--font-glyph); /* centred on Roboto's metrics, as Java's Paint (fonts.css) */
+  text-shadow: var(--text-shadow-3px-glyph); /* shadow layer (3, 1, 1, black) */
+  font-family: var(--font-glyph); /* centred on Roboto's metrics (fonts.css) */
   font-size: 24px;
-  line-height: 1; /* SubjectInfoButtonView.setSizeSp(24): the view is exactly 24 sp high */
+  line-height: 1; /* the view is exactly 24 px high */
   color: var(--color-on-subject);
   overflow-wrap: anywhere;
 }

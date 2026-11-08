@@ -1,6 +1,6 @@
 name: CI
 
-# Manual only (issue #3, constraints: no Actions minutes). Everything builds and tests locally:
+# Manual only. Everything builds and tests locally:
 # `cd app && npm run check`. Releases: release.yml (manual).
 on:
   workflow_dispatch:

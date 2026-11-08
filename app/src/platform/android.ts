@@ -6,7 +6,6 @@ import { Share } from '@capacitor/share';
 import type { AutoBackupEntry, Capabilities, FilesApi, OpenedText, Platform, SaveResult } from './index';
 import { androidAudio } from './androidAudio';
 import { androidBackgroundSync } from './androidBackgroundSync';
-import { androidLegacy } from './androidLegacy';
 import { androidSecrets } from './androidSecrets';
 import { androidWidget } from './androidWidget';
 import { androidHttp } from './httpAndroid';
@@ -19,7 +18,7 @@ import { AUTO_BACKUP_DIR, AUTO_BACKUP_KEEP, autoBackupName, parseAutoBackupName,
 /**
  * Local native plugin in app/android (app/src/main/java/app/kanjikodama/wk/DocumentPlugin.java, registered in
  * MainActivity) wrapping the Storage Access Framework: ACTION_CREATE_DOCUMENT / ACTION_OPEN_DOCUMENT.
- * The system picker lists Drive, Downloads and other document providers, like the Java app.
+ * The system picker lists Drive, Downloads and other document providers.
  * No installed Capacitor plugin offers a create-document picker (@capacitor/filesystem writes only
  * to app/public dirs, @capacitor/share is a share sheet), hence this plugin.
  */
@@ -38,7 +37,6 @@ const capabilities: Capabilities = {
   backgroundSync: true, // BackgroundSyncWorker (WorkManager), server mode
   widget: true, // SessionWidgetProvider
   cleartextHttp: true,
-  legacyMigration: true, // LegacyMigrationPlugin: one-time move from the Java app
   autoBackup: true,
   imeFlags: true, // KkWebView (keyboard input settings)
   audioFocus: true, // KkAudioPlugin (MediaPlayer + AudioFocusRequest)
@@ -78,7 +76,7 @@ async function saveText(name: string, text: string): Promise<SaveResult> {
   }
 }
 
-/** `DataImportExportActivity`: `ACTION_SEND` with the file (the share sheet). */
+/** `ACTION_SEND` with the file (the share sheet). */
 async function shareText(name: string, text: string): Promise<SaveResult> {
   return saveViaShare(name, text);
 }
@@ -96,7 +94,7 @@ async function openText(): Promise<OpenedText | null> {
   }
 }
 
-/** files/backups/ (Directory.Data is Context.getFilesDir()). */
+/** files/backups/ (Directory.Data is the app's files dir). */
 async function listAutoBackups(): Promise<AutoBackupEntry[]> {
   let listed;
   try {
@@ -150,5 +148,4 @@ export const androidPlatform: Platform = {
   secrets: androidSecrets,
   widget: androidWidget,
   backgroundSync: androidBackgroundSync,
-  legacy: androidLegacy,
 };

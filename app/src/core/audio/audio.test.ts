@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { JavaRandom } from '../rng';
+import { SeededRandom } from '../rng';
 import {
   audioPath,
   chooseAudio,
@@ -53,7 +53,7 @@ describe('planAudioDownloads', () => {
       rec(1, 'male', 'いち', 'audio/webm'),
       rec(1, 'male', 'いち', 'audio/mpeg'),
       rec(2, 'female', 'いち', 'audio/ogg'),
-      { ...rec(3, 'female', 'いち'), sourceId: 0 }, // no source id: skipped like Java
+      { ...rec(3, 'female', 'いち'), sourceId: 0 }, // no source id: skipped
       { ...rec(4, 'female', 'いち'), contentType: '' },
     ],
   };
@@ -94,34 +94,34 @@ describe('chooseAudio', () => {
 
   it('streams when nothing is cached, matching the reading and the voice', () => {
     for (let seed = 0; seed < 20; seed++) {
-      const c = chooseAudio(owner, 'ひと', 'FEMALE', false, none, new JavaRandom(seed));
+      const c = chooseAudio(owner, 'ひと', 'FEMALE', false, none, new SeededRandom(seed));
       expect(c).toEqual({ audio: owner.audios[3], cached: false });
     }
   });
 
   it('plays a cached file for the matched reading', () => {
-    const c = chooseAudio(owner, 'ひと', 'MALE', false, all, new JavaRandom(1));
+    const c = chooseAudio(owner, 'ひと', 'MALE', false, all, new SeededRandom(1));
     expect(c).toEqual({ audio: owner.audios[2], cached: true });
   });
 
   it('falls back to the primary reading when the matched one is not cached', () => {
     const cached = new Map([[1, new Set(['1.mp3', '2.mp3'])]]);
-    const c = chooseAudio(owner, 'ひと', 'FEMALE', false, cached, new JavaRandom(1));
+    const c = chooseAudio(owner, 'ひと', 'FEMALE', false, cached, new SeededRandom(1));
     expect(c).toEqual({ audio: owner.audios[1], cached: true });
   });
 
   it('ALTERNATE flips the voice', () => {
-    expect(chooseAudio(owner, 'いち', 'ALTERNATE', false, all, new JavaRandom(3))?.audio.gender).toBe('male');
-    expect(chooseAudio(owner, 'いち', 'ALTERNATE', true, all, new JavaRandom(3))?.audio.gender).toBe('female');
+    expect(chooseAudio(owner, 'いち', 'ALTERNATE', false, all, new SeededRandom(3))?.audio.gender).toBe('male');
+    expect(chooseAudio(owner, 'いち', 'ALTERNATE', true, all, new SeededRandom(3))?.audio.gender).toBe('female');
   });
 
   it('RANDOM picks either voice depending on the draw', () => {
     const genders = new Set<string>();
-    for (let seed = 0; seed < 30; seed++) genders.add(chooseAudio(owner, 'いち', 'RANDOM', false, all, new JavaRandom(seed))!.audio.gender);
+    for (let seed = 0; seed < 30; seed++) genders.add(chooseAudio(owner, 'いち', 'RANDOM', false, all, new SeededRandom(seed))!.audio.gender);
     expect(genders).toEqual(new Set(['male', 'female']));
   });
 
   it('null without audio', () => {
-    expect(chooseAudio({ ...owner, audios: [] }, null, 'RANDOM', false, all, new JavaRandom(1))).toBeNull();
+    expect(chooseAudio({ ...owner, audios: [] }, null, 'RANDOM', false, all, new SeededRandom(1))).toBeNull();
   });
 });

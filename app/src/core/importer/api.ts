@@ -1,8 +1,5 @@
 /**
- * The WaniKani API v2 objects the importer reads, parsed the way `ApiTask.parseEntity` does with the
- * app's Jackson `ObjectMapper` (`Converters.getObjectMapper`: unknown properties ignored). Java:
- * api/model/ApiUser, ApiAssignment, ApiReviewStatistic, ApiLevelProgression, ApiStudyMaterial and
- * api/WaniKaniApiDateDeserializer.
+ * The WaniKani API v2 objects the importer reads (unknown properties ignored).
  */
 
 /** A collection item as the API sends it: `{id, object, data}`. */
@@ -12,13 +9,13 @@ export interface ApiEnvelope {
   data: Record<string, unknown>;
 }
 
-/** `api/model/ApiUser`, the fields the importer uses. */
+/** The user, the fields the importer uses. */
 export interface ApiUser {
   level: number;
   username: string | null;
 }
 
-/** `api/model/ApiAssignment`. Times are epoch ms, 0 when absent. */
+/** An assignment. Times are epoch ms, 0 when absent. */
 export interface ApiAssignment {
   id: number;
   subjectId: number;
@@ -31,7 +28,7 @@ export interface ApiAssignment {
   unlockedAt: number;
 }
 
-/** `api/model/ApiReviewStatistic`. */
+/** A review statistic. */
 export interface ApiReviewStatistic {
   id: number;
   subjectId: number;
@@ -46,7 +43,7 @@ export interface ApiReviewStatistic {
   percentageCorrect: number;
 }
 
-/** `api/model/ApiLevelProgression`. */
+/** A level progression. */
 export interface ApiLevelProgression {
   id: number;
   level: number;
@@ -64,7 +61,7 @@ const ISO_OFFSET_DATE_TIME =
 const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 /**
- * `TextUtil.parseTimestampFromApi`: `ZonedDateTime.parse(text, ISO_OFFSET_DATE_TIME)` in epoch ms
+ * An API timestamp (ISO 8601 with an offset) in epoch ms
  * (fractions below a millisecond dropped), 0 for empty or unparseable text.
  */
 export function parseTimestampFromApi(text: string | null): number {

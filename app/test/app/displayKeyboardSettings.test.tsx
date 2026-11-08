@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 // Display settings (themes, theme customisation, the session display rows), Keyboard input settings,
-// Keyboard help and the dashboard's keyboard hints box, against the Java app's preferences.xml,
-// ActiveTheme, ThemeCustomizationActivity, KeyboardHelpActivity and MainActivity.
+// Keyboard help and the dashboard's keyboard hints box.
 import 'fake-indexeddb/auto';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -70,7 +69,7 @@ async function click(el: HTMLElement | null) {
 const rowTitles = (el: HTMLElement) => [...el.querySelectorAll('.kk-pref-title')].map((t) => t.textContent);
 
 describe('Display settings', () => {
-  it('lists the Java rows in order with their defaults', async () => {
+  it('lists the rows in order with their defaults', async () => {
     const { el, app } = await render('/settings?screen=display_settings');
     expect(rowTitles(el)).toEqual([
       'Light Theme', 'Dark Theme', 'Theme Customisation', 'Center caret in quiz answer box', 'Vertical size of the Anki mode buttons',
@@ -89,7 +88,7 @@ describe('Display settings', () => {
     app.dispose();
   });
 
-  it('offers the eight Java themes in both lists and applies the night theme in dark mode', async () => {
+  it('offers the eight themes in both lists and applies the night theme in dark mode', async () => {
     const { el, app } = await render('/settings?screen=display_settings');
     await click($(el, 'setting-nightTheme'));
     const choices = [...document.querySelectorAll('[data-testid^="choice-nightTheme-"]')].map((c) => c.textContent);
@@ -158,7 +157,7 @@ describe('themes', () => {
     expect(Object.keys(THEMES)).toHaveLength(8);
   });
 
-  it('maps the Java colours to tokens', () => {
+  it('maps the theme colours to tokens', () => {
     const wk = themeTokens(THEMES.LIGHT, parseCustomizations(null));
     expect(wk['--color-toolbar-bg']).toBe('#E80092');
     expect(wk['--color-bg']).toBe('#FFFFFF');
@@ -208,7 +207,7 @@ describe('Keyboard input settings', () => {
     expect(ids.indexOf('font_settings')).toBe(ids.indexOf('keyboard_settings') + 1);
   });
 
-  it('Android: all the Java rows; the hints row opens Keyboard help', async () => {
+  it('Android: all the rows; the hints row opens Keyboard help', async () => {
     const { el, app, location } = await render('/settings?screen=keyboard_settings', { imeFlags: true });
     expect(rowTitles(el)).toEqual(ANDROID_ROWS);
     // The XML default true is written when settings are shown (the getter defaults to false).
@@ -226,7 +225,7 @@ describe('Keyboard input settings', () => {
     app.dispose();
   });
 
-  it('answerKeyboard follows UnansweredSessionFragment', () => {
+  it('answerKeyboard follows the keyboard settings', () => {
     expect(answerKeyboard({}, false)).toEqual({
       answerField: true, noPersonalizedLearning: true, forceAscii: false, autoCorrect: false, visiblePassword: false, hintLocale: '',
     });
@@ -237,7 +236,7 @@ describe('Keyboard input settings', () => {
 });
 
 describe('Keyboard help', () => {
-  it('shows the Java documents; Do it changes the settings and confirms', async () => {
+  it('shows the documents; Do it changes the settings and confirms', async () => {
     const { el, app, location } = await render('/settings/keyboard-help', { imeFlags: true });
     expect($(el, 'keyboard-help-0')!.textContent).toContain('Welcome to KanjiKodama!');
     expect($(el, 'keyboard-help-1')!.querySelector('h4')!.textContent).toBe('If you are using Swiftkey');
@@ -266,7 +265,7 @@ describe('dashboard keyboard hints box', () => {
     const { el, app, location } = await render('/', { imeFlags: true });
     const banner = $(el, 'keyboard-help-banner')!;
     expect(banner.textContent).toContain('Please take a moment to review some hints for your keyboard settings');
-    // First on the dashboard, as activity_main.xml.
+    // First on the dashboard.
     expect(el.querySelector('.kk-dashboard')!.firstElementChild).toBe(banner);
     await click($(el, 'keyboard-help-view'));
     expect(location.get()).toBe('/settings/keyboard-help');

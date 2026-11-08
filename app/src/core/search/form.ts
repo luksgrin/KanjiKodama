@@ -1,5 +1,5 @@
 /**
- * `views/AdvancedSearchFormView` without the views: which switches the form has (and shows), how
+ * The advanced search form without the views: which switches the form has (and shows), how
  * its texts, switches and sort order become parameters (`extractParameters`), and how parameters
  * fill it (`injectParameters`, the Refine button), including the values it has no switch for, which
  * it keeps and adds back on the next extract.
@@ -7,14 +7,14 @@
 
 import { SUBJECT_TYPES, type SubjectTypeName } from '../content';
 import { romanNumeral, type SrsSystem } from '../srs/system';
-import { hashSetOrder, integerHash, stringHash } from './javaHashSet';
+import { hashSetOrder, integerHash, stringHash } from './hashOrder';
 import { SEARCH_SORT_ORDERS, defaultParameters, type AdvancedSearchParameters, type SearchSortOrder } from './parameters';
 
 /** A switch's tag: the value it stands for. */
 export type SwitchTag = number | string | SubjectTypeName | null;
 
 export interface FormSwitch {
-  /** The view id name in `advanced_search.xml`, e.g. `srsStage03`. */
+  /** The switch's id name, e.g. `srsStage03`. */
   name: string;
   tag: SwitchTag;
   visible: boolean;
@@ -43,7 +43,7 @@ const FIELD_PARAMETER: Readonly<Record<TextField, keyof AdvancedSearchParameters
 
 type Group = 'starRatings' | 'srsStages' | 'itemTypes' | 'jlptLevels' | 'joyoGrades';
 
-/** `AdvancedSearchFormView.init`: the switches in layout order, with their tags and visibility. */
+/** The switches in layout order, with their tags and visibility. */
 export function formSwitches(systems: readonly SrsSystem[], starRatingsEnabled: boolean): FormSwitch[] {
   const out: FormSwitch[] = [{ name: 'limitToLeeches', tag: null, visible: true, label: null }];
   for (let i = 0; i <= 5; i++) out.push({ name: `starRating${i}`, tag: i, visible: starRatingsEnabled, label: null });
@@ -80,7 +80,7 @@ function groupOf(name: string): Group | null {
 }
 
 /**
- * `AdvancedSearchFormView.parseNumber`: `Integer.parseInt(text, 10)`, and a whole number beyond
+ * A number field: a strict decimal integer, and a whole number beyond
  * the int range clamped; anything else (`1.5`, `abc`, ` 5`) throws, and the field is skipped.
  */
 export function parseFormNumber(text: string): number | null {

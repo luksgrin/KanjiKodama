@@ -1,5 +1,5 @@
 /**
- * `local/FastTravel`: jumping ahead in JLPT order without burning anything.
+ * Fast travel: jumping ahead in JLPT order without burning anything.
  *
  * - One jump moves up to `MAX_JUMP` levels. The next jump needs `COOLDOWN` to have passed and every
  *   probation item of the previous jump to have been answered.
@@ -29,7 +29,7 @@ const PROBATION_STAGE = 4;
 /** Rough time per review item (meaning and reading), for the workload estimate. */
 const SECONDS_PER_ITEM = 12;
 
-/** `FastTravel.Option`: one possible jump. */
+/** One possible jump. */
 export interface FastTravelOption {
   target: number;
   targetDescription: string | null;
@@ -38,7 +38,7 @@ export interface FastTravelOption {
   minutesPerDay: number;
 }
 
-/** `FastTravel.Status`: whether a jump is possible now, and if not, why. */
+/** Whether a jump is possible now, and if not, why. */
 export interface FastTravelStatus {
   level: number;
   blocked: string | null;
@@ -55,7 +55,7 @@ function option(target: number, targetDescription: string | null, probation: num
   };
 }
 
-/** `FastTravel.count`: visible, not started, radicals or not, on levels [from, to). */
+/** Visible, not started, radicals or not, on levels [from, to). */
 function count(db: LearnerDb, from: number, to: number, radicals: boolean): number {
   let n = 0;
   for (const s of db.content.subjects) {
@@ -67,7 +67,7 @@ function count(db: LearnerDb, from: number, to: number, radicals: boolean): numb
   return n;
 }
 
-/** `FastTravel.pendingProbation`: probation items that can still come up (visible subjects only). */
+/** Probation items that can still come up (visible subjects only). */
 export function pendingProbation(db: LearnerDb): number {
   let n = 0;
   for (const id of db.progress.probation.keys()) {
@@ -83,7 +83,7 @@ function lastJump(db: LearnerDb): number {
   return last ?? 0;
 }
 
-/** `FastTravel.status`. */
+/** Whether fast travel is possible now, and where to. */
 export function fastTravelStatus(db: LearnerDb, now: number): FastTravelStatus {
   const level = Math.max(1, db.progress.userLevel);
   const options: FastTravelOption[] = [];
@@ -110,7 +110,7 @@ export function fastTravelStatus(db: LearnerDb, now: number): FastTravelStatus {
 }
 
 /**
- * `FastTravel.travel`: jump to `target`, spreading the probation reviews over `window` (default the
+ * Jump to `target`, spreading the probation reviews over `window` (default the
  * cooldown). The caller checked the status. Returns the number of probation items.
  */
 export function fastTravel(db: LearnerDb, target: number, now: number, window: number = COOLDOWN): number {
@@ -144,7 +144,7 @@ export function fastTravel(db: LearnerDb, target: number, now: number, window: n
 }
 
 /**
- * `FastTravel.onReviewed`: after a review was recorded, a probation item leaves probation; answered
+ * After a review was recorded, a probation item leaves probation; answered
  * wrong, it goes back to the lesson queue.
  */
 export function onReviewed(db: LearnerDb, subjectId: number, wrong: boolean): void {

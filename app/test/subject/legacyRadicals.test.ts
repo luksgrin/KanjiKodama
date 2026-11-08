@@ -1,4 +1,4 @@
-/** `show_legacy`: the old radical name and mnemonic on the item page (`SubjectInfoView`, `LegacyRadicals`). */
+/** `show_legacy`: the old radical name and mnemonic on the item page. */
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -9,7 +9,7 @@ import { ItemPage } from '../../src/ui/components/subject/ItemPage';
 import { HAS_WK_CONTENT, loadBuiltContent } from './contentFile';
 
 describe('LegacyRadicals', () => {
-  it('has the Java table', () => {
+  it('has the renamed radicals table', () => {
     expect(isLegacyRadical(61)).toBe(true);
     expect(legacyName(61)).toBe('Antenna');
     expect(legacyMnemonic(61)).toMatch(/^Doesn't this look like the <radical>antenna<\/radical>/);

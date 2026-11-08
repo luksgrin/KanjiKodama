@@ -1,9 +1,8 @@
 /**
- * A subject's characters, or the radical's image where the Java app draws one ("Yurt", "Beggar"…).
+ * A subject's characters, or the radical's image where it has one ("Yurt", "Beggar"…).
  *
- * Java: `SubjectInfoButtonView` (`image = subject.needsTitleImage() ? …`: the image fills the square the
- * text would take, tinted in the text colour over two black copies offset by +2 and −1 px) and
- * `WaniKaniTagHandler.TitleImageSpan` (inline in HTML text: one text-size square, same tint and shadows).
+ * On a tile the image fills the square the text would take, tinted in the text colour over two black
+ * copies offset by +2 and −1 px; inline in HTML text it is one text-size square, same tint and shadows.
  * The images come from the content file (`content/titleImages.ts`); without one the slug is shown.
  */
 import './titleImage.css';
@@ -46,7 +45,7 @@ export function subjectGlyphCount(subject: SubjectLike, text?: string | null): n
 
 /**
  * The characters (or `text`, e.g. a question's inflected characters) — or the image. The image wins
- * over any text, as in `SubjectInfoButtonView.setSubject`.
+ * over any text.
  */
 export function SubjectChars({ subject, text }: { subject: SubjectLike; text?: string | null }) {
   const image = titleImageOf(subject);

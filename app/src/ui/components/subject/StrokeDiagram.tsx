@@ -1,5 +1,5 @@
 /**
- * Stroke order diagram as SVG, like the Java `StrokeDiagramView`: a square of `size` px over KanjiVG's
+ * Stroke order diagram as SVG: a square of `size` px over KanjiVG's
  * 109×109 box, stroke width size/50, 12 px stroke numbers at the KanjiVG label positions.
  * - Static: every stroke and number in the primary color.
  * - Animated (the `stroke_order_animated` setting, default on): strokes not drawn yet are "ghosts";
@@ -7,8 +7,6 @@
  *   the stroke being drawn is already in the primary color; when all are drawn it lingers 1.5 s and
  *   starts over.
  * - A tap toggles between the two (`onClick` → `setAnimated(!animated)`).
- *
- * Java: `views/StrokeDiagramView`.
  */
 import './subject.css';
 import { useEffect, useMemo, useState } from 'react';

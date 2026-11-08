@@ -1,7 +1,7 @@
 /**
- * Renders the toolbar configured with `useToolbar` (toolbar.tsx): Java's androidx Toolbar with the
- * WKToolbarTheme (Silkscreen title, 56dp high, elevation 4dp), the up arrow, the "ifRoom" action
- * icons, the collapsible SearchView and the overflow popup (ThemeOverlay.AppCompat.Dark).
+ * Renders the toolbar configured with `useToolbar` (toolbar.tsx): Silkscreen title, 56px high,
+ * elevation 4px, the up arrow, the action icons that fit, the collapsible search box and the dark
+ * overflow popup.
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { handleBack } from '../../app/back';
@@ -12,7 +12,7 @@ import { paths, ROUTE_BY_NAME } from '../routes';
 import { isMuted, MUTE_PREF } from '../../app/mute';
 import { useToolbarOptions, type ToolbarAction, type ToolbarColor } from './toolbar';
 
-/** Java menu ids (without `action_`) in res/menu order; screen actions with these ids go there. */
+/** Menu ids in menu order; screen actions with these ids go there. */
 const MENU_ORDER = [
   'settings', 'search', 'dashboard', 'mute', 'download_audio', 'browse', 'fast_travel', 'level_test',
   'search_result_refine', 'search_result_save_preset', 'search_result_self_study', 'search_result_resurrect',
@@ -36,7 +36,7 @@ export function toolbarColorStyle(color: ToolbarColor | undefined): CSSPropertie
 }
 
 /**
- * androidx ActionBarPolicy.getMaxActionButtons: how many toolbar slots (the overflow button takes
+ * How many toolbar slots (the overflow button takes
  * one) by screen width in dp. "ifRoom" items beyond that go to the overflow menu at their position.
  */
 export function maxActionButtons(widthDp: number): number {
@@ -68,18 +68,18 @@ export function ToolbarView() {
   const [menuOpen, setMenuOpen] = useState(false);
   // android.widget.SearchView under AppCompat's collapseActionView: the first tap expands the action
   // view still iconified (Collapse arrow + magnifier, AppCompat doesn't call the framework
-  // CollapsibleActionView hook); tapping the magnifier opens the field, as in the Java app.
+  // CollapsibleActionView hook); tapping the magnifier opens the field.
   const [searchState, setSearchState] = useState<'closed' | 'icon' | 'field'>('closed');
   const searchOpen = searchState !== 'closed';
   const setSearchOpen = (open: boolean): void => setSearchState(open ? 'icon' : 'closed');
   const [query, setQuery] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  // The level test's steps are dialogs over the dashboard (Java: over MainActivity): its toolbar too.
+  // The level test's steps are dialogs over the dashboard: its toolbar too.
   const isMain = route.name === 'dashboard' || route.name === 'levelTest' || route.name === 'fastTravel';
   const muted = isMuted(state.prefs);
 
-  // Content changes collapse the search box (Java collapseSearchBox) and close the menu.
+  // Content changes collapse the search box and close the menu.
   useEffect(() => {
     setSearchOpen(false);
     setMenuOpen(false);
@@ -129,9 +129,9 @@ export function ToolbarView() {
     return { icons: items.filter((a) => shown.has(a)), overflow: items.filter((a) => !shown.has(a)) };
   }, [items, width]);
 
-  // Back (Android button, Escape) closes the popup first, as Java's PopupWindow.
+  // Back (Android button, Escape) closes the popup first.
   useBackHandler(() => { setMenuOpen(false); return true; }, menuOpen);
-  // Back collapses the SearchView (MenuItem.collapseActionView).
+  // Back collapses the search box.
   useBackHandler(() => { setSearchState('closed'); return true; }, searchOpen && !menuOpen);
 
   useEffect(() => {
@@ -223,7 +223,7 @@ export function ToolbarView() {
           <div className="kk-toolbar-overflow" ref={menuRef}>
             <button type="button" className="kk-toolbar-btn" aria-label="More options" aria-haspopup="menu"
               aria-expanded={menuOpen} data-testid="toolbar-overflow"
-              // Keep the answer field focused (the keyboard stays open under the popup, as Java).
+              // Keep the answer field focused (the keyboard stays open under the popup).
               onMouseDown={(e) => e.preventDefault()} onClick={() => setMenuOpen((o) => !o)}>
               <Icon name="more" />
             </button>

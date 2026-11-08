@@ -1,5 +1,5 @@
 /**
- * Five stars for one subject (`views/StarRatingView`, layout `star_rating.xml`): ★ up to the rating,
+ * Five stars for one subject: ★ up to the rating,
  * ☆ after; tapping star n sets n, tapping the current rating clears it. Shown when
  * `enable_star_ratings` is on.
  */

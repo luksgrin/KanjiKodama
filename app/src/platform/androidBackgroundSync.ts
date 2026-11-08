@@ -1,7 +1,7 @@
 /**
  * Background sync (Android, server mode, "Allow background sync"): the local `BackgroundSync` plugin
  * (app/android/.../BackgroundSyncPlugin.java) enqueues `BackgroundSyncWorker`, a periodic WorkManager
- * job like the Java app's (1 hour, flex 5 minutes, network connected, battery not low, random first
+ * job (1 hour, flex 5 minutes, network connected, battery not low, random first
  * delay up to an hour). The worker loads this app in a headless WebView (same origin, same
  * IndexedDB) with `?kk-background-sync`, where `src/sync/background.ts` runs the sync engine and
  * hands the widget counts back. See src/platform/README.md.

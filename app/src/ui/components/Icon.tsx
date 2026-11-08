@@ -1,7 +1,7 @@
 /**
  * Small inline icons (no icon font, no dependency), `currentColor`.
  * - Stroke icons: the pixel-style set (`back`, `home`, `browse`, `study`, `settings`, `close`).
- * - Filled icons: the Java app's Material drawables (ic_arrow_back / ic_baseline_search_24px /
+ * - Filled icons: Material drawables (ic_arrow_back / ic_baseline_search_24px /
  *   ic_baseline_home_24px / ic_volume_up_24dp / ic_volume_off_24dp / abc_ic_menu_overflow), 24dp.
  */
 export type IconName =

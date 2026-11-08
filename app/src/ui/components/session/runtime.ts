@@ -1,13 +1,12 @@
 /**
- * The app's one study session (Java `Session.getInstance()` plus the parts of `SessionActivity` and
- * `FloatingUiState` around it), on top of the core session engine:
+ * The app's one study session, with the screen state around it, on top of the core session engine:
  *
  * - every action runs inside `app.write` (reports change the learner), then the session is saved to the
  *   Dexie `session` table (`sessionStorage.ts`), so it survives an app restart;
- * - after each action `chooseQuestion` runs and a correct answer in lightning mode advances at once
- *   (`SessionActivity.updateFragment`); audio autoplays like `SessionActivity.playAudio`;
+ * - after each action `chooseQuestion` runs and a correct answer in lightning mode advances at once;
+ *   audio autoplays;
  * - the floating UI state (last verdict, toasts, info dump stage, Anki reveal) lives here so a screen
- *   change keeps it, as Java's static `FloatingUiState` does;
+ *   change keeps it;
  * - when the session ends: the auto backup (Android), the review notifications, and in server mode the
  *   upload queue is sent (the app's `sessionHooks` queue the reports).
  *
@@ -24,7 +23,7 @@ import type { ContentSubject } from '../../../core/content';
 import { computeTimeLine } from '../../../core/dashboard';
 import { onSessionFinishing } from '../../../core/levelTest';
 import { contentSubject, progressRow, srsSystemOf, type LearnerDb } from '../../../core/progression';
-import { JavaRandom } from '../../../core/rng';
+import { SeededRandom } from '../../../core/rng';
 import {
   Session,
   closeEnoughAction,
@@ -54,14 +53,14 @@ import { rescheduleReviewNotifications } from '../../../platform/reviewNotificat
 import { runAutoBackup } from '../../../progress/backup';
 import { NO_META, loadSession, saveSession, type SessionMeta } from './sessionStorage';
 
-/** A short message over the quiz (Java toasts). */
+/** A short message over the quiz (a toast). */
 export interface SessionToast {
   id: number;
   kind: 'srs-up' | 'srs-down' | 'close' | 'alternatives' | 'info';
   text: string;
 }
 
-/** `FloatingUiState`: what the screens show around the session's own state. */
+/** What the screens show around the session's own state. */
 export interface FloatingState {
   /** The verdict of the last submit (also for a retry, which leaves the question unanswered). */
   lastVerdict: AnswerVerdict | null;
@@ -83,15 +82,15 @@ export interface FloatingState {
 }
 
 /**
- * One entry of the full session log's "Events" list (`adapter/sessionlog/EventItem`): newest first, in
- * memory only (cleared when a session starts, loads or ends), as Java's `SessionLogAdapter`.
+ * One entry of the full session log's "Events" list: newest first, in memory only (cleared when a
+ * session starts, loads or ends).
  */
 export interface SessionEvent {
   id: number;
   /** The session item the event is about (null: session-wide). */
   itemId: number | null;
   text: string;
-  /** `System.currentTimeMillis()` when it happened. */
+  /** When it happened (epoch ms). */
   at: number;
 }
 
@@ -134,7 +133,7 @@ export interface SessionSnapshot {
 }
 
 export interface SessionRuntimeDeps {
-  /** Seed for the session's shared random (`ObjectSupport`); default random. */
+  /** Seed for the session's shared random; default random. */
   seed?: () => number;
   /** The inflection picks' `Math.random()`. */
   random?: () => number;
@@ -147,7 +146,7 @@ function freshFloating(): FloatingState {
   };
 }
 
-/** `SubjectDao.getKanjiByCharacters` over the learner's visible subjects. */
+/** The visible kanji with exactly these characters. */
 function kanjiByCharacters(db: LearnerDb, characters: string): ContentSubject | null {
   for (const s of db.content.subjects) {
     if (s.object === 'kanji' && s.characters === characters && db.table.get(s.id)?.hiddenAt === 0) return s;
@@ -278,7 +277,7 @@ export class SessionRuntime {
       get now(): number {
         return rt.now;
       },
-      rng: new JavaRandom(seed),
+      rng: new SeededRandom(seed),
       inflectionRng: { nextDouble: random },
       get stored(): StoredSession {
         return rt.stored;
@@ -329,7 +328,7 @@ export class SessionRuntime {
     return this.write(session, fn);
   }
 
-  /** `SessionActivity.updateFragment`: choose the question, auto-advance a correct answer in lightning mode. */
+  /** Chooses the question, auto-advances a correct answer in lightning mode. */
   private settle(s: Session): void {
     for (let guard = 0; guard < 10_000; guard++) {
       s.chooseQuestion();
@@ -397,7 +396,7 @@ export class SessionRuntime {
 
   // --- the session log's events ----------------------------------------------------------------
 
-  /** The full session log's events, newest first (`SessionLogAdapter.events`). */
+  /** The full session log's events, newest first. */
   events(): readonly SessionEvent[] {
     return this.eventList;
   }
@@ -423,7 +422,7 @@ export class SessionRuntime {
 
   // --- starting --------------------------------------------------------------------------------
 
-  /** The lessons and reviews available now (`LiveTimeLine`). */
+  /** The lessons and reviews available now. */
   available(): { lessons: number[]; reviews: number[] } {
     const learner = this.app.requireLearner();
     const t = computeTimeLine(learner, this.app.clock.now(), { size: 0 });
@@ -431,8 +430,8 @@ export class SessionRuntime {
   }
 
   /**
-   * `Session.startNew*Session` with the given subjects (Java throws for none: false here). Starting while a session
-   * runs does nothing (false).
+   * Starts a session with the given subjects (none: false). Starting while a session runs does nothing
+   * (false).
    */
   async start(type: SessionKind, ids: readonly number[], options: { levelTestRound?: 0 | 1 | 2 } = {}): Promise<boolean> {
     const session = await this.ready();
@@ -462,12 +461,12 @@ export class SessionRuntime {
 
   // --- answering ---------------------------------------------------------------------------------
 
-  /** The field's text (`FloatingUiState.setCurrentAnswer`); no save. */
+  /** The field's text; no save. */
   setAnswer(text: string): void {
     if (this.session !== null && !this.session.answered) this.session.currentAnswer = text;
   }
 
-  /** `UnansweredSessionFragment`'s Submit / Enter: `Session.submit` with the matching kanji. */
+  /** Submit / Enter: submits with the matching kanji. */
   submit(text: string): Promise<AnswerVerdict | null> {
     return this.act((s) => {
       if (s.answered || s.currentQuestion === null) return null;
@@ -522,7 +521,7 @@ export class SessionRuntime {
           if (filtered.length > 0) this.toast('alternatives', `Alt: ${filtered.join(', ')}`);
         }
       } catch {
-        // `safe` in Java
+        // ignored
       }
     }
   }
@@ -611,7 +610,7 @@ export class SessionRuntime {
     });
   }
 
-  /** The info dump's reveal button (`SubjectInfoHeadlineView`): one stage further. */
+  /** The info dump's reveal button: one stage further. */
   revealMore(): void {
     const s = this.session;
     if (s === null || s.currentQuestion === null) return;
@@ -655,7 +654,7 @@ export class SessionRuntime {
   // --- ending ----------------------------------------------------------------------------------
 
   wrapUp(): Promise<void> {
-    // The "Session wrapping up..." toast is the menu's (an Android toast, `AbstractActivity`).
+    // The "Session wrapping up..." toast is the menu's.
     return this.act((s) => s.wrapup());
   }
 

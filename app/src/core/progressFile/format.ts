@@ -1,17 +1,16 @@
 /**
- * The progress file format of `local/ProgressStore`: its tags, the columns it saves, and the
- * column types of the Java app's Room schema (version 68) that decide how restored values are
- * stored.
+ * The progress file format: its tags, the columns it saves, and the column types that decide how
+ * restored values are stored.
  */
 
-/** `ProgressStore.FORMAT`. */
+/** The file's `format` tag. */
 export const FORMAT = 'kanjikodama-progress';
-/** `ProgressStore.LEGACY_FORMAT`: files saved before the rename; same content. */
+/** The `format` tag of files saved before the app's rename; same content. */
 export const LEGACY_FORMAT = 'mojimori-progress';
-/** `ProgressStore.VERSION`. */
+/** The file format version. */
 export const VERSION = 1;
 
-/** `ProgressStore.NUMERIC`: numeric progress columns of the subject table, in file order. */
+/** Numeric progress columns of the subject table, in file order. */
 export const NUMERIC_COLUMNS = [
   'availableAt', 'burnedAt', 'passedAt', 'resurrectedAt', 'startedAt', 'unlockedAt', 'srsStage',
   'lastIncorrectAnswer', 'assignmentId', 'studyMaterialId', 'reviewStatisticId',
@@ -22,7 +21,7 @@ export const NUMERIC_COLUMNS = [
 ] as const;
 export type NumericColumn = (typeof NUMERIC_COLUMNS)[number];
 
-/** `ProgressStore.TEXT`: the learner's own notes and synonyms. */
+/** The learner's own notes and synonyms. */
 export const TEXT_COLUMNS = ['meaningNote', 'meaningSynonyms', 'readingNote'] as const;
 export type TextColumn = (typeof TEXT_COLUMNS)[number];
 
@@ -30,18 +29,18 @@ export type SubjectColumn = NumericColumn | TextColumn;
 /** All saved subject columns in file order (after `id`). */
 export const SUBJECT_COLUMNS: readonly SubjectColumn[] = [...NUMERIC_COLUMNS, ...TEXT_COLUMNS];
 
-/** `ProgressStore.LEVEL_PROGRESSION`, in file order. */
+/** Level progression columns, in file order. */
 export const LEVEL_PROGRESSION_COLUMNS = [
   'id', 'level', 'abandonedAt', 'completedAt', 'createdAt', 'passedAt', 'startedAt', 'unlockedAt',
 ] as const;
 export type LevelProgressionColumn = (typeof LEVEL_PROGRESSION_COLUMNS)[number];
 
-/** Numeric subject columns Room declares nullable (`Long` fields): a restored null stays NULL. */
+/** Numeric subject columns the schema declares nullable: a restored null stays NULL. */
 export const NULLABLE_NUMERIC_COLUMNS: ReadonlySet<SubjectColumn> = new Set<SubjectColumn>([
   'availableAt', 'burnedAt', 'passedAt', 'resurrectedAt', 'startedAt', 'unlockedAt', 'lastIncorrectAnswer',
 ]);
 
-/** Level progression columns Room declares NOT NULL. */
+/** Level progression columns the schema declares NOT NULL. */
 export const NOT_NULL_LEVEL_PROGRESSION_COLUMNS: ReadonlySet<LevelProgressionColumn> = new Set<LevelProgressionColumn>([
   'id', 'level',
 ]);
@@ -69,7 +68,7 @@ export interface Jump {
 /** `Curriculum.Mode`. */
 export type CurriculumMode = 'WANIKANI' | 'JLPT';
 
-/** A fresh subject row, as `ProgressStore.resetProgress` leaves it. */
+/** A fresh subject row, as a full reset leaves it. */
 export function emptySubjectRow(): SubjectProgressRow {
   const row = {} as SubjectProgressRow;
   for (const c of NUMERIC_COLUMNS) row[c] = 0;
@@ -77,7 +76,7 @@ export function emptySubjectRow(): SubjectProgressRow {
   return row;
 }
 
-/** A numeric column read the way Room reads it into a `long`/`int` field: NULL and text that isn't a number are 0. */
+/** A numeric column read as an integer: NULL and text that isn't a number are 0. */
 export function numberOf(value: SqlValue): number {
   if (typeof value === 'number') return value;
   if (typeof value === 'string') {

@@ -1,6 +1,6 @@
 /**
- * "My notes..." (`R.id.action_study_materials` → `StudyMaterialsActivity`): the notes form for one
- * subject, titled `subject.getInfoTitle("My notes for ", ":")`, over the current screen. Save writes
+ * "My notes...": the notes form for one subject, titled "My notes for <subject>:", over the current
+ * screen. Save writes
  * through `useSaveStudyMaterial` (locally, or queued for upload in server mode) and closes; back,
  * Escape and Cancel close without saving.
  */

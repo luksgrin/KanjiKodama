@@ -1,9 +1,6 @@
 /**
- * The notes screen (`StudyMaterialsActivity`) as a pure model, and what saving a study material stores.
- *
- * Java: `activities/StudyMaterialsActivity` (form, `SynonymRowView` arrows, note fields with
- * `android:maxLength="500"`), `jobs/SaveStudyMaterialJob.runLocal`,
- * `db/dao/SubjectSyncDao.insertOrUpdateStudyMaterial`. Fixtures: `answers/synonyms-ui-device.json`,
+ * The notes screen as a pure model (the form, the synonym rows' arrows, note fields of at most 500
+ * characters), and what saving a study material stores. Fixtures: `answers/synonyms-ui-device.json`,
  * `answers/synonyms-storage.json`.
  */
 import {
@@ -37,7 +34,7 @@ export interface StudyMaterialsForm {
   readingNote: string;
 }
 
-/** `StudyMaterialsActivity.populateForm`: rows from the synonyms, notes with NULL as "" and cut to 500. */
+/** The form: rows from the synonyms, notes with NULL as "" and cut to 500. */
 export function populateStudyMaterialsForm(
   synonyms: readonly string[],
   meaningNote: string | null,
@@ -80,7 +77,7 @@ export function editStudyMaterialsForm(form: StudyMaterialsForm, edit: StudyMate
 }
 
 /**
- * `StudyMaterialsActivity.saveStudyMaterials`: the job data from the rows as typed, followed by the
+ * Saving the form: the job data from the rows as typed, followed by the
  * synonyms beyond the 10th that the form doesn't show (`synonyms` is what the form was populated from).
  */
 export function studyMaterialsFormJobData(
@@ -100,8 +97,7 @@ export interface StudyMaterialColumns {
 }
 
 /**
- * `SaveStudyMaterialJob.runLocal` → `insertOrUpdateStudyMaterial(material, patched = true)`: the notes as
- * given, the synonyms serialized, `studyMaterialPatched` 1 (the study material id is left alone).
+ * The stored columns of a saved study material: the notes as given, the synonyms serialized, `studyMaterialPatched` 1 (the study material id is left alone).
  */
 export function storeStudyMaterialJob(job: StudyMaterialJob): StudyMaterialColumns {
   return {

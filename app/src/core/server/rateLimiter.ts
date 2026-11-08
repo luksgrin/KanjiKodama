@@ -1,7 +1,7 @@
 /**
- * `api/RateLimiter`: one call per 1.1 s on average with a burst of 1 (WaniKani allows 60 a minute),
+ * One call per 1.1 s on average with a burst of 1 (WaniKani allows 60 a minute),
  * and a pause after a 429 as if the burst were exceeded by 3. Pure state transitions; the caller
- * sleeps. Extension over Java: the `RateLimit-Remaining` / `RateLimit-Reset` headers WaniKani sends
+ * sleeps. The `RateLimit-Remaining` / `RateLimit-Reset` headers WaniKani sends
  * (and a 429's `Retry-After`) also hold calls until the window resets.
  */
 

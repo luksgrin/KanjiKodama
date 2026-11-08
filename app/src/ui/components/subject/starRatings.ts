@@ -1,7 +1,6 @@
 /**
- * Star ratings (0–5 per subject), the Java app's `subject.typeCode` column (`SubjectEntity.numStars`,
- * `SubjectDao.updateStars`). Java keeps them out of the progress file (they go to their own
- * `star_ratings.json` in the data export), so a progress restore leaves them alone; here they live in
+ * Star ratings (0–5 per subject). They are not in the progress file (they go to their own
+ * `star_ratings.json` in the data export), so a progress restore leaves them alone; they live in
  * the Dexie `meta` table under `starRatings` (`{ [subjectId]: stars }`, unrated subjects absent),
  * which a restore doesn't touch either.
  *
@@ -37,7 +36,7 @@ export async function loadStarRatings(kk: KkDb): Promise<StarRatings> {
   return ratings;
 }
 
-/** `SubjectDao.updateStars` for each id (0 removes the rating). Notifies the hooks. */
+/** Sets the rating of each id (0 removes the rating). Notifies the hooks. */
 export async function setStarRatings(kk: KkDb, ids: readonly number[], stars: number): Promise<StarRatings> {
   const n = Math.max(0, Math.min(5, Math.trunc(stars)));
   const next = await kk.transaction('rw', kk.meta, async () => {
@@ -54,7 +53,7 @@ export async function setStarRatings(kk: KkDb, ids: readonly number[], stars: nu
   return next;
 }
 
-/** `StarRatingView` click: tapping the current rating clears it, any other sets it. */
+/** A star tap: tapping the current rating clears it, any other sets it. */
 export function nextStarRating(current: number, tapped: number): number {
   return current === tapped ? 0 : tapped;
 }

@@ -1,7 +1,7 @@
 /**
- * A chain of Java-style dialogs on one screen (`local/Busy` + `AlertDialog.Builder`): one dialog at a
+ * A chain of dialogs on one screen: one dialog at a
  * time; `run` shows the non-cancelable busy dialog with its label while the work runs, then either
- * continues or shows "Something went wrong" with the error, as `Busy.run` does.
+ * continues or shows "Something went wrong" with the error.
  *
  * Text fields inside a dialog are uncontrolled (read them through a ref in the button handler), as
  * the dialog spec is captured when it is shown.
@@ -15,9 +15,9 @@ export type AlertSpec = Omit<AlertDialogProps, 'open'>;
 export interface Alerts {
   show(spec: AlertSpec): void;
   close(): void;
-  /** `Busy.message`: title (or none), text, OK. `then` runs after OK / cancel. */
+  /** Title (or none), text, OK. `then` runs after OK / cancel. */
   message(title: string | null, text: string, then?: () => void): void;
-  /** `Busy.run`: the busy dialog, then the value, or the error dialog and undefined. */
+  /** The busy dialog, then the value, or the error dialog and undefined. */
   run<T>(label: string, work: () => Promise<T>): Promise<T | undefined>;
   /** True while a dialog is shown. */
   readonly open: boolean;

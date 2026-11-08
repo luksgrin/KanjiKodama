@@ -56,7 +56,7 @@ describe('parseVectorDrawable', () => {
     expect(() => parseVectorDrawable(XML.replace('viewportHeight="1000"', 'viewportHeight="500"'))).toThrow(/square/);
   });
 
-  it('reads every drawable the Java app maps', () => {
+  it('reads every mapped drawable', () => {
     for (const id of TITLE_IMAGE_IDS) {
       const img = parseVectorDrawable(readFileSync(join(DRAWABLE_DIR, `radical_${id}.xml`), 'utf8'), `radical_${id}.xml`);
       expect(img.paths.length, `radical_${id}`).toBeGreaterThan(0);

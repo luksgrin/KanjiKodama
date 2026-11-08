@@ -1,6 +1,6 @@
 /**
- * The iteration order of a Java `HashSet` (a `HashMap` with default capacity 16 and load factor
- * 0.75), for the sets `AdvancedSearchParameters` serializes. Elements iterate by bucket
+ * The iteration order of a hash set (a hash map with default capacity 16 and load factor 0.75), for
+ * the sets the advanced search parameters serialize. Elements iterate by bucket
  * (`(h ^ h >>> 16) & (capacity - 1)`); within a bucket in insertion order, which resizing keeps.
  * (Buckets turn into trees only past 8 colliding entries, which never happens here.)
  */
@@ -12,7 +12,7 @@ export function stringHash(s: string): number {
   return h;
 }
 
-/** `Integer.hashCode`. */
+/** An integer's hash (the value itself). */
 export function integerHash(n: number): number {
   return n | 0;
 }

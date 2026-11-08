@@ -1,10 +1,8 @@
 /**
- * The exit half of Java's fragment slide. `FragmentTransaction.replace()` with
- * `setCustomAnimations(enter, exit)` (enums/FragmentTransitionAnimation) animates both fragments at once:
- * the new one translates in (res/anim/*_enter.xml, decelerate) while the old one translates out
- * (*_exit.xml: 0 → ∓100%, accelerate_interpolator, 150 ms), drawn under the new one (FragmentContainerView
- * draws disappearing views first). React replaces the old view outright, so a still copy of it plays the
- * exit: inert, under the entering fragment, removed when the slide ends.
+ * The exit half of the screen slide. Both screens animate at once: the new one translates in
+ * (decelerating) while the old one translates out (0 → ∓100%, accelerating, 150 ms), drawn under the
+ * new one. React replaces the old view outright, so a still copy of it plays the exit: inert, under the
+ * entering screen, removed when the slide ends.
  */
 
 /** A still, inert copy of the fragment's view (text fields keep what was typed). */

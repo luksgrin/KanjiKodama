@@ -9,7 +9,7 @@ import org.json.JSONObject;
 /**
  * The widget's counts as the app last handed them over (core `planWidget`, src/platform/androidWidget.ts):
  * the counts now plus later entries ({at, lessons, reviews, nextAt}), so the widget can move on at
- * the next review hour without the app running (the Java app recomputed them at its hourly alarm).
+ * the next review hour without the app running.
  */
 public final class WidgetStore {
     private static final String PREFS = "kk_widget";

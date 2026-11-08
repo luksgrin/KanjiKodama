@@ -8,7 +8,7 @@ import { CLOSE_ENOUGH_ACTIONS, checkAnswer, type QuestionType } from '../../src/
 import { parseMeaningSynonyms, parseStudyMaterialJob } from '../../src/core/answer/synonyms';
 import { storeStudyMaterialJob } from '../../src/core/answer/studyMaterials';
 import { applyWaniKaniImport, parseDownload, type ApiEnvelope } from '../../src/core/importer';
-import { JavaException } from '../../src/core/kana';
+import { TypedError } from '../../src/core/kana';
 import {
   contentSubject,
   createLearnerDb,
@@ -40,17 +40,17 @@ function loadResources(): Promise<RunnerResources> {
   return resources;
 }
 
-/** `ScenarioRunner.emptyFile("WANIKANI")`. */
+/** An empty WaniKani-order progress file. */
 const EMPTY_FILE = JSON.stringify({
   format: 'kanjikodama-progress', version: 1, exportedAt: T0, userLevel: 1, levelProgression: [], subjects: [],
   curriculum: 'WANIKANI', probation: [], jumps: [],
 });
 
-/** The Java exception class name the harness records (`getClass().getName()` / `getSimpleName()`). */
-function javaName(e: unknown, simple: boolean): string {
-  if (e instanceof JavaException) return simple ? e.javaClass.replace(/^.*\./, '') : e.javaClass;
-  if (e instanceof Error && 'javaClass' in e && typeof e.javaClass === 'string') {
-    return simple ? e.javaClass.replace(/^.*\./, '') : e.javaClass;
+/** The error type name the fixtures record (full or simple). */
+function errorName(e: unknown, simple: boolean): string {
+  if (e instanceof TypedError) return simple ? e.errorType.replace(/^.*\./, '') : e.errorType;
+  if (e instanceof Error && 'errorType' in e && typeof e.errorType === 'string') {
+    return simple ? e.errorType.replace(/^.*\./, '') : e.errorType;
   }
   throw e;
 }
@@ -71,7 +71,7 @@ function storedSynonyms(db: LearnerDb, id: number): unknown {
   try {
     return parseMeaningSynonyms(progressRow(db, id).meaningSynonyms as string | null);
   } catch (e) {
-    return { error: javaName(e, true) };
+    return { error: errorName(e, true) };
   }
 }
 
@@ -101,13 +101,13 @@ function runOp(db: LearnerDb, op: Op): Record<string, unknown> {
     restoreIntoDb(db, JSON.stringify(op.restore), T0);
     return { ok: true };
   } catch (e) {
-    return { ok: false, error: javaName(e, false) };
+    return { ok: false, error: errorName(e, false) };
   }
 }
 
 goldenSuite<Input, unknown>('answers/synonyms-storage.json', async (input) => {
   const res = await loadResources();
-  // ScenarioRunner.baseReset(1): fresh database, clock at T0, the empty WaniKani file restored.
+  // The base reset (seed 1): fresh database, clock at T0, the empty WaniKani file restored.
   const db = createLearnerDb(res.content, res.jlptKanji);
   restoreIntoDb(db, EMPTY_FILE, T0);
   const id = input.subject;
@@ -132,7 +132,7 @@ goldenSuite<Input, unknown>('answers/synonyms-storage.json', async (input) => {
         const v = checkAnswer(q, subject, answer, { closeEnoughAction: action, requireOnInKatakana: false, meaningSynonyms });
         out[action] = { ok: v.ok, retry: v.retry, nearMatch: v.nearMatch, givenAnswer: v.givenAnswer, matchedAnswer: v.matchedAnswer };
       } catch (e) {
-        out[action] = { error: javaName(e, true) };
+        out[action] = { error: errorName(e, true) };
       }
     }
     checks[answer] = out;

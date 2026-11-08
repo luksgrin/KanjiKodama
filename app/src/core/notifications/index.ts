@@ -1,6 +1,5 @@
 /**
- * Review notifications planned ahead (Android build). Java: services/NotificationWorker,
- * services/BackgroundAlarmReceiver, SubjectAggregatesDao.getAlertContext. See ./plan.ts.
+ * Review notifications planned ahead (Android build). See ./plan.ts.
  */
 export {
   MAX_REVIEW_NOTIFICATIONS,

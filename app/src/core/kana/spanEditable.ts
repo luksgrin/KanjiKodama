@@ -1,7 +1,7 @@
 /**
  * The text of the answer field as Android keeps it: Android's `SpannableStringBuilder` reduced to
  * what the answer field's behaviour depends on. Text watchers run synchronously inside every
- * `replace`, so a watcher that edits the text (the app's `PseudoIme.fixup` watcher) runs again,
+ * `replace`, so a watcher that edits the text (the answer field's `fixup` watcher) runs again,
  * nested, for its own edits, and the selection and composing region move with each edit by
  * Android's span rules. `answerField.ts` builds the app's field on top of it.
  *
@@ -10,7 +10,7 @@
  * coordinates (no gap buffer).
  */
 import type { Editable } from './pseudoIme';
-import { JavaException } from './javaException';
+import { TypedError } from './typedError';
 
 /**
  * How a span end moves when text is inserted exactly at it: a `point` sticks to the text after it
@@ -74,9 +74,9 @@ export class SpanEditable implements Editable {
 
   /** `SpannableStringBuilder.charAt`: throws `IndexOutOfBoundsException` like Android. */
   charAt(index: number): string {
-    if (index < 0) throw new JavaException('IndexOutOfBoundsException', `charAt: ${index} < 0`);
+    if (index < 0) throw new TypedError('IndexOutOfBoundsException', `charAt: ${index} < 0`);
     if (index >= this.value.length) {
-      throw new JavaException('IndexOutOfBoundsException', `charAt: ${index} >= length ${this.value.length}`);
+      throw new TypedError('IndexOutOfBoundsException', `charAt: ${index} >= length ${this.value.length}`);
     }
     return this.value.charAt(index);
   }
@@ -141,7 +141,7 @@ export class SpanEditable implements Editable {
    */
   replace(start: number, end: number, replacement: string | SpannedText): void {
     if (start < 0 || end < start || end > this.value.length) {
-      throw new JavaException('IndexOutOfBoundsException', `replace (${start} ... ${end}) has end before start or is out of bounds (length ${this.value.length})`);
+      throw new TypedError('IndexOutOfBoundsException', `replace (${start} ... ${end}) has end before start or is out of bounds (length ${this.value.length})`);
     }
     const text = typeof replacement === 'string' ? replacement : replacement.text;
     for (const filter of this.filters) filter(this, start, end, text);

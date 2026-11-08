@@ -1,7 +1,7 @@
 /*
- * activity_theme_customization.xml. The sample panel's black (#000000), its #D0D0D0 labels and the
- * dashed highlight_border (1 dp #D0D0D0, dash 6 gap 4, radius 2) are fixed colours in the Java layout.
- * Content padding 8 dp = .kk-main's gutter.
+ * Theme customization. The sample panel's black (#000000), its #D0D0D0 labels and the dashed
+ * highlight border (1 px #D0D0D0, dash 6 gap 4, radius 2) are fixed colours in every theme.
+ * Content padding 8 px = .kk-main's gutter.
  */
 .kk-tc-panel { background: #000; color: #D0D0D0; }
 .kk-tc-label { margin: 0; padding: 9.5px 8px 0; text-align: center; font-size: 14px; line-height: 1.2; }

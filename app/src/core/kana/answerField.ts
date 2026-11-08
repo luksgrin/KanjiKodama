@@ -1,6 +1,6 @@
 /**
- * The quiz answer field's logic, from `fragments/UnansweredSessionFragment`: the TextWatcher that
- * runs `PseudoIme.fixup` over every change while a reading is typed, and the decisions of its
+ * The quiz answer field's logic: the TextWatcher that runs `fixup` over every change while a reading
+ * is typed, and the decisions of its
  * key and editor-action listeners (which keys submit, which are swallowed).
  *
  * The watcher is attached to a {@link SpanEditable}, so it runs again, nested, for every
@@ -23,7 +23,7 @@ export interface KeyEventLike {
  * `onTextChanged` reported (start, start + count).
  */
 export class FixupWatcher implements TextWatcher {
-  /** The range from the last `onTextChanged` (the span the Java watcher puts on its copy); −1 when unset. */
+  /** The range from the last `onTextChanged`; −1 when unset. */
   private pendingStart = -1;
   private pendingEnd = -1;
   /** Counters for tests: fixup calls, current and maximum nesting. */
@@ -36,7 +36,7 @@ export class FixupWatcher implements TextWatcher {
     private readonly isActive: () => boolean,
     /** `question.getType().isKana()`: a reading question. */
     private readonly isKana: () => boolean,
-    /** `FloatingUiState.setCurrentAnswer`. */
+    /** Receives the current answer text. */
     private readonly onAnswer: (text: string) => void = () => {},
   ) {}
 
@@ -62,20 +62,20 @@ export class FixupWatcher implements TextWatcher {
     try {
       fixup(s, begin, end);
     } catch {
-      // `ObjectSupport.safe` swallows it in the app.
+      // The app swallows it.
     } finally {
       this.depth--;
     }
   }
 }
 
-/** `UnansweredSessionFragment.isEnterKey`: Enter or numpad Enter. */
+/** Enter or numpad Enter. */
 export function isEnterKey(event: KeyEventLike | null): boolean {
   return event !== null && (event.keyCode === 'ENTER' || event.keyCode === 'NUMPAD_ENTER');
 }
 
 /**
- * `UnansweredSessionFragment.swallowFocusKey` (the field's OnKeyListener): Tab (with or without
+ * The field's key listener: Tab (with or without
  * Shift) and every Enter or numpad Enter release are consumed, so focus never leaves the field
  * for the session buttons.
  */
@@ -101,7 +101,7 @@ export interface EditorActionResult {
 }
 
 /**
- * `UnansweredSessionFragment.handleEditorAction(actionId, event)`: an IME action other than
+ * An editor action (`actionId`, `event`): an IME action other than
  * `IME_ACTION_UNSPECIFIED` (0) or an Enter/numpad Enter press submits; an Enter release is consumed.
  * After a submit the caller makes the field inactive, and active again on a retry verdict.
  */

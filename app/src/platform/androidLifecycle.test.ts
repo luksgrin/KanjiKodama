@@ -110,7 +110,7 @@ describe('resume / pause', () => {
 });
 
 describe('haptics and system bars', () => {
-  it('vibrates with HapticUtil fallback durations', () => {
+  it('vibrates with the one-shot durations', () => {
     const vibrate = vi.fn(() => true);
     Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true });
     expect(androidHaptics.supported).toBe(true);

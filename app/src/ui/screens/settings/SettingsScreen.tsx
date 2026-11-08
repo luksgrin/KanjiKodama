@@ -1,9 +1,8 @@
 /**
- * Settings: Java's `PreferencesActivity` with `preferences.xml`. The root lists the sub-screens
+ * Settings. The root lists the sub-screens
  * (`schema.ts` `SETTINGS_SCREENS`), then the categories "Advanced settings" (the switch, and the four
  * advanced sub-screens while it is on), "Progress" (`ProgressSection.tsx`) and "Other actions".
- * A sub-screen is `/settings?screen=<key>` with its title in the toolbar, like
- * `PreferencesFragment.onResume`.
+ * A sub-screen is `/settings?screen=<key>` with its title in the toolbar.
  *
  * Curriculum order, fast travel and the WaniKani import are dialog chains over this screen
  * (`CurriculumUi`, `ProgressPreferences`); their routes render this screen with `autoStart`.
@@ -40,11 +39,11 @@ import { PrefCategory, PrefRow, SettingGroupRows, SettingRow, useScreenLinkActio
 import { useAlerts, type Alerts } from './useAlerts';
 import './settings.css';
 
-/** `Constants.RESET_TUTORIALS_WARNING`. */
+/** The warning before confirmations and tutorials are reset. */
 export const RESET_TUTORIALS_WARNING = 'This will re-enable all UI confirmations and reinstate all tutorial messages.'
   + ' Are you sure you want to continue?';
 
-/** `GlobalSettings.resetConfirmationsAndTutorials` (plus the web build's install hint). */
+/** "Reset UI confirmations and tutorials" (plus the web build's install hint). */
 export const RESET_TUTORIALS_VALUES: Readonly<Preferences> = {
   ui_confirm_abandon_session: true,
   ui_confirm_wrapup_session: true,

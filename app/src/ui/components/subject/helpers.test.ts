@@ -57,7 +57,7 @@ describe('subject text lines (Subject.get*RichText)', () => {
     ],
   });
 
-  it('builds the lines as Java does', () => {
+  it('builds the info lines', () => {
     expect(simpleInfoTitle('kana_vocabulary', 3)).toBe('Level 3 kana-only vocabulary');
     expect(meaningHtml(s)).toBe('<b>Language</b>, Word');
     expect(meaningHtml(subject({ meanings: [{ meaning: 'a<b', primary: true, accepted_answer: true }] }))).toBe('a&lt;b');
@@ -67,7 +67,7 @@ describe('subject text lines (Subject.get*RichText)', () => {
     expect(noteHtml('reading', 'x <y>\nz')).toBe('<b>My reading note</b>: x &lt;y&gt;<br/>z');
     expect(oneMeaning(s)).toBe('Language');
     expect(oneReading(s, true)).toBe('ゴ');
-    // Stream.reduce: no primary → the last accepted one wins over an earlier accepted one only if t isn't accepted.
+    // No primary → the last accepted one wins over an earlier accepted one only if t isn't accepted.
     expect(oneMeaning(subject({ meanings: [
       { meaning: 'a', primary: false, accepted_answer: false },
       { meaning: 'b', primary: false, accepted_answer: true },
@@ -76,8 +76,8 @@ describe('subject text lines (Subject.get*RichText)', () => {
   });
 });
 
-describe('stroke paths (StrokeDiagramView)', () => {
-  it('splits coordinates like the Java regex', () => {
+describe('stroke paths', () => {
+  it('splits coordinates like the coordinate regex', () => {
     expect(splitCoordinates('1.25-0.5.5,2')).toEqual([1.25, -0.5, 0.5, 2]);
     expect(splitCoordinates(' 15.50,40.50')).toEqual([15.5, 40.5]);
   });
@@ -97,7 +97,7 @@ describe('stroke paths (StrokeDiagramView)', () => {
 
   it('handles H, V, L, S, relative commands and Z', () => {
     const s = parseStroke('M10,10h5v5l-5,0zM50,50S60,60,70,50');
-    // Java's instruction regex needs a non-letter after the command: "z" right before "M" is skipped.
+    // The instruction regex needs a non-letter after the command: "z" right before "M" is skipped.
     expect(s.d).toBe('M10 10L15 10L15 15L10 15M50 50C50 50 60 60 70 50');
     expect(parseStroke('M10,10h5z m1,1l1,1').d).toBe('M10 10L15 10ZM10 10M11 11L12 12');
     expect(s.length).toBeGreaterThan(20);
@@ -124,7 +124,7 @@ describe('stroke paths (StrokeDiagramView)', () => {
   });
 });
 
-describe('pitch info (PitchInfoView, PitchInfoDiagramView)', () => {
+describe('pitch info', () => {
   it('parses records like PitchInfoDeserializer', () => {
     expect(parsePitchInfo('[["いち",null,2],[null,"名",0],["x",null],[1,2,3]]')).toEqual([
       { reading: 'イチ', partOfSpeech: null, pitchNumber: 2 },

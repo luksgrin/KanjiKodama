@@ -1,11 +1,11 @@
 /**
- * The subject title's long press (`SubjectInfoButtonView`): an action mode bar above the toolbar
+ * The subject title's long press: an action mode bar above the toolbar
  * (the framework's primary ActionMode: #303030 with the 2 dp `colorControlActivated` line, Done at
  * the left, the content pushed down 56 dp) with "Copy title" and the configured search engines
  * (`search_engine_1..5`); the items that don't fit go into its overflow menu
  * (`ActionMenuPresenter`: 2 / 3 / 4 / 5 buttons by screen width, one slot kept for the overflow).
  * Copy → "Subject title copied"; a search engine opens its URL in the browser. An image-only radical
- * gets Java's toast instead. Done, Back or an action closes it.
+ * gets a toast instead. Done, Back or an action closes it.
  */
 import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
@@ -98,7 +98,7 @@ function ActionModeBar({ state }: { state: ActionModeState }) {
     ...searchEngines(state.prefs).map((e) => ({ id: `search-${e.index}`, label: e.name, run: () => openUrl(searchUrl(e, state.characters)) })),
   ];
   const max = maxActionButtons(typeof window === 'undefined' ? 411 : window.innerWidth);
-  // Measured on Java (411 dp, 3 slots): Copy title + 2 engines → 2 buttons and the overflow.
+  // 411 px wide, 3 slots: Copy title + 2 engines → 2 buttons and the overflow.
   const shown = items.length >= max ? items.slice(0, max - 1) : items;
   const overflow = items.slice(shown.length);
   const pick = (run: () => void) => { setMenuOpen(false); run(); finishTitleActionMode(); };
@@ -144,7 +144,7 @@ function TitleActionModeHost({ owner }: { owner: object }) {
 
 /**
  * The WebView starts a text selection at the long-pressed point once the bar has pushed the page
- * down (Java's long click consumes the press): no selection until the finger lifts.
+ * down (the long press is consumed): no selection until the finger lifts.
  */
 function blockSelectionUntilRelease(): void {
   if (typeof document === 'undefined') return;

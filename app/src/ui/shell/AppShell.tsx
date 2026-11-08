@@ -1,9 +1,9 @@
 /**
- * The app frame, as the Java activities: start-up screen until ready, then the toolbar (title, up
+ * The app frame: start-up screen until ready, then the toolbar (title, up
  * arrow on every screen but the dashboard, actions and overflow menu; screens configure it with
  * `useToolbar`) and the current screen. Navigation is through the dashboard's buttons, the toolbar's
  * Search / Dashboard actions and the overflow menu (Settings, Browse/search..., Self-study quiz,
- * About...), as in Java: there is no bottom tab bar.
+ * About...): there is no bottom tab bar.
  *
  * Screen changes slide in briefly (forward from the right, back from the left: a short version of
  * the Android activity transition); none with `prefers-reduced-motion`.
@@ -12,7 +12,6 @@ import { Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { handleBack } from '../../app/back';
 import { useApp, useAppState } from '../hooks/useApp';
 import { useLocation, useRoute } from '../hooks/useRoute';
-import { LegacyMigrationPrompt } from '../migration/LegacyMigrationPrompt';
 import { preloadScreen, SCREENS } from '../screens';
 import { KeyboardDiagnosticsOverlay } from './KeyboardDiagnosticsOverlay';
 import { StartupScreen } from './StartupScreen';
@@ -21,7 +20,7 @@ import { ToolbarView } from './ToolbarView';
 /** Screens likely next from the dashboard: their chunks are fetched when the browser is idle. */
 const PRELOAD_AFTER_START = ['reviews', 'lessons', 'summary', 'subject', 'settings', 'browse', 'searchResults'] as const;
 
-/** Last scroll position per screen (path + query), restored when Back returns to it (Java's back stack). */
+/** Last scroll position per screen (path + query), restored when Back returns to it. */
 const scrollPositions = new Map<string, number>();
 
 export function AppShell() {
@@ -66,8 +65,8 @@ export function AppShell() {
   }
 
   // A new screen starts at the top; settings sub-screens (`?screen=`) are screens of their own too.
-  // Back (history depth going down) returns to where the screen was scrolled, as Java's back stack
-  // does (e.g. the settings root after a sub-screen).
+  // Back (history depth going down) returns to where the screen was scrolled (e.g. the settings root
+  // after a sub-screen).
   const query = route.query.toString();
   const scrollKey = `${route.path}?${query}`;
   const keyDepthRef = useRef(location.depth());
@@ -107,8 +106,6 @@ export function AppShell() {
           <Screen />
         </Suspense>
       </main>
-      {/* Android, once after installing over the Java app: move its progress (step 6). */}
-      <LegacyMigrationPrompt />
       {/* Hidden keyboard diagnostics (About → seven taps on the version): the last log lines. */}
       <KeyboardDiagnosticsOverlay />
     </div>

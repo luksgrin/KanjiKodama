@@ -78,7 +78,7 @@ export function testPlatform(): Platform & { scheduled: unknown[]; backups: stri
     name: 'android',
     capabilities: {
       notifications: true, audio: false, audioPlayback: false, audioDownload: false, haptics: true, backgroundSync: false,
-      widget: false, cleartextHttp: false, legacyMigration: false, autoBackup: true,
+      widget: false, cleartextHttp: false, autoBackup: true,
     },
     storage: { persist: vi.fn(async () => true), persisted: vi.fn(async () => true), estimate: vi.fn(async () => null) },
     notifications: {

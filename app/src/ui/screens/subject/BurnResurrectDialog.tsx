@@ -1,8 +1,7 @@
 /**
- * `activities/ResurrectActivity` and `BurnActivity` as a dialog: the texts and counters of
- * `activity_resurrect.xml` / `activity_burn.xml`, the subjects listed, Start runs the local patch
- * (`resurrectLocal` / `burnLocal` through `runBurnResurrect`). Local mode only: Java's web-site login is
- * not available here (there is no "Stop": the local patch is instant).
+ * Resurrect and burn as a dialog: the texts and counters, the subjects listed, Start runs the local
+ * patch (`resurrectLocal` / `burnLocal` through `runBurnResurrect`). Local mode only (there is no
+ * "Stop": the local patch is instant).
  */
 import { useState } from 'react';
 import type { ContentSubject } from '../../../core/content';

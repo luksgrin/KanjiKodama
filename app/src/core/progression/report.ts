@@ -1,5 +1,5 @@
 /**
- * `jobs/ReportSessionItemJob.runLocal` in local mode: a finished lesson starts the subject, a
+ * A lesson or review result in local mode: a finished lesson starts the subject, a
  * finished review moves its stage and statistics (and takes it off fast-travel probation), then
  * local progression runs; any wrong answer sets `lastIncorrectAnswer`. The session item update is
  * the session's own business.
@@ -83,7 +83,7 @@ export function reportLocal(db: LearnerDb, report: LocalReport, now: number): bo
   return firstPassed;
 }
 
-/** What a server-mode report hands to the upload queue (`ReportSessionItemTask`). */
+/** What a server-mode report hands to the upload queue. */
 export interface ServerReport extends LocalReport {
   /** The session item's assignment id (0 when not known yet). */
   assignmentId: number;
@@ -94,7 +94,7 @@ export interface ServerReport extends LocalReport {
 }
 
 /**
- * `jobs/ReportSessionItemJob.runLocal` in server mode: the same local prediction as local mode (the
+ * A lesson or review result in server mode: the same local prediction as local mode (the
  * "patched" assignment and review statistic, `assignmentPatched`/`statisticPatched` = 1, replaced
  * when the server's data comes in), but no fast-travel probation and no local progression: the
  * server decides unlocks and level-ups. Returns what to upload, or null for a self-study item (no

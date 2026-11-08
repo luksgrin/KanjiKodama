@@ -1,10 +1,8 @@
 /**
- * Renders WaniKani markup (mnemonics, hints, the info lines the Java app builds as HTML) as React
- * elements from the parsed tree: never `dangerouslySetInnerHTML`. Subject tags are colored chips
- * like the Java `ButtonStyleSpan` when `highlight` is on (the `highlight_subject_tags` setting,
+ * Renders WaniKani markup (mnemonics, hints, the info lines the app builds as HTML) as React
+ * elements from the parsed tree: never `dangerouslySetInnerHTML`. Subject tags are coloured chips
+ * when `highlight` is on (the `highlight_subject_tags` setting,
  * default on), bold otherwise; `<ja>` text gets `lang="ja"` and the Japanese font.
- *
- * Java: `components/WaniKaniTagHandler`, `util/TextUtil.renderHtml`.
  */
 import './subject.css';
 import { Fragment, useMemo, type ReactNode } from 'react';
@@ -98,7 +96,7 @@ export function renderMarkupNodes(nodes: readonly MarkupNode[], highlight: boole
 }
 
 export interface WkMarkupProps {
-  /** The markup (WaniKani content or a line the Java app builds as HTML). */
+  /** The markup (WaniKani content or a line the app builds as HTML). */
   html: string;
   /** Colored subject tags (`highlight_subject_tags`, default true); bold when false. */
   highlight?: boolean;

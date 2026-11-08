@@ -1,13 +1,12 @@
 /*
- * Pixel Forest theme tokens (light and dark), ported from the Java app's KanjiKodamaLightTheme /
- * KanjiKodamaDarkTheme (the Java app's res/values/{colors,styles}.xml, snapshot in
- * test/fixtures/java/; enums/ActiveTheme.java).
+ * Pixel Forest theme tokens (light and dark): the KanjiKodama light and dark themes. The colours are
+ * pinned by test/app/themeColors.test.ts.
  * Dark: the system setting, unless <html data-theme="light|dark"> overrides it (app/theme.ts).
  * See README.md for what each token is for.
  */
 :root {
   color-scheme: light;
-  /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+  /* Pixel Forest palette */
   --kk-ink: #2E4756;
   --kk-muted: #3E7F6B;
   --kk-toned: #5C8A7A;
@@ -32,7 +31,7 @@
   --color-pref-summary: rgb(0 0 0 / 0.6); /* Preference summary: ?android:textColorSecondary */
   --color-dialog-item: rgb(0 0 0 / 0.87); /* AlertDialog list items: ?textColorAlertDialogListItem */
   --color-control-normal: rgb(0 0 0 / 0.54); /* unchecked radio buttons: ?colorControlNormal */
-  --color-edit-line: rgb(0 0 0 / 0.6); /* EditText underline and hint (measured on the Java app) */
+  --color-edit-line: rgb(0 0 0 / 0.6); /* text field underline and hint */
   --color-divider: #BFD9CB;
   --color-accent: #7CC8AC;
   --color-target: #E9B572;
@@ -41,7 +40,7 @@
   --color-toolbar-fg: #FFFFFF; /* ThemeOverlay.AppCompat.Dark.ActionBar */
   --color-toast-bg: #F1F1F1;
   --color-toast-fg: #1F1F1F;
-  /* The quiz's SRS / close-enough toasts (WK.TextView.CustomToast): the same in every theme. */
+  /* The quiz's SRS / close-enough toasts: the same in every theme. */
   --color-custom-toast-bg: #FFFF80;
   --color-custom-toast-fg: #000000;
   /* The alternatives toast (alternativeToastColorPrimary; Nord #E5E9F0, themes.ts). */
@@ -49,7 +48,7 @@
   --color-level-up: #3FA383;
   --color-ok: #3FA383;
   --color-bad: #D9667F;
-  --color-bad-text: #D9667F; /* = --color-bad (Java has one error colour) */
+  --color-bad-text: #D9667F; /* = --color-bad (one error colour) */
   --color-warn-bg: #F6D7B0;
   --color-chip: #A8E6CF;
   --btn-fill: #A8E6CF;
@@ -58,8 +57,8 @@
   --btn-outline: #2E4756;
   --color-shadow: #9CCDB8;
   --btn-text: #2E4756; /* WK.Button.Normal: mmInkLight in both themes */
-  --btn-secondary-text: #2E4756; /* Java has one button style (mm_btn): .kk-btn.secondary = .kk-btn */
-  /* Theme attributes the upstream themes change (ui/theme/themes.ts maps them) */
+  --btn-secondary-text: #2E4756; /* one button style: .kk-btn.secondary = .kk-btn */
+  /* Theme attributes the other themes change (ui/theme/themes.ts maps them) */
   --color-primary-light: #3E7F6B; /* colorPrimaryLight: text on subject / browse-level colours */
   --color-primary-dark: #2E4756; /* colorPrimaryDark: borderless buttons on the yellow tutorial boxes */
   --color-control-activated: #7CC8AC; /* colorControlActivated: switches, seek bars */
@@ -69,7 +68,7 @@
   --color-pitch-odaka: #0CD24D;
   --color-pitch-nakadaka: #27A2FF;
   --color-pitch-atamadaka: #EA9316;
-  /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+  /* Card text (KanjiKodama themes only): meaning / reading / progress on the cards
      in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
      black 1 px shadow (themes.ts). */
   --color-card-ink-radical: #1D4A7A;
@@ -110,7 +109,7 @@
   --color-lp-8: #B7C9BD;
   --color-lp-9: #DDEBE2;
 
-  /* Quiz (styles.xml wkLight* meaning/reading hint, correct/incorrect backgrounds; ActiveTheme KANJIKODAMA_LIGHT ankiColors) */
+  /* Quiz (meaning/reading banner, correct/incorrect backgrounds, Anki colours) */
   --color-q-meaning-bg: #FFFFFF;
   --color-q-meaning-fg: #000000;
   --color-q-reading-bg: #000000;
@@ -124,17 +123,16 @@
   --color-anki-text: #FFFFFF;
   --color-anki-answer-bg: #909000;
 
-  /* Fonts: pixel for Latin; Japanese in the system CJK font, as the Java app (its TextViews fall back
-     from Pixelify Sans/Silkscreen to the system font, Noto Sans CJK on Android; the bundled Zen Maru
-     Gothic is never used there). */
+  /* Fonts: pixel for Latin; Japanese in the system CJK font (Pixelify Sans/Silkscreen fall back to it,
+     Noto Sans CJK on Android; the bundled Zen Maru Gothic is not used). */
   --font-ja: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
   --font-body: 'Pixelify Sans', var(--font-ja);
   --font-display: 'Silkscreen', var(--font-ja);
-  /* SubjectInfoButtonView glyphs (quiz question, item title tile, subject cards): Roboto's metrics for the
-     vertical centring, the CJK face for the outlines (fonts.css). */
+  /* Big glyphs (quiz question, item title tile, subject cards): Roboto's metrics for the vertical
+     centring, the CJK face for the outlines (fonts.css). */
   --font-glyph: 'KK Android Metrics', var(--font-ja);
 
-  /* Type scale (WK.TextView.*: 13/14/16/20/26/34 sp) */
+  /* Type scale (13/14/16/20/26/34 px) */
   --text-xs: 13px;
   --text-sm: 14px;
   --text-md: 16px;
@@ -164,9 +162,9 @@
   --dev-px: calc(1px / var(--kk-dpr, 1));
   /* TextView.setShadowLayer(3, 1, 1, black) / android:shadowRadius="3" shadowDx/Dy="1": a 1 device px offset
      and a Gaussian of sigma 3 × 0.57735 + 0.5 = 2.23 device px (Skia's radius → sigma); a CSS blur radius is
-     2 sigma: 4.46 device px. One layer, as Java draws one. */
+     2 sigma: 4.46 device px. One layer. */
   --text-shadow-3px: var(--dev-px) var(--dev-px) calc(4.46 * var(--dev-px)) #000;
-  /* The same layer on big glyphs (quiz question, item title tile: SubjectInfoButtonView's paint). */
+  /* The same layer on big glyphs (quiz question, item title tile). */
   --text-shadow-3px-glyph: var(--text-shadow-3px);
 
   /* Safe areas: Capacitor's SystemBars injects --safe-area-inset-* on Android (edge-to-edge);
@@ -178,14 +176,14 @@
 
   /* Layout */
   --toolbar-height: 56px; /* ?attr/actionBarSize */
-  --main-gutter: 8px; /* .kk-main padding (the Java layouts' 8dp margins); bleed with calc(-1 * var(--main-gutter)) */
+  --main-gutter: 8px; /* .kk-main padding (8px margins); bleed with calc(-1 * var(--main-gutter)) */
   --content-max-width: 640px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+    /* Pixel Forest palette */
     --kk-ink: #E3F4EA;
     --kk-muted: #A9C9BC;
     --kk-toned: #7FA898;
@@ -210,7 +208,7 @@
   --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
   --color-dialog-item: rgb(255 255 255 / 0.87);
   --color-control-normal: rgb(255 255 255 / 0.7);
-  --color-edit-line: rgb(255 255 255 / 0.7); /* EditText underline and hint (measured on the Java app) */
+  --color-edit-line: rgb(255 255 255 / 0.7); /* text field underline and hint */
     --color-divider: #2B414A;
     --color-accent: #8EE3C8;
     --color-target: #E8B97A;
@@ -242,7 +240,7 @@
     --color-pitch-odaka: #0CD24D;
     --color-pitch-nakadaka: #27A2FF;
     --color-pitch-atamadaka: #EA9316;
-    /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+    /* Card text (KanjiKodama themes only): meaning / reading / progress on the cards
        in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
        black 1 px shadow (themes.ts). */
     --color-card-ink-radical: #1D4A7A;
@@ -280,7 +278,7 @@
     --color-lp-7: #7D6370;
     --color-lp-8: #4A5F66;
     --color-lp-9: #2B414A;
-    /* Quiz (styles.xml wkDark*; ActiveTheme KANJIKODAMA_DARK ankiColors) */
+    /* Quiz (banner, backgrounds, Anki colours) */
     --color-q-meaning-bg: #C0C0C0;
     --color-q-meaning-fg: #000000;
     --color-q-reading-bg: #000000;
@@ -298,7 +296,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  /* Pixel Forest palette (durtles res/values/colors.xml mm*) */
+  /* Pixel Forest palette */
   --kk-ink: #E3F4EA;
   --kk-muted: #A9C9BC;
   --kk-toned: #7FA898;
@@ -323,7 +321,7 @@
   --color-pref-summary: rgb(255 255 255 / 0.7); /* ?android:textColorSecondary (dark) */
   --color-dialog-item: rgb(255 255 255 / 0.87);
   --color-control-normal: rgb(255 255 255 / 0.7);
-  --color-edit-line: rgb(255 255 255 / 0.7); /* EditText underline and hint (measured on the Java app) */
+  --color-edit-line: rgb(255 255 255 / 0.7); /* text field underline and hint */
   --color-divider: #2B414A;
   --color-accent: #8EE3C8;
   --color-target: #E8B97A;
@@ -355,7 +353,7 @@
   --color-pitch-odaka: #0CD24D;
   --color-pitch-nakadaka: #27A2FF;
   --color-pitch-atamadaka: #EA9316;
-  /* SubjectCardBinder.styleCardText (KanjiKodama themes only): meaning / reading / progress on the cards
+  /* Card text (KanjiKodama themes only): meaning / reading / progress on the cards
      in a deep shade of the card colour, no shadow. Upstream themes: colorPrimaryLight with the layout's
      black 1 px shadow (themes.ts). */
   --color-card-ink-radical: #1D4A7A;
@@ -393,7 +391,7 @@
   --color-lp-7: #7D6370;
   --color-lp-8: #4A5F66;
   --color-lp-9: #2B414A;
-  /* Quiz (styles.xml wkDark*; ActiveTheme KANJIKODAMA_DARK ankiColors) */
+  /* Quiz (banner, backgrounds, Anki colours) */
   --color-q-meaning-bg: #C0C0C0;
   --color-q-meaning-fg: #000000;
   --color-q-reading-bg: #000000;

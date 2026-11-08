@@ -1,6 +1,6 @@
 /*
- * Font selection / Font import (fontScreens.tsx), measured on the Java app: 8 dp page padding;
- * selection rows 4 dp apart, the name (WK.TextView.Large, 20 sp) 4 dp in, the sample (XXLarge, 34 sp,
+ * Font selection / Font import (fontScreens.tsx): 8 px page padding;
+ * selection rows 4 px apart, the name (20 px) 4 px in, the sample (34 px,
  * the font's own line height) under it, the SwitchCompat centred at the right; import rows are a
  * TableLayout of the name (16 sp) and two 88 × 48 dp borderless buttons.
  */
@@ -20,7 +20,7 @@
 .kk-font-name { grid-column: 1; margin: 4px 0 0 4px; font-size: var(--text-lg); line-height: normal; }
 .kk-font-sample { grid-column: 1; margin-top: 4px; font-family: var(--font-ja); font-size: var(--text-xxl); line-height: normal; }
 /* "Android default": the system CJK face's box (Noto Sans CJK through the fallback line spacing),
-   measured 130 px at 34 sp × 2.625 on the Java app. The loaded faces carry their box (quizFonts.ts). */
+   130 device px at 34 px × 2.625. The loaded faces carry their box (quizFonts.ts). */
 .kk-font-sample.default { line-height: 1.457; }
 .kk-font-switch {
   grid-column: 2;

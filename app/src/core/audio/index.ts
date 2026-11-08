@@ -1,6 +1,6 @@
 /**
  * Pronunciation audio decisions (Android build): which recording to play, which files to download,
- * where they live. Java: util/AudioUtil, tasks/DownloadAudioTask. See ./audio.ts.
+ * where they live. See ./audio.ts.
  */
 export {
   AUDIO_DIR,

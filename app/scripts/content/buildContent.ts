@@ -3,14 +3,13 @@
  * kanji list and the reference data of `res/raw/` → one SQLite file plus its manifest. Table layout:
  * `src/content/contentFile.ts`. Same inputs give the same bytes (no timestamps, fixed row order).
  *
- * What it reproduces from the Java app:
- * - `local/ExtraContent.ensureImported`: extras merged in (ids from 100000, WaniKani level 61,
- *   kanji components resolved to radicals by character) — the subject rows via `mergeExtraContent`,
- *   the text columns as `ExtraContent.upsert` writes them;
- * - `tasks/LoadReferenceDataTask`: frequency, Jōyō grade, JLPT level (`withReferenceData`), stroke
- *   data (with `ReferenceDataUtil.STROKE_DATA_OVERRIDE`, see `strokeOverrides.ts`) and pitch info;
- * - `local/Curriculum.layout`: the JLPT order of every subject (`curriculumLayout`, which runs the
- *   `JlptPlan` port) next to the WaniKani order.
+ * What it adds to the WaniKani content:
+ * - the extra kanji (ids from 100000, WaniKani level 61, kanji components resolved to radicals by
+ *   character): the subject rows via `mergeExtraContent`, plus their text columns;
+ * - reference data: frequency, Jōyō grade, JLPT level (`withReferenceData`), stroke data (with the
+ *   overrides in `strokeOverrides.ts`) and pitch info;
+ * - the JLPT order of every subject (`curriculumLayout`, which runs the JLPT plan) next to the
+ *   WaniKani order.
  */
 import { createHash } from 'node:crypto';
 import type { Database, SqlJsStatic, SqlValue } from 'sql.js';
@@ -98,7 +97,7 @@ function meta(db: Database, key: string): string | undefined {
   return r === undefined ? undefined : String(r[0]);
 }
 
-/** `ExtraContent.searchTarget`: characters twice, then every meaning and reading. */
+/** Characters twice, then every meaning and reading. */
 function extraSearchTarget(characters: string, meanings: string, readings: string): string {
   const parts = [characters, characters];
   for (const m of JSON.parse(meanings) as { meaning: string }[]) parts.push(m.meaning);
@@ -108,7 +107,7 @@ function extraSearchTarget(characters: string, meanings: string, readings: strin
 
 type Row = Record<SubjectColumn, SqlValue>;
 
-/** The extra subject's full row, as `ExtraContent.upsert` inserts it into a fresh table. */
+/** The extra subject's full row, as inserted into a fresh table. */
 function extraRows(extraDb: Database, merged: ReadonlyMap<number, ContentSubject>): Map<number, Row> {
   const out = new Map<number, Row>();
   const q = 'SELECT id, object, characters, meanings, auxiliary_meanings, readings, meaning_mnemonic, meaning_hint,'
@@ -149,7 +148,7 @@ function extraRows(extraDb: Database, merged: ReadonlyMap<number, ContentSubject
   return out;
 }
 
-/** `ReferenceDataUtil.getStrokeData`: the per-id override first, then radicals and kanji by characters. */
+/** Stroke data: the per-id override first, then radicals and kanji by characters. */
 function strokeDataOf(s: ContentSubject, strokes: ReadonlyMap<string, string[]>): string | null {
   const override = STROKE_DATA_OVERRIDE[s.id];
   if (override !== undefined) return JSON.stringify(override);
@@ -160,7 +159,7 @@ function strokeDataOf(s: ContentSubject, strokes: ReadonlyMap<string, string[]>)
 
 type PitchEntry = [string | null, string | null, number];
 
-/** `ReferenceDataUtil.getPitchInfo`: vocabulary and kana vocabulary by characters (`[]` is kept). */
+/** Pitch info: vocabulary and kana vocabulary by characters (`[]` is kept). */
 function pitchInfoOf(s: ContentSubject, pitch: ReadonlyMap<string, PitchEntry[]>): string | null {
   if (s.characters === null || (s.object !== 'vocabulary' && s.object !== 'kana_vocabulary')) return null;
   const info = pitch.get(s.characters);
@@ -218,7 +217,7 @@ export function buildContent(SQL: SqlJsStatic, inputs: ContentInputs): BuiltCont
       insertAll(out, 'srs_system', SRS_SYSTEM_COLUMNS, rows(wkDb, `SELECT ${SRS_SYSTEM_COLUMNS.join(', ')} FROM srs_system ORDER BY id`));
     }
 
-    // --- reference data stored as the Java app stores it --------------------------------------
+    // --- reference data, as JSON text per subject ------------------------------------------
     const strokes = jsonTable<string[]>(inputs.strokeData);
     const pitch = jsonTable<PitchEntry[]>(inputs.pitchInfo);
     const strokeCount = insertAll(out, 'stroke_data', ['id', 'data'], content.subjects.flatMap((s) => {

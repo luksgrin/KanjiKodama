@@ -5,13 +5,13 @@ through `Platform` in `index.ts`. `getPlatform()` picks `android.ts` when
 `Capacitor.isNativePlatform()` is true, else `web.ts`. Screens read `platform.capabilities` and
 never check `platform.name`.
 
-## Interface (what step 4 needs)
+## Interface
 
 | Part | Members |
 |---|---|
-| `capabilities` | `notifications`, `audio`, `haptics`, `backgroundSync`, `widget`, `cleartextHttp`, `legacyMigration`, `autoBackup`, `imeFlags` (Android: the answer field IME flags), `audioFocus` (Android: native playback with the `use_audio_focus` request) |
+| `capabilities` | `notifications`, `audio`, `haptics`, `backgroundSync`, `widget`, `cleartextHttp`, `autoBackup`, `imeFlags` (Android: the answer field IME flags), `audioFocus` (Android: native playback with the `use_audio_focus` request) |
 | `storage` | `persist()`, `persisted()`, `estimate()` → `{usage, quota} \| null` |
-| `files` | `saveText(name, text)` → `'saved' \| 'cancelled'`; `openText()` → `{name, text} \| null`; Android only: `shareText(name, text)` (share sheet, Java `ACTION_SEND`), `writeAutoBackup(text, now?)`, `listAutoBackups()` (newest first) |
+| `files` | `saveText(name, text)` → `'saved' \| 'cancelled'`; `openText()` → `{name, text} \| null`; Android only: `shareText(name, text)` (share sheet, `ACTION_SEND`), `writeAutoBackup(text, now?)`, `listAutoBackups()` (newest first) |
 | `notifications` | `supported`, `permission()` → `'granted' \| 'denied' \| 'prompt'`, `requestPermission()`, `scheduleReviews(ReviewTime[])` → number scheduled, `cancelAll()`; `schedule(at, title, body)` is the deprecated spike test |
 | `audio` | `supported`, `setCatalog(catalog)`, `play(subjectId, voicePref, reading?)` → played, `download(levels, onProgress?, signal?)`, Android: `downloadSubjects(ids, maxCount, signal?)` (auto-download, `src/sync/audioScan.ts`), `status()` (per level: files, bytes, expected), `deleteAll()` |
 | `haptics` | `supported`, `feedback('correct' \| 'wrong' \| 'retry' \| 'tap')` |
@@ -27,26 +27,26 @@ store, name, text)` to save and record `lastSavedAt`, plus the name and rotation
 Helpers: `rescheduleReviewNotifications(api, db, prefs, now?)` (`reviewNotifications.ts`) plans and
 schedules in one call (or cancels when `enable_notifications` is off); call it after each session, in
 `lifecycle.onPause`, on resume and after a server-mode sync. The plan itself is pure:
-`planReviewNotifications` and the Java texts in `src/core/notifications/`. The audio decisions (which
+`planReviewNotifications` and the notification texts in `src/core/notifications/`. The audio decisions (which
 recording, which files) are pure too: `src/core/audio/`; `readAudioCatalog(db)` in
-`src/content/audio.ts` builds the catalog from the content DB. Settings getters with the Java defaults:
+`src/content/audio.ts` builds the catalog from the content DB. Settings getters with their defaults:
 `enableNotifications`, `voicePreference`, `hapticFeedbackOnCorrect` / `OnWrong` (all in core).
 
 ## What each build does
 
 | | Android (`android.ts`) | PWA (`web.ts`) |
 |---|---|---|
-| Save progress file | System create-document picker (`ACTION_CREATE_DOCUMENT`) through the local `Document` plugin; Drive, Downloads etc. are offered, as in the Java app. Dismissed → `'cancelled'`. If the plugin is missing (old APK), it writes to the cache dir and opens the share sheet (`@capacitor/share`). | Web Share API with a `File` when `navigator.canShare({files})` (iOS share sheet → Save to Files, iCloud Drive, Google Drive app). `AbortError` → `'cancelled'`. Any other share error, or no file sharing → Blob download, always reported `'saved'` (browsers don't say whether it was kept). |
+| Save progress file | System create-document picker (`ACTION_CREATE_DOCUMENT`) through the local `Document` plugin; Drive, Downloads etc. are offered. Dismissed → `'cancelled'`. If the plugin is missing (old APK), it writes to the cache dir and opens the share sheet (`@capacitor/share`). | Web Share API with a `File` when `navigator.canShare({files})` (iOS share sheet → Save to Files, iCloud Drive, Google Drive app). `AbortError` → `'cancelled'`. Any other share error, or no file sharing → Blob download, always reported `'saved'` (browsers don't say whether it was kept). |
 | Open progress file | `ACTION_OPEN_DOCUMENT` through the `Document` plugin; falls back to `<input type=file>`. | Hidden `<input type=file>`; `cancel` event → `null` (very old browsers never fire it, so the promise stays pending). |
 | Auto backup | After each session, `files/backups/kanjikodama-autobackup-<UTC ISO time>.json` via `@capacitor/filesystem` (`Directory.Data`); the newest 5 are kept; only files matching that name pattern are ever deleted. Android Auto Backup also covers `files/`. | None. A "last saved N days ago" reminder instead: shown when there is progress and it was never saved, or the last save is 7 or more whole days old. |
-| Review notifications | The app's `ReviewNotifications` plugin (`androidNotifications.ts`, `android/.../ReviewNotifications.java`): like the Java app's `NotificationWorker`, ONE notification (id 1), posted or updated in place by a native inexact alarm (`setAndAllowWhileIdle`, RTC_WAKEUP) at each planned hour in which reviews become available (core plan: next 7 days, at most 64 entries), with the counts at that hour and the Java texts ("New reviews available" / "N reviews available", or "New lessons and reviews available" / "N lessons and M reviews available"); sound on new reviews; channel `NewReviewsChannel` only (lock screen public), visibility PUBLIC, the Java status icon `ic_stat_name`; the Notification settings go with each plan (`style`): `notification_priority` → channel importance and compat priority (Android keeps a channel's importance once the user changed it, as for Java), `notification_category` (default `recommendation`), `notification_update_frequency` → when a shown notification is updated with changed counts (only for new reviews / once per clock hour, a later change posted at the next top of the hour / continuously; Java `NotificationWorker.processAlarmHelper`). The plan is stored natively and re-armed after a reboot or an app update (`BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`; an entry missed while off is posted once). Rescheduling passes the counts now: cleared when nothing is available, otherwise updated silently as the update frequency allows. Permission: Android 13+ system prompt from `requestPermission()` only; `scheduleReviews` never prompts. | None (known limitation): the dashboard shows the next review time. |
+| Review notifications | The app's `ReviewNotifications` plugin (`androidNotifications.ts`, `android/.../ReviewNotifications.java`): ONE notification (id 1), posted or updated in place by a native inexact alarm (`setAndAllowWhileIdle`, RTC_WAKEUP) at each planned hour in which reviews become available (core plan: next 7 days, at most 64 entries), with the counts at that hour and the texts ("New reviews available" / "N reviews available", or "New lessons and reviews available" / "N lessons and M reviews available"); sound on new reviews; channel `NewReviewsChannel` only (lock screen public), visibility PUBLIC, the status icon `ic_stat_name`; the Notification settings go with each plan (`style`): `notification_priority` → channel importance and compat priority (Android keeps a channel's importance once the user changed it), `notification_category` (default `recommendation`), `notification_update_frequency` → when a shown notification is updated with changed counts (only for new reviews / once per clock hour, a later change posted at the next top of the hour / continuously). The plan is stored natively and re-armed after a reboot or an app update (`BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`; an entry missed while off is posted once). Rescheduling passes the counts now: cleared when nothing is available, otherwise updated silently as the update frequency allows. Permission: Android 13+ system prompt from `requestPermission()` only; `scheduleReviews` never prompts. | None (known limitation): the dashboard shows the next review time. |
 | Notifications after reboot / update | The plugin's `LocalNotificationRestoreReceiver` re-arms its stored notifications on `BOOT_COMPLETED` (ones missed while the phone was off fire 15 s after boot, all at once). An update force-stops the app, which drops its alarms; our manifest adds `MY_PACKAGE_REPLACED` to that receiver, so they are re-armed after an update too (checked on the emulator with `adb install -r`). The app reschedules on every resume anyway. | — |
-| Audio | `androidAudio.ts`: download with `CapacitorHttp` (native, no CORS), 4 in parallel, into `files/pronunciation-audio/<WaniKani level>/<source id>.mp3` (the Java app's internal layout; MPEG preferred), via a temp file + rename. Played natively (`KkAudio` plugin, `KkAudioPlugin.java`: MediaPlayer with speech attributes and, with `use_audio_focus`, Java's transient may-duck audio focus request); streamed from the content URL when not cached; `play` resolves false when that fails (offline). Recording choice as `AudioUtil` (matched reading, primary reading, voice preference RANDOM/MALE/FEMALE/ALTERNATE). Excluded from Android Auto Backup (`res/xml/backup_rules.xml`, `data_extraction_rules.xml`). | None (known limitation). |
-| Haptics | `navigator.vibrate` in the WebView (VIBRATE permission): 100 / 300 / 200 ms for correct / wrong / retry, the Java `HapticUtil` fallback. Both Java settings are off by default, so no `@capacitor/haptics` dependency. | None (iOS Safari has no vibrate). |
+| Audio | `androidAudio.ts`: download with `CapacitorHttp` (native, no CORS), 4 in parallel, into `files/pronunciation-audio/<WaniKani level>/<source id>.mp3` (MPEG preferred), via a temp file + rename. Played natively (`KkAudio` plugin, `KkAudioPlugin.java`: MediaPlayer with speech attributes and, with `use_audio_focus`, a transient may-duck audio focus request); streamed from the content URL when not cached; `play` resolves false when that fails (offline). Recording choice: matched reading, primary reading, voice preference RANDOM/MALE/FEMALE/ALTERNATE. Excluded from Android Auto Backup (`res/xml/backup_rules.xml`, `data_extraction_rules.xml`). | None (known limitation). |
+| Haptics | `navigator.vibrate` in the WebView (VIBRATE permission): 100 / 300 / 200 ms for correct / wrong / retry. Both settings are off by default, so no `@capacitor/haptics` dependency. | None (iOS Safari has no vibrate). |
 | Lifecycle, back button | `@capacitor/app`: `resume` / `pause` events; `backButton` runs the handlers newest first, else `history.back()`, else `App.minimizeApp()` (state kept, like Android 12+ for a root activity). | `visibilitychange`; no back button. |
-| Edge-to-edge, bar colours | `capacitor.config.ts` `SystemBars.insetsHandling: 'css'`: the page sets `viewport-fit=cover`, so with WebView 140+ it draws behind the bars (`--safe-area-inset-*` padding); older WebViews stay inside them and the decor view's padding shows. `androidSystemUi.ts` (native `KkSystemUi`, `SystemUiPlugin.java`, started by the first `systemBars.setTheme`) samples the page colour at its top and bottom edge (a modal dialog's backdrop included) and paints that padding with it, with matching icon colours, like the Java app's status bar in its toolbar colour. | Browser handles it. |
-| Answer field IME flags | `KkWebView` (via `res/layout/capacitor_bridge_layout_main.xml`) sets the Java answer field's EditorInfo from the Keyboard input settings (`answerKeyboard.ts`): `IME_FLAG_NO_PERSONALIZED_LEARNING`, `IME_FLAG_FORCE_ASCII`, `TYPE_TEXT_FLAG_AUTO_CORRECT`, `TYPE_TEXT_VARIATION_VISIBLE_PASSWORD` and the language hint, while an `input.kk-answer` has focus (`androidSystemUi.ts` reports it). Capability `imeFlags`. | Only auto-correct (the field's `autocorrect` attribute, `answerKeyboard.ts`); the other rows are hidden. |
-| Splash | `MainActivity` keeps the system splash until `.kk-shell` (or the start-up error) is in the page, at most 6 s, so the app goes from the splash to the dashboard like the Java app; `adb logcat -s KkStartup` prints the time from process start. | — |
+| Edge-to-edge, bar colours | `capacitor.config.ts` `SystemBars.insetsHandling: 'css'`: the page sets `viewport-fit=cover`, so with WebView 140+ it draws behind the bars (`--safe-area-inset-*` padding); older WebViews stay inside them and the decor view's padding shows. `androidSystemUi.ts` (native `KkSystemUi`, `SystemUiPlugin.java`, started by the first `systemBars.setTheme`) samples the page colour at its top and bottom edge (a modal dialog's backdrop included) and paints that padding with it, with matching icon colours, so the status bar takes the toolbar's colour. | Browser handles it. |
+| Answer field IME flags | `KkWebView` (via `res/layout/capacitor_bridge_layout_main.xml`) sets the answer field's EditorInfo from the Keyboard input settings (`answerKeyboard.ts`): `IME_FLAG_NO_PERSONALIZED_LEARNING`, `IME_FLAG_FORCE_ASCII`, `TYPE_TEXT_FLAG_AUTO_CORRECT`, `TYPE_TEXT_VARIATION_VISIBLE_PASSWORD` and the language hint, while an `input.kk-answer` has focus (`androidSystemUi.ts` reports it). Capability `imeFlags`. | Only auto-correct (the field's `autocorrect` attribute, `answerKeyboard.ts`); the other rows are hidden. |
+| Splash | `MainActivity` keeps the system splash until `.kk-shell` (or the start-up error) is in the page, at most 6 s, so the app goes straight from the splash to the dashboard; `adb logcat -s KkStartup` prints the time from process start. | — |
 | Storage persistence | `navigator.storage.*` in the WebView (data lives in the app's private dir anyway). | `navigator.storage.persist()`; still not a guarantee (see below). |
 
 ### Why a local plugin for the Android save picker
@@ -59,19 +59,11 @@ line `DocumentPlugin.java` (`app/android/app/src/main/java/app/kanjikodama/wk/`,
 
 ## Android identity
 
-Since the cutover (issue #3, step 6) the app has the Java app's identity: `appId:
-'app.kanjikodama.wk'` (`capacitor.config.ts`), release `app.kanjikodama.wk` signed with the Java
-app's key (`android/keystore.properties` → `android/release.jks`), debug `app.kanjikodama.wk.debug`
-(same id and debug key as the Java debug app), `versionCode` 1000, `versionName` from
-`package.json`. `-PsideBySide` builds the old side-by-side id `app.kanjikodama.wk.web` for both
-build types. `minSdk` is 24 (Capacitor 8); the Java app's is 21.
-
-`platform.legacy` (`androidLegacy.ts`, `LegacyMigrationPlugin.java`, capability `legacyMigration`)
-reads what the Java app left behind after installing over it: `ProgressStore.export()` of a copy of
-its Room database, its settings in the settings backup format, and its API token from
-EncryptedSharedPreferences; `removeOldData()` deletes them. The flow is
-`src/progress/legacyMigration.ts` (offer at start-up, `ui/migration/LegacyMigrationPrompt.tsx`);
-the owner's checklist is `docs/cutover.md`.
+`appId: 'app.kanjikodama.wk'` (`capacitor.config.ts`): release `app.kanjikodama.wk` signed with the
+release key (`android/keystore.properties` → `android/release.jks`), debug `app.kanjikodama.wk.debug`,
+`versionCode` derived from the version (`scripts/release/version.ts`), `versionName` from
+`package.json`. `-PsideBySide` builds the id `app.kanjikodama.wk.web` for both build types.
+`minSdk` is 24 (Capacitor 8).
 
 ## Limitations
 
@@ -110,12 +102,12 @@ download/status/deleteAll are unsupported. Android: `androidAudio.ts`.
 
 ## Widget and background sync (Android)
 
-- `platform.widget` (`androidWidget.ts` → `WidgetPlugin.java`, `SessionWidgetProvider.java`, a
-  port of the Java widget with its layouts and texts). The app hands over core `planWidget`'s
+- `platform.widget` (`androidWidget.ts` → `WidgetPlugin.java`, `SessionWidgetProvider.java`, three
+  layouts by size). The app hands over core `planWidget`'s
   counts plus later entries; the provider redraws at the next review hour from its own inexact
   alarm (and the hourly `updatePeriodMillis`), without the app.
 - `platform.backgroundSync` (`androidBackgroundSync.ts` → `BackgroundSyncPlugin.java`,
-  `BackgroundSyncWorker.java`): periodic WorkManager work `bgsync2` like the Java app's (1 h, flex
+  `BackgroundSyncWorker.java`): periodic WorkManager work `bgsync2` (1 h, flex
   5 min, network, battery not low, random first delay), on in server mode with
   `enable_background_sync`. The worker loads `index.html?kk-background-sync` in a headless WebView
   on `https://localhost` (same origin, so the same IndexedDB) and `src/sync/background.ts` runs

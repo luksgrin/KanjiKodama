@@ -1,9 +1,9 @@
 /**
  * A port of Android's `org.json` (libcore: `JSONTokener`, `JSONObject`, `JSONArray`, `JSONStringer`,
- * `JSON`), the parser and writer behind `local/ProgressStore`. Its leniency is part of the file
- * format: comments, single quotes, unquoted strings, `=`/`=>`/`;` separators, a BOM and trailing
- * garbage are accepted; numbers keep Java's Integer/Long/Double distinction; error texts are the
- * Java ones (`progress/describe.json` records them).
+ * `JSON`), the parser and writer of progress files. Its leniency is part of the file format:
+ * comments, single quotes, unquoted strings, `=`/`=>`/`;` separators, a BOM and trailing garbage are
+ * accepted; numbers keep the Integer/Long/Double distinction; `progress/describe.json` records the
+ * error texts.
  */
 
 import {
@@ -14,31 +14,31 @@ import {
   NumberFormatError,
   parseDouble,
   parseLong,
-} from './javaNumbers';
+} from './numberParsing';
 
-/** A Java exception: `javaClass` is its class name, `message` its `getMessage()`. */
-export class JavaException extends Error {
-  constructor(readonly javaClass: string, message: string) {
+/** A typed error: `errorType` is its type name, `message` its text. */
+export class TypedError extends Error {
+  constructor(readonly errorType: string, message: string) {
     super(message);
   }
 }
 
 /** `org.json.JSONException`. */
-export function jsonException(message: string): JavaException {
-  return new JavaException('org.json.JSONException', message);
+export function jsonException(message: string): TypedError {
+  return new TypedError('org.json.JSONException', message);
 }
 
-/** A boxed Java number as `org.json` produces it. */
-export class JavaNumber {
+/** A number with its `org.json` type (Integer, Long or Double). */
+export class TypedNumber {
   private constructor(readonly type: 'Integer' | 'Long' | 'Double', readonly value: number | bigint) {}
-  static int(v: number): JavaNumber {
-    return new JavaNumber('Integer', v | 0);
+  static int(v: number): TypedNumber {
+    return new TypedNumber('Integer', v | 0);
   }
-  static long(v: bigint): JavaNumber {
-    return new JavaNumber('Long', BigInt.asIntN(64, v));
+  static long(v: bigint): TypedNumber {
+    return new TypedNumber('Long', BigInt.asIntN(64, v));
   }
-  static double(v: number): JavaNumber {
-    return new JavaNumber('Double', v);
+  static double(v: number): TypedNumber {
+    return new TypedNumber('Double', v);
   }
   doubleValue(): number {
     return Number(this.value);
@@ -61,7 +61,7 @@ export class JavaNumber {
 /** `JSONObject.NULL`. */
 export const JSON_NULL: unique symbol = Symbol('JSONObject.NULL');
 
-/** `org.json.JSONObject`: insertion-ordered (Java's `LinkedHashMap`). */
+/** `org.json.JSONObject`: insertion-ordered. */
 export class JSONObject {
   readonly map = new Map<string, JsonValue>();
 }
@@ -71,38 +71,38 @@ export class JSONArray {
   readonly values: (JsonValue | null)[] = [];
 }
 
-export type JsonValue = string | boolean | JavaNumber | JSONObject | JSONArray | typeof JSON_NULL;
+export type JsonValue = string | boolean | TypedNumber | JSONObject | JSONArray | typeof JSON_NULL;
 
 /** `value.getClass().getName()`. */
-export function javaClassName(value: JsonValue): string {
-  if (typeof value === 'string') return 'java.lang.String';
-  if (typeof value === 'boolean') return 'java.lang.Boolean';
+export function valueTypeName(value: JsonValue): string {
+  if (typeof value === 'string') return 'String';
+  if (typeof value === 'boolean') return 'Boolean';
   if (value === JSON_NULL) return 'org.json.JSONObject$1';
-  if (value instanceof JavaNumber) return `java.lang.${value.type}`;
+  if (value instanceof TypedNumber) return `${value.type}`;
   if (value instanceof JSONObject) return 'org.json.JSONObject';
   return 'org.json.JSONArray';
 }
 
 /** `String.valueOf(value)` (`JSONObject`/`JSONArray` print compact JSON; null if that fails). */
-export function javaToString(value: JsonValue | null): string {
+export function valueToString(value: JsonValue | null): string {
   if (value === null) return 'null';
   if (typeof value === 'string') return value;
-  if (typeof value === 'boolean' || value instanceof JavaNumber) return String(value);
+  if (typeof value === 'boolean' || value instanceof TypedNumber) return String(value);
   if (value === JSON_NULL) return 'null';
   return toJsonString(value) ?? 'null';
 }
 
 /** `JSON.typeMismatch(actual, requiredType)`. */
-function typeMismatch(actual: JsonValue | null, requiredType: string): JavaException {
+function typeMismatch(actual: JsonValue | null, requiredType: string): TypedError {
   if (actual === null) return jsonException('Value is null.');
-  return jsonException(`Value ${javaToString(actual)} of type ${javaClassName(actual)} cannot be converted to ${requiredType}`);
+  return jsonException(`Value ${valueToString(actual)} of type ${valueTypeName(actual)} cannot be converted to ${requiredType}`);
 }
 
 /** `JSON.typeMismatch(indexOrName, actual, requiredType)`. */
-function typeMismatchAt(at: string | number, actual: JsonValue | null, requiredType: string): JavaException {
+function typeMismatchAt(at: string | number, actual: JsonValue | null, requiredType: string): TypedError {
   if (actual === null) return jsonException(`Value at ${at} is null.`);
   return jsonException(
-    `Value ${javaToString(actual)} at ${at} of type ${javaClassName(actual)} cannot be converted to ${requiredType}`,
+    `Value ${valueToString(actual)} at ${at} of type ${valueTypeName(actual)} cannot be converted to ${requiredType}`,
   );
 }
 
@@ -210,7 +210,7 @@ class Tokener {
         if (this.pos + 4 > this.in.length) throw this.syntaxError('Unterminated escape sequence');
         const hex = this.in.slice(this.pos, this.pos + 4);
         this.pos += 4;
-        // Integer.parseInt(hex, 16): an optional sign, then hex digits.
+        // A hex integer: an optional sign, then hex digits.
         if (!/^[+-]?[0-9a-fA-F]+$/.test(hex)) throw this.syntaxError(`Invalid escape sequence: ${hex}`);
         return String.fromCharCode(parseInt(hex, 16) & 0xffff);
       }
@@ -249,14 +249,14 @@ class Tokener {
       }
       try {
         const longValue = parseLong(number, base);
-        if (longValue <= 2147483647n && longValue >= -2147483648n) return JavaNumber.int(Number(longValue));
-        return JavaNumber.long(longValue);
+        if (longValue <= 2147483647n && longValue >= -2147483648n) return TypedNumber.int(Number(longValue));
+        return TypedNumber.long(longValue);
       } catch (e) {
         if (!(e instanceof NumberFormatError)) throw e;
       }
     }
     try {
-      return JavaNumber.double(parseDouble(literal));
+      return TypedNumber.double(parseDouble(literal));
     } catch (e) {
       if (!(e instanceof NumberFormatError)) throw e;
     }
@@ -280,7 +280,7 @@ class Tokener {
     for (;;) {
       const name = this.nextValue();
       if (typeof name !== 'string') {
-        throw this.syntaxError(`Names must be strings, but ${javaToString(name)} is of type ${javaClassName(name)}`);
+        throw this.syntaxError(`Names must be strings, but ${valueToString(name)} is of type ${valueTypeName(name)}`);
       }
       const separator = this.nextCleanInternal();
       if (separator !== 0x3a && separator !== 0x3d) throw this.syntaxError(`Expected ':' after ${name}`);
@@ -330,14 +330,14 @@ class Tokener {
     }
   }
 
-  private syntaxError(message: string): JavaException {
+  private syntaxError(message: string): TypedError {
     return jsonException(`${message} at character ${this.pos} of ${this.in}`);
   }
 }
 
 /** `JSONObject.put(name, value)` for a parsed value (numbers must be finite). */
 function put(o: JSONObject, name: string, value: JsonValue): void {
-  if (value instanceof JavaNumber) checkDouble(value.doubleValue());
+  if (value instanceof TypedNumber) checkDouble(value.doubleValue());
   o.map.set(name, value);
 }
 
@@ -356,7 +356,7 @@ export function parseJsonObject(text: string): JSONObject {
 // --- JSON coercions (libcore `JSON`) ---
 
 function toInteger(value: JsonValue | null | undefined): number | null {
-  if (value instanceof JavaNumber) return value.intValue();
+  if (value instanceof TypedNumber) return value.intValue();
   if (typeof value === 'string') {
     try {
       return doubleToInt(parseDouble(value));
@@ -368,7 +368,7 @@ function toInteger(value: JsonValue | null | undefined): number | null {
 }
 
 function toLong(value: JsonValue | null | undefined): bigint | null {
-  if (value instanceof JavaNumber) return value.longValue();
+  if (value instanceof TypedNumber) return value.longValue();
   if (typeof value === 'string') {
     try {
       return doubleToLong(parseDouble(value));
@@ -394,7 +394,7 @@ export function has(o: JSONObject, name: string): boolean {
 /** `JSONObject.optString(name, fallback)`: any non-string value is printed with `String.valueOf`. */
 export function optString(o: JSONObject, name: string, fallback = ''): string {
   const value = o.map.get(name);
-  return value === undefined ? fallback : javaToString(value);
+  return value === undefined ? fallback : valueToString(value);
 }
 
 /** `JSONObject.optInt(name, fallback)`. */
@@ -465,7 +465,7 @@ export function arrayGetInt(a: JSONArray, index: number): number {
 // --- Writing (JSONStringer) ---
 
 /** `JSONObject.numberToString`. */
-export function numberToString(n: JavaNumber): string {
+export function numberToString(n: TypedNumber): string {
   const d = n.doubleValue();
   checkDouble(d);
   if (n.type === 'Double' && Object.is(d, -0)) return '-0';
@@ -513,7 +513,7 @@ function write(value: JsonValue | null, indent: string | null, depth: number): s
   if (value === null || value === JSON_NULL) return 'null';
   if (typeof value === 'boolean') return String(value);
   if (typeof value === 'string') return quote(value);
-  if (value instanceof JavaNumber) return numberToString(value);
+  if (value instanceof TypedNumber) return numberToString(value);
   const newline = (d: number): string => (indent === null ? '' : `\n${indent.repeat(d)}`);
   if (value instanceof JSONArray) {
     if (value.values.length === 0) return '[]';
@@ -531,7 +531,7 @@ export function toJsonString(value: JSONObject | JSONArray): string | null {
   try {
     return write(value, null, 0);
   } catch (e) {
-    if (e instanceof JavaException) return null;
+    if (e instanceof TypedError) return null;
     throw e;
   }
 }

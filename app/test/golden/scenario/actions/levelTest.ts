@@ -1,6 +1,6 @@
 /**
  * `levelTestRound {round, known: "all" | "none" | {blocks} | {ids}, abandon}`, `levelTestResult`,
- * `levelTestStartAtResult`, `levelTestDiscard` (`local/LevelTest` through `ScenarioRunner`).
+ * `levelTestStartAtResult`, `levelTestDiscard`.
  */
 
 import {
@@ -16,15 +16,15 @@ import {
   type FinishedSessionItem,
 } from '../../../../src/core/levelTest';
 import { layoutFor, type LearnerDb } from '../../../../src/core/progression';
-import { JavaRandom } from '../../../../src/core/rng';
+import { SeededRandom } from '../../../../src/core/rng';
 import { argNumber, type ActionHandler, type RunnerState } from '../runner';
 
-/** `ObjectSupport.newRandom()` in a seeded test: a new generator with the test seed. */
-export function levelTestRandom(rs: RunnerState): JavaRandom {
-  return new JavaRandom(BigInt(rs.seed));
+/** A new generator with the test seed. */
+export function levelTestRandom(rs: RunnerState): SeededRandom {
+  return new SeededRandom(BigInt(rs.seed));
 }
 
-/** `ScenarioRunner.jlptBlocks`: the JLPT block of every subject the JLPT layout places. */
+/** The JLPT block of every subject the JLPT layout places. */
 function jlptBlocks(db: LearnerDb): Map<number, number> {
   const layout = layoutFor(db, 'JLPT');
   const out = new Map<number, number>();

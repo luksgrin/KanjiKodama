@@ -1,5 +1,5 @@
 /**
- * Browse / search (`fragments/BrowseOverviewFragment`, `fragment_browse_overview.xml`), top to bottom:
+ * Browse / search, top to bottom:
  * the tutorial banner (yellow, DISMISS; `browse_overview_dismissed`), "Search presets:" with the preset
  * choice and Search / Delete (only when presets exist), "Choose a level to browse:" with the level
  * table (`render`: round(width / 40 dp) columns, at most 10, 6..9 become 5; mint cells, the user's
@@ -21,14 +21,14 @@ import { AdvancedSearchFormView } from './AdvancedSearchFormView';
 import { presetByName, presetNames, useSearchPresets } from './searchPresets';
 import './browse.css';
 
-/** `Constants.BROWSE_OVERVIEW_COLUMN_WIDTH`. */
+/** The level table's column width. */
 const COLUMN_WIDTH = 40;
 
 export const BROWSE_TUTORIAL = 'From this screen you can search the subject database by level, by keyword, or by'
   + ' advanced filter criteria. From the search result screen you can then save search presets, start a self-study quiz,'
   + ' and more. Once you have defined search presets, they will be shown here as well.';
 
-/** `BrowseOverviewFragment.render`: the level table's column count for a screen width in dp. */
+/** The level table's column count for a screen width in px. */
 export function levelColumns(dpWidth: number): number {
   let n = Math.round(dpWidth / COLUMN_WIDTH);
   if (n < 1) n = 1;
@@ -37,7 +37,7 @@ export function levelColumns(dpWidth: number): number {
   return n;
 }
 
-/** `SubjectAggregatesDao.getMaxLevel`: the highest level of a visible subject (60 when there is none). */
+/** The highest level of a visible subject (60 when there is none). */
 export function browseMaxLevel(learner: LearnerDb): number {
   let max = 0;
   for (const s of learner.content.subjects) {

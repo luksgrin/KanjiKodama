@@ -1,5 +1,5 @@
 /**
- * Settings backup / restore (Java `BackupActivity` format), data import / export (search presets,
+ * Settings backup / restore, data import / export (search presets,
  * star ratings) and "Reset database".
  */
 import 'fake-indexeddb/auto';
@@ -19,11 +19,11 @@ import { ServerStore, KEYS } from '../../src/sync/store';
 import { readSnapshot } from '../../src/storage/progressRepo';
 import { NO_JLPT, openDb, smallContent } from './helpers';
 
-const javaBackup = readFileSync(join(process.cwd(), 'test/progress-storage/fixtures/java-settings-backup.json'), 'utf8');
+const oldBackup = readFileSync(join(process.cwd(), 'test/progress-storage/fixtures/old-settings-backup.json'), 'utf8');
 
 describe('settings backup', () => {
-  it('reads a backup made by the Java app (emulator, show_legacy on)', () => {
-    const s = parseSettingsBackup(javaBackup);
+  it('reads a backup made by an earlier version (show_legacy on)', () => {
+    const s = parseSettingsBackup(oldBackup);
     expect(Object.keys(s)).toHaveLength(140);
     expect(s.show_legacy).toBe(true);
     expect(s.max_review_session_size).toBe('100'); // EditTextPreference: a String
@@ -32,7 +32,7 @@ describe('settings backup', () => {
     expect(s.show_timeline).toBe(true);
   });
 
-  it('writes the Java format (value as text, Java class name) and reads it back', () => {
+  it('writes the backup format (value as text, type name) and reads it back', () => {
     const prefs = { a: true, b: 'x', c: 50, d: 1.5, e: 5_000_000_000, f: null, g: undefined };
     const text = settingsBackupText(prefs);
     expect(JSON.parse(text)).toEqual({
@@ -43,11 +43,11 @@ describe('settings backup', () => {
       e: { value: '5000000000', type: 'Long' },
     });
     expect(parseSettingsBackup(text)).toEqual({ a: true, b: 'x', c: 50, d: 1.5, e: 5_000_000_000 });
-    // A Java restore of the Java file and of ours give the same values.
-    expect(parseSettingsBackup(settingsBackupText(parseSettingsBackup(javaBackup)))).toEqual(parseSettingsBackup(javaBackup));
+    // A restore of the earlier file and of ours give the same values.
+    expect(parseSettingsBackup(settingsBackupText(parseSettingsBackup(oldBackup)))).toEqual(parseSettingsBackup(oldBackup));
   });
 
-  it('fails as a whole like the Java restore', () => {
+  it('fails as a whole', () => {
     expect(() => parseSettingsBackup('nope')).toThrow(SettingsBackupError);
     expect(() => parseSettingsBackup('[]')).toThrow(SettingsBackupError);
     expect(() => parseSettingsBackup('{"a":{"value":"x","type":"HashSet"}}')).toThrow('Unsupported type: HashSet');
@@ -56,8 +56,8 @@ describe('settings backup', () => {
     expect(parseSettingsBackup('{"a":{"value":"TRUE","type":"Boolean"},"b":{"value":"yes","type":"Boolean"}}')).toEqual({ a: true, b: false });
   });
 
-  it('names the file like the Java app', () => {
-    expect(settingsBackupFileName(new Date(2026, 9, 6, 23, 59))).toBe('smouldering_durtles_2026-10-06.json');
+  it('names the file', () => {
+    expect(settingsBackupFileName(new Date(2026, 9, 6, 23, 59))).toBe('kanjikodama_settings_2026-10-06.json');
   });
 });
 
@@ -86,7 +86,7 @@ describe('data import / export', () => {
     expect(() => parseSearchPresetsImport('[')).toThrow(DataImportError);
   });
 
-  it('exports star ratings as StarRatingsExport and imports them in Java order', () => {
+  it('exports star ratings and imports them from 1 to 5 stars', () => {
     const text = starRatingsExportText(new Map([[30, 1], [10, 1], [20, 5]]));
     expect(JSON.parse(text)).toEqual({ stars1: [10, 30], stars2: [], stars3: [], stars4: [], stars5: [20] });
     expect(parseStarRatingsImport(text)).toEqual([[1, [10, 30]], [2, []], [3, []], [4, []], [5, [20]]]);
@@ -97,7 +97,7 @@ describe('data import / export', () => {
 });
 
 describe('reset database', () => {
-  it('has the Java warning text', () => {
+  it('has the warning text', () => {
     expect(RESET_DATABASE_WARNING).toMatch(/^Warning: Resetting the database will clear all content from the app's database except for your settings\./);
   });
 
@@ -117,7 +117,7 @@ describe('reset database', () => {
     expect(snap.progress.userLevel).toBe(1);
     expect(snap.progress.subjects.get(1)?.startedAt ?? 0).toBe(0);
     expect(snap.progress.subjects.get(1)?.meaningNote ?? null).toBeNull();
-    expect(snap.progress.subjects.get(1)?.unlockedAt).toBe(1000); // LocalProgression.update unlocked level 1
+    expect(snap.progress.subjects.get(1)?.unlockedAt).toBe(1000); // updateProgression unlocked level 1
     expect(snap.progress.jumps).toHaveLength(1);
     expect(await kk.session.count()).toBe(0);
     expect(await kk.meta.get('starRatings')).toBeUndefined();

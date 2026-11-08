@@ -1,6 +1,6 @@
 /* A radical drawn as an image (SubjectChars.tsx): one text-size square, tinted in the text colour over
-   two black copies (Java draws them at +2 and −1 device px: --dev-px, tokens.css).
-   Inline it sits a little below the baseline, as TitleImageSpan (bottom − descent / 2). */
+   two black copies at +2 and −1 device px (--dev-px, tokens.css).
+   Inline it sits a little below the baseline (bottom − descent / 2). */
 .kk-title-image {
   display: inline-block;
   vertical-align: -0.12em;

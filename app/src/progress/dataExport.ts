@@ -1,7 +1,6 @@
 /**
- * "Data import / export" (`activities/DataImportExportActivity`): the search presets and the star
- * ratings, which are not in the progress file, as the Java app's JSON files (Jackson
- * `Converters.getObjectMapper()`, unknown properties ignored on import):
+ * "Data import / export": the search presets and the star ratings, which are not in the progress
+ * file, as JSON files (unknown properties ignored on import):
  *
  * - `search_presets.json`: `SearchPresetExport` `{"namedPresets":[{"name","type","data"}…],"selfStudyPreset":{…}|null}`
  *   (the self-study default is the preset named `"\u0000SELF_STUDY_DEFAULT"`);
@@ -13,7 +12,7 @@
 
 export const SEARCH_PRESETS_FILE = 'search_presets.json';
 export const STAR_RATINGS_FILE = 'star_ratings.json';
-/** `LiveSearchPresets.getByName("\u0000SELF_STUDY_DEFAULT")`. */
+/** The internal preset holding the self-study form. */
 export const SELF_STUDY_PRESET_NAME = '\u0000SELF_STUDY_DEFAULT';
 
 export interface PresetData {
@@ -74,7 +73,7 @@ function readPreset(v: unknown): PresetData {
 export function parseSearchPresetsImport(text: string): PresetData[] {
   const o = parseObject(text);
   const named = o.namedPresets === undefined ? [] : o.namedPresets;
-  // `data.getNamedPresets().forEach`: an explicit null is a NullPointerException in Java.
+  // The named presets: an explicit null is a NullPointerException.
   if (!Array.isArray(named)) throw new DataImportError('namedPresets is not a list');
   const out = named.map(readPreset);
   if (o.selfStudyPreset !== undefined && o.selfStudyPreset !== null) out.push(readPreset(o.selfStudyPreset));
@@ -89,7 +88,7 @@ export function starRatingsExportText(ratings: ReadonlyMap<number, number>): str
   return JSON.stringify({ stars1: lists[0], stars2: lists[1], stars3: lists[2], stars4: lists[3], stars5: lists[4] });
 }
 
-/** `importStarRatingsResult`: `[stars, ids]` in the Java order (1 to 5, so a later list wins). */
+/** `[stars, ids]` from 1 to 5 stars, so a later list wins. */
 export function parseStarRatingsImport(text: string): [stars: number, ids: number[]][] {
   const o = parseObject(text);
   const out: [number, number[]][] = [];

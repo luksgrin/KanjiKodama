@@ -34,7 +34,7 @@ function planOutput(plan: JlptPlan): unknown {
 goldenSuite<JlptPlanInput, unknown>('curriculum/jlpt-plan-synthetic.json', (input) => planOutput(buildFromInput(input)));
 
 // "wk-content" carries the content rows and the jlpt map; "wk-content-summary" (no rows) summarizes
-// the same plan per level, as JlptPlanGolden.content does.
+// the same plan per level.
 goldenSuite<Partial<JlptPlanInput>, unknown>('curriculum/jlpt-plan-content.json', (input, _c, ctx) => {
   if (input.rows !== undefined) {
     const plan = buildFromInput(input as JlptPlanInput);

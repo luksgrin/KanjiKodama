@@ -1,15 +1,13 @@
 /**
- * The current session in the Dexie `session` table (Java keeps it in `session_item` plus the session
- * properties), so an interrupted session resumes after the app is closed or reloaded.
+ * The current session in the Dexie `session` table, so an interrupted session resumes after the app is closed or reloaded.
  *
  * Rows (key `subjectId`):
  * - one `item` row per session item: the `SessionItemRow` columns (`state`, `done`, `incorrect`, …);
  * - one `properties` row under key 0 (no subject has id 0): `sessionType`, `sessionOnkun`,
- *   `currentItemId`, `currentQuestionType` (Java's session properties) and what the summary and the
+ *   `currentItemId`, `currentQuestionType` (the session properties) and what the summary and the
  *   end of the session need: `startedAt`, `startLevel` (level-ups and new unlocks) and `levelTestRound`.
  *
- * A progress restore and the server mode switches clear the table (`PROGRESS_TABLES`), as Java's reset
- * deletes the session items.
+ * A progress restore and the server mode switches clear the table (`PROGRESS_TABLES`).
  */
 import type { QuestionType } from '../../../core/answer/questionType';
 import type { SessionItemRow, SessionItemState, SessionType, StoredSession } from '../../../core/session';
@@ -19,7 +17,7 @@ import type { KkDb, SessionRecord } from '../../../storage/db';
 /** The key of the properties row. */
 export const SESSION_PROPERTIES_KEY = 0;
 
-/** What the screens keep about a session beyond Java's properties. */
+/** What the screens keep about a session beyond its properties. */
 export interface SessionMeta {
   /** When the session started (epoch ms): unlocks at or after it are the summary's new unlocks. */
   startedAt: number;

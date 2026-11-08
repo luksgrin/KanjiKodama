@@ -1,8 +1,8 @@
-/** `fastTravel {target | levels, windowHours}` (`local/FastTravel.travel`). */
+/** `fastTravel {target | levels, windowHours}`. */
 
 import { COOLDOWN, fastTravel } from '../../../../src/core/fastTravel';
 import { HOUR } from '../../../../src/core/time';
-import { argNumber, javaRound, type ActionHandler } from '../runner';
+import { argNumber, roundHalfUp, type ActionHandler } from '../runner';
 
 export const fastTravelActions: Record<string, ActionHandler> = {
   fastTravel: ({ rs, step, resolved }) => {
@@ -12,7 +12,7 @@ export const fastTravelActions: Record<string, ActionHandler> = {
     resolved.target = target;
     let n: number;
     if ('windowHours' in step) {
-      const window = javaRound(argNumber(step, 'windowHours', 0) * HOUR);
+      const window = roundHalfUp(argNumber(step, 'windowHours', 0) * HOUR);
       resolved.windowMs = window;
       n = fastTravel(rs.db, target, rs.now, window);
     } else {

@@ -1,15 +1,14 @@
 /**
  * Quiz fonts (Font settings → "Select fonts for quiz questions" / "Import fonts for quiz questions"):
- * Java's `FontStorageUtil`, `GlobalSettings.Font.getSelectedFonts` and
- * `SessionItem.getTypefaceConfiguration`.
+ * storage, the selection and the face per session item.
  *
- * - Font IDs: "1" … "8" are the built-in fonts (1 = the app's default face, Java's "Android
- *   default"), any other ID is the file name of an imported font. `selected_fonts` holds the chosen
- *   IDs as a JSON list (an older space-separated form is read too), exactly as Java stores it.
- * - The seven bundled faces are Java's `res/font` files, served from `public/fonts/quiz/` and fetched
+ * - Font IDs: "1" … "8" are the built-in fonts (1 = the app's default face, "Android default"), any
+ *   other ID is the file name of an imported font. `selected_fonts` holds the chosen IDs as a JSON
+ *   list (an older space-separated form is read too).
+ * - The seven bundled faces are served from `public/fonts/quiz/` and fetched
  *   only when used (not precached by the service worker; the Android build has them in the APK).
- * - Imported fonts are kept in their own IndexedDB database (`kk-fonts`), name → file bytes, like
- *   Java's `fonts/` directory (not part of progress or settings backups, as in Java).
+ * - Imported fonts are kept in their own IndexedDB database (`kk-fonts`), name → file bytes (not part
+ *   of progress or settings backups).
  * - A font is used for a subject only when it has glyphs for all its characters (`fontCmap.ts`);
  *   one is picked at random per session item and kept for the session.
  */
@@ -27,7 +26,7 @@ export interface BuiltInFont {
   padTop: number;
 }
 
-/** `FontSelectionActivity.addStaticRow` calls, in order. */
+/** The built-in fonts, in display order. */
 export const BUILT_IN_FONTS: readonly BuiltInFont[] = [
   { id: '1', name: 'Android default', file: null, padTop: 0 },
   { id: '2', name: 'Sawarabi Mincho', file: 'sawarabi_mincho_medium.ttf', padTop: 0 },
@@ -41,7 +40,7 @@ export const BUILT_IN_FONTS: readonly BuiltInFont[] = [
 
 // ---- selected_fonts ------------------------------------------------------------------------------
 
-/** `Font.getSelectedFonts`. */
+/** The selected font IDs. */
 export function selectedFonts(prefs: Preferences): string[] {
   const v = prefs[SELECTED_FONTS_KEY];
   if (typeof v !== 'string' || v === '') return [];
@@ -56,7 +55,7 @@ export function selectedFonts(prefs: Preferences): string[] {
   return v.split(' ').filter((x) => x !== '');
 }
 
-/** `Font.setFontSelected`: the new `selected_fonts` value. */
+/** The new `selected_fonts` value. */
 export function withFontSelected(prefs: Preferences, id: string, selected: boolean): string {
   const ids = selectedFonts(prefs);
   if (selected && !ids.includes(id)) ids.push(id);
@@ -92,7 +91,7 @@ function run<T>(mode: IDBTransactionMode, f: (s: IDBObjectStore) => IDBRequest<T
   }));
 }
 
-/** `FontStorageUtil.getNames`: the imported font names, sorted. */
+/** The imported font names, sorted. */
 export async function importedFontNames(): Promise<string[]> {
   try {
     const keys = await run('readonly', (s) => s.getAllKeys());
@@ -102,18 +101,18 @@ export async function importedFontNames(): Promise<string[]> {
   }
 }
 
-/** `FontStorageUtil.hasFontFile`. */
+/** Whether an imported font with this name exists. */
 export async function hasImportedFont(name: string): Promise<boolean> {
   return (await importedFontNames()).includes(name);
 }
 
-/** `FontStorageUtil.importFontFile` + `flushCache`. */
+/** Stores an imported font (and drops the cached face). */
 export async function importFont(name: string, data: ArrayBuffer): Promise<void> {
   await run('readwrite', (s) => s.put(data, name));
   cache.delete(name);
 }
 
-/** `FontStorageUtil.deleteFont` + `flushCache`. */
+/** Deletes an imported font (and drops the cached face). */
 export async function deleteImportedFont(name: string): Promise<void> {
   await run('readwrite', (s) => s.delete(name));
   cache.delete(name);
@@ -146,7 +145,7 @@ function fontUrl(file: string): string {
 
 /**
  * The face, with the line height Android gives it (`includeFontPadding`: the font's bounding box),
- * so `line-height: normal` lays text out as the Java TextViews do.
+ * so `line-height: normal` lays text out as a native text view does.
  */
 async function loadFace(data: ArrayBuffer): Promise<string | null> {
   if (typeof FontFace === 'undefined' || typeof document === 'undefined') return null;
@@ -177,7 +176,7 @@ async function load(id: string): Promise<QuizFont | null> {
   return { id, family, padTop: builtIn?.padTop ?? 0, coverage };
 }
 
-/** `FontStorageUtil.getTypefaceConfiguration`: null when the font can't be loaded. Cached. */
+/** The loaded face: null when the font can't be loaded. Cached. */
 export function loadQuizFont(id: string): Promise<QuizFont | null> {
   let p = cache.get(id);
   if (!p) {

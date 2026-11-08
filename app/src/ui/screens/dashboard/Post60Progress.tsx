@@ -1,17 +1,15 @@
 /**
- * `Post60ProgressView` (`post60_progress.xml`): "Post-60 progression" (WK.TextView.Normal.Bold,
- * centred, 4 dp padding) over `Post60ProgressBarView`, a 24 dp bar of every subject by SRS stage group
+ * "Post-60 progression" (bold, centred, 4 px padding) over a 24 px bar of every subject by SRS stage group
  * (`show_post60_progression`; `show_post60_subsections` splits Apprentice I–IV and Guru I–II,
  * `show_post60_reverse` reverses it). Each segment shows its share as "12.3%" when that fits
- * (text width + 2 dp), else "12%", else nothing, in 12 dp text: colorPrimaryDark on light colours,
- * colorPrimaryLight with the black shadow on dark ones (`ThemeUtil.isLightColor`). No legend, as Java.
- * Drawn on a canvas like the Java view's `onDraw`.
+ * (text width + 2 px), else "12%", else nothing, in 12 px text: colorPrimaryDark on light colours,
+ * colorPrimaryLight with the black shadow on dark ones (`isLightColor`). No legend. Drawn on a canvas.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Preferences } from '../../../core/settings';
 import { activeTheme, intToHex, parseCustomizations, themePrefsFrom } from '../../theme/themes';
 
-/** `ActiveTheme.stageBucketColors7` / `stageDeepBucketColors` (with the theme customisations). */
+/** The stage group colours, 7 or 11 (with the theme customisations). */
 export function post60Colors(prefs: Preferences, deep: boolean): string[] {
   const tp = themePrefsFrom(prefs);
   const t = activeTheme(tp);
@@ -24,13 +22,13 @@ export function post60Colors(prefs: Preferences, deep: boolean): string[] {
   return [seven[0]!, seven[1]!, pre[0]!, pre[1]!, pre[2]!, pre[3]!, passed[0]!, passed[1]!, seven[4]!, seven[5]!, seven[6]!];
 }
 
-/** `ThemeUtil.isLightColor`: the channel sum above 0x140. */
+/** A light colour: the channel sum above 0x140. */
 export function isLightColor(hex: string): boolean {
   const n = parseInt(hex.slice(1), 16);
   return (n & 0xFF) + ((n >> 8) & 0xFF) + ((n >> 16) & 0xFF) > 0x140;
 }
 
-/** `Post60ProgressBarView.setBreakdown`: values and colours, reversed when asked. */
+/** Values and colours, reversed when asked. */
 export function post60Segments(counts: readonly number[], colors: readonly string[], reversed: boolean): { values: number[]; colors: string[] } {
   const values = [...counts];
   const cols = [...colors];

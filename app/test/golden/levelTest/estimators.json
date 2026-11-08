@@ -1,6 +1,5 @@
 {
   "area": "levelTest.estimators",
-  "javaSource": "local/LevelTest.boundaryBlock, sampledLevels, share, Result.minutesPerDay",
   "cases": [
     {"name":"boundary-first-below","input":{"scores":[{"block":5,"asked":6,"known":6,"share":1.0},{"block":4,"asked":6,"known":5,"share":0.85},{"block":3,"asked":6,"known":2,"share":0.33},{"block":2,"asked":6,"known":3,"share":0.5},{"block":1,"asked":6,"known":0,"share":0.0}]},"output":3},
     {"name":"boundary-all-known","input":{"scores":[{"block":5,"asked":6,"known":6,"share":1.0},{"block":1,"asked":6,"known":6,"share":0.95}]},"output":0},

@@ -1,9 +1,8 @@
 /**
- * Audio download (`activities/DownloadAudioActivity`, `views/DownloadAudioBracketView`): levels in
- * brackets of ten with what is on the device, a Download button per bracket, Abort while
- * downloading, Delete all audio, in the Java layout (`activity_download_audio.xml`: header text,
- * "Active downloads", the buttons, then per bracket "Levels 1-10" and a Download button with its
- * label). The voice preference is in Settings → Audio settings, as in Java. Android only
+ * Audio download: levels in brackets of ten with what is on the device, a Download button per
+ * bracket, Abort while downloading, Delete all audio (header text, "Active downloads", the buttons,
+ * then per bracket "Levels 1-10" and a Download button with its label). The voice preference is in
+ * Settings → Audio settings. Android only
  * (`capabilities.audioDownload`); the web build streams audio while online and has nothing to download.
  */
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
@@ -15,11 +14,11 @@ import { AlertDialog } from '../settings/AlertDialog';
 import { audioDownloads } from './audioDownloads';
 import './audio.css';
 
-/** `DownloadAudioActivity.updateOverviewDisplay`. */
+/** The screen's header text. */
 export const AUDIO_HEADER = 'You can download vocabulary audio here, which will be played during lessons and reviews.'
   + ' Once started, downloads will continue in the background.';
 
-/** `Constants.DELETE_AUDIO_WARNING` without the markup. */
+/** The delete-all warning, without the markup. */
 export const DELETE_AUDIO_WARNING = 'Warning: This will delete all audio files that have been downloaded so far.\n\nAre you sure you want to continue?';
 
 export interface Bracket {
@@ -47,7 +46,7 @@ export function brackets(status: AudioCacheStatus): Bracket[] {
   return out;
 }
 
-/** `DownloadAudioBracketView.setBracket`'s label (files instead of subjects). */
+/** A bracket's label (files instead of subjects). */
 export function bracketLabel(b: Bracket): string {
   if (b.expected > 0 && b.files >= b.expected) return 'Download finished';
   return `${Math.min(b.files, b.expected)}/${b.expected} available`;

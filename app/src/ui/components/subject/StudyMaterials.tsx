@@ -1,11 +1,8 @@
 /**
  * The learner's own synonyms and notes: the "My synonyms" line with its "+" (Add synonym) dialog from
- * the subject info, and the notes form (`StudyMaterialsActivity`). Both build the same save-job data as
- * Java with the core helpers and hand it to `onSave`; persisting it is the caller's job
+ * the subject info, and the notes form. Both build the save-job data with the core helpers and hand it
+ * to `onSave`; persisting it is the caller's job
  * (`storeStudyMaterialJob` columns locally, a study-material upload in server mode).
- *
- * Java: `views/SubjectInfoView.prepareAddSynonymButton`/`addSynonym`, `activities/StudyMaterialsActivity`,
- * `views/SynonymRowView`.
  */
 import './subject.css';
 import { useId, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from 'react';
@@ -28,11 +25,11 @@ import { WkMarkup } from './WkMarkup';
 /** What a save hands to the caller. */
 export interface StudyMaterialSave {
   subjectId: number;
-  /** `SaveStudyMaterialJob` data, exactly as the Java app builds it. */
+  /** The save job's data. */
   jobData: string;
-  /** The parsed job (`new SaveStudyMaterialJob(jobData)`). */
+  /** The parsed job. */
   job: StudyMaterialJob;
-  /** The subject columns a local save writes (`SaveStudyMaterialJob.runLocal`). */
+  /** The subject columns a local save writes. */
   columns: StudyMaterialColumns;
 }
 
@@ -123,7 +120,7 @@ export interface StudyMaterialsEditorProps {
   meaningNote: string | null;
   readingNote: string | null;
   onSave: SaveStudyMaterial;
-  /** Called after Save (the Java activity closes). */
+  /** Called after Save (the form closes). */
   onDone?: () => void;
 }
 

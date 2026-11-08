@@ -1,7 +1,7 @@
 /*
- * The Java AlertDialog (AppCompat, KanjiKodama theme): window-coloured card, 2 dp corners, title
- * 20 sp in the body font, message 16 sp, flat accent text buttons in capitals (36 dp, here 40 px
- * for touch), radio lists as in ListPreference. Tokens only.
+ * The alert dialog (KanjiKodama theme): window-coloured card, 2 px corners, title 20 px in the body
+ * font, message 16 px, flat accent text buttons in capitals (40 px for touch), radio lists. Tokens
+ * only.
  */
 .kk-alert {
   border: 0;

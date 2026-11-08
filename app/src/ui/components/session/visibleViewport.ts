@@ -1,6 +1,6 @@
 /**
- * The height that is visible above the on-screen keyboard, for the quiz layout (Java's session fragments
- * are `match_parent` in an activity the keyboard resizes, so the quick-action row sits on the keyboard).
+ * The height that is visible above the on-screen keyboard, for the quiz layout (the quick-action row
+ * sits on the keyboard).
  *
  * - The Android app's WebView is resized by the keyboard (adjustResize): `innerHeight` already ends at it.
  * - iOS Safari / WKWebView and Android Chrome (`interactive-widget=resizes-visual`) keep the layout
@@ -10,7 +10,7 @@
  * `kk-keyboard-open` is set when the keyboard (or anything else) covers more than 120 px of the window
  * and `kk-ime-open` when the window itself got that much shorter (a resizing keyboard).
  * When the visual viewport is panned (iOS scrolls the page to show a focused field), the page is
- * scrolled back so the toolbar stays on screen, as in the Java app.
+ * scrolled back so the toolbar stays on screen.
  */
 import { useLayoutEffect } from 'react';
 
@@ -29,8 +29,7 @@ let tallestWidth = 0;
  * A keyboard that resizes the window (the Android app's WebView, adjustResize; browsers that resize the
  * layout viewport): `kk-ime-open` while the window is more than 120 px shorter than it was at this width,
  * as `kk-keyboard-open` marks a keyboard over the visual viewport. session.css then puts the quick-action
- * row 8 px above the keyboard. (Java leaves a navigation bar height there; the owner wanted the row right
- * on the keyboard on every phone: docs/android-parity.md.)
+ * row 8 px above the keyboard on every phone (docs/behaviour.md).
  */
 function updateImeGap(root: HTMLElement): void {
   const inner = window.innerHeight;

@@ -10,7 +10,7 @@ const subject = (id: number): ContentSubject => ({
 
 const T = 1_760_000_000_000;
 
-describe('burn / resurrect (ResurrectActivity.java:158-161, BurnActivity.java:158-161)', () => {
+describe('burn / resurrect', () => {
   it('resurrects a burned subject and burns it again, with the patchAssignment columns', () => {
     const db = createLearnerDb(makeContent([subject(5)], []), new Map());
     const system = srsSystemOf(db, 5);
@@ -35,7 +35,7 @@ describe('burn / resurrect (ResurrectActivity.java:158-161, BurnActivity.java:15
     expect(isResurrectable(db, 5)).toBe(true);
   });
 
-  it('stores Locked (-999) when the subject was never unlocked (SubjectSyncDao.patchAssignment)', () => {
+  it('stores Locked (-999) when the subject was never unlocked', () => {
     const db = createLearnerDb(makeContent([subject(6)], []), new Map());
     burnLocal(db, 6, T);
     expect(progressRow(db, 6).srsStage).toBe(-999);

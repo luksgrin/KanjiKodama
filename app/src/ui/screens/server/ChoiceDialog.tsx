@@ -1,6 +1,6 @@
 /**
  * A modal with several actions (Android's AlertDialog negative / neutral / positive), for the
- * server-mode questions: the Java AlertDialog look of `settings/AlertDialog` (flat accent text
+ * server-mode questions: the look of `settings/AlertDialog` (flat accent text
  * buttons, right-aligned, wrapping when they don't fit one row).
  */
 import '../settings/alert.css';

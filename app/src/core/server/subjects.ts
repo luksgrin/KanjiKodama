@@ -1,11 +1,10 @@
 /**
- * Server mode's content: the subjects and SRS systems the server sent (`GetSubjectsTask`,
- * `GetSrsSystemsTask`), as the core `Content` the session, dashboard and item pages work on. Java
- * stores the API subject in its `subject` table (`SubjectSyncDao.insertOrUpdate`); here the raw
- * envelopes stay in the Dexie `serverSubjects` table and are mapped on load.
+ * Server mode's content: the subjects and SRS systems the server sent, as the core `Content` the
+ * session, dashboard and item pages work on. The raw envelopes stay in the Dexie `serverSubjects`
+ * table and are mapped on load.
  *
- * Reference data (frequency, Joyo grade, JLPT level) is not in the API: Java fills it from its own
- * tables by character (`LoadReferenceDataTask`); here it comes from the bundled subject with the same
+ * Reference data (frequency, Joyo grade, JLPT level) is not in the API: it comes from the bundled
+ * subject with the same
  * id, when there is one. Parts and sound, stroke order and pitch are looked up by id in the bundled
  * content too.
  */

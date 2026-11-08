@@ -1,5 +1,5 @@
 /**
- * `ScenarioRunner.select` / `appendFilter`: the lessons or reviews available at the pinned clock,
+ * The lessons or reviews available at the pinned clock,
  * filtered by `{object, level, ids, exclude, limit}` and ordered like the app's queues. Session
  * actions use it too (`SessionDriver` gets it from the runner).
  */
@@ -39,7 +39,7 @@ export function isReviewRow(db: LearnerDb, id: number): boolean {
   return t.hiddenAt === 0 && t.level <= 60 && sqlNonZero(progressRow(db, id).availableAt);
 }
 
-/** `ScenarioRunner.select`. */
+/** Picks lessons or reviews with a filter. */
 export function select(db: LearnerDb, now: number, filter: Filter, lessons: boolean): number[] {
   const rows: { id: number; level: number; pos: number; avail: number }[] = [];
   for (const s of db.content.subjects) {

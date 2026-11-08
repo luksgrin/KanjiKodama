@@ -1,4 +1,4 @@
-/** Curriculum actions: `switchCurriculum`, `previewCurriculum`, `place` (`local/Curriculum`). */
+/** Curriculum actions: `switchCurriculum`, `previewCurriculum`, `place`. */
 
 import type { CurriculumMode } from '../../../../src/core/curriculum';
 import { placeLearnerInDb, previewCurriculum, switchCurriculum } from '../../../../src/core/progression';

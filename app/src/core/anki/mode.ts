@@ -2,9 +2,9 @@ import { QUESTION_TYPE_INFO, type QuestionType } from '../answer/questionType';
 import { advancedEnabled, prefBoolean, type Preferences, type SessionType } from '../settings';
 
 /**
- * `GlobalSettings.getAnkiMode(sessionType, questionType)`: whether a question gets the Anki screen.
+ * Whether a question gets the Anki screen.
  * Advanced settings must be on; then `anki_mode_<lesson|review|self_study>_<meaning|reading>` (default
- * false), with `NONE` reading the self-study pair like Java's else branch.
+ * false), with `NONE` reading the self-study pair.
  */
 export function ankiMode(prefs: Preferences, sessionType: SessionType, questionType: QuestionType): boolean {
   if (!advancedEnabled(prefs)) return false;

@@ -31,7 +31,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Like the Java app, go from the splash screen straight to the dashboard: keep the system
+        // Go from the splash screen straight to the dashboard: keep the system
         // splash until the web app is ready instead of showing the page's own loading screen.
         final SplashScreen splash = SplashScreen.installSplashScreen(this);
         splash.setKeepOnScreenCondition(() -> !webReady);
@@ -43,7 +43,6 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(SystemUiPlugin.class);
         registerPlugin(ReviewNotificationsPlugin.class);
         registerPlugin(KkAudioPlugin.class);
-        registerPlugin(LegacyMigrationPlugin.class);
         super.onCreate(savedInstanceState);
         pollReady(SystemClock.uptimeMillis() + SPLASH_MAX_MS);
     }

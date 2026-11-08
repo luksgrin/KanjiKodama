@@ -1,6 +1,6 @@
 /**
- * `tasks/WaniKaniImporter.apply`: replace all local progress with downloaded WaniKani progress, as
- * the `SubjectSyncDao`/`LevelProgressionDao` SQL does it. Subjects the content doesn't have are
+ * The WaniKani import: replace all local progress with downloaded WaniKani progress. Subjects the
+ * content doesn't have are
  * skipped and counted; in JLPT order the learner is then placed by what they know.
  */
 
@@ -19,7 +19,7 @@ import {
   type ApiUser,
 } from './api';
 
-/** `WaniKaniImporter.Download`: everything fetched, in API order. */
+/** Everything fetched, in API order. */
 export interface WaniKaniDownload {
   user: ApiUser;
   assignments: ApiAssignment[];
@@ -37,7 +37,7 @@ export interface WaniKaniApiData {
   level_progressions?: readonly ApiEnvelope[];
 }
 
-/** Parses the API data into a download, as `ApiTask.parseEntity` does item by item. */
+/** Parses the API data into a download, item by item. */
 export function parseDownload(api: WaniKaniApiData): WaniKaniDownload {
   return {
     user: parseApiUser(api.user),
@@ -48,29 +48,29 @@ export function parseDownload(api: WaniKaniApiData): WaniKaniDownload {
   };
 }
 
-/** Java `(int) d` for a double: truncated, saturating, NaN 0. */
-function toJavaInt(d: number): number {
+/** A double to a 32-bit int: truncated, saturating, NaN 0. */
+function toInt32(d: number): number {
   if (Number.isNaN(d)) return 0;
   if (d >= 2147483647) return 2147483647;
   if (d <= -2147483648) return -2147483648;
   return Math.trunc(d);
 }
 
-/** `SubjectSyncDao.tryUpdateReviewStatistic`'s leech score. */
+/** The leech score of an imported review statistic. */
 export function importedLeechScore(s: ApiReviewStatistic): number {
   let meaningStreak = Math.pow(s.meaningCurrentStreak, 1.5);
   if (meaningStreak === 0) meaningStreak = 0.5;
   let readingStreak = Math.pow(s.readingCurrentStreak, 1.5);
   if (readingStreak === 0) readingStreak = 0.5;
-  return toJavaInt(1000 * Math.max(s.meaningIncorrect / meaningStreak, s.readingIncorrect / readingStreak));
+  return toInt32(1000 * Math.max(s.meaningIncorrect / meaningStreak, s.readingIncorrect / readingStreak));
 }
 
 /**
- * `WaniKaniImporter.apply` at `now`: returns the summary text. The caller drops any running
+ * The import at `now`: returns the summary text. The caller drops any running
  * session (`resetProgress` deletes the session items).
  */
 export function applyWaniKaniImport(db: LearnerDb, d: WaniKaniDownload, now: number): string {
-  // ProgressStore.resetProgress: the curriculum mode lives outside the progress tables and stays.
+  // A full reset: the curriculum mode lives outside the progress tables and stays.
   db.progress = emptyProgress(db.progress.curriculum);
   let skipped = 0;
   for (const a of d.assignments) {

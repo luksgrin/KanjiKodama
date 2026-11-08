@@ -22,7 +22,6 @@ export interface Capabilities {
   backgroundSync: boolean;
   widget: boolean;
   cleartextHttp: boolean;
-  legacyMigration: boolean;
   /** Rolling automatic progress backup after each session (Android). False: show the "last saved" reminder. */
   autoBackup: boolean;
   /**
@@ -32,7 +31,7 @@ export interface Capabilities {
   imeFlags?: boolean;
   /**
    * Vocab audio plays natively with an optional audio focus request (`use_audio_focus`,
-   * `AudioUtil.playAudioPost26`): Android. Browsers can't ask other players to pause.
+   * MediaPlayer): Android. Browsers can't ask other players to pause.
    */
   audioFocus?: boolean;
 }
@@ -51,8 +50,7 @@ export interface ReviewScheduleOptions {
   /** Available lessons and reviews now. */
   current?: { lessons: number; reviews: number };
   /**
-   * `notification_update_frequency` / `_priority` / `_category` (Java `NotificationWorker`); the
-   * Java defaults when absent.
+   * `notification_update_frequency` / `_priority` / `_category`; the defaults when absent.
    */
   style?: { frequency: string; priority: string; category: string };
 }
@@ -106,7 +104,7 @@ export interface AudioDownloadResult {
  * Web: `play` streams the URL with an <audio> element while online; download/status/deleteAll are
  * unsupported there (capability `audioDownload` false).
  */
-/** `use_audio_focus` (`GlobalSettings.Audio.getUseAudioFocus`, default true); honoured where `capabilities.audioFocus`. */
+/** `use_audio_focus` (default true); honoured where `capabilities.audioFocus`. */
 export interface AudioPlayOptions {
   audioFocus?: boolean;
 }
@@ -118,14 +116,14 @@ export interface AudioApi {
   setCatalog(catalog: AudioCatalog | null): void;
   /**
    * Play one recording of the subject (the cached file, else streamed). `reading`: the last matched
-   * answer, preferred like the Java app. False when there is no audio or it could not play (not
+   * answer, preferred. False when there is no audio or it could not play (not
    * cached and offline).
    */
   play(subjectId: number, pref: VoicePreference, reading?: string | null, options?: AudioPlayOptions): Promise<boolean>;
   /** Download the missing files of these levels; `onProgress(done, total)` after each file. */
   download(levels: readonly number[], onProgress?: (done: number, total: number) => void, signal?: AbortSignal): Promise<AudioDownloadResult>;
   /**
-   * `AudioUtil.scheduleDownloadTasks(subjects, maxCount)`: download the missing files of these
+   * Downloads the missing files of these
    * subjects, at most `maxCount` subjects that miss files (auto-download). Android only.
    */
   downloadSubjects?(subjectIds: readonly number[], maxCount: number, signal?: AbortSignal): Promise<AudioDownloadResult>;
@@ -134,7 +132,7 @@ export interface AudioApi {
   deleteAll(): Promise<void>;
 }
 
-/** `util/HapticUtil`: onCorrect, onWrong, onRetry; 'tap' for light UI feedback. */
+/** Haptic feedback kinds: correct, wrong, retry; 'tap' for light UI feedback. */
 export type HapticKind = 'correct' | 'wrong' | 'retry' | 'tap';
 
 export interface HapticsApi {
@@ -186,7 +184,7 @@ export interface FilesApi {
   /** Let the user pick a text file; null when cancelled. */
   openText(): Promise<OpenedText | null>;
   /**
-   * Hand a text file to another app through the share sheet (Java `ACTION_SEND`, the data
+   * Hand a text file to another app through the share sheet (`ACTION_SEND`, the data
    * import/export screen). Absent: use `saveText`.
    */
   shareText?(name: string, text: string): Promise<SaveResult>;
@@ -214,7 +212,7 @@ export interface HttpRequest {
   headers?: Record<string, string>;
   /** Request body (JSON text for the API). */
   body?: string;
-  /** Read timeout in ms (Java's `setReadTimeout`); implementations pick a default when absent. */
+  /** Read timeout in ms; implementations pick a default when absent. */
   timeoutMs?: number;
 }
 
@@ -276,41 +274,6 @@ export interface WidgetApi {
   requestPin?(): Promise<boolean>;
 }
 
-/** What the Java app left behind after the Capacitor app was installed over it (Android). */
-export interface LegacyProbe {
-  /** The Room database `databases/wanikani`. */
-  database: boolean;
-  /** The default SharedPreferences (the settings). */
-  settings: boolean;
-  /** EncryptedSharedPreferences "encrypted_shared_prefs" (the API token). */
-  encryptedSettings: boolean;
-}
-
-/** The Java app's settings in the settings backup format (src/progress/settingsBackup.ts). */
-export interface LegacySettings {
-  text: string;
-  /** Entries of a type the backup format can't hold (left out). */
-  skipped: number;
-  /** `kanjikodama_server_mode`. */
-  serverMode: boolean;
-  /** `api_base_url`, null when unset. */
-  baseUrl: string | null;
-}
-
-/** One-time move from the Java app (Android, capability `legacyMigration`; src/progress/legacyMigration.ts). */
-export interface LegacyApi {
-  probe(): Promise<LegacyProbe>;
-  /** `ProgressStore.export()` of the old database (read from a copy; the original is never written). */
-  exportProgress(): Promise<string>;
-  /** null when the old app left no settings. */
-  exportSettings(): Promise<LegacySettings | null>;
-  /** The old app's API token, or null (none, or it can't be decrypted). */
-  readToken(): Promise<string | null>;
-  /** Deletes the old database, preferences and encrypted preferences. */
-  removeOldData(): Promise<void>;
-  /** Moves the old app's downloaded pronunciation audio into this app's audio directory (same layout). */
-  moveAudio?(): Promise<{ files: number; bytes: number }>;
-}
 
 /** Periodic background sync (Android, server mode). */
 export interface BackgroundSyncApi {
@@ -338,8 +301,6 @@ export interface Platform {
   readonly widget?: WidgetApi;
   /** Android only (capability `backgroundSync`). */
   readonly backgroundSync?: BackgroundSyncApi;
-  /** Android only (capability `legacyMigration`). */
-  readonly legacy?: LegacyApi;
 }
 
 let cached: Promise<Platform> | undefined;

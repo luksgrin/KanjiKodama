@@ -1,8 +1,7 @@
 /**
  * The "Add synonym" dialog of the subject info screen as a pure state machine.
  *
- * Java: `views/SubjectInfoView.prepareAddSynonymButton` / `onSynonymEditorAction` / `addSynonym`, with the
- * Android behavior `answers/synonyms-dialog-device.json` recorded on the real dialog: a single-line field
+ * Its behaviour is pinned by `answers/synonyms-dialog-device.json`: a single-line field
  * whose input filter turns each run of line breaks into one space; Enter or any keyboard action saves
  * (actions other than Done reach the listener as a synthesized Enter); Shift+Enter and a numpad Enter on
  * a non-empty field insert a line break (so a space); Save saves, Cancel and Back close.
@@ -53,7 +52,7 @@ export function synonymDialogStep(
 }
 
 /**
- * `SubjectInfoView.addSynonym(synonymInput(text))`: the new synonym list and the save job's data, or null
+ * Adding `synonymInput(text)`: the new synonym list and the save job's data, or null
  * when nothing happens (blank value, or one the list already has).
  */
 export function confirmSynonym(

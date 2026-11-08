@@ -1,7 +1,7 @@
 /**
- * Android's TableLayout with `shrinkColumns="*"` (advanced_search.xml) for a two-column CSS grid:
+ * A table whose columns shrink to fit, for the advanced search's two-column CSS grid:
  * each column is as wide as its widest cell; when both don't fit, every column gives up the same
- * amount (`TableLayout.mutateColumnsWidth`), so long labels wrap where Java's do.
+ * amount, so long labels wrap evenly.
  */
 import { useLayoutEffect, useRef } from 'react';
 

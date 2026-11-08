@@ -1,20 +1,19 @@
 /**
- * Restoring a progress file (`ProgressPreferences` "Restore" → `ProgressStore.describe` and
- * `restore`), in two steps like the Android app:
+ * Restoring a progress file, in two steps:
  *
  * 1. `previewImport(text)`: validate (core `describe`: JSON object, format tag, version not newer
- *    than supported, `subjects` a list; unknown keys ignored, exactly the Java acceptance) and return
+ *    than supported, `subjects` a list; unknown keys ignored) and return
  *    the summary "Saved <date>, <order>, level N, M items with progress." for the confirmation.
  * 2. After the user confirms, `importProgress`: in ONE Dexie transaction, read the stored progress,
  *    apply core `restoreIntoDb` (reset, apply the subject fields, insert level progression,
  *    probation and jumps, adopt the curriculum, set the user level, recompute unlocks with
- *    `LocalProgression.update`), write everything back and drop the session. Any failure aborts the
+ *    `updateProgression`), write everything back and drop the session. Any failure aborts the
  *    transaction and leaves the database as it was.
  *
- * Local mode only, like the Java app (the screens hide it in server mode).
+ * Local mode only (the screens hide it in server mode).
  */
 import type { Content } from '../core/content';
-import { JavaException, describe, type DateStyle } from '../core/progressFile';
+import { TypedError, describe, type DateStyle } from '../core/progressFile';
 import { hydrateLearnerDb, readSnapshot, snapshotOf, writeSnapshot } from '../storage/progressRepo';
 import { PROGRESS_TABLES, type KkDb } from '../storage/db';
 import { restoreIntoDb, type LearnerDb } from '../core/progression';
@@ -34,21 +33,21 @@ export interface ImportPreview {
   summary: string;
 }
 
-/** The device's time zone; the summary's date is printed in it, like Java's default `TimeZone`. */
+/** The device's time zone; the summary's date is printed in it. */
 export function deviceTimeZone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 }
 
-/** A user-facing message for a file the Java code rejects. */
-function messageFor(e: JavaException): string {
+/** A user-facing message for a rejected file. */
+function messageFor(e: TypedError): string {
   // `describe`'s own checks already have clear messages ("This is not a KanjiKodama progress
   // file.", "…made by a newer KanjiKodama."). JSON syntax and structure errors don't.
-  if (e.javaClass === 'java.lang.IllegalArgumentException') return e.message;
+  if (e.errorType === 'IllegalArgumentException') return e.message;
   return `This is not a valid KanjiKodama progress file (${e.message}).`;
 }
 
 function rethrow(e: unknown): never {
-  if (e instanceof JavaException) throw new ProgressImportError(messageFor(e), { cause: e });
+  if (e instanceof TypedError) throw new ProgressImportError(messageFor(e), { cause: e });
   throw e;
 }
 
@@ -80,7 +79,7 @@ export interface ImportResult {
 
 /**
  * Step 2: replaces all progress with the file's, in one transaction. Throws `ProgressImportError`
- * for a file the Java app would reject (also when `previewImport` was skipped) and rethrows storage
+ * for a rejected file (also when `previewImport` was skipped) and rethrows storage
  * errors; in both cases the database is unchanged.
  */
 export async function importProgress(kk: KkDb, text: string, ctx: ImportContext): Promise<ImportResult> {

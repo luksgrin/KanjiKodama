@@ -72,7 +72,7 @@ describe('importProgress', () => {
     const subjects = new Map((await kk.subjects.toArray()).map((r) => [r.id, r]));
     expect(subjects.has(99999)).toBe(false);
     expect(subjects.get(10)).toMatchObject({ srsStage: 2, unlockedAt: 100, startedAt: 101, meaningSynonyms: 'x' });
-    // Radicals 1 and 2 (no components) are unlocked again by LocalProgression.update at `now`; the old progress is gone.
+    // Radicals 1 and 2 (no components) are unlocked again by updateProgression at `now`; the old progress is gone.
     expect(subjects.get(1)).toMatchObject({ unlockedAt: 5000, srsStage: 0, meaningCorrect: 0, passedAt: 0 });
     expect(subjects.get(2)).toMatchObject({ unlockedAt: 5000, meaningNote: null });
     expect(await kk.probation.toArray()).toEqual([{ id: 10, since: 5 }]);
@@ -96,7 +96,7 @@ describe('importProgress', () => {
   });
 
   it('leaves the database untouched when the restore fails inside the transaction', async () => {
-    // Passes `describe`, then fails in the restore (Room's NOT NULL on srsStage), after the reads.
+    // Passes `describe`, then fails in the restore (NOT NULL on srsStage), after the reads.
     const text = progressFile({ subjects: [{ id: 10, unlockedAt: 1 }, { id: 11, srsStage: null }] });
     expect(() => previewImport(text, 'UTC')).not.toThrow();
     const before = await dump(kk);

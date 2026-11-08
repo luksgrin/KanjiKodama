@@ -52,7 +52,7 @@ const EARLIER_VERSIONS: Array<{
       expect(state.userLevel).toBe(4);
       const { text } = await exportProgressFile(kk, 1760659200000, 'UTC');
       const file = JSON.parse(text) as { subjects: Array<{ id: number }> };
-      // 441 has no answers and isn't unlocked: not exported, like the Java filter.
+      // 441 has no answers and isn't unlocked: not exported.
       expect(file.subjects.map((s) => s.id)).toEqual([440]);
     },
   },

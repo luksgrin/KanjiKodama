@@ -1,9 +1,9 @@
 // Pronunciation audio on Android: native HTTP download (CapacitorHttp: no CORS) into the app's
 // files dir, native playback from there (or streamed) through the app's KkAudio plugin, a MediaPlayer
-// with Java's optional audio focus request (`use_audio_focus`, KkAudioPlugin.java).
+// with an optional audio focus request (`use_audio_focus`, KkAudioPlugin.java).
 // Decisions (which recording, which files) are pure: core/audio/audio.ts.
 //
-// Layout as in the Java app's "Internal" location: files/pronunciation-audio/<level>/<sourceId>.mp3
+// Layout: files/pronunciation-audio/<level>/<sourceId>.mp3
 // (<level> is the WaniKani level from the content). Excluded from Android Auto Backup
 // (res/xml/backup_rules.xml, data_extraction_rules.xml): it can be downloaded again.
 import { CapacitorHttp, registerPlugin } from '@capacitor/core';
@@ -18,10 +18,10 @@ import {
   type AudioDownload,
   type VoicePreference,
 } from '../core/audio';
-import { JavaRandom, type Rng } from '../core/rng';
+import { SeededRandom, type Rng } from '../core/rng';
 import type { AudioApi, AudioCacheStatus, AudioDownloadResult, AudioLevelStatus, AudioPlayOptions } from './index';
 
-/** Parallel downloads (the Java app ran one task at a time; ~14 000 small files make that slow). */
+/** Parallel downloads (~14 000 small files make one at a time slow). */
 const PARALLEL = 4;
 const AUDIO_FILE = /^\d+\.(mp3|ogg)$/;
 
@@ -36,7 +36,7 @@ interface KkAudioPlugin {
 }
 const KkAudio = registerPlugin<KkAudioPlugin>('KkAudio');
 
-/** MediaPlayer playback (AudioUtil.playAudioPost26), with the audio focus request when asked. */
+/** MediaPlayer playback, with the audio focus request when asked. */
 export const nativeAudioPlayer: AudioPlayer = {
   async play(src: string, options: AudioPlayOptions = {}): Promise<void> {
     const r = await KkAudio.play({ src, audioFocus: options.audioFocus !== false });
@@ -81,7 +81,7 @@ async function downloadOne(item: AudioDownload): Promise<number> {
   if (typeof data !== 'string' || data === '') throw new Error('empty response');
   const b64 = data.replace(/\s/g, ''); // Android's Base64.DEFAULT wraps lines
   // Write next to the target and rename, so a half-written file never counts as cached
-  // (`AudioUtil.getTempFile`; one temp name per file because downloads run in parallel).
+  // (one temp name per file because downloads run in parallel).
   const tmp = `${item.path}.downloading.tmp`;
   await Filesystem.writeFile({ path: tmp, data: b64, directory: Directory.Data, recursive: true });
   await Filesystem.rename({ from: tmp, to: item.path, directory: Directory.Data });
@@ -116,13 +116,13 @@ async function runQueue(queue: readonly AudioDownload[], onProgress?: (done: num
 
 export interface AndroidAudioOptions {
   player?: AudioPlayer;
-  /** Random tie-break between equally good recordings (`ObjectSupport.shuffle`); seeded in tests. */
+  /** Random tie-break between equally good recordings; seeded in tests. */
   rng?: Pick<Rng, 'nextInt'>;
 }
 
 export function createAndroidAudio(options: AndroidAudioOptions = {}): AudioApi {
   const player = options.player ?? nativeAudioPlayer;
-  const rng = options.rng ?? new JavaRandom(Date.now());
+  const rng = options.rng ?? new SeededRandom(Date.now());
   let catalog: AudioCatalog | null = null;
   let expected: Map<number, number> | null = null;
   let lastWasMale = false;
@@ -148,7 +148,7 @@ export function createAndroidAudio(options: AndroidAudioOptions = {}): AudioApi 
         const { uri } = await Filesystem.getUri({ path: `${AUDIO_DIR}/${owner.level}/${name}`, directory: Directory.Data });
         src = uri;
       }
-      lastWasMale = choice.audio.gender === 'male'; // AudioUtil.playLocalAudio / playStreamingAudio
+      lastWasMale = choice.audio.gender === 'male'; // for the ALTERNATE voice preference
       try {
         await player.play(src, playOptions);
         return true;

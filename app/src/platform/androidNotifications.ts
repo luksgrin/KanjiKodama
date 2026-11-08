@@ -2,7 +2,7 @@
 // (app/android/.../ReviewNotifications.java). Loaded only in the native build (android.ts). Planning
 // is pure: core/notifications/plan.ts.
 //
-// Like the Java app (services/NotificationWorker) there is ONE notification (id 1), posted or updated
+// There is ONE notification (id 1), posted or updated
 // at the planned review hours by a native inexact alarm, so several review hours without opening the
 // app never pile up notifications. Channel "NewReviewsChannel" only (the old plugin's "Default"
 // channel is deleted), public on the lock screen, sound on new reviews; priority, category and when
@@ -34,7 +34,7 @@ export interface ReviewNotificationsPlugin {
   schedule(options: {
     entries: PlannedNotification[];
     current: (PlannedNotification & { lessons: number; reviews: number }) | null;
-    /** `notification_update_frequency` / `_priority` / `_category`; Java's defaults when absent. */
+    /** `notification_update_frequency` / `_priority` / `_category`; the defaults when absent. */
     style?: { frequency: string; priority: string; category: string };
   }): Promise<{ scheduled: number }>;
   /** Forget the plan, cancel the alarm and the shown notification. */

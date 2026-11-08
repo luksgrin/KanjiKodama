@@ -7,7 +7,7 @@ import type { Database } from 'sql.js';
 import { pitchInfo, strokeData } from '../../../content/contentFile';
 import { parsePitchInfo, type PitchInfo } from './pitchInfo';
 
-/** `api/model/ContextSentence`. */
+/** A context sentence. */
 export interface ContextSentence {
   en: string | null;
   ja: string | null;

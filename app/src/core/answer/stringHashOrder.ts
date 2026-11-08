@@ -1,11 +1,11 @@
 /**
- * Java's `String.hashCode` and the iteration order of a `java.util.HashSet<String>`, so a port can
- * walk a set in the order the Java app did (the first of several equally good answers wins, e.g.
- * `matchedAnswer` in the meaning checks).
+ * The string hash and the iteration order of a hash set of strings, so a set is walked in the order
+ * the fixtures pin (the first of several equally good answers wins, e.g. `matchedAnswer` in the
+ * meaning checks).
  */
 
-/** `String.hashCode`: s[0]*31^(n-1) + ... + s[n-1] over UTF-16 units, in 32-bit int arithmetic. */
-export function javaStringHash(s: string): number {
+/** The string hash: s[0]*31^(n-1) + ... + s[n-1] over UTF-16 units, in 32-bit int arithmetic. */
+export function stringHashCode(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
   return h;
@@ -18,7 +18,7 @@ export function javaStringHash(s: string): number {
  * order, so iteration is by final bucket, then insertion. A null goes to bucket 0. (Buckets turn into trees only with 8+
  * colliding keys in a table of 64+, which word lists here never reach.)
  */
-export function javaHashSetOrder<T extends string | null>(items: Iterable<T>): T[] {
+export function stringSetOrder<T extends string | null>(items: Iterable<T>): T[] {
   const unique: T[] = [];
   const seen = new Set<T>();
   for (const s of items) {
@@ -29,9 +29,9 @@ export function javaHashSetOrder<T extends string | null>(items: Iterable<T>): T
   let capacity = 16;
   while (unique.length > capacity * 0.75) capacity *= 2;
   const mask = capacity - 1;
-  // HashMap.hash(null) is 0.
+  // The hash of null is 0.
   const bucket = (s: T): number => {
-    const h = s === null ? 0 : javaStringHash(s);
+    const h = s === null ? 0 : stringHashCode(s);
     return (h ^ (h >>> 16)) & mask;
   };
   return unique

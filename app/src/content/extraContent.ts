@@ -1,7 +1,7 @@
 import type { Database } from 'sql.js';
 import { makeContent, type Content, type ContentSubject, type SubjectObject } from '../core/content';
 
-/** `local/ExtraContent.WK_LEVEL`: the level the extra subjects get in WaniKani order. */
+/** The level the extra subjects get in WaniKani order. */
 export const EXTRA_WK_LEVEL = 61;
 
 interface ExtraRow {
@@ -23,7 +23,7 @@ function jsonArray<T>(text: string | null): T[] {
   return Array.isArray(v) ? (v as T[]) : [];
 }
 
-/** `ExtraContent.idsByCharacters`: characters → id; visible subjects win over hidden ones, then the higher id. */
+/** Characters → id; visible subjects win over hidden ones, then the higher id. */
 function idsByCharacters(subjects: Iterable<ContentSubject>, object: SubjectObject): Map<string, number> {
   const matching = [...subjects].filter((s) => s.object === object && s.characters !== null);
   // ORDER BY hiddenAt != 0 DESC, id: hidden first, then visible; later puts win.
@@ -34,9 +34,8 @@ function idsByCharacters(subjects: Iterable<ContentSubject>, object: SubjectObje
 }
 
 /**
- * `local/ExtraContent.ensureImported` on a fresh database: the extra kanji (ids from 100000) and words
- * (from 200000) of `extra-kanji.db`, merged into the WaniKani content the way the Java app inserts them
- * (level 61, SRS system 1, visible, kanji components resolved to radicals by character, word components
+ * The extra kanji (ids from 100000) and words (from 200000) of `extra-kanji.db`, merged into the
+ * WaniKani content (level 61, SRS system 1, visible, kanji components resolved to radicals by character, word components
  * to kanji, extra kanji's amalgamations set to their words).
  */
 export function mergeExtraContent(base: Content, extraDb: Database): Content {

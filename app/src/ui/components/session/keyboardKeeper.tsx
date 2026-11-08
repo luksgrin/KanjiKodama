@@ -1,6 +1,5 @@
 /**
- * Keeps the on-screen keyboard open from one question to the next, as the Java app does
- * (`showSoftInput` on every new unanswered question).
+ * Keeps the on-screen keyboard open from one question to the next.
  *
  * Browsers only open the keyboard for a focus that happens during a tap (iOS) and close it when the
  * focused field goes away. A new question is a new answer field that appears after the tap's async work,
@@ -120,9 +119,9 @@ export function restoreAnswerFocus(e: Pick<FocusEvent, 'target' | 'relatedTarget
  * A long press starts a selection: Chromium puts a caret in the pressed block (`selectstart`, then
  * `selectionchange`) while the DOM focus stays in the answer field, or selects the pressed word and the
  * focus goes. Either way the focused field no longer holds the selection, the page reports no text input
- * and the WebView hides the keyboard. Nothing on the unanswered question is selectable (owner's request;
- * Java's banner, counter and title aren't either, and its question view is a long-clickable view with the
- * title action mode), so a selection starting outside the fields is cancelled; `:root.kk-keep-answer`
+ * and the WebView hides the keyboard. Nothing on the unanswered question is selectable (the question's
+ * long press opens the title action mode instead), so a selection starting outside the fields is
+ * cancelled; `:root.kk-keep-answer`
  * (session.css) also makes the screen `user-select: none` but the fields.
  */
 export function keepAnswerSelection(e: Pick<Event, 'target' | 'preventDefault'>, dialogOpen: boolean): boolean {
@@ -156,7 +155,7 @@ const PRESS_TAIL_MS = 600;
 
 /**
  * While the unanswered question shows (`active`), taps and long presses outside the interactive elements
- * (and nothing selects there) leave the keyboard open (an owner's request: Java hides it). Answered screens, the item info and the
+ * (and nothing selects there) leave the keyboard open (docs/behaviour.md). Answered screens, the item info and the
  * lesson presentation keep the browser's behaviour (the keyboard may hide).
  */
 export function useKeepAnswerFocus(active: boolean, dialogOpen: () => boolean): void {

@@ -1,6 +1,5 @@
 /**
- * The item page: the Java subject info screen (`SubjectInfoView`, layout `subject_info.xml`) for one
- * subject, sections in Java's order:
+ * The item page: the subject info screen for one subject, in this section order:
  *
  * headline (title, meanings, readings or pitch accent, audio) · on'yomi / kun'yomi / nanori ·
  * components ("Used radicals:" / "Used kanji:") · meaning mnemonic, hint, my meaning note, my synonyms
@@ -8,9 +7,9 @@
  * order · context sentences · "Visually similar:" and "Used in:" (swapped by
  * `swap_similar_amalgamations`) · details table.
  *
- * Visibility follows `SubjectInfoView.layoutSubjectImpl` with the four info-dump flags (all on, as in
+ * Visibility follows the four info-dump flags (all on, as in
  * the browse screen, unless `visibility` says otherwise: lessons and answered questions pass theirs).
- * The Resurrect / Burn buttons (`subject_info.xml`, below the details table) and the star rating go in
+ * The Resurrect / Burn buttons (below the details table) and the star rating go in
  * the `extras` slot (the subject screen fills it). The image-only
  * radicals show their image (`SubjectChars`, from the content file's `title_image` table).
  */
@@ -76,7 +75,7 @@ export interface ItemPageProps {
   content: { db: Database; content: Content };
   /** The subject's progress row (null: not started, no notes). */
   progress?: ItemProgress | null;
-  /** The preferences (`SharedPreferences` keys); absent keys take Java's defaults. */
+  /** The preferences; absent keys take the defaults. */
   settings?: Preferences;
   /** The subject's level in the current curriculum (defaults to `subject.level`, the WaniKani order). */
   level?: number;
@@ -95,9 +94,9 @@ export interface ItemPageProps {
   onSaveStudyMaterial?: SaveStudyMaterial;
   /** The subject cards' progress line ("Guru I - 3h"; `useCardProgress`). */
   cardProgress?: (subject: ContentSubject) => string | null;
-  /** Below the details table (Java's Resurrect / Burn buttons): the subject screen's extras. */
+  /** Below the details table (the Resurrect / Burn buttons): the subject screen's extras. */
   extras?: ReactNode;
-  /** Largest tile glyph height in px (Java `max_font_size_lesson` 128 / `_quiz` 28 / `_browse` 64). */
+  /** Largest tile glyph height in px (`max_font_size_lesson` 128 / `_quiz` 28 / `_browse` 64). */
   maxFontSize?: number;
 }
 

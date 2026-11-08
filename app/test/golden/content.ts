@@ -46,8 +46,8 @@ export const EXTRA_DB_PATH = fileURLToPath(new URL('../../../content/inputs/extr
 let extrasPromise: Promise<Content> | undefined;
 
 /**
- * The content as the Android app's database holds it: WaniKani content plus the extra kanji and words
- * (`ExtraContent.ensureImported`, ids from 100000). Device (Tier B) fixtures were recorded on this.
+ * The content with the extras: WaniKani content plus the extra kanji and words (ids from 100000).
+ * The device fixtures were recorded on this.
  */
 export function loadContentWithExtras(): Promise<Content> {
   extrasPromise ??= (async () => {

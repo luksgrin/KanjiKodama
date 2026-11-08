@@ -1,8 +1,8 @@
 /**
- * Switching between local mode and server mode (`local/ServerMode`). Each mode has one source of
+ * Switching between local mode and server mode. Each mode has one source of
  * truth, so a switch replaces what is on the device: going to server mode clears local progress and
  * downloads everything; going back to local mode starts over from the bundled content, optionally
- * with the server account's progress imported (the `WaniKaniImporter` path).
+ * with the server account's progress imported (the WaniKani import path).
  *
  * No silent data loss (plan, step 5c): leaving server mode with unsent uploads throws
  * `ServerError(reason 'pending')` unless the caller passes `discardPendingUploads: true` after the
@@ -46,7 +46,7 @@ export async function backupBeforeServerSwitch(kk: KkDb, files: FilesApi, now: n
 }
 
 /**
- * `ServerMode.switchToServer`: store the connection, clear local progress (the server's comes with
+ * Stores the connection, clear local progress (the server's comes with
  * the first sync), WaniKani order. `user` is what `checkConnection` returned. The caller then runs
  * `engine.syncNow()`. From server mode to another server, unsent uploads block it like leaving.
  */
@@ -65,7 +65,7 @@ export async function switchToServer(kk: KkDb, o: {
   }
   await kk.transaction('rw', [kk.subjects, kk.levelProgression, kk.probation, kk.jumps, kk.levelTest, kk.session, kk.tasks, kk.serverSubjects, kk.state], async () => {
     await resetServerData(kk, store);
-    // `Curriculum.onServerMode`: the server's levels are WaniKani's.
+    // The server's levels are WaniKani's.
     await store.putMany({
       [KEYS.mode]: 'server',
       [KEYS.baseUrl]: o.baseUrl,
@@ -87,7 +87,7 @@ export async function flushBeforeLeaving(engine: SyncEngine): Promise<number> {
 }
 
 /**
- * `ServerMode.downloadForLocal`: the server account's progress (assignments, review statistics,
+ * The server account's progress (assignments, review statistics,
  * study materials, level progressions; never `/v2/reviews`, which OpenKani leaves empty), without
  * changing anything.
  */
@@ -126,10 +126,10 @@ export async function downloadForLocal(kk: KkDb, o: {
 }
 
 /**
- * `ServerMode.switchToLocal`: local mode, starting over from the bundled content (level 1, the chosen
+ * Local mode, starting over from the bundled content (level 1, the chosen
  * curriculum kept), then `download` applied if given. The queue is dropped only with
  * `discardPendingUploads` (else `ServerError` 'pending' when anything is unsent). The connection
- * (base URL, token) is kept for next time, like Java's `GlobalSettings.Api`.
+ * (base URL, token) is kept for next time.
  */
 export async function switchToLocal(kk: KkDb, o: {
   content: Content;

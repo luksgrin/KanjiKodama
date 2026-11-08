@@ -1,5 +1,5 @@
 /**
- * The API client over `HttpApi`: `ApiTask.getApiCall` / `postApiCall` with their retry wrappers
+ * The API client over `HttpApi`: GET and POST with retries
  * (`NUM_API_TRIES` tries, `API_RETRY_DELAY` apart), the shared `RateLimiter`, pagination through
  * `pages.next_url`, and conditional GETs (ETag / Last-Modified) on the native build.
  *
@@ -208,7 +208,7 @@ export class ApiClient {
   /**
    * `collectionApiCall`: every page from `uri` on, following the absolute `pages.next_url`.
    * `onPage` runs for each page before the next is fetched (pages already handled stay handled when
-   * a later page fails, like Java). A body without `data` fails the call.
+   * a later page fails). A body without `data` fails the call.
    */
   async collection(uri: string, onPage: (page: CollectionPage) => Promise<void> | void, opts: { conditional?: boolean } = {}): Promise<CollectionResult> {
     let next: string | null = uri;

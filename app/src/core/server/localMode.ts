@@ -1,5 +1,5 @@
 /**
- * `local/LocalMode`: which features belong to which mode. In server mode the server decides SRS,
+ * Which features belong to which mode. In server mode the server decides SRS,
  * unlocks and level-ups, so the local-only features (JLPT order, the extra kanji, fast travel, the
  * level test, restoring a progress file, the WaniKani import) are hidden; the sync actions only make
  * sense with a server. Screens ask `featureVisible(mode, feature)` instead of checking the mode.
@@ -7,7 +7,7 @@
 
 export type ModeName = 'local' | 'server';
 
-/** `LocalMode.LOCAL_MENU_ITEMS` + `LOCAL_PREFERENCES`, and the extra kanji (`ExtraContent`). */
+/** Local mode only: menu items, settings, and the extra kanji. */
 export const LOCAL_ONLY_FEATURES = [
   'curriculum', // progress_curriculum (JLPT order)
   'extraKanji',
@@ -17,7 +17,7 @@ export const LOCAL_ONLY_FEATURES = [
   'importWaniKani', // progress_import_wanikani
 ] as const;
 
-/** `LocalMode.ONLINE_MENU_ITEMS` + `ONLINE_PREFERENCES` (the ones this app has). */
+/** Server mode only: menu items and settings. */
 export const SERVER_ONLY_FEATURES = [
   'syncNow', // action_sync_now
   'flushTasks', // action_flush_tasks
@@ -33,14 +33,14 @@ export type ModeFeature = LocalOnlyFeature | ServerOnlyFeature;
 const LOCAL_ONLY = new Set<string>(LOCAL_ONLY_FEATURES);
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_FEATURES);
 
-/** `LocalMode.applyToMenu` / `applyToPreferences` for one feature. */
+/** Whether a feature shows in a mode. */
 export function featureVisible(mode: ModeName, feature: ModeFeature): boolean {
   if (LOCAL_ONLY.has(feature)) return mode === 'local';
   if (SERVER_ONLY.has(feature)) return mode === 'server';
   return true;
 }
 
-/** `LocalMode.applyToPreferences`: the title of the API section. */
+/** The title of the API settings section. */
 export function apiSectionTitle(mode: ModeName): string {
   return mode === 'local' ? 'Audio download settings' : 'API and audio download settings';
 }

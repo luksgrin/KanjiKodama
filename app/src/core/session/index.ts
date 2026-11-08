@@ -1,7 +1,6 @@
 /**
  * Lesson, review and self-study sessions: queues, question choice, submit, Don't know, undo, ignore,
- * skip, wrap-up, lightning, Anki mode, summary. Java: model/Session, model/Question,
- * db/model/SessionItem, model/SubjectSelectionRules, GlobalSettings. Fixtures: scenarios/session-*,
+ * skip, wrap-up, lightning, Anki mode, summary. Fixtures: scenarios/session-*,
  * scenarios/anki-*, anki/*.
  */
 export * from './types';

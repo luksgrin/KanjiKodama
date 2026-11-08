@@ -1,6 +1,5 @@
 /**
- * The quiz question text's font (`AbstractSessionFragment`: `session.getCurrentTypefaceConfiguration`,
- * tap toggles between it and the default face). One font per session item, chosen at random among the
+ * The quiz question text's font (a tap toggles between it and the default face). One font per session item, chosen at random among the
  * selected fonts that fit the subject's characters, kept for the session (`SessionItem`'s cached
  * `typefaceConfiguration`).
  */

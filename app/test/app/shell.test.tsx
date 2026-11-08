@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// The Java toolbar (ui/shell/ToolbarView), toasts, the dashboard as history root.
+// The toolbar (ui/shell/ToolbarView), toasts, the dashboard as history root.
 import 'fake-indexeddb/auto';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -95,7 +95,7 @@ describe('toolbar', () => {
   it('the search action opens a SearchView that runs a keyword search', async () => {
     const { el, app, location } = await render('/');
     await click(q(el, 'toolbar-search'));
-    // Java: the action view expands iconified first (Collapse + magnifier); the magnifier opens the field.
+    // The search expands iconified first (Collapse + magnifier); the magnifier opens the field.
     expect(q(el, 'toolbar-search-input')).toBeNull();
     await click(q(el, 'toolbar-search-expand'));
     const input = q(el, 'toolbar-search-input') as HTMLInputElement;
@@ -119,7 +119,7 @@ describe('toolbar', () => {
 });
 
 describe('useToolbar', () => {
-  it('merges screen options; screen actions go to their Java menu position and can hide built-ins', async () => {
+  it('merges screen options; screen actions go to their menu position and can hide built-ins', async () => {
     const onLog = vi.fn();
     function Probe() {
       useToolbar({

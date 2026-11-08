@@ -1,5 +1,5 @@
 /*
- * Session screens (fragment_unanswered_question.xml, fragment_answered_question.xml, fragment_anki.xml).
+ * Session screens (unanswered, answered, Anki).
  * The quiz fills the height above the keyboard (--kk-visible-height, visibleViewport.ts; below the toolbar):
  * - unanswered: question view (own height: progress line 28 + the 104 sp text), type banner (~34), answer
  *   field (48), the spacer, and the quick-action row (60) on the keyboard. The question view gives up
@@ -10,7 +10,7 @@
  */
 
 .kk-quiz {
-  /* Edge to edge inside .kk-main, like the Java fragments, down to the bottom of the screen. */
+  /* Edge to edge inside .kk-main, down to the bottom of the screen. */
   margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) calc(-1 * (var(--safe-bottom) + var(--main-gutter)));
   display: flex;
   flex-direction: column;
@@ -59,7 +59,7 @@
 .kk-quiz-question.kk-type--vocabulary,
 .kk-quiz-question.kk-type--kana_vocabulary { background: var(--color-vocab); }
 
-/* progress / srsIndicator: 20 sp WK.TextView.Normal.Light (Silkscreen), 8 dp from the left, 4 dp from the top. */
+/* progress / srsIndicator: 20 px light text (Silkscreen), 8 px from the left, 4 px from the top. */
 .kk-quiz-top,
 .kk-quiz-bottom {
   position: relative;
@@ -72,7 +72,7 @@
   line-height: 1.2;
 }
 .kk-quiz-bottom { align-items: flex-end; padding: 0 0 0; min-height: 0; }
-/* progress / srsIndicator: WK.TextView.Normal.Light in bold; AppCompat applies the theme's app:fontFamily (Pixelify Sans) over the style's Silkscreen. */
+/* progress / srsIndicator: light text in bold, in the body font (Pixelify Sans). */
 .kk-quiz-progress { flex: none; font-family: var(--font-body); font-weight: 700; }
 .kk-quiz-srs { font-family: var(--font-body); font-weight: 700; }
 .kk-quiz-srs {
@@ -88,7 +88,7 @@
 /* The answered fragment's nextButton: 18 sp, 8 dp margins, bottom right of the question view. */
 .kk-quiz-bottom > .kk-btn.kk-quiz-next {
   margin: 8px 8px 8px auto;
-  /* WK.Button.Borderless.Light: 54 dp, padding 16 / 4 / 16 / 12 dp from the view's edge. */
+  /* Borderless light button: 54 px, padding 16 / 4 / 16 / 12 px from the view's edge. */
   --kk-btn-h: 54px;
   min-width: 0;
   padding: 4px 16px 12px;
@@ -97,19 +97,18 @@
   white-space: nowrap;
 }
 
-/* questionText (SubjectInfoButtonView, sizeForQuiz): a view at most max_font_size_quiz_text dp high
-   (AbstractSessionFragment.setMaxSize) and no higher than the room between the top row and the bottom row,
-   centred there. The text is that height minus the quiz margins (setQuizMargins(4, 4); the Anki fragment
-   keeps the view's 28 / 24 dp) and the font's top padding (TypefaceConfiguration, % of the text size), so
-   the glyph never reaches the type banner. The baseline sits where Java's
-   `top + textHeight / 2 - (ascent + descent) / 2` puts it: line-height 1 centres the primary font's ascent +
-   descent on the em box the same way, and --font-glyph gives it Roboto's metrics as Java's Paint. */
+/* The question's characters: a view at most max_font_size_quiz_text px high and no higher than the room
+   between the top row and the bottom row, centred there. The text is that height minus the quiz margins
+   (4 px each; the Anki screen keeps 28 / 24 px) and the font's top padding (a % of the text size), so the
+   glyph never reaches the type banner. The baseline sits at
+   `top + textHeight / 2 - (ascent + descent) / 2`: line-height 1 centres the primary font's ascent +
+   descent on the em box, and --font-glyph gives it Roboto's metrics. */
 .kk-quiz-glyph {
   --kk-glyph-mt: 4px;
   --kk-glyph-mb: 4px;
   --kk-glyph-view: min(var(--kk-quiz-text-max, 104px), var(--kk-glyph-hcap));
   --kk-glyph-fit-h: calc((var(--kk-glyph-view) - var(--kk-glyph-mt) - var(--kk-glyph-mb)) / (1 + var(--kk-glyph-pad, 0)));
-  text-shadow: var(--text-shadow-3px-glyph); /* SubjectInfoButtonView shadow layer */
+  text-shadow: var(--text-shadow-3px-glyph);
   align-self: center;
   justify-self: center;
   max-width: 100%;
@@ -119,8 +118,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
-  /* Fits the width too (Java: screen width - 10 dp, - 140 dp with the answer toast) for long words; never
-     below absoluteMinTextHeight (14 sp). */
+  /* Fits the width too for long words; never below 14 px. */
   font-size: max(14px, min(var(--kk-glyph-fit-h), calc((100vw - 16px) / var(--len, 1)), calc((var(--content-max-width) - 16px) / var(--len, 1))));
 }
 .kk-quiz-question.anki .kk-quiz-glyph { --kk-glyph-mt: 28px; --kk-glyph-mb: 24px; }
@@ -131,7 +129,7 @@
 }
 
 
-/* Special buttons: WK.Button.Borderless.Light (Silkscreen, transparent), 8 dp margin; ≥ 40 px tap target. */
+/* Special buttons: borderless light buttons (Silkscreen, transparent), 8 px margin; ≥ 40 px tap target. */
 .kk-quiz-special {
   appearance: none;
   border: 0;
@@ -180,11 +178,10 @@
   100% { transform: scale(1); opacity: 0; }
 }
 
-/* levelUpToastText / closeToastText / alternativesToastText (20 sp). The first two are
-   WK.TextView.CustomToast in every theme: black text (customToastColorPrimary) on @drawable/rounded_corners
-   (customToastColorBackground #FFFF80, 10 dp corners), elevation 4 dp; the SRS one starts with a 20 dp green
-   up / red down arrow (ic_arrow_up / ic_arrow_down) and a space. The alternatives toast is
-   WK.TextView.AlternativeToast: alternativeToastColorPrimary on a transparent background, no elevation. */
+/* The level-up / close-enough / alternatives toasts (20 px). The first two are the same in every theme:
+   black text on #FFFF80 with 10 px corners, elevation 4 px; the SRS one starts with a 20 px green up /
+   red down arrow and a space. The alternatives toast: alternativeToastColorPrimary on a transparent
+   background, no elevation. */
 .kk-quiz-toasts {
   position: absolute;
   top: 1px;
@@ -234,7 +231,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* fragment_anki.xml's questionType has no textSize: WK.TextView.Normal's 16 sp. */
+/* The Anki screen's question type: 16 px. */
 .kk-quiz-question.anki + .kk-quiz-type { font-size: 16px; }
 .kk-quiz-type.meaning { background: var(--color-q-meaning-bg); color: var(--color-q-meaning-fg); }
 .kk-quiz-type.reading { background: var(--color-q-reading-bg); color: var(--color-q-reading-fg); }
@@ -263,7 +260,7 @@
   line-height: 1.25;
   font-family: var(--font-body);
 }
-.kk-answer::placeholder { color: var(--color-edit-line); opacity: 1; } /* AppCompat textColorHint (measured on the Java app) */
+.kk-answer::placeholder { color: var(--color-edit-line); opacity: 1; } /* the hint colour */
 .kk-answer.kana { font-family: var(--font-ja); }
 .kk-answer.centered { text-align: center; }
 .kk-answer.monospace { font-family: monospace, var(--font-ja); } /* Typeface.MONOSPACE (Droid Sans Mono) */
@@ -308,7 +305,7 @@
   padding: var(--space-1) var(--space-2) calc(var(--space-1) + var(--kk-bottom-inset));
 }
 /* With the keyboard open (Android app: kk-ime-open, web: kk-keyboard-open; visibleViewport.ts) the row's
-   buttons end 8 px above the keyboard on every phone (Java: a navigation bar height above it). */
+   buttons end 8 px above the keyboard on every phone (docs/behaviour.md). */
 .kk-quiz { --kk-ime-gap: 0px; }
 :root.kk-ime-open .kk-quiz,
 :root.kk-keyboard-open .kk-quiz { --kk-ime-gap: var(--space-1); --kk-bottom-inset: 0px; }
@@ -325,18 +322,18 @@
   min-width: 0;
 }
 .kk-quiz-actions > .kk-btn {
-  /* WK.Button.Borderless.Light (54 dp, 4 / 12 dp top / bottom padding); 8 dp sides here so the
+  /* Borderless light button (54 px, 4 / 12 px top / bottom padding); 8 px sides here so the
      texts fit from 320 px. */
   --kk-btn-h: 54px;
   min-width: 0;
   padding: 4px 11px 12px;
   white-space: nowrap;
-  /* 18 sp, letterSpacing 0.06 (WK.Button.Borderless.Light); one line from 320 px wide. */
+  /* 18 px, letter spacing 0.06; one line from 320 px wide. */
   font-size: clamp(14px, 5.6vw, 18px);
   letter-spacing: 0.06em;
 }
 
-/* closeMessageText / digraphMatchText: WK.TextView.CustomToast in a rounded box, 20 sp. */
+/* The close-enough / digraph messages: toast text in a rounded box, 20 px. */
 .kk-quiz-message {
   align-self: center;
   margin: var(--space-1) var(--space-2) 0;
@@ -349,9 +346,9 @@
 }
 .kk-quiz-info { padding: var(--space-2) var(--space-2) 0; }
 
-/* Anki mode (fragment_anki.xml, ActiveTheme ankiColors): buttonsView pinned at the bottom,
-   anki_buttons_height dp high, with full-width flat TextViews (Show answer / Next, Incorrect | Correct);
-   the answer and synonyms TextViews (8 dp margin and padding, font_size_anki_answer 20 sp). */
+/* Anki mode (Anki colours): the buttons pinned at the bottom, anki_buttons_height px high, full-width
+   flat buttons (Show answer / Next, Incorrect | Correct); the answer and synonyms (8 px margin and
+   padding, font_size_anki_answer 20 px). */
 .kk-anki-bar {
   position: sticky;
   bottom: 0;
@@ -423,25 +420,25 @@
   pointer-events: none;
 }
 
-/* Lesson presentation (fragment_lesson.xml): Previous | space | n/m | space | Next at the top (4 dp
+/* Lesson presentation: Previous | space | n/m | space | Next at the top (4 px
    margins), the subject info below with 8 dp padding. */
 .kk-lesson { margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) 0; }
 .kk-lesson-nav {
   display: flex;
   align-items: center;
-  /* Above Java's SwipingScrollView: it stays while the subject info scrolls under it. */
+  /* Above the scrolling area: it stays while the subject info scrolls under it. */
   position: sticky;
   top: calc(var(--safe-top) + var(--toolbar-height));
   z-index: 2;
   padding: var(--space-1) var(--space-1) 0;
   background: var(--color-bg);
 }
-.kk-lesson-nav > .kk-btn { flex: none; } /* WK.Button.Normal: 52 dp */
+.kk-lesson-nav > .kk-btn { flex: none; } /* 52 px buttons */
 .kk-lesson-space { flex: 1 1 0; }
 .kk-lesson-nav .kk-lesson-progress { font-family: var(--font-body); font-size: 16px; text-align: center; }
 .kk-lesson .kk-quiz-info { padding: var(--space-2); }
 
-/* Session log (fragment_session_log.xml, session_log_header.xml, session_log_item.xml). */
+/* Session log. */
 .kk-session-log { margin: 0; }
 .kk-tutorial {
   margin-bottom: 12px;
@@ -515,7 +512,7 @@ button.kk-log-row { cursor: pointer; }
 .kk-log-unknown { margin-left: 12px; font-family: var(--font-body); font-weight: 700; font-size: 26px; }
 .kk-log-status { flex: 1; display: flex; flex-direction: column; align-items: flex-end; text-align: end; font-size: 14px; }
 
-/* SessionDialog's overlay: the scrim (Java's window dim) over the whole app, the dialog centred. */
+/* SessionDialog's overlay: the scrim over the whole app, the dialog centred. */
 .kk-sdialog-layer {
   position: fixed;
   inset: 0;
@@ -530,7 +527,7 @@ button.kk-log-row { cursor: pointer; }
 }
 .kk-sdialog-layer > .kk-sdialog { max-height: calc(var(--kk-visible-height, 100dvh) - 48px); overflow: auto; }
 
-/* Java AlertDialog look (SessionDialog, NotesDialog): title in the body font with the warning icon,
+/* The alert dialog look (SessionDialog, NotesDialog): title in the body font with the warning icon,
    flat text buttons in one row (neutral left, negative and positive right). */
 .kk-sdialog { padding: 18px 24px 4px; width: min(400px, calc(100vw - 53.33px)); border: 0; border-radius: 2px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.32); }
 .kk-sdialog-title {
@@ -578,7 +575,7 @@ button.kk-log-row { cursor: pointer; }
 .kk-num-pair input { width: 6em; min-height: 40px; font-size: 16px; padding: 0 var(--space-2); border: 2px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); }
 
 
-/* Summary (fragment_summary.xml): 8 dp padding; Show items · Finish at the top right; the correct /
+/* Summary: 8 px padding; Show items · Finish at the top right; the correct /
    incorrect TableLayouts in correctColorBackground / incorrectColorBackground, 16 dp apart. */
 .kk-summary { margin: 0; }
 .kk-summary-buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0 var(--space-1); }
@@ -595,15 +592,14 @@ button.kk-log-row { cursor: pointer; }
 .kk-summary-stars select { min-height: 40px; font-size: 16px; }
 .kk-summary-progress-section { margin-top: var(--space-4); }
 
-/* Self-study start (activity_self_study_start.xml). */
+/* Self-study start. */
 .kk-self-study-header { margin: var(--space-2) 0 var(--space-1); font-family: var(--font-body); font-size: 20px; font-weight: 400; letter-spacing: normal; text-transform: none; color: var(--color-text); }
 .kk-self-study-presets { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-1); }
 .kk-self-study-presets > .kk-btn { --kk-btn-h: 48px; }
 .kk-self-study-divider { border: 0; border-top: 1px solid var(--color-divider); margin: var(--space-2) 0; }
 
-/* Subject cards in the lesson presentation and under answers: the same SubjectGridView as the item page
-   (Experimental.getSubjectCardLayoutOther() is NORMAL, not the *_compact layouts; RigidGridLayout uses
-   its 2 dp child margin only), so 4 dp apart across and down and 2 dp from the edges, plus the grid's
+/* Subject cards in the lesson presentation and under answers: the same grid as the item page (normal
+   cards, not compact), so 4 px apart across and down and 2 px from the edges, plus the grid's
    2 dp margin above the first row. */
 .kk-lesson .kk-link-grid,
 .kk-quiz .kk-link-grid { gap: 4px; padding: 2px; margin: 4px 0 0; }

@@ -133,7 +133,7 @@ describe('item page screen', () => {
     again.app.dispose();
   });
 
-  it('resurrects and burns again, with the Java columns in the exported progress', async () => {
+  it('resurrects and burns again, with the columns in the exported progress', async () => {
     const { el, app, clock, dbName } = await render('/subject/10', {
       setup: async (h) => {
         await h.app.write((l) => updateProgress(l, 10, { srsStage: 9, unlockedAt: T0 - 100, startedAt: T0 - 90, passedAt: T0 - 50, burnedAt: T0 - 10, availableAt: 0 }));
@@ -175,7 +175,7 @@ describe('item page screen', () => {
     const again = await render('/subject/10', { dbName, setup });
     expect(again.el.querySelector('button[aria-label="3 stars"]')?.getAttribute('aria-pressed')).toBe('true');
     expect(again.el.querySelector('button[aria-label="4 stars"]')?.getAttribute('aria-pressed')).toBe('false');
-    // Tapping the current rating clears it (StarRatingView).
+    // Tapping the current rating clears it.
     await click(again.el.querySelector('button[aria-label="3 stars"]')!);
     expect(again.el.querySelector('button[aria-label="1 star"]')?.getAttribute('aria-pressed')).toBe('false');
     again.app.dispose();
@@ -190,7 +190,7 @@ async function menu(el: HTMLElement, id: string): Promise<void> {
 }
 
 describe('browse and search', () => {
-  it('shows the Java overview: tutorial, flat level grid, keyword and advanced search', async () => {
+  it('shows the overview: tutorial, flat level grid, keyword and advanced search', async () => {
     const { el, app } = await render('/browse');
     expect(el.querySelector('[data-testid="toolbar"] h1')?.textContent).toBe('Browse / search');
     expect(el.querySelector('[data-testid="browse-tutorial"]')?.textContent).toContain('From this screen you can search the subject database');
@@ -213,7 +213,7 @@ describe('browse and search', () => {
     app.dispose();
   });
 
-  it('computes the Java grid sizes', () => {
+  it('computes the grid sizes', () => {
     expect([320, 360, 375, 411, 768].map(levelColumns)).toEqual([5, 5, 5, 10, 10]);
     expect([200, 240, 320, 375, 411, 768].map(resultSpans)).toEqual([2, 2, 3, 4, 4, 8]);
   });
@@ -226,7 +226,7 @@ describe('browse and search', () => {
     const headers = [...el.querySelectorAll('.kk-result-header-title')].map((h) => h.textContent);
     expect(headers).toEqual(['1 Radical', '1 Kanji', '1 Vocabulary']);
     expect(el.querySelector('[data-testid="result-3"]')).toBeNull();
-    // Not started: "Initiate" as in Java (SubjectCardBinder: the stored stage), never "Locked".
+    // Not started: "Initiate" (the stored stage), never "Locked".
     expect(el.querySelector('[data-testid="result-100"] .kk-card-progress')?.textContent).toBe('Initiate');
     expect(el.querySelector('[data-testid="result-10"]')?.textContent).toBe('一OneいちInitiate');
     // Vocabulary spans the whole row.
@@ -236,7 +236,7 @@ describe('browse and search', () => {
     app.dispose();
   });
 
-  it('starts a self-study quiz from the results (Java\'s "Start self-study quiz")', async () => {
+  it('starts a self-study quiz from the results ("Start self-study quiz")', async () => {
     const kanjiOnly = `/browse/results?t=2&q=${encodeURIComponent(JSON.stringify({ ...defaultParameters(), itemTypes: ['WANIKANI_KANJI'] }))}`;
     const { el, app, location } = await render(kanjiOnly);
     await menu(el, 'search_result_self_study');
@@ -253,7 +253,7 @@ describe('browse and search', () => {
     app.dispose();
   });
 
-  it('labels the self-study form "Start" without a sort order, as SelfStudyStartActivity does', async () => {
+  it('labels the self-study form "Start" without a sort order', async () => {
     const { el, app } = await render('/self-study');
     const form = el.querySelector('.kk-advanced-search')!;
     expect([...form.querySelectorAll('button[type="submit"]')].map((b) => b.textContent)).toEqual(['Start', 'Start']);

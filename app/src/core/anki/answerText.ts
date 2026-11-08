@@ -1,9 +1,7 @@
 /**
  * The answer Anki mode reveals for a question, and the subject texts it is built from.
  *
- * Java: `model/Question.getAnkiAnswerRichText`, `enums/QuestionType.getAnkiAnswerRichText`,
- * `db/model/Subject.getMeaningRichText` / `getRegularReadingRichText` / `getAcceptedOnYomiRichText` /
- * `getAcceptedKunYomiRichText`. Fixtures: `anki/answer-text.jsonl`, `anki/answer-inflection.json`.
+ * Fixtures: `anki/answer-text.jsonl`, `anki/answer-inflection.json`.
  */
 import type { QuestionType } from '../answer/questionType';
 import type { ContentSubject, Meaning, Reading } from '../content';
@@ -16,7 +14,7 @@ function readingValue(r: Reading, showOnInKatakana: boolean): string {
   return showOnInKatakana && r.type === 'onyomi' ? toKatakana(v) : v;
 }
 
-/** One value, bold when it is primary among several accepted ones (the Java `<b>%s</b>` format). */
+/** One value, bold (`<b>…</b>`) when it is primary among several accepted ones. */
 function item(value: string | null, primary: boolean, several: boolean): string {
   const escaped = escapeHtml(value ?? 'null');
   return primary && several ? `<b>${escaped}</b>` : escaped;

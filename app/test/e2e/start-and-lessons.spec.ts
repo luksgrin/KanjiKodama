@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { subjectsAt } from './helpers/content';
 import {
-  answer, answerAllCorrect, checkQuickActions, checkScreen, dashboardCounts, expectJavaHeadline, keyboardTopFor, next, openApp, quiz, throughPresentation,
+  answer, answerAllCorrect, checkQuickActions, checkScreen, dashboardCounts, expectHeadlineLayout, keyboardTopFor, next, openApp, quiz, throughPresentation,
   watchSessionStandIns,
 } from './helpers/app';
 
@@ -25,7 +25,7 @@ test('lesson batch: presentation, quiz, summary', async ({ page }, info) => {
   await page.getByTestId('start-lessons').click();
   await expect(page.getByRole('region', { name: 'Lesson' })).toBeVisible();
   const batch = await throughPresentation(page, async (i) => {
-    await expectJavaHeadline(page, `lesson ${i}`);
+    await expectHeadlineLayout(page, `lesson ${i}`);
     if (i === 0) await checkScreen(page, info, '02-lesson-presentation');
   });
   expect(batch).toBeGreaterThan(0);
