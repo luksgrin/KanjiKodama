@@ -369,6 +369,7 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
       bool('show_stroke_order', 'Show stroke order diagrams on radicals and kanji', false),
       bool('stroke_order_animated', 'Animate the stroke order diagrams', true, { summary: 'Tap the diagram to toggle animation' }),
       { type: 'slider', key: 'stroke_order_size', title: 'Size of the stroke order diagrams', default: 250, min: 20, max: 500 },
+      bool('writing_left_handed', 'Left-handed writing practice', false, { summary: 'Writing practice puts its buttons and prompt on the left' }),
     ],
   },
   {

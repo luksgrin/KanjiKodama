@@ -59,6 +59,11 @@ export function strokeOrderSize(prefs: Preferences): number {
   return prefInt(prefs, 'stroke_order_size', 250);
 }
 
+/** `writing_left_handed`, default false: writing practice's buttons on the left. */
+export function writingLeftHanded(prefs: Preferences): boolean {
+  return prefBoolean(prefs, 'writing_left_handed', false);
+}
+
 /** `font_size_subject_info` in sp, default 16. */
 export function fontSizeSubjectInfo(prefs: Preferences): number {
   return prefInt(prefs, 'font_size_subject_info', 16);

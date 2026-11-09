@@ -25,6 +25,7 @@ import { parseParameters } from '../../../core/search';
 import { toast } from '../../shell/toast';
 import { useToolbar } from '../../shell/toolbar';
 import '../../components/session/session.css';
+import { WritingStartPanel } from '../writing/WritingStartPanel';
 
 export const SELF_STUDY_DEFAULT_PRESET = '\u0000SELF_STUDY_DEFAULT';
 
@@ -100,10 +101,13 @@ export function SelfStudyScreen() {
   if (!snap.loaded) return <p className="kk-muted">Loading…</p>;
   if (running) {
     return (
-      <div className="kk-panel" data-testid="self-study-running">
-        <p>Finish or abandon your current lesson or review session first.</p>
-        <button type="button" className="kk-btn block" onClick={() => navigate(sessionPath(session.type))}>Resume</button>
-      </div>
+      <>
+        <div className="kk-panel" data-testid="self-study-running">
+          <p>Finish or abandon your current lesson or review session first.</p>
+          <button type="button" className="kk-btn block" onClick={() => navigate(sessionPath(session.type))}>Resume</button>
+        </div>
+        <WritingStartPanel />
+      </>
     );
   }
 
@@ -115,6 +119,7 @@ export function SelfStudyScreen() {
           <button type="button" className="kk-tutorial-dismiss" onClick={() => void app.setPreference('start_self_study_dismissed', true)}>Dismiss</button>
         </div>
       )}
+      <WritingStartPanel />
       {names.length > 0 && (
         <>
           <h2 className="kk-self-study-header">Search presets:</h2>

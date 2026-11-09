@@ -151,6 +151,34 @@ The log holds counts only: lessons, reviews (right / wrong) and self-study, per 
 **Local only:**
 - Never uploaded in server mode, and never imported from WaniKani. A reset keeps it, like the fast-travel jumps.
 - A restore merges the file's log into the device's (each count the larger of the two), so restoring an older file never erases study days, and restoring the same file twice counts nothing twice.
+## Writing practice
+
+Self-study → Writing practice (learned kanji, shuffled, or one level in lesson order; 5–50 of them),
+or Practise writing on a kanji's page. Each kanji is written stroke by stroke in a square over
+KanjiVG's 109×109 box; finger, stylus and mouse all draw (pointer events, the page never scrolls
+while drawing). Nothing here touches SRS, the progress file or sync.
+
+- **Trace** (study): the kanji is faint in the square and the next stroke draws itself with a dot
+  where it starts. **From memory** (recall): the meaning and reading, an empty square; a missed stroke
+  (or Hint) shows the next stroke until it is written. The kanji appears once it is complete.
+- Each stroke is checked as it is lifted: both strokes are resampled to 32 evenly spaced points and
+  compared by position (mean distance ≤ 14 box units), shape (scaled to the same size), direction
+  (start → end) and length. An accepted stroke snaps to the clean KanjiVG stroke. A missed one flashes
+  red with the reason: backwards, a later stroke (wrong order; also when a later stroke fits clearly
+  better than the expected one, for dense kanji), the right shape in the wrong place, too short, or
+  another shape. Dots (、) are checked by position only. Writing from memory, the first stroke gets
+  1.5× the position room, as nothing on the page lines it up.
+- After three misses on one stroke it is filled in, so nobody gets stuck.
+- The summary marks each kanji clean or with its misses and hints, with Practise the missed ones,
+  Again and Done.
+- The prompt is above the square and the buttons under it, on the writing hand's side: the right, or
+  the left with Left-handed writing practice (Subject Info settings). On wide screens the prompt and
+  buttons sit beside the square, on that side.
+
+The tolerances were tuned on simulated careful handwriting over the whole KanjiVG set: practically
+every stroke is accepted and under 1 % of other strokes pass for the expected one
+(`core/writing/writing.test.ts` keeps that true). Files: `core/writing/` (matcher, round, selection),
+`ui/components/writing/WritingPad.tsx`, `ui/screens/writing/`.
 
 ## Search by parts
 

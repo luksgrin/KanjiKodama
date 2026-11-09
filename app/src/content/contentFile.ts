@@ -127,6 +127,11 @@ export function strokeData(db: Database, id: number): string | null {
   return r === undefined ? null : String(r[0]);
 }
 
+/** The ids of every subject with stroke data (writing practice offers only those). */
+export function strokeDataIds(db: Database): Set<number> {
+  return new Set(all(db, 'SELECT id FROM stroke_data').map(([id]) => Number(id)));
+}
+
 /** A subject's pitch info: JSON array of `[reading, partOfSpeech, pitchNumber]`, or null. */
 export function pitchInfo(db: Database, id: number): string | null {
   const r = all(db, 'SELECT data FROM pitch_info WHERE id = ?', [id])[0];

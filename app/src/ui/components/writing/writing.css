@@ -1,0 +1,132 @@
+/* Writing practice: the writing square (WritingPad) and the screen around it (WritingScreen). */
+
+/* The finished kanji: deep kanji ink on light themes, the strong kanji pink on dark ones. */
+:root { --kk-writing-ink: var(--color-card-ink-kanji); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --kk-writing-ink: var(--color-kanji-strong); }
+}
+:root[data-theme="dark"] { --kk-writing-ink: var(--color-kanji-strong); }
+
+.kk-writing-pad {
+  background: var(--color-surface);
+  border: var(--border-pixel) solid var(--color-divider);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.kk-writing-surface {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  touch-action: none; /* drawing never scrolls or zooms the page */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: crosshair;
+}
+.kk-writing-pad--done { border-color: var(--color-kanji-strong); }
+.kk-writing-pad--done .kk-writing-surface { cursor: default; }
+
+.kk-writing-guides line {
+  stroke: var(--color-divider);
+  stroke-width: 0.6;
+  stroke-dasharray: 2 2;
+}
+.kk-writing-ghost { stroke: var(--color-stroke-ghost); }
+.kk-writing-written { stroke: var(--color-text); }
+.kk-writing-pad--done .kk-writing-written { stroke: var(--kk-writing-ink); }
+.kk-writing-live { stroke: var(--color-text-muted); }
+.kk-writing-miss { stroke: var(--color-bad); animation: kk-writing-fade 0.7s ease-out forwards; }
+.kk-writing-hint {
+  stroke: var(--color-accent);
+  stroke-dasharray: 1 1;
+  animation: kk-writing-trace 1.4s ease-in-out infinite;
+}
+.kk-writing-start { fill: var(--color-target); }
+.kk-writing-snap { stroke-dasharray: 1 1; animation: kk-writing-draw 0.18s ease-out; }
+
+@keyframes kk-writing-trace {
+  0% { stroke-dashoffset: 1; }
+  70%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes kk-writing-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes kk-writing-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kk-writing-hint, .kk-writing-snap { animation: none; stroke-dasharray: none; }
+  .kk-writing-miss { animation-duration: 0.01s; animation-delay: 0.6s; }
+}
+
+/* The screen: progress and prompt above the square, the message and buttons under it. The buttons sit
+   on the writing hand's side (right, or left with Left-handed writing practice); on wide screens the
+   prompt and buttons go beside the square, on that side too. */
+.kk-writing {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 720px;
+  margin: 0 auto;
+}
+.kk-writing-square {
+  width: min(100%, 440px, calc(100dvh - 330px));
+  min-width: 220px;
+  justify-self: center;
+}
+.kk-writing-head, .kk-writing-foot { display: grid; gap: var(--space-2); align-content: start; }
+.kk-writing-progress { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); text-align: center; }
+.kk-writing-prompt { text-align: center; }
+.kk-writing-prompt-meaning { font-size: var(--text-lg); font-weight: 700; color: var(--color-text); }
+.kk-writing-prompt-reading { font-family: var(--font-ja); color: var(--color-text-toned); }
+.kk-writing-prompt-kanji {
+  font-family: var(--font-ja);
+  font-size: var(--text-xxl);
+  line-height: 1.2;
+  color: var(--kk-writing-ink);
+}
+.kk-writing-message { margin: 0; min-height: 1.4em; text-align: center; font-size: var(--text-sm); }
+.kk-writing-message--miss { color: var(--color-bad-text); }
+.kk-writing-message--ok { color: var(--color-ok); }
+.kk-writing-actions { display: flex; gap: var(--space-2); justify-content: flex-end; flex-wrap: wrap; min-height: 40px; }
+.kk-writing--left .kk-writing-actions { justify-content: flex-start; }
+
+/* Side by side only where the square, the gap and a 200 px column fit with the page's padding. */
+@media (min-width: 760px) {
+  .kk-writing {
+    grid-template-columns: auto minmax(200px, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: var(--space-4);
+    align-items: start;
+  }
+  .kk-writing-square { width: min(440px, calc(100dvh - 160px), calc(100vw - 300px)); grid-column: 1; grid-row: 1 / span 2; }
+  .kk-writing-head, .kk-writing-foot { grid-column: 2; }
+  .kk-writing--left { grid-template-columns: minmax(200px, 1fr) auto; }
+  .kk-writing--left .kk-writing-square { grid-column: 2; }
+  .kk-writing--left .kk-writing-head, .kk-writing--left .kk-writing-foot { grid-column: 1; }
+  .kk-writing-progress, .kk-writing-prompt, .kk-writing-message { text-align: start; }
+  .kk-writing-actions { justify-content: flex-start; }
+}
+/* The start panel on the self-study screen and the round's summary. */
+.kk-writing-start-panel .kk-writing-options { display: grid; gap: var(--space-2); margin-bottom: var(--space-3); }
+.kk-writing-options label { display: grid; gap: var(--space-1); }
+/* iOS Safari ignores min-height on a select: an explicit height keeps the tap target ≥ 40 px. */
+.kk-writing-options .kk-select { height: 44px; }
+.kk-writing-modes { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.kk-writing-modes .kk-btn[aria-pressed='false'] { opacity: 0.6; }
+.kk-writing-results { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; padding: 0; margin: 0 0 var(--space-3); }
+.kk-writing-result {
+  display: grid;
+  justify-items: center;
+  min-width: 56px;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-pixel) solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.kk-writing-result-kanji { font-family: var(--font-ja); font-size: var(--text-xl); color: var(--color-text); }
+.kk-writing-result--clean { border-color: var(--color-ok); }
+.kk-writing-result--missed { border-color: var(--color-bad); }
+.kk-writing-result-note { font-size: var(--text-xs); color: var(--color-text-muted); }

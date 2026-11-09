@@ -81,7 +81,8 @@
    "reading_info_dump_incorrect",
    "show_stroke_order",
    "stroke_order_animated",
-   "stroke_order_size"
+   "stroke_order_size",
+   "writing_left_handed"
   ],
   "audio_settings": [
    "autoplay_lesson_presentation",

@@ -22,6 +22,7 @@ import {
 import { useSessionMenu } from '../../components/session/SessionMenu';
 import { useSession } from '../../components/session/useSession';
 import { useToolbar } from '../../shell/toolbar';
+import { readStrokeData } from '../../components/subject/subjectContent';
 import { NUMERIC_COLUMNS, TEXT_COLUMNS, numberOf, type SubjectProgressRow } from '../../../core/progressFile/format';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate, useRoute } from '../../hooks/useRoute';
@@ -76,6 +77,9 @@ export function SubjectScreen() {
   const canBurn = useMemo(() => subject !== undefined && local && isBurnable(learner, subject.id),
     [learner, subject, local, state.revision]);
 
+  // Writing practice for kanji with stroke order data.
+  const canWrite = useMemo(() => subject?.object === 'kanji' && readStrokeData(content.db, subject.id).length > 0, [subject, content.db]);
+
   if (!subject) {
     return <p className="kk-muted kk-subject-missing">No such item.</p>;
   }
@@ -86,7 +90,7 @@ export function SubjectScreen() {
   ) : undefined;
 
   const showStars = enableStarRatings(state.prefs);
-  const extras = (showStars || canResurrect || canBurn) ? (
+  const extras = (showStars || canResurrect || canBurn || canWrite) ? (
     <section className="kk-subject-section kk-subject-extras">
       {showStars && (
         <div className="kk-subject-stars">
@@ -106,6 +110,13 @@ export function SubjectScreen() {
           {canBurn && (
             <button type="button" className="kk-btn small danger" onClick={() => setDialog('burn')}>Burn</button>
           )}
+        </div>
+      )}
+      {canWrite && (
+        <div className="kk-btn-row">
+          <button type="button" className="kk-btn small" data-testid="practise-writing" onClick={() => navigate(paths.writing([subject.id], 'study'))}>
+            Practise writing
+          </button>
         </div>
       )}
     </section>

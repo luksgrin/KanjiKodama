@@ -7,7 +7,8 @@ import type { RouteDef } from '../app/router';
 export type RouteName =
   | 'dashboard' | 'lessons' | 'reviews' | 'summary' | 'subject' | 'browse' | 'selfStudy'
   | 'settings' | 'curriculum' | 'fastTravel' | 'levelTest' | 'import' | 'server' | 'audio' | 'about'
-  | 'advancedSettings' | 'searchResults' | 'partsSearch' | 'selfStudyQuiz' | 'keyboardHelp' | 'themeCustomization' | 'welcome' | 'stats';
+  | 'advancedSettings' | 'searchResults' | 'partsSearch' | 'selfStudyQuiz' | 'keyboardHelp' | 'themeCustomization' | 'welcome' | 'stats'
+  | 'writing';
 
 export interface AppRoute extends RouteDef<RouteName> {
   /** Top bar title. */
@@ -27,6 +28,7 @@ export const ROUTES: readonly AppRoute[] = [
   { name: 'partsSearch', pattern: '/browse/parts', title: 'Search by parts' },
   { name: 'selfStudy', pattern: '/self-study', title: 'Self-study', tab: true },
   { name: 'selfStudyQuiz', pattern: '/self-study/quiz', title: 'Self-study' },
+  { name: 'writing', pattern: '/self-study/writing', title: 'Writing practice' },
   { name: 'settings', pattern: '/settings', title: 'Settings', tab: true },
   { name: 'curriculum', pattern: '/settings/curriculum', title: 'Curriculum' },
   { name: 'fastTravel', pattern: '/settings/fast-travel', title: 'Fast travel' },
@@ -75,6 +77,9 @@ export const paths = {
     `/browse/results?${new URLSearchParams({ t: String(t), q, ...(preset === undefined ? {} : { preset }) }).toString()}`,
   /** `p`: the selected parts, one after another (`formatPartSelection`). */
   partsSearch: (p: string = '') => (p === '' ? '/browse/parts' : `/browse/parts?${new URLSearchParams({ p }).toString()}`),
+  /** Writing practice: `ids` the kanji in order, `mode` study (trace) or recall (from memory). */
+  writing: (ids: readonly number[] = [], mode: 'study' | 'recall' = 'study') =>
+    `/self-study/writing?${new URLSearchParams({ ids: ids.join(','), mode }).toString()}`,
 } as const satisfies Record<RouteName, (...a: never[]) => string>;
 
 /**
