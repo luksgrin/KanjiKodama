@@ -35,7 +35,7 @@ describe('UpdateController', () => {
     const phases: string[] = [];
     c.subscribe(() => phases.push(c.get().phase));
     await c.startupCheck();
-    expect(c.get()).toMatchObject({ phase: 'offer', offer: { version: '0.6.2' } });
+    expect(c.get()).toMatchObject({ phase: 'offer', offer: { version: '0.99.0' } });
     expect(prefs[UPDATE_LAST_CHECK_KEY]).toBe(T0);
     expect(http.calls('GET', LATEST_RELEASE_URL)[0]!.headers).toEqual({ Accept: 'application/vnd.github+json' });
 
@@ -63,7 +63,7 @@ describe('UpdateController', () => {
     const s = setup();
     await s.c.startupCheck();
     await s.c.later();
-    expect(s.prefs[UPDATE_LATER_VERSION_KEY]).toBe('0.6.2');
+    expect(s.prefs[UPDATE_LATER_VERSION_KEY]).toBe('0.99.0');
     expect(s.prefs[UPDATE_LATER_AT_KEY]).toBe(T0);
     expect(s.updater.cleanup).toHaveBeenCalled();
     s.prefs[UPDATE_LAST_CHECK_KEY] = 0; // force a start-up check
@@ -78,7 +78,7 @@ describe('UpdateController', () => {
   });
 
   it('says "up to date" on Check now, and nothing at start-up', async () => {
-    const s = setup({ version: '0.6.2' });
+    const s = setup({ version: '0.99.0' });
     await s.c.startupCheck();
     expect(s.c.get().phase).toBe('idle');
     await s.c.check(true);
@@ -112,10 +112,10 @@ describe('UpdateController', () => {
   });
 
   it('refuses without a checksum entry and reports refused downloads plainly', async () => {
-    const noSum = setup({ http: githubHttp().on('GET', 'https://github.test/download/v0.6.2/SHA256SUMS', { status: 200, headers: {}, body: '' }) });
+    const noSum = setup({ http: githubHttp().on('GET', 'https://github.test/download/v0.99.0/SHA256SUMS', { status: 200, headers: {}, body: '' }) });
     await noSum.c.check(true);
     await noSum.c.update();
-    expect(noSum.c.get()).toMatchObject({ phase: 'error', message: expect.stringContaining('no entry for kanjikodama-0.6.2.apk') });
+    expect(noSum.c.get()).toMatchObject({ phase: 'error', message: expect.stringContaining('no entry for kanjikodama-0.99.0.apk') });
     expect(noSum.updater.downloads).toHaveLength(0);
 
     for (const [code, text] of [['CHECKSUM', 'checksum'], ['SIGNATURE', 'signed'], ['NOT_NEWER', 'newer'], ['NOT_THIS_APP', 'this app']] as const) {
@@ -123,7 +123,7 @@ describe('UpdateController', () => {
       s.updater.failDownload = code;
       await s.c.check(true);
       await s.c.update();
-      expect(s.c.get(), code).toMatchObject({ phase: 'error', message: expect.stringContaining(text), pageUrl: expect.stringContaining('v0.6.2') });
+      expect(s.c.get(), code).toMatchObject({ phase: 'error', message: expect.stringContaining(text), pageUrl: expect.stringContaining('v0.99.0') });
       expect(s.updater.installs).toHaveLength(0);
     }
   });

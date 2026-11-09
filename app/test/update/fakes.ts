@@ -4,11 +4,12 @@ import { LATEST_RELEASE_URL } from '../../src/core/update';
 import { UpdaterError, type InstallStatus, type UpdaterApi, type UpdaterErrorCode, type UpdaterInfo } from '../../src/platform';
 import { FakeHttp, json } from '../sync/helpers';
 
-export const SUMS_URL = 'https://github.test/download/v0.6.2/SHA256SUMS';
-export const APK_URL = 'https://github.test/download/v0.6.2/kanjikodama-0.6.2.apk';
+// A release newer than the app's own version (__APP_VERSION__ in the dialog tests), same major.
+export const SUMS_URL = 'https://github.test/download/v0.99.0/SHA256SUMS';
+export const APK_URL = 'https://github.test/download/v0.99.0/kanjikodama-0.99.0.apk';
 export const APK_SHA = 'ab'.repeat(32);
 
-export function releaseJson(tag = 'v0.6.2', extra: Record<string, unknown> = {}) {
+export function releaseJson(tag = 'v0.99.0', extra: Record<string, unknown> = {}) {
   const v = tag.replace(/^v/, '');
   return {
     tag_name: tag,
@@ -28,7 +29,7 @@ export function releaseJson(tag = 'v0.6.2', extra: Record<string, unknown> = {})
 export function githubHttp(release: unknown = releaseJson()): FakeHttp {
   return new FakeHttp('native')
     .on('GET', LATEST_RELEASE_URL, json(200, release))
-    .on('GET', SUMS_URL, { status: 200, headers: {}, body: `${APK_SHA}  kanjikodama-0.6.2.apk\n${'cd'.repeat(32)}  kanjikodama-0.6.2-web.apk\n` });
+    .on('GET', SUMS_URL, { status: 200, headers: {}, body: `${APK_SHA}  kanjikodama-0.99.0.apk\n${'cd'.repeat(32)}  kanjikodama-0.99.0-web.apk\n` });
 }
 
 export interface FakeUpdater extends UpdaterApi {
@@ -55,7 +56,7 @@ export function fakeUpdater(info: Partial<UpdaterInfo> = {}): FakeUpdater {
       onProgress?.(10, 100);
       onProgress?.(100, 100);
       if (u.failDownload !== null) throw new UpdaterError(u.failDownload, `refused: ${u.failDownload}`);
-      return { path: '/cache/updates/update.apk', versionCode: 7002 };
+      return { path: '/cache/updates/update.apk', versionCode: 100000 };
     },
     openInstallSettings: vi.fn(async () => {
       if (u.allowOnSettings) u.infoValue = { ...u.infoValue, canInstall: true };

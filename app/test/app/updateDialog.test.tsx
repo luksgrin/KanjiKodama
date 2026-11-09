@@ -63,7 +63,7 @@ describe('self-update dialog (Android)', () => {
   it('offers the new version at start-up; Update downloads, checks the checksum and hands it to Android', async () => {
     const r = await render('/');
     const dialog = $(r.el, 'dialog-update');
-    expect(dialog?.textContent).toContain('KanjiKodama 0.6.2 is available');
+    expect(dialog?.textContent).toContain('KanjiKodama 0.99.0 is available');
     expect(dialog?.textContent).toContain(`You have ${__APP_VERSION__}`);
     expect(dialog?.textContent).toContain('50.0 MB');
     await click($(r.el, 'update-now'));
@@ -77,7 +77,7 @@ describe('self-update dialog (Android)', () => {
     const r = await render('/');
     await click($(r.el, 'update-later'));
     expect($(r.el, 'dialog-update')).toBeNull();
-    expect(r.app.get().prefs[UPDATE_LATER_VERSION_KEY]).toBe('0.6.2');
+    expect(r.app.get().prefs[UPDATE_LATER_VERSION_KEY]).toBe('0.99.0');
     r.app.dispose();
   });
 
@@ -98,7 +98,7 @@ describe('self-update dialog (Android)', () => {
     await click($(r.el, 'update-now'));
     expect($(r.el, 'update-error')?.textContent).toContain('isn\'t signed with KanjiKodama\'s key');
     const link = $(r.el, 'dialog-update-error')!.querySelector('a')!;
-    expect(link.getAttribute('href')).toContain('/releases/tag/v0.6.2');
+    expect(link.getAttribute('href')).toContain('/releases/tag/v0.99.0');
     expect(r.updater.installs).toHaveLength(0);
     r.app.dispose();
   });
