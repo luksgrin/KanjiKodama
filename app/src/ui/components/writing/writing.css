@@ -110,10 +110,12 @@
   .kk-writing-actions { justify-content: flex-start; }
 }
 /* The start panel on the self-study screen and the round's summary. */
-.kk-writing-start-panel .kk-writing-options { display: grid; gap: var(--space-2); margin-bottom: var(--space-3); }
-.kk-writing-options label { display: grid; gap: var(--space-1); }
+.kk-writing-start-panel .kk-writing-options { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); margin-bottom: var(--space-3); }
+/* minmax(0, 1fr) and width 100 %: a select is as wide as its longest option otherwise, wider than a
+   320 px screen at the largest text sizes. */
+.kk-writing-options label { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
 /* iOS Safari ignores min-height on a select: an explicit height keeps the tap target ≥ 40 px. */
-.kk-writing-options .kk-select { height: 44px; }
+.kk-writing-options .kk-select { height: 44px; width: 100%; min-width: 0; }
 .kk-writing-modes { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .kk-writing-modes .kk-btn[aria-pressed='false'] { opacity: 0.6; }
 .kk-writing-results { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; padding: 0; margin: 0 0 var(--space-3); }
