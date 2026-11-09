@@ -47,6 +47,8 @@ import {
   type SubjectColumn,
   type SubjectProgressRow,
 } from './format';
+import { activityJson } from '../stats/file';
+import type { ActivityLog } from '../stats/activity';
 
 /** Everything a progress file holds. */
 export interface ProgressState {
@@ -110,9 +112,11 @@ function isSaved(row: SubjectProgressRow): boolean {
 }
 
 /**
- * The file text, byte for byte (`JSONObject.toString(1)`). `now` is the `exportedAt`.
+ * The file text, byte for byte (`JSONObject.toString(1)`). `now` is the `exportedAt`. `activity`, the
+ * study activity log, is added as `activity` after `jumps` when it has a day with study
+ * (`stats/file.ts`); without it the file is what it always was.
  */
-export function exportProgress(state: ProgressState, now: number): string {
+export function exportProgress(state: ProgressState, now: number, activity?: ActivityLog): string {
   const root = new JSONObject();
   root.map.set('format', FORMAT);
   root.map.set('version', TypedNumber.int(VERSION));
@@ -150,6 +154,8 @@ export function exportProgress(state: ProgressState, now: number): string {
     jumps.values.push(row);
   }
   root.map.set('jumps', jumps);
+  const days = activity === undefined ? null : activityJson(activity);
+  if (days !== null) root.map.set('activity', days);
   return toIndentedJsonString(root, 1);
 }
 

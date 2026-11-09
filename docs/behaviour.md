@@ -123,10 +123,34 @@ dialogs, the level test on its own screen.
 
 It opens only in local mode, until `onboarding_done` is set, for a learner with no progress (no item
 started, passed or burned, no notes or synonyms, level 1, WaniKani order, no fast travel, probation or
-level test) and no stored settings other than the update check's bookkeeping and font and text size
-(set in the guide itself, so a guide left halfway opens again; `ONBOARDING_IGNORED_PREF_*`). So existing learners
+level test) and no stored settings other than the update check's bookkeeping, what the one-time
+setting changes write, and font and text size (set in the guide itself, so a guide left halfway opens again; `ONBOARDING_IGNORED_PREF_*`). So existing learners
 updating the app never see it, nor does a start straight into another screen (a widget or
 notification link). Settings → Progress → Getting started guide opens it again.
+
+## Study garden and streaks
+
+Every finished lesson, review and self-study item counts towards its **study day**:
+- A study day is the device's local date, but it starts at Dashboard settings → "A new study day starts at" (`study_day_start_hour`, default 4 AM), so a late-night session counts for the evening it began.
+- With delayed reporting, the moment of the answer decides the day, not the moment of the report.
+
+The log holds counts only: lessons, reviews (right / wrong) and self-study, per day. Nothing about the subjects goes in.
+
+**Where it lives:**
+- Dexie table `activity`, schema v4.
+- Recorded in `app.sessionHooks` (`src/app/appController.ts`) and saved with the write.
+- Logic in `core/stats/`.
+
+**Display:**
+- The dashboard panel (Dashboard settings → "Show study garden", on) shows the streak and the last seven days as pixel plants, which grow with the day's total: soil, sprout (1+), sapling (20+), tree (60+), blossoming tree (150+).
+- A tap opens the Garden screen (`/stats`): a month or year calendar, the current and best streak, the totals of the period and of all time, and a legend.
+- The streak counts days in a row with study up to today. When nothing is done yet today, it counts up to yesterday ("study today to keep it").
+
+**Progress file:** the log goes in as an optional `activity` list after `jumps`, only when there is a study day, so a file without study history is unchanged.
+
+**Local only:**
+- Never uploaded in server mode, and never imported from WaniKani. A reset keeps it, like the fast-travel jumps.
+- A restore merges the file's log into the device's (each count the larger of the two), so restoring an older file never erases study days, and restoring the same file twice counts nothing twice.
 
 ## Known limits
 

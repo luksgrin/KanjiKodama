@@ -136,6 +136,9 @@ const NOTIFICATION_CATEGORIES: Options = [
   ['SOCIAL', 'Social media'], ['ERROR', 'Error'], ['TRANSPORT', 'Media transport'], ['SYSTEM', 'System'],
   ['SERVICE', 'Service'], ['REMINDER', 'Reminder'], ['RECOMMENDATION', 'Recommendation (default)'], ['STATUS', 'Status'],
 ];
+const STUDY_DAY_START_HOURS: Options = [
+  ['0', 'Midnight'], ['1', '1 AM'], ['2', '2 AM'], ['3', '3 AM'], ['4', '4 AM'], ['5', '5 AM'], ['6', '6 AM'],
+];
 const TIME_LINE_CHART_STYLES: Options = [['SRS_STAGE', 'SRS Stage'], ['NEXT_SRS_STAGE', 'Next SRS Stage'], ['ITEM_TYPE', 'Item type']];
 const TIME_LINE_CHART_GRID_STYLES: Options = [['OFF', 'Off'], ['FOR_BARS', 'Scaled for bars'], ['FOR_WATERFALL', 'Scaled for cumulative review count']];
 const TIME_LINE_CHART_SIZES: Options = [
@@ -337,6 +340,8 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
       bool('show_recent_unlocks', 'Show recently unlocked items', true),
       bool('show_critical_condition', 'Show critical condition items', true),
       bool('show_burned_items', 'Show recently burned items', true),
+      bool('show_study_garden', 'Show study garden', true, { summary: 'Your study streak and the last week as a pixel garden; tap it for the calendar' }),
+      list('study_day_start_hour', 'A new study day starts at', STUDY_DAY_START_HOURS, '4'),
     ],
   },
   {

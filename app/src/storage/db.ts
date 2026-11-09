@@ -22,6 +22,9 @@
  *   `server/queue`). Non-indexed retry fields `attempts`, `nextAttemptAt`, `lastError`.
  * - `serverSubjects` (key `id`, v3): subjects downloaded in server mode, as the API sends them
  *   (`{id, object, dataUpdatedAt, data}`, readings "None" dropped). Local mode never reads it.
+ * - `activity` (key `day`, v4): the study activity log, one row per study day (core
+ *   `stats/activity.ts`: `day`, `lessons`, `reviews`, `correct`, `incorrect`, `selfStudy`). Kept by a
+ *   reset, a WaniKani import and a mode switch; a progress-file restore merges the file's log in.
  * - `settings` (key `key`): the settings in use.
  * - `meta` (key `key`): `schemaVersion`, persistence result, last backup time, diagnostics.
  *
@@ -37,10 +40,11 @@ import {
   type LevelProgressionRow,
   type SubjectProgressRow,
 } from '../core/progressFile/format';
+import type { ActivityDay } from '../core/stats/activity';
 
 export const DB_NAME = 'kanjikodama';
 /** The newest schema version (Dexie's `verno`). */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /** A `subjects` row: the subject id and its saved progress columns. */
 export type SubjectRecord = SubjectProgressRow & { id: number };
@@ -67,6 +71,8 @@ export interface TaskRecord {
 }
 /** A subject downloaded in server mode. */
 export interface ServerSubjectRecord { id: number; object: string; dataUpdatedAt: string | null; data: Record<string, unknown> }
+/** An `activity` row: one study day's counts. */
+export type ActivityRecord = ActivityDay;
 export interface SettingRecord { key: string; value: unknown }
 export interface MetaRow { key: string; value: unknown }
 
@@ -113,6 +119,7 @@ export class KkDb extends Dexie {
   session!: EntityTable<SessionRecord, 'subjectId'>;
   tasks!: EntityTable<TaskRecord, 'id'>;
   serverSubjects!: EntityTable<ServerSubjectRecord, 'id'>;
+  activity!: EntityTable<ActivityRecord, 'day'>;
   settings!: EntityTable<SettingRecord, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
 
@@ -141,6 +148,12 @@ export class KkDb extends Dexie {
       .stores({ serverSubjects: 'id' })
       .upgrade(async (tx) => {
         await tx.table('meta').put({ key: 'schemaVersion', value: 3 });
+      });
+    // v4: the study activity log (study calendar and streaks); starts empty.
+    this.version(4)
+      .stores({ activity: 'day' })
+      .upgrade(async (tx) => {
+        await tx.table('meta').put({ key: 'schemaVersion', value: 4 });
       });
     this.on('populate', (tx) => {
       void tx.table('meta').put({ key: 'schemaVersion', value: SCHEMA_VERSION });

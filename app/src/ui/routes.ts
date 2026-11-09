@@ -7,7 +7,7 @@ import type { RouteDef } from '../app/router';
 export type RouteName =
   | 'dashboard' | 'lessons' | 'reviews' | 'summary' | 'subject' | 'browse' | 'selfStudy'
   | 'settings' | 'curriculum' | 'fastTravel' | 'levelTest' | 'import' | 'server' | 'audio' | 'about'
-  | 'advancedSettings' | 'searchResults' | 'selfStudyQuiz' | 'keyboardHelp' | 'themeCustomization' | 'welcome';
+  | 'advancedSettings' | 'searchResults' | 'selfStudyQuiz' | 'keyboardHelp' | 'themeCustomization' | 'welcome' | 'stats';
 
 export interface AppRoute extends RouteDef<RouteName> {
   /** Top bar title. */
@@ -38,6 +38,7 @@ export const ROUTES: readonly AppRoute[] = [
   { name: 'keyboardHelp', pattern: '/settings/keyboard-help', title: 'Keyboard help' },
   { name: 'themeCustomization', pattern: '/settings/theme-customization', title: 'Theme customization' },
   { name: 'welcome', pattern: '/welcome', title: 'Welcome' },
+  { name: 'stats', pattern: '/stats', title: 'Garden' },
 ];
 
 export const ROUTE_BY_NAME = Object.fromEntries(ROUTES.map((r) => [r.name, r])) as Readonly<Record<RouteName, AppRoute>>;
@@ -64,6 +65,8 @@ export const paths = {
   themeCustomization: () => '/settings/theme-customization',
   /** The getting-started guide (opened by itself on a first start). */
   welcome: () => '/welcome',
+  /** The study garden: calendar, streaks and totals. */
+  stats: () => '/stats',
   /** The running self-study session (also the level test rounds). */
   selfStudyQuiz: () => '/self-study/quiz',
   /** `t`: 0 level, 1 keyword, 2 advanced (JSON); `q`: the level, query or parameters; `preset`: its name. */

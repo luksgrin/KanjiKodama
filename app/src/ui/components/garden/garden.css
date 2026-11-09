@@ -1,0 +1,167 @@
+/* The study garden (dashboard panel, Study garden screen). Theme tokens only, so the sprites follow
+   light, dark and the custom themes. */
+
+.kk-garden-sprite { display: block; flex: none; }
+.kk-gs-soil { fill: var(--color-stage-burned); }
+.kk-gs-soil-shade { fill: var(--kk-peach); }
+.kk-gs-leaf { fill: var(--kk-accent); }
+.kk-gs-stem { fill: var(--kk-muted); }
+.kk-gs-canopy { fill: var(--kk-mint-lo); }
+.kk-gs-canopy-shade { fill: var(--kk-muted); }
+.kk-gs-trunk { fill: var(--kk-peach); }
+.kk-gs-blossom { fill: var(--color-kanji); }
+.kk-gs-future { fill: none; stroke: var(--color-divider); stroke-width: 0.6; stroke-dasharray: 1 1; }
+
+/* --- Dashboard panel ------------------------------------------------------------------------- */
+
+.kk-dash-panel.kk-garden-panel {
+  display: block;
+  width: calc(100% - 4px);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  padding: 8px 10px 10px;
+}
+.kk-garden-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+.kk-garden-title { font-weight: 700; }
+.kk-garden-streak { color: var(--color-text-muted); }
+.kk-garden-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 6px;
+}
+.kk-garden-week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--color-text-toned);
+  min-width: 0;
+}
+.kk-garden-week-day.today { color: var(--color-text); font-weight: 700; }
+.kk-garden-week-day .kk-garden-sprite { width: 100%; max-width: 36px; height: auto; }
+
+/* --- Study garden screen --------------------------------------------------------------------- */
+
+.kk-garden-screen > * + * { margin-top: 10px; }
+.kk-garden-streaks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.kk-garden-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  min-width: 0;
+}
+.kk-garden-stat-value { font-size: 28px; line-height: 1.1; }
+.kk-garden-stat-label { font-size: 13px; color: var(--color-text-muted); text-align: center; }
+
+.kk-garden-tabs { display: flex; justify-content: center; gap: 8px; }
+.kk-garden-tabs .kk-btn[aria-pressed='false'] { opacity: 0.7; }
+
+.kk-garden-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.kk-garden-nav h2 { margin: 0; font-size: 18px; text-align: center; flex: 1; min-width: 0; }
+.kk-garden-nav button {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 22px;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.kk-garden-nav button:disabled { opacity: 0.3; cursor: default; }
+
+/* The calendar panel: little side padding and no column gap, so a day stays a 40 px tap target down to
+   320 px wide phones. */
+.kk-dash-panel.kk-garden-calendar { padding: 5px 2px 6px; }
+.kk-garden-month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px 0;
+}
+.kk-garden-wd { text-align: center; font-size: 12px; color: var(--color-text-toned); }
+.kk-garden-cell {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 2px 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.kk-garden-cell .kk-garden-sprite { width: 100%; max-width: 40px; height: auto; }
+.kk-garden-cell.today { border-color: var(--color-accent); }
+.kk-garden-cell[aria-pressed='true'] { border-color: var(--btn-outline); }
+.kk-garden-cell:disabled { cursor: default; color: var(--color-text-toned); }
+
+.kk-garden-detail { min-height: 2.6em; text-align: center; margin: 0; }
+
+.kk-garden-year {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 8px;
+}
+.kk-garden-mini {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-self: start;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  min-width: 0;
+}
+.kk-garden-mini-name { font-size: 13px; margin-bottom: 2px; text-align: center; }
+.kk-garden-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+}
+.kk-garden-dot { aspect-ratio: 1; border-radius: 1px; background: var(--color-stage-locked); }
+.kk-garden-dot.blank { background: none; }
+.kk-garden-dot.future { opacity: 0.35; }
+.kk-garden-dot.l1 { background: var(--kk-mint-hi); }
+.kk-garden-dot.l2 { background: var(--kk-mint); }
+.kk-garden-dot.l3 { background: var(--kk-mint-lo); }
+.kk-garden-dot.l4 { background: var(--color-kanji); }
+.kk-garden-dot.today { outline: 1px solid var(--color-text); outline-offset: 0; }
+
+.kk-garden-totals { margin: 0; display: grid; grid-template-columns: auto auto; gap: 2px 12px; justify-content: start; }
+.kk-garden-totals dt { color: var(--color-text-muted); }
+.kk-garden-totals dd { margin: 0; text-align: right; }
+.kk-garden-section-title { margin: 0 0 4px; font-size: 16px; }
+.kk-garden-note { margin: 0 0 6px; }
+.kk-garden-note.after { margin: 6px 0 0; }
+
+.kk-garden-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0; padding: 0; list-style: none; }
+.kk-garden-legend li { display: flex; align-items: center; gap: 4px; font-size: 13px; }

@@ -7,8 +7,10 @@
  * 2. After the user confirms, `importProgress`: in ONE Dexie transaction, read the stored progress,
  *    apply core `restoreIntoDb` (reset, apply the subject fields, insert level progression,
  *    probation and jumps, adopt the curriculum, set the user level, recompute unlocks with
- *    `updateProgression`), write everything back and drop the session. Any failure aborts the
- *    transaction and leaves the database as it was.
+ *    `updateProgression`), write everything back and drop the session. The file's study activity
+ *    log (`activity`, optional) is merged into the device's, each count the larger of the two, so
+ *    restoring an older file never erases study days. Any failure aborts the transaction and leaves
+ *    the database as it was.
  *
  * Local mode only (the screens hide it in server mode).
  */
@@ -17,6 +19,8 @@ import { TypedError, describe, type DateStyle } from '../core/progressFile';
 import { hydrateLearnerDb, readSnapshot, snapshotOf, writeSnapshot } from '../storage/progressRepo';
 import { PROGRESS_TABLES, type KkDb } from '../storage/db';
 import { restoreIntoDb, type LearnerDb } from '../core/progression';
+import { readActivity, type ActivityDay } from '../core/stats';
+import { mergeActivityDays } from '../storage/activityRepo';
 
 /** A file that can't be restored; `message` is for the user. Nothing was changed. */
 export class ProgressImportError extends Error {
@@ -75,6 +79,8 @@ export interface ImportResult {
   message: string;
   /** The restored state, as now stored. */
   learner: LearnerDb;
+  /** The study activity log after merging in the file's (`mergeActivity`), as now stored. */
+  activity: Map<string, ActivityDay>;
 }
 
 /**
@@ -87,17 +93,19 @@ export async function importProgress(kk: KkDb, text: string, ctx: ImportContext)
   previewImport(text, 'UTC');
   const now = ctx.now ?? Date.now();
   let learner: LearnerDb | undefined;
+  let activity: Map<string, ActivityDay> | undefined;
   try {
-    await kk.transaction('rw', PROGRESS_TABLES.map((t) => kk.table(t)), async () => {
+    await kk.transaction('rw', [...PROGRESS_TABLES.map((t) => kk.table(t)), kk.activity], async () => {
       const ldb = hydrateLearnerDb(ctx.content, ctx.jlptKanji, await readSnapshot(kk));
       restoreIntoDb(ldb, text, now); // synchronous; throws before changing anything stored
       await writeSnapshot(kk, snapshotOf(ldb));
       await kk.session.clear();
+      activity = await mergeActivityDays(kk, readActivity(text));
       learner = ldb;
     });
   } catch (e) {
     rethrow(e);
   }
   const userLevel = learner!.progress.userLevel;
-  return { userLevel, message: `Progress restored, level ${userLevel}.`, learner: learner! };
+  return { userLevel, message: `Progress restored, level ${userLevel}.`, learner: learner!, activity: activity! };
 }

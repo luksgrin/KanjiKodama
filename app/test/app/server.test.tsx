@@ -217,10 +217,13 @@ describe('server mode sessions', () => {
     app.dispose();
   });
 
-  it('local mode: sessionHooks are the base hooks', async () => {
+  it('local mode: sessionHooks are the base hooks, with a report that also counts the study day', async () => {
     const { app } = await render(new FakeHttp());
     const base = { levelTestRoundActive: () => false, onSessionFinishing: vi.fn() };
-    expect(app.sessionHooks(base)).toBe(base);
+    const hooks = app.sessionHooks(base);
+    expect(hooks.levelTestRoundActive).toBe(base.levelTestRoundActive);
+    expect(hooks.onSessionFinishing).toBe(base.onSessionFinishing);
+    expect(typeof hooks.report).toBe('function');
     expect(app.syncEngine()).toBeNull();
     app.dispose();
   });

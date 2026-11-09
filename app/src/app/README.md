@@ -24,6 +24,7 @@ persisted. `ensurePersistence` runs in the background (`state.persistence`).
 | `prefs` | the `settings` table as core `Preferences` |
 | `now` | clock time, refreshed every 30 s: render time-dependent values from it |
 | `revision` | bumps on every change: memoize derived values on `[learner, revision, now]` |
+| `activity` | the study activity log by study day (core `stats/`); every finished session item counts, through `sessionHooks` |
 | `mode`, `persistence`, `lastSavedAt`, `lastWriteError` | |
 
 ## Writing
@@ -63,7 +64,9 @@ back button (`main.tsx`), Escape and the top bar's back arrow call `handleBack`.
 - `app.syncEngine()` (status, subscribe, setToken), `app.syncNow({manual})`, `app.flushUploads()`:
   the learner is reloaded (in place) after a sync that wrote something.
 - **Sessions must take their hooks from `app.sessionHooks(base)`**: in server mode the `report`
-  hook predicts locally (core `reportServer`) and the write queues and sends the upload.
+  hook predicts locally (core `reportServer`) and the write queues and sends the upload. In both
+  modes the `report` hook also counts the item towards its study day (`state.activity`, saved with
+  the write, dropped if it fails).
 - `app.tokenStore()`: the server token in `platform.secrets` (moved from `state` on first read).
 - `app.reload()` after a mode switch; `app.connectionOptions()` for one-off server calls.
 - Lifecycle: resume → `tick`, re-count, notifications, widget, sync (server mode); pause →

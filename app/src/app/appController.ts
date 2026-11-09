@@ -20,7 +20,8 @@
 import { readAudioCatalog } from '../content/audio';
 import type { LoadedContent } from '../content/contentFile';
 import { emptyProgress, exportProgress, type ProgressState } from '../core/progressFile';
-import { applyOrdering, updateProgression, type LearnerDb } from '../core/progression';
+import { applyOrdering, reportLocal, updateProgression, type LearnerDb, type LocalReport } from '../core/progression';
+import { countReport, emptyDay, type ActivityDay, type ActivityLog } from '../core/stats';
 import type { Preferences, PreferenceValue } from '../core/settings';
 import { settingsMigrations } from '../core/settings/migrations';
 import type { Platform } from '../platform';
@@ -32,10 +33,12 @@ import { createDeviceSync, type DeviceSync } from '../sync/deviceSync';
 import { backupReminder, saveProgressFile, type BackupReminder } from '../progress/backup';
 import { progressFileName } from '../progress/exportFile';
 import { importProgress, previewImport, type ImportPreview } from '../progress/importFile';
+import { loadActivity, saveActivityDays } from '../storage/activityRepo';
 import { lastSavedStore, type KkDb } from '../storage/db';
 import { ensurePersistence, type PersistenceInfo } from '../storage/persistence';
 import { hydrateLearnerDb, readSnapshot, saveLearnerDb, saveSubjects, snapshotOf, writeSnapshot, type LearnerSnapshot } from '../storage/progressRepo';
 import { systemClock, type Clock } from './clock';
+import { deviceOffsetMinutes, localStudyDay } from './studyDay';
 import { DB_BLOCKED, DB_CLOSED, contentError, dbError, type AppError } from './errors';
 import { createStore, type ReadableStore } from './store';
 
@@ -68,6 +71,11 @@ export interface AppState {
   revision: number;
   /** The last write that failed to save (memory was reloaded from the database). */
   lastWriteError: string | null;
+  /**
+   * The study activity log (`activity` table): what each study day's finished lessons, reviews and
+   * self-study items were. A new Map after every change.
+   */
+  activity: ActivityLog;
 }
 
 export interface AppDeps {
@@ -80,6 +88,8 @@ export interface AppDeps {
   tickMs?: number | null;
   /** Server mode: sync engine options (tests shorten retries). */
   sync?: Partial<Pick<EngineDeps, 'tries' | 'retryDelay' | 'clock' | 'limiter' | 'appVersion'>>;
+  /** Minutes east of UTC at a moment (the study days of the activity log); default the device's. */
+  offsetMinutes?: (ts: number) => number;
 }
 
 /** How a write saves its changes. */
@@ -175,6 +185,7 @@ function initialState(now: number): AppState {
     now,
     revision: 0,
     lastWriteError: null,
+    activity: new Map(),
   };
 }
 
@@ -216,6 +227,28 @@ export function createAppController(deps: AppDeps): AppController {
   let timer: ReturnType<typeof setInterval> | undefined;
   let disposed = false;
   let bundled: LoadedContent | null = null;
+  const offsetMinutes = deps.offsetMinutes ?? deviceOffsetMinutes;
+  /** Study days the reports of the running write changed; saved with it, dropped if it fails. */
+  const pendingActivity = new Map<string, ActivityDay>();
+
+  /** One finished session item into its study day (the moment it was answered, else `now`). */
+  function recordActivity(report: LocalReport, now: number): void {
+    const ts = report.timestamp > 0 ? report.timestamp : now;
+    const day = localStudyDay(ts, store.get().prefs, offsetMinutes);
+    const base = pendingActivity.get(day) ?? store.get().activity.get(day) ?? emptyDay(day);
+    pendingActivity.set(day, countReport(base, report.type, report.meaningIncorrect + report.readingIncorrect));
+  }
+
+  /** Saves the pending study days; returns the new log, or null when nothing changed. */
+  async function flushActivity(): Promise<ActivityLog | null> {
+    if (pendingActivity.size === 0) return null;
+    const days = [...pendingActivity.values()];
+    pendingActivity.clear();
+    await saveActivityDays(kk, days);
+    const next = new Map(store.get().activity);
+    for (const d of days) next.set(d.day, d);
+    return next;
+  }
 
   const patch = (changes: Partial<AppState>, bump = false): void => {
     const prev = store.get();
@@ -344,7 +377,7 @@ export function createAppController(deps: AppDeps): AppController {
       }
       const learner = hydrateLearnerDb(content.content, content.jlptKanji, snap);
       orphans = orphansOf(snap, learner);
-      const [stored, lastSavedAt, server] = await Promise.all([readPrefs(), saved.getLastSavedAt(), isServerMode()]);
+      const [stored, lastSavedAt, server, activity] = await Promise.all([readPrefs(), saved.getLastSavedAt(), isServerMode(), loadActivity(kk)]);
       const prefs = await migratePrefs(stored);
       if (!server) {
         // Local mode: re-lay the order if the curriculum changed, then unlock and level up.
@@ -353,7 +386,7 @@ export function createAppController(deps: AppDeps): AppController {
         updateProgression(learner, clock.now());
         await persist(learner, 'auto', before);
       }
-      patch({ learner, prefs, lastSavedAt, mode: server ? 'server' : 'local', now: clock.now(), status: { kind: 'ready' } }, true);
+      patch({ learner, prefs, lastSavedAt, activity, mode: server ? 'server' : 'local', now: clock.now(), status: { kind: 'ready' } }, true);
     } catch (e) {
       fail(dbError(e));
       return;
@@ -453,10 +486,14 @@ export function createAppController(deps: AppDeps): AppController {
         const before = mode === 'auto' ? capture(learner) : undefined;
         const now = clock.now();
         let result;
+        let activity: ActivityLog | null;
+        pendingActivity.clear();
         try {
           result = op(learner, now);
           await persist(learner, mode, before);
+          activity = await flushActivity();
         } catch (e) {
+          pendingActivity.clear();
           // The op may have changed memory partly, or the save failed: memory follows the database.
           const message = e instanceof Error ? e.message : String(e);
           try {
@@ -468,7 +505,7 @@ export function createAppController(deps: AppDeps): AppController {
           patch({ lastWriteError: message }, true);
           throw e;
         }
-        patch({ now, lastWriteError: null }, true);
+        patch(activity === null ? { now, lastWriteError: null } : { now, lastWriteError: null, activity }, true);
         await device.afterWrite();
         return result;
       });
@@ -493,7 +530,7 @@ export function createAppController(deps: AppDeps): AppController {
       const state: ProgressState = { ...emptyProgress(p.curriculum), ...p };
       if (orphans.subjects.size > 0) state.subjects = new Map([...orphans.subjects, ...p.subjects]);
       if (orphans.probation.size > 0) state.probation = new Map([...orphans.probation, ...p.probation]);
-      return { name: progressFileName(now), text: exportProgress(state, now) };
+      return { name: progressFileName(now), text: exportProgress(state, now, store.get().activity) };
     },
 
     async saveProgress() {
@@ -520,7 +557,7 @@ export function createAppController(deps: AppDeps): AppController {
         if (!content || store.get().status.kind !== 'ready') throw new Error('the app is not ready');
         const res = await importProgress(kk, text, { content: content.content, jlptKanji: content.jlptKanji, now: clock.now() });
         orphans = { subjects: new Map(), probation: new Map() };
-        patch({ learner: res.learner, now: clock.now(), lastWriteError: null }, true);
+        patch({ learner: res.learner, activity: res.activity, now: clock.now(), lastWriteError: null }, true);
         return res.message;
       });
     },
@@ -542,7 +579,17 @@ export function createAppController(deps: AppDeps): AppController {
     },
 
     sessionHooks(base) {
-      return store.get().mode === 'server' ? device.reporter.hooks(base) : base;
+      const hooks = store.get().mode === 'server' ? device.reporter.hooks(base) : base;
+      // Every finished item also counts towards its study day (local only, never uploaded). Without
+      // a `report` hook the session calls `reportLocal` itself; this does exactly that.
+      return {
+        ...hooks,
+        report(db, report, now) {
+          if (hooks.report) hooks.report(db, report, now);
+          else reportLocal(db, report, now);
+          recordActivity(report, now);
+        },
+      };
     },
 
     bundledContent() {

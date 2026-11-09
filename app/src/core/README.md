@@ -36,6 +36,9 @@ importer. Every module is pinned by the golden fixtures (`app/test/golden/`, see
   mode), `updateProgression`, restore/export, curriculum switching and placement. Session, level
   test, importer and dashboard code take a `LearnerDb`; the golden scenario runner
   (`test/golden/scenario/`) drives it.
+- `stats/`: the study activity log (counts per study day), streaks and the study garden calendar,
+  and the optional `activity` list of the progress file. Newer than the fixtures: its unit tests
+  (`stats/*.test.ts`) pin it, and a file without study history exports byte for byte as before.
 - Typed errors: throw `TypedError` from `kana/typedError.ts` (`errorType` is the name the fixtures
   record, e.g. `NullPointerException`).
 

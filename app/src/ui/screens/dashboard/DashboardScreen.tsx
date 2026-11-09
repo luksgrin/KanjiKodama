@@ -5,6 +5,9 @@
  * (`show_srs_breakdown`), level progression (`show_level_progression`), Jōyō and JLPT progress (off),
  * recent unlocks, critical condition and recently burned items (on).
  *
+ * The study garden (`show_study_garden`, on: streak and the last week, a tap opens the calendar)
+ * follows the banners, before the other panels.
+ *
  * The PWA's own banners (install hint, backup reminder) sit right after the session buttons, so they
  * never push START below the fold on small phones. Not shown: the post-60 progression bar (local
  * mode never gets past level 60), the server error banners (server mode screens), the keyboard help
@@ -15,6 +18,7 @@ import { computeDashboard } from '../../../app/dashboardData';
 import { computePost60Breakdown, showLevelProgression, showSrsBreakdown, showTimeLine } from '../../../core/dashboard';
 import { currentLevelDescription } from '../../../core/progression';
 import { prefBoolean } from '../../../core/settings';
+import { showStudyGarden } from '../../../core/stats';
 import { useReady } from '../../hooks/useApp';
 import { InstallHint } from '../about/InstallHint';
 import { AvailableSessions, SessionButtons } from './AvailableSessions';
@@ -39,6 +43,7 @@ import {
 import { JlptProgressTable, JoyoProgressTable, LessonReviewBreakdownTable } from './ProgressTables';
 import { Post60Progress } from './Post60Progress';
 import { SrsBreakdown } from './SrsBreakdown';
+import { StudyGarden } from './StudyGarden';
 import { SubjectTable } from './SubjectTable';
 import { TimeLineChart } from './TimeLineChart';
 import { UpcomingReviews } from './UpcomingReviews';
@@ -81,6 +86,7 @@ export function DashboardScreen() {
       <SessionButtons lessons={data.lessons} reviews={data.reviews} />
       <InstallHint />
       <BackupReminderBanner />
+      {showStudyGarden(prefs) && <StudyGarden />}
       {showBreakdown && <LessonReviewBreakdownTable data={panels.breakdown} />}
       {showTimeLine(prefs) && (
         <TimeLineChart data={panels.timeline} shown={timeLineChartSizeShown(prefs)} grid={timeLineChartGridStyle(prefs)} waterfall={showWaterfallLine(prefs)} />

@@ -42,6 +42,8 @@ export interface Harness {
  */
 export function makeApp(opts: {
   dbName?: string; content?: Content; platform?: Platform; loadContent?: () => Promise<LoadedContent>; at?: number; onboarding?: boolean;
+  /** The time zone for study days (minutes east of UTC); default UTC. */
+  offsetMinutes?: number;
 } = {}): Harness {
   const dbName = opts.dbName ?? freshName();
   const clock = manualClock(opts.at ?? T0);
@@ -53,6 +55,7 @@ export function makeApp(opts: {
     loadContent: opts.loadContent ?? (async () => loaded(content)),
     clock,
     tickMs: null,
+    offsetMinutes: () => opts.offsetMinutes ?? 0,
   });
   if (opts.onboarding !== true) {
     const start = app.start.bind(app);

@@ -8,7 +8,7 @@ import { exportProgressFile } from '../../src/progress/exportFile';
 import { loadProgressState } from '../../src/storage/progressRepo';
 import { freshName } from './helpers';
 
-const ALL_TABLES = ['jumps', 'levelProgression', 'levelTest', 'meta', 'probation', 'serverSubjects', 'session', 'settings', 'state', 'subjects', 'tasks'];
+const ALL_TABLES = ['activity', 'jumps', 'levelProgression', 'levelTest', 'meta', 'probation', 'serverSubjects', 'session', 'settings', 'state', 'subjects', 'tasks'];
 
 const V2_STORES = {
   subjects: 'id', levelProgression: 'id', probation: 'id', jumps: '++seq, at', state: 'key', levelTest: 'id',
@@ -79,6 +79,23 @@ const EARLIER_VERSIONS: Array<{
       expect(await kk.serverSubjects.count()).toBe(0);
       await kk.tasks.add({ kind: 'review', payload: {}, createdAt: 3 });
       expect((await kk.tasks.toArray()).map((t) => t.id)).toEqual([1, 2, 3]);
+    },
+  },
+  {
+    version: 3, // server mode (step 5c): the downloaded subjects
+    stores: { ...V2_STORES, serverSubjects: 'id' },
+    async seed(db) {
+      await db.table('subjects').put({ ...emptySubjectRow(), id: 440, srsStage: 2, startedAt: 1700000000000, unlockedAt: 1700000000000 });
+      await db.table('serverSubjects').put({ id: 440, object: 'kanji', dataUpdatedAt: null, data: {} });
+      await db.table('meta').put({ key: 'schemaVersion', value: 3 });
+    },
+    async verify(kk) {
+      expect((await kk.subjects.get(440))?.srsStage).toBe(2);
+      expect((await kk.serverSubjects.get(440))?.object).toBe('kanji');
+      // v4: the activity log starts empty, so the saved file has no `activity`.
+      expect(await kk.activity.count()).toBe(0);
+      const { text } = await exportProgressFile(kk, 1760659200000, 'UTC');
+      expect(JSON.parse(text)).not.toHaveProperty('activity');
     },
   },
 ];
