@@ -1,8 +1,8 @@
 /**
  * Text size and font (Display settings → "Text size and font", `text_size` / `ui_font`): at the smallest
  * and the largest size, in each of the three fonts, the explanation screens, settings, browse (with
- * search by parts) and the dashboard (with its study garden and the Garden screen) keep their layout:
- * no sideways scroll, no clipped text, tap targets ≥ 40 px, no text cut
+ * search by parts), writing practice and the dashboard (with its study garden and the Garden screen)
+ * keep their layout: no sideways scroll, no clipped text, tap targets ≥ 40 px, no text cut
  * off at the bottom of a fixed-height box and no setting rows / tiles overlapping (strict checks, soft
  * failures). The quiz's question, answer field and buttons keep their sizes; ligatures stay off.
  * Phone widths only (320 to 412 px): the narrowest screens are where a bigger text breaks first.
@@ -11,6 +11,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { answer, checkScreen, openApp, quiz, restoreFile, tab, throughPresentation } from './helpers/app';
 import { subjectsAt } from './helpers/content';
 import { writeReviewSeed } from './helpers/progress';
+import { writeKanji } from './helpers/strokes';
 
 const PHONES = ['android-small-320', 'galaxy-s9plus', 'iphone-se', 'pixel-7', 'firefox-390'];
 const SIZES = (process.env.KK_TS_SIZES ?? '85,150').split(',');
@@ -149,6 +150,20 @@ for (const font of FONTS) {
       await tab(page, 'Study');
       await expect(page.locator('.kk-self-study, [data-testid="self-study-running"]')).toBeVisible();
       await check(page, info, `${tag}-10-self-study`, true);
+
+      // Writing practice: tracing, from memory, the written kanji, the summary and the page's writing line.
+      await openApp(page, `/self-study/writing?ids=${kanji.id}&mode=study`);
+      await check(page, info, `${tag}-10a-writing-study`, true);
+      await openApp(page, `/self-study/writing?ids=${kanji.id}&mode=recall`);
+      await check(page, info, `${tag}-10b-writing-recall`, true);
+      await writeKanji(page);
+      await check(page, info, `${tag}-10c-writing-done`, true);
+      await page.getByTestId('writing-next').click();
+      await expect(page.getByTestId('writing-summary')).toBeVisible();
+      await check(page, info, `${tag}-10d-writing-summary`, true);
+      await openApp(page, `/subject/${kanji.id}`);
+      await expect(page.getByTestId('writing-line')).toBeVisible();
+      await check(page, info, `${tag}-10e-kanji-writing-line`, true);
 
       // An answered review: the item info under the answer follows the text size.
       await openApp(page, '/');
