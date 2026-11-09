@@ -1,6 +1,6 @@
 /**
  * Settings → the "Progress" category: Server
- * connection, Curriculum order, Kanji level test, Fast travel, Save progress to a file, Restore
+ * connection, Getting started guide, Curriculum order, Kanji level test, Fast travel, Save progress to a file, Restore
  * progress from a file, Import progress from WaniKani, with their summaries; the local-only rows
  * are hidden in server mode.
  *
@@ -24,6 +24,7 @@ import type { Alerts } from './useAlerts';
 export type Flow = (onDone?: () => void) => void;
 
 export const SAVE_SUMMARY = 'Save a copy of your progress, for example to Google Drive (choose Drive in the file picker)';
+export const GUIDE_SUMMARY = 'How the app and its quizzes work; choose WaniKani or JLPT order and where to start';
 export const RESTORE_SUMMARY = 'Replace local progress with a saved copy';
 
 export function ProgressCategory({ alerts, flows }: { alerts: Alerts; flows: { curriculum: Flow; fastTravel: Flow; import: Flow } }) {
@@ -79,6 +80,7 @@ export function ProgressCategory({ alerts, flows }: { alerts: Alerts; flows: { c
       <PrefRow title="Server connection" summary={serverPreferenceSummary(!local, baseUrl)} testId="link-server" onClick={() => nav(paths.server())} />
       {local && (
         <>
+          <PrefRow title="Getting started guide" summary={GUIDE_SUMMARY} testId="link-welcome" onClick={() => nav(paths.welcome())} />
           <PrefRow title="Curriculum order" summary={curriculumSummary(learner.progress.curriculum)} testId="link-curriculum" onClick={() => flows.curriculum()} />
           <PrefRow title="Kanji level test" summary="Two short quizzes estimate your JLPT kanji level; then you can start there" testId="link-level-test"
             onClick={() => nav(paths.levelTest())} />

@@ -44,6 +44,9 @@ npx playwright show-report test/e2e/report        # HTML report, traces of failu
 - `progress.spec.ts`: save (download fallback, share sheet), restore (file chooser, summary,
   Cancel, confirm), a bad file, and the owner's Android export (`test/golden/progress/android-export.json`,
   only loaded into the local test browser, never printed).
+- `onboarding.spec.ts`: the getting-started guide on a first start (every step, strict layout checks),
+  the JLPT path, the level test choice, Skip guide, and a learner with progress (never shown; Settings
+  opens it). `openApp(page)` skips the guide for every other spec (`keepOnboarding` keeps it).
 - `offline.spec.ts`: service worker on, load, go offline, reload, review.
 - `layout.spec.ts`: every main screen with strict checks (soft failures, so one run lists all):
   no sideways scroll, tap targets ≥ 40 px (exemptions by testid), no clipped text; the

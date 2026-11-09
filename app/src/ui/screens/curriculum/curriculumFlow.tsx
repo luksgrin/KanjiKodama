@@ -35,12 +35,29 @@ export function switchMessage(p: CurriculumPreview): string {
   return msg + 'Your progress on every item is kept; only the order of new lessons changes. You can switch back at any time.';
 }
 
-/** Returns `start(onDone?)`; `onDone` runs when the last dialog of the flow closes. */
-export function useCurriculumFlow(alerts: Alerts): (onDone?: () => void) => void {
+/**
+ * Switches to `target`: "Switch to … order?" with the placement preview (unless `confirm` is false:
+ * the getting-started guide, before any progress, where you can only land on level 1), then
+ * "Reordering lessons…" and the result message (also skipped without `confirm`). `done` runs when the
+ * last dialog closes, switched or not.
+ */
+export function useCurriculumSwitch(alerts: Alerts): (target: CurriculumMode, done: () => void, opts?: { confirm?: boolean }) => void {
   const app = useApp();
   const { platform } = useReady();
 
-  const confirmSwitch = async (target: CurriculumMode, done: () => void) => {
+  const doSwitch = async (target: CurriculumMode, done: () => void, quiet: boolean) => {
+    if (await sessionRunning(app)) { alerts.message(null, SESSION_RUNNING, done); return; }
+    const placement = await alerts.run('Reordering lessons…',
+      () => app.write((l, now) => switchCurriculum(l, target, now), { persist: 'all' }));
+    if (!placement) return;
+    afterProgressChange(app, platform);
+    if (quiet) { done(); return; }
+    const where = currentLevelDescription(app.requireLearner(), placement.level);
+    alerts.message(null, `You are now in ${CURRICULUM_MODE_LABEL[target]}, on level ${placement.level}${paren(where)}.`, done);
+  };
+
+  return (target, done, opts = {}) => void (async () => {
+    if (opts.confirm === false) { await doSwitch(target, done, true); return; }
     const preview = await alerts.run('Working out where you would land…', async () => previewCurriculum(app.requireLearner(), target));
     if (!preview) return;
     alerts.show({
@@ -49,20 +66,15 @@ export function useCurriculumFlow(alerts: Alerts): (onDone?: () => void) => void
       testId: 'dialog-curriculum-confirm',
       onCancel: () => { alerts.close(); done(); },
       negative: { label: 'Cancel', onClick: () => { alerts.close(); done(); } },
-      positive: {
-        label: 'Switch',
-        onClick: () => void (async () => {
-          if (await sessionRunning(app)) { alerts.message(null, SESSION_RUNNING, done); return; }
-          const placement = await alerts.run('Reordering lessons…',
-            () => app.write((l, now) => switchCurriculum(l, target, now), { persist: 'all' }));
-          if (!placement) return;
-          afterProgressChange(app, platform);
-          const where = currentLevelDescription(app.requireLearner(), placement.level);
-          alerts.message(null, `You are now in ${CURRICULUM_MODE_LABEL[target]}, on level ${placement.level}${paren(where)}.`, done);
-        })(),
-      },
+      positive: { label: 'Switch', onClick: () => void doSwitch(target, done, false) },
     });
-  };
+  })();
+}
+
+/** Returns `start(onDone?)`; `onDone` runs when the last dialog of the flow closes. */
+export function useCurriculumFlow(alerts: Alerts): (onDone?: () => void) => void {
+  const app = useApp();
+  const confirmSwitch = useCurriculumSwitch(alerts);
 
   return (onDone) => {
     const done = () => onDone?.();
@@ -80,7 +92,7 @@ export function useCurriculumFlow(alerts: Alerts): (onDone?: () => void) => void
             onPick={(k) => {
               alerts.close();
               const mode = k as CurriculumMode;
-              if (mode !== current) void confirmSwitch(mode, done);
+              if (mode !== current) confirmSwitch(mode, done);
               else done();
             }} />
         ),

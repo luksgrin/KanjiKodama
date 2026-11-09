@@ -7,11 +7,15 @@
  *
  * Screen changes slide in briefly (forward from the right, back from the left: a short version of
  * the Android activity transition); none with `prefers-reduced-motion`.
+ *
+ * A first start at the dashboard shows the getting-started guide (`/welcome`) instead.
  */
 import { Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { handleBack } from '../../app/back';
+import { needsOnboarding } from '../../core/onboarding';
 import { useApp, useAppState } from '../hooks/useApp';
 import { useLocation, useRoute } from '../hooks/useRoute';
+import { paths } from '../routes';
 import { preloadScreen, SCREENS } from '../screens';
 import { UpdateDialog } from '../update/UpdateDialog';
 import { KeyboardDiagnosticsOverlay } from './KeyboardDiagnosticsOverlay';
@@ -52,6 +56,20 @@ export function AppShell() {
     const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
     if (w.requestIdleCallback) w.requestIdleCallback(run, { timeout: 3000 });
     else setTimeout(run, 1500);
+  }, [ready]);
+
+  // A first start at the dashboard opens the getting-started guide instead (core onboarding/), once
+  // per start; before paint, so the dashboard never shows first.
+  const onboardingChecked = useRef(false);
+  useLayoutEffect(() => {
+    if (!ready || onboardingChecked.current) return;
+    onboardingChecked.current = true;
+    const s = app.get();
+    if (route.name === 'dashboard' && s.learner && needsOnboarding(s.learner, s.prefs, s.mode)) {
+      location.navigate(paths.welcome(), { replace: true });
+    }
+    // Only when start-up finishes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
   // Direction of the transition: deeper in the history = forward.

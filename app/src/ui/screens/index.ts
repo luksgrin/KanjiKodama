@@ -33,6 +33,7 @@ const LOADERS: Readonly<Record<Exclude<RouteName, 'dashboard'>, Loader>> = {
   about: () => import('./about/AboutScreen').then((m) => m.AboutScreen),
   keyboardHelp: () => import('./keyboardHelp/KeyboardHelpScreen').then((m) => m.KeyboardHelpScreen),
   themeCustomization: () => import('./themeCustomization/ThemeCustomizationScreen').then((m) => m.ThemeCustomizationScreen),
+  welcome: () => import('./onboarding/OnboardingScreen').then((m) => m.OnboardingScreen),
 };
 
 const loaded = new Map<RouteName, ComponentType>([['dashboard', DashboardScreen]]);

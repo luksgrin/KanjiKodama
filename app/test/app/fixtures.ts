@@ -5,6 +5,7 @@ import type { Content } from '../../src/core/content';
 import type { Capabilities, FilesApi, Platform } from '../../src/platform';
 import { createAppController, type AppController } from '../../src/app/appController';
 import { manualClock } from '../../src/app/clock';
+import { ONBOARDING_DONE_KEY } from '../../src/core/onboarding';
 import { KkDb } from '../../src/storage/db';
 import { NO_JLPT, freshName, smallContent } from '../progress-storage/helpers';
 
@@ -35,7 +36,13 @@ export interface Harness {
   platform: Platform;
 }
 
-export function makeApp(opts: { dbName?: string; content?: Content; platform?: Platform; loadContent?: () => Promise<LoadedContent>; at?: number } = {}): Harness {
+/**
+ * A controller over a fresh database. The getting-started guide is marked done once started, so a
+ * render at `/` shows the dashboard; `onboarding: true` keeps it (the guide's own tests).
+ */
+export function makeApp(opts: {
+  dbName?: string; content?: Content; platform?: Platform; loadContent?: () => Promise<LoadedContent>; at?: number; onboarding?: boolean;
+} = {}): Harness {
   const dbName = opts.dbName ?? freshName();
   const clock = manualClock(opts.at ?? T0);
   const platform = opts.platform ?? fakePlatform();
@@ -47,5 +54,12 @@ export function makeApp(opts: { dbName?: string; content?: Content; platform?: P
     clock,
     tickMs: null,
   });
+  if (opts.onboarding !== true) {
+    const start = app.start.bind(app);
+    app.start = async () => {
+      await start();
+      if (app.get().status.kind === 'ready') await app.setPreference(ONBOARDING_DONE_KEY, true);
+    };
+  }
   return { app, clock, dbName, platform };
 }

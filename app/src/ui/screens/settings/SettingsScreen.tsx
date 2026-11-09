@@ -57,6 +57,7 @@ export const RESET_TUTORIALS_VALUES: Readonly<Preferences> = {
   session_log_dismissed: false,
   notification_permission_asked: false,
   kk_install_hint_dismissed: false,
+  onboarding_done: false,
 };
 
 export const LOCAL_ONLY_MESSAGE = 'Only available in local mode. In server mode the server decides levels and unlocks.';

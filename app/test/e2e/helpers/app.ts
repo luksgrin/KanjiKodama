@@ -6,10 +6,22 @@ import { correctAnswer, type QuestionInfo, type SubjectObject } from './content'
 import { SCREENSHOT_DIR } from './paths';
 import { kanaToRomaji } from './romaji';
 
-/** Opens the app at a hash route and waits until it is ready (start-up screen gone). */
-export async function openApp(page: Page, route = '/'): Promise<void> {
+/**
+ * Opens the app at a hash route and waits until it is ready (start-up screen gone). A first start at
+ * the dashboard opens the getting-started guide: skipped here unless `keepOnboarding`.
+ */
+export async function openApp(page: Page, route = '/', opts: { keepOnboarding?: boolean } = {}): Promise<void> {
   await page.goto(`./#${route}`);
   await waitReady(page);
+  if (route === '/' && opts.keepOnboarding !== true) await skipOnboarding(page);
+}
+
+/** "Skip guide" when the getting-started guide is showing (the shell opens it before the first paint). */
+export async function skipOnboarding(page: Page): Promise<void> {
+  const shell = page.locator('.kk-shell');
+  if (await shell.getAttribute('data-route') !== 'welcome') return;
+  await page.getByTestId('onboarding-skip').click();
+  await expect(shell).toHaveAttribute('data-route', 'dashboard');
 }
 
 export async function waitReady(page: Page): Promise<void> {

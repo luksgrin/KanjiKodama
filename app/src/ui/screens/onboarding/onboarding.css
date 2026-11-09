@@ -1,0 +1,82 @@
+/*
+ * The getting-started guide: step dots and "Skip guide" over one panel per step, Back / Next under
+ * it. Choices are pixel-outlined cards with a radio button; the item type swatches use the subject
+ * colours. Tokens only.
+ */
+.kk-onboarding { max-width: 640px; margin: 0 auto; }
+.kk-ob-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); min-height: 40px; }
+.kk-ob-dots { display: flex; gap: var(--space-2); list-style: none; margin: 0; padding: 0; }
+.kk-ob-dots li { width: 10px; height: 10px; background: var(--color-divider); }
+.kk-ob-dots li.past { background: var(--color-accent); }
+.kk-ob-dots li.current { background: var(--color-text); }
+.kk-ob-skip {
+  appearance: none;
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.kk-ob-card > h2 { font-family: var(--font-display); font-size: var(--text-lg); margin-bottom: var(--space-3); }
+.kk-ob-card p { margin: 0 0 var(--space-3); }
+.kk-ob-list { margin: 0 0 var(--space-3); padding-left: 1.2em; }
+.kk-ob-list li + li { margin-top: var(--space-2); }
+
+/* The dashboard's SRS tiles (dashboard.css), smaller: just the stage names. */
+.kk-dash-panel.kk-srs.kk-ob-srs {
+  display: flex; flex-wrap: wrap; gap: 4px; margin: var(--space-2) 0 0; padding: 0; background: none; border: 0; box-shadow: none;
+}
+.kk-ob-srs .kk-srs-tile { flex: 1 1 auto; height: 40px; padding: 0 10px; cursor: default; display: flex; align-items: center; justify-content: center; }
+.kk-ob-srs .kk-srs-name { position: static; }
+
+.kk-ob-types { list-style: none; margin: 0 0 var(--space-3); padding: 0; }
+.kk-ob-types li { display: flex; align-items: center; gap: var(--space-3); }
+.kk-ob-types li + li { margin-top: var(--space-2); }
+.kk-ob-swatch {
+  flex: none;
+  min-width: 72px;
+  height: 48px;
+  padding: 0 var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-on-subject);
+  font-family: var(--font-ja);
+  font-size: 24px;
+}
+/* The badges line up with the swatches above them. */
+.kk-ob-types > li > .kk-ob-badge { flex: none; min-width: 72px; text-align: center; }
+.kk-ob-swatch.radical { background: var(--color-radical); }
+.kk-ob-swatch.kanji { background: var(--color-kanji); }
+.kk-ob-swatch.vocab { background: var(--color-vocab); }
+/* Stand-in for ReadingKindBadge (placeholders.tsx). */
+.kk-ob-badge {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border: 2px solid var(--color-text);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.kk-ob-choices { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-3); }
+.kk-ob-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-pixel) solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+.kk-ob-choice.checked { border-color: var(--color-accent); background: var(--btn-light); }
+.kk-ob-choice input { margin: 4px 0 0; accent-color: var(--color-text); flex: none; width: 20px; height: 20px; }
+.kk-ob-choice-text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.kk-ob-nav { margin-bottom: var(--space-5); }
