@@ -81,7 +81,8 @@ comes with a hint over the question that says what the answer was and what is wa
 meaning question ("That's a reading. We're looking for the meaning (意).") and, for single-kanji
 vocabulary with "Soft-reject on single-kanji vocabulary", the kanji's reading.
 
-"Show which kind of kanji reading is asked for" (Lesson/review settings, on by default) shows 音 / 訓
+"Show which kind of kanji reading is asked for" (Lesson/review settings, on by default, and switched on
+once for everyone on the first start after it moved there) shows 音 / 訓
 on kanji reading questions and names the kind in the title ("Kanji On'yomi"). Off, they show 読
 "Kanji Reading". The retry hint always names the kind: the shake already tells you the answer was
 another reading. The badge is the same in lessons, reviews, self-study and Anki mode (the banner is

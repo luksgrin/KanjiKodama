@@ -9,7 +9,15 @@ records the screens and their rows in display order; tests check the schema agai
 
 | Key | Change |
 |---|---|
-| `indicate_kanji_reading_type` | Was "Indicate type of reading for kanji quiz" in Other advanced settings, default off and only read with advanced settings on. Now "Show which kind of kanji reading is asked for" in Lesson/review settings, default on, read without advanced settings. Same key and meaning: a value stored as off stays off. See `docs/behaviour.md`, "What the question asks for". |
+| `indicate_kanji_reading_type` | Was "Indicate type of reading for kanji quiz" in Other advanced settings, default off and only read with advanced settings on. Now "Show which kind of kanji reading is asked for" in Lesson/review settings, default on, read without advanced settings. Same key and meaning. On the first start after this change it is switched on once for everyone, even where it was stored as off (the old default); turned off after that, it stays off. See `docs/behaviour.md`, "What the question asks for". |
+
+### One-time changes
+
+`app/src/core/settings/migrations.ts` lists changes made once per device at start-up, each with a marker
+key that records it ran (`kanjikodama_reading_kind_on_applied`: `indicate_kanji_reading_type` switched
+on). Restoring a settings backup doesn't run them again: the restored values are the user's choice and
+are kept as they are in the file. The restore only writes the backup's keys, so the marker set before
+stays.
 
 ## Keys that aren't settings rows
 
@@ -29,6 +37,7 @@ Written by other screens or by the app itself.
 | `onboarding_done` | The getting-started guide was finished or skipped (reset by Reset tutorials, which only matters before any progress). |
 | `test_mode` | Developer test switch. |
 | `kanjikodama_theme_applied`, `kanjikodama_font_bump_applied`, `kanjikodama_quiz_font_bump_applied`, `kanjikodama_quiz_glyph_bump_applied`, `kanjikodama_answer_22_applied` | One-time migrations (theme switch, larger font defaults). Not settings. |
+| `kanjikodama_reading_kind_on_applied` | One-time change: `indicate_kanji_reading_type` switched on (see "One-time changes"). |
 
 ## Themes
 

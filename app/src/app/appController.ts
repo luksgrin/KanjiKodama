@@ -22,6 +22,7 @@ import type { LoadedContent } from '../content/contentFile';
 import { emptyProgress, exportProgress, type ProgressState } from '../core/progressFile';
 import { applyOrdering, updateProgression, type LearnerDb } from '../core/progression';
 import type { Preferences, PreferenceValue } from '../core/settings';
+import { settingsMigrations } from '../core/settings/migrations';
 import type { Platform } from '../platform';
 import { isMuted } from './mute';
 import type { SessionHooks } from '../core/session';
@@ -251,6 +252,15 @@ export function createAppController(deps: AppDeps): AppController {
     return out;
   }
 
+  /** Runs the one-time settings changes (`core/settings/migrations.ts`) not run yet on this device. */
+  async function migratePrefs(prefs: Preferences): Promise<Preferences> {
+    const writes = settingsMigrations(prefs);
+    const entries = Object.entries(writes);
+    if (entries.length === 0) return prefs;
+    await kk.settings.bulkPut(entries.map(([key, value]) => ({ key, value })));
+    return { ...prefs, ...writes };
+  }
+
   async function isServerMode(): Promise<boolean> {
     return (await kk.state.get('mode'))?.value === 'server';
   }
@@ -334,7 +344,8 @@ export function createAppController(deps: AppDeps): AppController {
       }
       const learner = hydrateLearnerDb(content.content, content.jlptKanji, snap);
       orphans = orphansOf(snap, learner);
-      const [prefs, lastSavedAt, server] = await Promise.all([readPrefs(), saved.getLastSavedAt(), isServerMode()]);
+      const [stored, lastSavedAt, server] = await Promise.all([readPrefs(), saved.getLastSavedAt(), isServerMode()]);
+      const prefs = await migratePrefs(stored);
       if (!server) {
         // Local mode: re-lay the order if the curriculum changed, then unlock and level up.
         const before = capture(learner);
