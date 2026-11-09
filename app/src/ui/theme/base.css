@@ -60,6 +60,10 @@ button { font: inherit; color: inherit; }
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  /* The screen-open slide moves .kk-main up to 32px right for 160ms: without this the page is that much
+     wider than the screen meanwhile (phone browsers zoom out). clip, not hidden: no scroll container, so
+     sticky parts keep working. */
+  overflow-x: clip;
 }
 
 /* Toolbar: 56px, Silkscreen, white on the toolbar colour (the subject colour with its text colour in
