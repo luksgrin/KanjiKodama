@@ -276,7 +276,7 @@
 
 /* Browse: the "Search by parts" entry. */
 .kk-browse-parts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-.kk-browse-parts-text { flex: 1 1 12em; margin: 0; font-size: 16px; color: var(--color-text); min-width: 0; overflow-wrap: break-word; }
+.kk-browse-parts-text { flex: 1 1 12em; margin: 0; font-size: calc(16px * var(--kk-ts)); color: var(--color-text); min-width: 0; overflow-wrap: break-word; }
 
 /* Search by parts: the bar (selected parts, count, Clear) stays under the toolbar; the parts wrap in
    rows, each stroke count starting with its number; parts that can't lead to a match are greyed out.
@@ -297,7 +297,7 @@
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-divider);
 }
-.kk-parts-hint { margin: 0; font-size: 16px; min-width: 0; overflow-wrap: break-word; }
+.kk-parts-hint { margin: 0; font-size: calc(16px * var(--kk-ts)); min-width: 0; overflow-wrap: break-word; }
 .kk-parts-selected { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
 .kk-parts-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
 .kk-parts-count {
@@ -309,7 +309,7 @@
   background: var(--color-kanji);
   color: var(--color-on-subject);
   font: inherit;
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   cursor: pointer;
   white-space: nowrap;
 }
@@ -353,7 +353,7 @@
   background: var(--color-toolbar-bg);
   color: var(--color-toolbar-fg);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
 }
 .kk-part {
   appearance: none;
@@ -373,4 +373,4 @@
 /* Columns of about 88 px (as the results screen's (width + 10) / 90). */
 .kk-parts-result-grid { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); margin: 8px -2px 0; }
 .kk-parts-more,
-.kk-parts-empty { margin: 8px 0; font-size: 16px; overflow-wrap: break-word; }
+.kk-parts-empty { margin: 8px 0; font-size: calc(16px * var(--kk-ts)); overflow-wrap: break-word; }

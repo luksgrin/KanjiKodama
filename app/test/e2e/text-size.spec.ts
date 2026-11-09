@@ -1,7 +1,8 @@
 /**
  * Text size and font (Display settings → "Text size and font", `text_size` / `ui_font`): at the smallest
- * and the largest size, in each of the three fonts, the explanation screens, settings, browse and the
- * dashboard (with its study garden and the Garden screen) keep their layout: no sideways scroll, no clipped text, tap targets ≥ 40 px, no text cut
+ * and the largest size, in each of the three fonts, the explanation screens, settings, browse (with
+ * search by parts) and the dashboard (with its study garden and the Garden screen) keep their layout:
+ * no sideways scroll, no clipped text, tap targets ≥ 40 px, no text cut
  * off at the bottom of a fixed-height box and no setting rows / tiles overlapping (strict checks, soft
  * failures). The quiz's question, answer field and buttons keep their sizes; ligatures stay off.
  * Phone widths only (320 to 412 px): the narrowest screens are where a bigger text breaks first.
@@ -49,7 +50,7 @@ async function verticalFindings(page: Page): Promise<string[]> {
       if (el.closest('.kk-quiz-question') || el.matches('.kk-link-chars')) continue;
       if (el.scrollHeight > el.clientHeight + 1 && el.clientHeight > 0) out.push(`clipped bottom: ${name(el)} ${el.scrollHeight}>${el.clientHeight}`);
     }
-    const groups = ['.kk-prefs > li', '.kk-appearance-list > li', '.kk-srs-tile', '.kk-browse-level', '.kk-card', '.kk-subject-row', '.kk-lp-row', '.kk-available-item', '.kk-garden-cell', '.kk-garden-mini', '.kk-garden-week-day', '.kk-garden-stat'];
+    const groups = ['.kk-prefs > li', '.kk-appearance-list > li', '.kk-srs-tile', '.kk-browse-level', '.kk-card', '.kk-part', '.kk-parts-quick-kanji', '.kk-subject-row', '.kk-lp-row', '.kk-available-item', '.kk-garden-cell', '.kk-garden-mini', '.kk-garden-week-day', '.kk-garden-stat'];
     for (const sel of groups) {
       const boxes = Array.from(document.querySelectorAll<HTMLElement>(sel))
         .map((el) => ({ el, r: el.getBoundingClientRect() }))
@@ -119,6 +120,15 @@ for (const font of FONTS) {
       await page.getByTestId('browse-level-1').click();
       await expect(page.getByTestId('num-hits')).toBeVisible();
       await check(page, info, `${tag}-04-search-results`, true);
+      // Search by parts: the picker, then two parts picked (the bar with the kanji left, the result cards).
+      await openApp(page, '/browse/parts');
+      await expect(page.getByTestId('parts-picker')).toBeVisible();
+      await check(page, info, `${tag}-04b-parts`);
+      await page.getByTestId('part-亻').click();
+      await page.getByTestId('part-木').click();
+      await expect(page.getByTestId('parts-quick')).toBeVisible();
+      await expect(page.getByTestId('parts-results')).toBeVisible();
+      await check(page, info, `${tag}-04c-parts-picked`, true);
 
       const kanji = (await subjectsAt(1, 'kanji'))[0]!;
       const vocab = (await subjectsAt(1, 'vocabulary')).find((s) => [...(s.characters ?? '')].length >= 2)!;

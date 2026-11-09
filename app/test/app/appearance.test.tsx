@@ -148,7 +148,8 @@ describe('the CSS', () => {
     const fixed = new Set([
       'ui/components/subject/subject.css: font-size: 64px;', // the item title tile (its inline size wins)
       'ui/components/subject/subject.css: .kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; } /* a glyph: not scaled */',
-      'ui/screens/browse/browse.css: font-size: 24px;', // browse card glyphs (fitted to the card)
+      'ui/screens/browse/browse.css: font-size: 24px;', // browse card glyphs (fitted to the card), parts search's kanji in the bar
+      'ui/screens/browse/browse.css: font-size: 22px;', // parts search: the part tiles (40 px glyph tiles)
       'ui/screens/onboarding/onboarding.css: font-size: 24px;', // the guide's subject-colour glyph swatches (48 px tall)
       'ui/screens/themeCustomization/themeCustomization.css: .kk-tc-cell.subject .kk-tc-sample { height: 38px; font-size: 26px; line-height: 38px; }',
       'ui/screens/dashboard/dashboard.css: font-size: 34px;', // SRS counts in their 84 px tiles
