@@ -18,10 +18,21 @@ import type { Preferences } from '../settings';
 export const ONBOARDING_DONE_KEY = 'onboarding_done';
 
 /**
- * Settings the app writes by itself (the Android update check's bookkeeping), so they don't say the
- * learner has used the app.
+ * Stored settings that don't say the learner has used the app, by key prefix: the Android update
+ * check's bookkeeping (written by itself), and font and text size (the guide's own Appearance step,
+ * so a guide left halfway opens again).
  */
-const AUTOMATIC_PREF_PREFIXES: readonly string[] = ['kk_update_'];
+export const ONBOARDING_IGNORED_PREF_PREFIXES: readonly string[] = [
+  // The update check (ui/update/updateController.ts: kk_update_last_check, kk_update_later_*).
+  'kk_update_',
+  // Font and text size: the font_size_* sliders, and (TODO: the appearance picker's own keys, a
+  // guess until it lands) font_* / text_size*.
+  'font_',
+  'text_size',
+];
+
+/** The same, by exact key: the quiz font choice (ui/theme/quizFonts.ts SELECTED_FONTS_KEY). */
+export const ONBOARDING_IGNORED_PREF_KEYS: readonly string[] = [ONBOARDING_DONE_KEY, 'selected_fonts'];
 
 /** True when the learner has progress of any kind: an item started, notes, a level, a jump, a test. */
 export function hasProgress(db: LearnerDb): boolean {
@@ -35,10 +46,10 @@ export function hasProgress(db: LearnerDb): boolean {
   return false;
 }
 
-/** True when a setting was stored by the learner (anything but the guide's own key and automatic ones). */
+/** True when a setting was stored by the learner (anything but the ignored ones above). */
 export function hasChangedSettings(prefs: Preferences): boolean {
-  return Object.entries(prefs).some(([k, v]) => v !== undefined && v !== null && k !== ONBOARDING_DONE_KEY
-    && !AUTOMATIC_PREF_PREFIXES.some((p) => k.startsWith(p)));
+  return Object.entries(prefs).some(([k, v]) => v !== undefined && v !== null && !ONBOARDING_IGNORED_PREF_KEYS.includes(k)
+    && !ONBOARDING_IGNORED_PREF_PREFIXES.some((p) => k.startsWith(p)));
 }
 
 /** Whether the guide opens by itself: local mode, not done yet, a learner who hasn't started. */
@@ -67,12 +78,12 @@ export function previousStep(step: OnboardingStep): OnboardingStep | null {
 }
 
 /**
- * Where to start: from the beginning, the kanji level test (it places you in JLPT order), fast
- * travel (JLPT order only) or the WaniKani progress import (WaniKani order).
+ * Where to start: from the beginning, or in JLPT order the kanji level test and fast travel, in
+ * WaniKani order the WaniKani progress import.
  */
 export type StartChoice = 'BEGINNING' | 'LEVEL_TEST' | 'FAST_TRAVEL' | 'IMPORT';
 
 /** The starting points offered in each order, the default first. */
 export function startChoices(mode: CurriculumMode): readonly StartChoice[] {
-  return mode === 'JLPT' ? ['BEGINNING', 'LEVEL_TEST', 'FAST_TRAVEL'] : ['BEGINNING', 'IMPORT', 'LEVEL_TEST'];
+  return mode === 'JLPT' ? ['BEGINNING', 'LEVEL_TEST', 'FAST_TRAVEL'] : ['BEGINNING', 'IMPORT'];
 }

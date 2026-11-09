@@ -64,6 +64,13 @@ describe('who sees the getting-started guide', () => {
     expect(needsOnboarding(fresh(), { keyboard_help_dismissed: true }, 'local')).toBe(false);
   });
 
+  it('font and text size don\'t count: the guide sets them itself', () => {
+    const appearance = { font_size_question_edit: 26, font_size_subject_info: 18, selected_fonts: '["x"]', text_size: 1.2 };
+    expect(hasChangedSettings(appearance)).toBe(false);
+    expect(needsOnboarding(fresh(), appearance, 'local')).toBe(true);
+    expect(hasChangedSettings({ ...appearance, show_timeline: false })).toBe(true);
+  });
+
   it('done once finished or skipped', () => {
     expect(needsOnboarding(fresh(), { [ONBOARDING_DONE_KEY]: true }, 'local')).toBe(false);
     expect(needsOnboarding(fresh(), { [ONBOARDING_DONE_KEY]: false }, 'local')).toBe(true);
@@ -80,8 +87,8 @@ describe('steps and starting points', () => {
     expect(previousStep('path')).toBe('quiz');
   });
 
-  it('offers fast travel in JLPT order and the WaniKani import in WaniKani order, the beginning first', () => {
+  it('offers the level test and fast travel in JLPT order, the WaniKani import in WaniKani order, the beginning first', () => {
     expect(startChoices('JLPT')).toEqual(['BEGINNING', 'LEVEL_TEST', 'FAST_TRAVEL']);
-    expect(startChoices('WANIKANI')).toEqual(['BEGINNING', 'IMPORT', 'LEVEL_TEST']);
+    expect(startChoices('WANIKANI')).toEqual(['BEGINNING', 'IMPORT']);
   });
 });

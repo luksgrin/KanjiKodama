@@ -56,7 +56,7 @@ const START_TEXT: Readonly<Record<StartChoice, { title: string; text: string }>>
   LEVEL_TEST: {
     title: 'Take the kanji level test',
     text: 'Two short quizzes (about 30 and 18 kanji) estimate how far your kanji knowledge reaches.'
-      + ' At the end you decide whether to start there; doing so uses JLPT order.',
+      + ' At the end you decide whether to start there.',
   },
   FAST_TRAVEL: {
     title: 'Fast travel',

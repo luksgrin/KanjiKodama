@@ -100,9 +100,15 @@ describe('getting-started guide', () => {
     r.app.dispose();
   });
 
-  it('the level test choice ends the guide on the level test', async () => {
+  it('the level test (JLPT order only) ends the guide on the level test', async () => {
     const r = await render('/');
     for (let i = 0; i < 4; i++) await click($(r.el, 'onboarding-next'));
+    expect(step(r.el)).toBe('start');
+    expect($(r.el, 'onboarding-start-IMPORT')).not.toBeNull();
+    expect($(r.el, 'onboarding-start-LEVEL_TEST')).toBeNull();
+    await click($(r.el, 'onboarding-back'));
+    await click($(r.el, 'onboarding-path-JLPT')?.querySelector('input') ?? null);
+    await click($(r.el, 'onboarding-next'));
     await click($(r.el, 'onboarding-start-LEVEL_TEST')?.querySelector('input') ?? null);
     await click($(r.el, 'onboarding-next'));
     expect(r.location.get()).toBe('/settings/level-test');

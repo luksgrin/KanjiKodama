@@ -38,6 +38,7 @@ test('JLPT path: switches the order, offers the level test and fast travel', asy
   await next(page);
   await expectStep(page, 'start');
   await expect(guide(page)).toContainText('You are in JLPT order');
+  await expect(page.getByTestId('onboarding-start-LEVEL_TEST')).toBeVisible();
   await expect(page.getByTestId('onboarding-start-FAST_TRAVEL')).toBeVisible();
   await expect(page.getByTestId('onboarding-start-IMPORT')).toHaveCount(0);
   await page.getByTestId('onboarding-back').click();
@@ -49,9 +50,16 @@ test('JLPT path: switches the order, offers the level test and fast travel', asy
   await expect(page.getByTestId('level-duration')).toContainText('You are level 1 (N5');
 });
 
-test('the level test choice ends the guide on the level test', async ({ page }) => {
+test('WaniKani order offers the import; the level test (JLPT order) ends the guide on it', async ({ page }) => {
   await openApp(page, '/', { keepOnboarding: true });
   for (let i = 0; i < 4; i++) await next(page);
+  await expectStep(page, 'start');
+  await expect(page.getByTestId('onboarding-start-IMPORT')).toBeVisible();
+  await expect(page.getByTestId('onboarding-start-LEVEL_TEST')).toHaveCount(0);
+  await page.getByTestId('onboarding-back').click();
+  await page.getByTestId('onboarding-path-JLPT').click();
+  await next(page);
+  await expectStep(page, 'start');
   await page.getByTestId('onboarding-start-LEVEL_TEST').click();
   await next(page);
   await expect(page.getByTestId('level-test-dialog')).toBeVisible();

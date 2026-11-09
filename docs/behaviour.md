@@ -89,15 +89,16 @@ A first start at the dashboard opens the guide (`/welcome`, `ui/screens/onboardi
 `core/onboarding/`) instead, before the dashboard paints. Six steps: what the app does (with the SRS
 stage tiles), font and text size, how the quizzes work (colours are item types; meaning and reading
 questions; the reading taught in the lesson, other real readings shake), WaniKani or JLPT order, where
-to start (from the beginning, the level test, fast travel in JLPT order, the WaniKani import in
-WaniKani order), and the last tips. Every choice starts on the default, so Next alone skips a step;
+to start (from the beginning; in JLPT order also the level test and fast travel, in WaniKani order
+the WaniKani import), and the last tips. Every choice starts on the default, so Next alone skips a step;
 "Skip guide" ends it at any step. Choices take effect when you tap Next: the curriculum switch
 (without its confirmation while nothing is learned yet), fast travel and the import as their usual
 dialogs, the level test on its own screen.
 
 It opens only in local mode, until `onboarding_done` is set, for a learner with no progress (no item
 started, passed or burned, no notes or synonyms, level 1, WaniKani order, no fast travel, probation or
-level test) and no stored settings other than the update check's bookkeeping. So existing learners
+level test) and no stored settings other than the update check's bookkeeping and font and text size
+(set in the guide itself, so a guide left halfway opens again; `ONBOARDING_IGNORED_PREF_*`). So existing learners
 updating the app never see it, nor does a start straight into another screen (a widget or
 notification link). Settings → Progress → Getting started guide opens it again.
 
