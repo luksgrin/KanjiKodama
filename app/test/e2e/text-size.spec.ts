@@ -7,7 +7,7 @@
  * Phone widths only (320 to 412 px): the narrowest screens are where a bigger text breaks first.
  */
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { answer, checkScreen, clippedText, openApp, quiz, restoreFile, smallTapTargets, tab, throughPresentation } from './helpers/app';
+import { answer, checkScreen, openApp, quiz, restoreFile, tab, throughPresentation } from './helpers/app';
 import { subjectsAt } from './helpers/content';
 import { writeReviewSeed } from './helpers/progress';
 
@@ -72,13 +72,17 @@ async function verticalFindings(page: Page): Promise<string[]> {
 }
 
 async function check(page: Page, info: TestInfo, screen: string, fullPage = false): Promise<void> {
-  // Screenshot and no sideways scroll; then the strict checks (helpers/app.ts), less the blurred context
-  // sentence translations ("Show translation": one text line, under the 40 px tap floor at every size,
-  // 100 % too).
-  await checkScreen(page, info, screen, { fullPage });
-  const taps = (await smallTapTargets(page)).filter((t) => !t.includes('[kk-subject-reveal]'));
-  expect.soft(taps, `${screen}: tap targets under 40 px`).toEqual([]);
-  expect.soft(await clippedText(page), `${screen}: clipped text`).toEqual([]);
+  await checkScreen(page, info, screen, { strict: true, fullPage });
+  // The toolbar's title (and subtitle) inside the 56 px bar, whatever the size and font.
+  const bar = await page.evaluate(() => {
+    const inner = document.querySelector('.kk-toolbar-inner')?.getBoundingClientRect();
+    const title = document.querySelector('.kk-toolbar-title')?.getBoundingClientRect();
+    return inner && title ? { top: inner.top, bottom: inner.bottom, titleTop: title.top, titleBottom: title.bottom } : null;
+  });
+  if (bar) {
+    expect.soft(bar.titleTop, `${screen}: toolbar title above the bar`).toBeGreaterThanOrEqual(bar.top - 0.5);
+    expect.soft(bar.titleBottom, `${screen}: toolbar title below the bar`).toBeLessThanOrEqual(bar.bottom + 0.5);
+  }
   // A phone browser widens the layout viewport to fit content that is too wide (then nothing scrolls
   // sideways, but everything is zoomed out): the page must stay as wide as the screen.
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -97,6 +101,8 @@ for (const font of FONTS) {
       await check(page, info, `${tag}-01-appearance`, true);
 
       await openApp(page, '/');
+      // Zen Maru Gothic replaces the toolbar's Silkscreen; DotGothic16 keeps it.
+      await expect(page.locator('.kk-toolbar-title h1')).toHaveCSS('font-family', font === 'ZEN_MARU_GOTHIC' ? /^"?Zen Maru Gothic/ : /^"?Silkscreen/);
       await check(page, info, `${tag}-02-dashboard`, true);
 
       await tab(page, 'Browse');

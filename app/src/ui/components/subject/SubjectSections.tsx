@@ -180,7 +180,7 @@ export const MAX_CONTEXT_SENTENCES = 10;
 
 function Translation({ text, hidden }: { text: string; hidden: boolean }) {
   const [revealed, setRevealed] = useState(!hidden);
-  if (revealed) return <p className="kk-sentence-en">{text}</p>;
+  if (revealed) return <p className={hidden ? 'kk-sentence-en kk-sentence-en--revealed' : 'kk-sentence-en'}>{text}</p>;
   return (
     <p className="kk-sentence-en kk-sentence-en--hidden">
       <button type="button" className="kk-subject-reveal" onClick={() => setRevealed(true)} aria-label="Show translation">

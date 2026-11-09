@@ -134,9 +134,13 @@ describe('the CSS', () => {
     for (const [v] of TEXT_SIZES.filter(([v]) => v !== '100')) {
       expect(tokens).toContain(`:root[data-text-size="${v}"] { --kk-ts: ${Number(v) / 100}; }`);
     }
+    const block = (font: string) => tokens.slice(tokens.indexOf(`:root[data-ui-font="${font}"]`)).split('}')[0]!;
     for (const f of UI_FONTS.filter((f) => f.value !== 'PIXELIFY_SANS')) {
-      expect(tokens).toContain(`:root[data-ui-font="${f.value}"] { --font-body: ${f.family} !important; }`);
+      expect(block(f.value)).toContain(`--font-body: ${f.family} !important;`);
     }
+    // Zen Maru Gothic replaces Silkscreen too (toolbar, menus); DotGothic16 keeps it.
+    expect(block('ZEN_MARU_GOTHIC')).toContain("--font-display: 'Zen Maru Gothic', var(--font-ja) !important;");
+    expect(block('DOTGOTHIC16')).not.toContain('--font-display');
   });
 
   it('writes text sizes as calc(<px> * var(--kk-ts)), but for the fixed quiz parts and glyph tiles', () => {

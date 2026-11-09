@@ -16,7 +16,7 @@ The KanjiKodama theme (light and dark) as CSS custom properties. `index.css` imp
   (Hiragino on Apple, Noto Sans CJK on Android). Japanese text: mark it `lang="ja"` (or class
   `ja`); both Latin stacks fall back to `--font-ja`. DotGothic16 and Zen Maru Gothic are the other
   body fonts (Display settings → Text size and font, `ui_font`): `data-ui-font` on `<html>` swaps
-  `--font-body` in every theme (tokens.css); their line metrics are overridden to Pixelify Sans's 1.2 em
+  `--font-body` in every theme (tokens.css), Zen Maru Gothic `--font-display` too; their line metrics are overridden to Pixelify Sans's 1.2 em
   line (fonts.css). Ligatures are off everywhere (base.css): Pixelify Sans and DotGothic16 draw "fi" as
   one glyph.
 - **Text size** (`text_size`, 85 to 150 %): `data-text-size` on `<html>` sets `--kk-ts` (tokens.css).

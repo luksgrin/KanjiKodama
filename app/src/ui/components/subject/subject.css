@@ -192,10 +192,21 @@
 /* Context sentences */
 .kk-sentence { margin-bottom: var(--space-2, 8px); }
 .kk-sentence p { margin: 0; }
+/* A translation hidden until tapped: the blurred line is a 40 px tap target at every text size (wrapped
+   lines make it taller); once revealed the line keeps that height, so nothing below it moves. */
+.kk-sentence-en--hidden .kk-subject-reveal,
+.kk-sentence-en--revealed {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
 .kk-sentence-en--hidden .kk-subject-reveal {
+  width: 100%;
   appearance: none;
   border: 0;
   background: none;
+  font: inherit;
+  color: inherit;
   padding: 0 0.25em 0 0;
   text-align: start;
   cursor: pointer;

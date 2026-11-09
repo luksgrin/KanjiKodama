@@ -6,7 +6,8 @@
  *   buttons is `calc(<px> * var(--kk-ts))` (ui/theme/README.md, "Text size").
  * - `ui_font`: the body font. `PIXELIFY_SANS` keeps the theme's own (Pixelify Sans, Roboto in the
  *   WaniKani-style themes); the others replace `--font-body` in every theme (`data-ui-font` on <html>,
- *   tokens.css). Headings in Silkscreen (toolbar, menus), the quiz question and the subject glyphs keep
+ *   tokens.css). Zen Maru Gothic also replaces Silkscreen (`--font-display`: toolbar, menus);
+ *   DotGothic16 keeps it. Japanese text (`--font-ja`), the quiz question and the subject glyphs keep
  *   their fonts.
  */
 
