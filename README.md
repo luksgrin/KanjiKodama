@@ -34,10 +34,16 @@ it online. Moving to another phone? Save your progress to a file on the old one
 
 - 🌱 **Lessons and reviews, offline.** Radicals, kanji and vocabulary in WaniKani's level order,
   with mnemonics, context sentences and audio. No account needed; your progress stays on your device.
+- 🧭 **A friendly start.** A short, skippable guide on the first start: pick your font, learn how
+  the quizzes work, choose your path and where to begin.
 - ⛩️ **A gentle SRS.** Items climb from Apprentice to Burned. Pass 90 % of a level's kanji to
-  unlock the next one.
+  unlock the next one. Every question says what it wants: 意 meaning, 音 on'yomi or 訓 kun'yomi.
 - 🔊 **Parts and sounds.** Kanji pages show each kanji's components, which one carries the sound,
   how reliable that sound is, and its other kanji in the same sound family.
+- ✍️ **Writing practice.** Draw kanji and radicals stroke by stroke, traced or from memory, with
+  each stroke checked and its own writing progress.
+- 🌳 **Study garden.** Your streak and a pixel calendar where every study day grows a little plant.
+- 🧩 **Search by parts.** Tap a kanji's components to find it.
 - 🖌️ **Stroke order and pitch accent,** plus an Anki-style self-grading mode, self-study
   sessions, star ratings and plenty of display and keyboard settings.
 - 🔎 **Easy on the eyes.** Make the text up to 150 % bigger, or switch from the pixel font to
@@ -48,7 +54,7 @@ it online. Moving to another phone? Save your progress to a file on the old one
   your progress from WaniKani, or connect to a WaniKani-compatible server such as
   [OpenKani](https://github.com/sarmientoF/OpenKani).
 - 📱 **Android extras.** A home-screen widget, review notifications and automatic backups.
-- 🌿 **Pixel Forest theme.** Pastel greens and pixel fonts, in light and dark.
+- 🌿 **Pixel Forest theme.** Pastel greens and pixel fonts, in light, dark and pure black.
 
 ## Credits
 
