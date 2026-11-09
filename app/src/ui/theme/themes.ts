@@ -1,5 +1,5 @@
 /**
- * The eight themes, the Light Theme / Dark Theme choice (`theme` while the system is light,
+ * The nine themes, the Light Theme / Dark Theme choice (`theme` while the system is light,
  * `nightTheme` while it is dark) and the theme customisations (`theme_customizations_<THEME>`).
  *
  * The two KanjiKodama themes are `tokens.css` itself (`<html data-theme="light|dark">`). The six
@@ -21,13 +21,14 @@
  */
 
 export type ThemeId =
-  | 'KANJIKODAMA_LIGHT' | 'KANJIKODAMA_DARK' | 'LIGHT' | 'DARK_WANIKANI' | 'BLACK_WANIKANI'
+  | 'KANJIKODAMA_LIGHT' | 'KANJIKODAMA_DARK' | 'KANJIKODAMA_BLACK' | 'LIGHT' | 'DARK_WANIKANI' | 'BLACK_WANIKANI'
   | 'DARK' | 'BLACK_BREEZE' | 'NORD_POLAR_NIGHT';
 
 /** `@array/themes` / `@array/themeValues`, in order. */
 export const THEME_OPTIONS: readonly (readonly [ThemeId, string])[] = [
   ['KANJIKODAMA_LIGHT', 'KanjiKodama'],
   ['KANJIKODAMA_DARK', 'KanjiKodama Dark'],
+  ['KANJIKODAMA_BLACK', 'KanjiKodama Black'],
   ['LIGHT', 'Wanikani'],
   ['DARK_WANIKANI', 'Wanikani Dark'],
   ['BLACK_WANIKANI', 'Wanikani Black'],
@@ -113,6 +114,21 @@ interface Palette {
   muted: string;
 }
 
+/**
+ * KanjiKodama Black (AMOLED): KanjiKodama Dark (tokens.css) with a pure black ground and surfaces
+ * just above it, so OLED screens switch most pixels off. Text, accents, subject and stage colours stay
+ * the dark theme's (they only gain contrast on black). Android's system bars sample the page, so they
+ * follow.
+ */
+const KK_BLACK_TOKENS = {
+  '--kk-ground': '#000000', '--color-bg': '#000000',
+  '--kk-window': '#0B1513', '--color-surface': '#0B1513',
+  '--color-toolbar-bg': '#0B1513', '--color-primary-dark': '#0B1513',
+  '--kk-divider': '#1C2B27', '--color-divider': '#1C2B27',
+  '--kk-shadow': '#000000', '--color-shadow': '#000000', '--btn-outline': '#000000',
+  '--color-dialog': '#121212', '--color-toast-bg': '#1A1A1A', '--color-stroke-ghost': '#303030',
+} as const;
+
 const WK_PITCH = ['#D20CA3', '#0CD24D', '#27A2FF', '#EA9316'] as const;
 
 function paletteTokens(p: Palette, kind: 'light' | 'dark', extra: Readonly<Record<string, string>> = {}): Record<string, string> {
@@ -155,6 +171,20 @@ const wkIdent = { ident: true, subjectText: ['#FFFFFF', '#FFFFFF', '#FFFFFF', '#
   subjectButtonBackground: WK_SUBJECT, subjectBucket: WK_SUBJECT, stage: WK_STAGE, prePassed: WK_PRE_PASSED,
   passed: WK_PASSED, levelProgression: WK_LP } as const;
 
+const KK_DARK: ThemeDef = {
+  id: 'KANJIKODAMA_DARK', kind: 'dark', ident: true,
+  subjectText: ['#0F1C22', '#0F1C22', '#0F1C22', '#0F1C22'],
+  subjectBackground: ['#7FB2E6', '#E98BA4', '#A994E6', '#A994E6'],
+  subjectButtonBackground: ['#7FB2E6', '#E98BA4', '#A994E6', '#A994E6'],
+  subjectBucket: ['#7FB2E6', '#E98BA4', '#A994E6', '#A994E6'],
+  stage: ['#2B414A', '#4A5F66', '#E98BA4', '#A994E6', '#7FB2E6', '#7FD3CB', '#E8B97A'],
+  prePassed: ['#F4B8C8', '#EFA2B7', '#EC95AD', '#E98BA4'],
+  passed: ['#C2B3EE', '#A994E6'],
+  levelProgression: ['#8EE3C8', '#E98BA4', '#EC95AD', '#EFA2B7', '#F4B8C8', '#C98FA3', '#A57A8A', '#7D6370', '#4A5F66', '#2B414A'],
+  anki: DARK_ANKI,
+  tokens: {},
+};
+
 export const THEMES: Readonly<Record<ThemeId, ThemeDef>> = {
   KANJIKODAMA_LIGHT: {
     id: 'KANJIKODAMA_LIGHT', kind: 'light', ident: true,
@@ -169,19 +199,8 @@ export const THEMES: Readonly<Record<ThemeId, ThemeDef>> = {
     anki: LIGHT_ANKI,
     tokens: {},
   },
-  KANJIKODAMA_DARK: {
-    id: 'KANJIKODAMA_DARK', kind: 'dark', ident: true,
-    subjectText: ['#0F1C22', '#0F1C22', '#0F1C22', '#0F1C22'],
-    subjectBackground: ['#7FB2E6', '#E98BA4', '#A994E6', '#A994E6'],
-    subjectButtonBackground: ['#7FB2E6', '#E98BA4', '#A994E6', '#A994E6'],
-    subjectBucket: ['#7FB2E6', '#E98BA4', '#A994E6', '#A994E6'],
-    stage: ['#2B414A', '#4A5F66', '#E98BA4', '#A994E6', '#7FB2E6', '#7FD3CB', '#E8B97A'],
-    prePassed: ['#F4B8C8', '#EFA2B7', '#EC95AD', '#E98BA4'],
-    passed: ['#C2B3EE', '#A994E6'],
-    levelProgression: ['#8EE3C8', '#E98BA4', '#EC95AD', '#EFA2B7', '#F4B8C8', '#C98FA3', '#A57A8A', '#7D6370', '#4A5F66', '#2B414A'],
-    anki: DARK_ANKI,
-    tokens: {},
-  },
+  KANJIKODAMA_DARK: KK_DARK,
+  KANJIKODAMA_BLACK: { ...KK_DARK, id: 'KANJIKODAMA_BLACK', tokens: KK_BLACK_TOKENS },
   LIGHT: {
     id: 'LIGHT', kind: 'light', ...wkIdent, anki: LIGHT_ANKI,
     tokens: paletteTokens({

@@ -23,3 +23,20 @@ Written by other screens or by the app itself.
 | `onboarding_done` | The getting-started guide was finished or skipped (reset by Reset tutorials, which only matters before any progress). |
 | `test_mode` | Developer test switch. |
 | `kanjikodama_theme_applied`, `kanjikodama_font_bump_applied`, `kanjikodama_quiz_font_bump_applied`, `kanjikodama_quiz_glyph_bump_applied`, `kanjikodama_answer_22_applied` | One-time migrations (theme switch, larger font defaults). Not settings. |
+
+## Themes
+
+Display settings → Light Theme (`theme`) applies while the system is light, Dark Theme (`nightTheme`)
+while it is dark. The choices: KanjiKodama, KanjiKodama Dark, **KanjiKodama Black** (the dark theme on
+a pure black ground with surfaces just above black, for OLED screens), Wanikani, Wanikani Dark,
+Wanikani Black, Breeze, Black and Nord. Defaults: KanjiKodama and KanjiKodama Dark.
+
+## Related settings that already exist
+
+- **Meaning first, also in Anki mode:** Advanced → Lesson / Review / Self-study advanced settings →
+  "Meaning before reading" (`<kind>_meaning_first`; "Reading before meaning" is the opposite). It
+  orders the two questions of an item in every mode, Anki mode included.
+- **New-item order:** Lesson advanced settings → Order (`lesson_order`: by level, type, shuffled, …)
+  with Reverse order (`lesson_order_reversed`, i.e. last levels first); self-study has the same
+  (`self_study_order`, with SRS-stage orders) plus "Shuffle after selecting items".
+

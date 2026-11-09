@@ -22,6 +22,7 @@ import {
   serializeCustomizations,
   themePrefsFrom,
   themeTokens,
+  toolbarColor,
 } from '../../src/ui/theme/themes';
 import { clearToasts } from '../../src/ui/shell/toast';
 import { fakePlatform, makeApp } from './fixtures';
@@ -88,11 +89,11 @@ describe('Display settings', () => {
     app.dispose();
   });
 
-  it('offers the eight themes in both lists and applies the night theme in dark mode', async () => {
+  it('offers the nine themes in both lists and applies the night theme in dark mode', async () => {
     const { el, app } = await render('/settings?screen=display_settings');
     await click($(el, 'setting-nightTheme'));
     const choices = [...document.querySelectorAll('[data-testid^="choice-nightTheme-"]')].map((c) => c.textContent);
-    expect(choices).toEqual(['KanjiKodama', 'KanjiKodama Dark', 'Wanikani', 'Wanikani Dark', 'Wanikani Black', 'Breeze', 'Black', 'Nord']);
+    expect(choices).toEqual(['KanjiKodama', 'KanjiKodama Dark', 'KanjiKodama Black', 'Wanikani', 'Wanikani Dark', 'Wanikani Black', 'Breeze', 'Black', 'Nord']);
     await click($(el, 'choice-nightTheme-NORD_POLAR_NIGHT'));
     expect(app.get().prefs.nightTheme).toBe('NORD_POLAR_NIGHT');
     expect($(el, 'setting-nightTheme')!.textContent).toContain('Nord is used in system wide dark mode');
@@ -150,11 +151,11 @@ describe('Display settings', () => {
 });
 
 describe('themes', () => {
-  it('has the eight themes of @array/themeValues', () => {
+  it('has the eight themes of @array/themeValues plus KanjiKodama Black', () => {
     expect(THEME_OPTIONS.map(([v]) => v)).toEqual([
-      'KANJIKODAMA_LIGHT', 'KANJIKODAMA_DARK', 'LIGHT', 'DARK_WANIKANI', 'BLACK_WANIKANI', 'DARK', 'BLACK_BREEZE', 'NORD_POLAR_NIGHT',
+      'KANJIKODAMA_LIGHT', 'KANJIKODAMA_DARK', 'KANJIKODAMA_BLACK', 'LIGHT', 'DARK_WANIKANI', 'BLACK_WANIKANI', 'DARK', 'BLACK_BREEZE', 'NORD_POLAR_NIGHT',
     ]);
-    expect(Object.keys(THEMES)).toHaveLength(8);
+    expect(Object.keys(THEMES)).toHaveLength(9);
   });
 
   it('maps the theme colours to tokens', () => {
@@ -170,6 +171,36 @@ describe('themes', () => {
     expect(nord['--color-anki-answer-bg']).toBe('transparent');
     // The KanjiKodama themes are tokens.css: nothing inline without customisations.
     expect(themeTokens(THEMES.KANJIKODAMA_DARK, parseCustomizations(null))).toEqual({});
+  });
+
+  it('KanjiKodama Black: the dark theme on a pure black ground (AMOLED)', () => {
+    const black = THEMES.KANJIKODAMA_BLACK;
+    const dark = THEMES.KANJIKODAMA_DARK;
+    expect(black.kind).toBe('dark');
+    expect({ ...black, id: dark.id, tokens: {} }).toEqual(dark);
+    const t = themeTokens(black, parseCustomizations(null));
+    expect(t['--color-bg']).toBe('#000000');
+    expect(t['--kk-ground']).toBe('#000000');
+    // Surfaces and bars just above black; text, accents and subject colours stay the dark theme's.
+    for (const k of ['--color-surface', '--color-toolbar-bg', '--color-dialog', '--color-divider']) {
+      expect(luminance(t[k]!)).toBeGreaterThan(0);
+      expect(luminance(t[k]!)).toBeLessThan(0.03);
+    }
+    for (const k of ['--color-text', '--color-accent', '--color-radical', '--color-stage-guru']) expect(t[k]).toBeUndefined();
+    expect(toolbarColor(black)).toBe(t['--color-toolbar-bg']);
+    // Customisations still apply on top.
+    const custom = themeTokens(black, parseCustomizations(serializeCustomizations([hexToInt('#123456')])));
+    expect(custom['--color-radical']).toBe('#123456');
+    expect(custom['--color-bg']).toBe('#000000');
+  });
+
+  it('KanjiKodama Black keeps the dark theme text readable (WCAG AA) on its grounds', () => {
+    const ink = '#E3F4EA', muted = '#A9C9BC', toned = '#7FA898', accent = '#8EE3C8';
+    const t = themeTokens(THEMES.KANJIKODAMA_BLACK, parseCustomizations(null));
+    for (const bg of [t['--color-bg']!, t['--color-surface']!, t['--color-toolbar-bg']!]) {
+      for (const fg of [ink, muted, accent]) expect(contrast(fg, bg)).toBeGreaterThanOrEqual(7);
+      expect(contrast(toned, bg)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it('customisations override as loadCustomizations does (ident vs text colours)', () => {
@@ -283,3 +314,14 @@ describe('dashboard keyboard hints box', () => {
     app.dispose();
   });
 });
+
+function luminance(hex: string): number {
+  const ch = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * ch[0]! + 0.7152 * ch[1]! + 0.0722 * ch[2]!;
+}
+
+function contrast(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
+  return (hi + 0.05) / (lo + 0.05);
+}

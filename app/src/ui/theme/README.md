@@ -2,11 +2,13 @@
 
 The KanjiKodama theme (light and dark) as CSS custom properties. `index.css` imports `fonts.css`, `tokens.css` and `base.css`; `main.tsx` imports it once.
 
-- **Themes:** eight (`themes.ts`): the Light Theme (`theme`) applies while the system is light, the
+- **Themes:** nine (`themes.ts`): the Light Theme (`theme`) applies while the system is light, the
   Dark Theme (`nightTheme`) while it is dark. `src/app/theme.ts` `applyTheme`
   sets `<html data-theme="light|dark">` (the AppCompat parent) and `data-kk-theme="<THEME>"`. The two
   KanjiKodama themes are the token blocks below (light on `:root`, dark under `prefers-color-scheme:
-  dark` unless `data-theme="light"`, and for `data-theme="dark"`); the six other themes and the
+  dark` unless `data-theme="light"`, and for `data-theme="dark"`); KanjiKodama Black (AMOLED) is the
+  dark block with its grounds overridden inline (`KK_BLACK_TOKENS`: black background, surfaces,
+  toolbar and dialogs just above black); the six other themes and the
   Theme Customisation colours (`theme_customizations_<THEME>`) are inline custom properties on
   `<html>`. Never hard-code colours in components: use the tokens, so every theme works.
 - **Fonts** (bundled, OFL, licenses in `public/licenses/`): `--font-body` Pixelify Sans (body Latin),

@@ -51,3 +51,34 @@ test('the settings root keeps its scroll position when coming back from a sub-sc
   await settle(page);
   await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(before);
 });
+
+test('KanjiKodama Black: a pure black ground in dark mode, kept after a restart', async ({ page }, info) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await openApp(page, '/settings?screen=display_settings');
+  await page.getByTestId('setting-nightTheme').click();
+  await page.getByTestId('choice-nightTheme-KANJIKODAMA_BLACK').click();
+  await expect(page.getByTestId('setting-nightTheme')).toContainText('KanjiKodama Black is used in system wide dark mode');
+  const look = () => page.evaluate(() => {
+    const s = getComputedStyle(document.documentElement);
+    return {
+      theme: document.documentElement.dataset.kkTheme,
+      kind: document.documentElement.dataset.theme,
+      bg: getComputedStyle(document.body).backgroundColor,
+      bar: document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.content,
+      // Panels just above black; text and accents stay the dark theme's (the build lowercases CSS colours).
+      surface: s.getPropertyValue('--color-surface').trim().toUpperCase(),
+      text: s.getPropertyValue('--color-text').trim().toUpperCase(),
+    };
+  });
+  const black = { theme: 'KANJIKODAMA_BLACK', kind: 'dark', bg: 'rgb(0, 0, 0)', bar: '#0B1513', surface: '#0B1513', text: '#E3F4EA' };
+  await expect.poll(look).toEqual(black);
+
+  // The next start paints it before the database is open.
+  await openApp(page, '/');
+  await expect.poll(look).toEqual(black);
+  await checkScreen(page, info, '81-dashboard-black');
+
+  // Light system mode: still the Light Theme.
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.kkTheme)).toBe('KANJIKODAMA_LIGHT');
+});
