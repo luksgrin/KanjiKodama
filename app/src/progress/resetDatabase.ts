@@ -2,12 +2,12 @@
  * "Reset database": everything the app keeps about the subjects goes, the settings stay.
  *
  * Local mode (a reset means starting over from the bundled content): the subject rows (progress,
- * notes, synonyms, and the star ratings), the level progression and the session are cleared, the
+ * notes, synonyms, the star ratings and the writing practice records), the level progression and the session are cleared, the
  * level is 1 again, the curriculum stays and `updateProgression` unlocks level 1. The fast-travel
  * jumps, probation, level test and curriculum state are not part of the reset and stay; so do the
  * search presets.
  *
- * Server mode: `resetServerData` (downloads, queue, cursors) and the star ratings; the next sync
+ * Server mode: `resetServerData` (downloads, queue, cursors), the star ratings and the writing records; the next sync
  * downloads everything again (`assertGetSubjectsTask`, `assertRefreshForAllModels`).
  */
 import type { Content } from '../core/content';
@@ -17,6 +17,7 @@ import { resetServerData } from '../sync/reset';
 import type { ServerStore } from '../sync/store';
 import { PROGRESS_TABLES, type KkDb } from '../storage/db';
 import { hydrateLearnerDb, readSnapshot, snapshotOf, writeSnapshot } from '../storage/progressRepo';
+import { clearWritingRecords } from './writingStore';
 
 /** `meta` key of the star ratings (`ui/components/subject/starRatings.ts`). */
 const STAR_RATINGS_META_KEY = 'starRatings';
@@ -48,10 +49,12 @@ export async function resetLocalDatabase(kk: KkDb, ctx: LocalResetContext): Prom
     await kk.session.clear();
     await kk.meta.delete(STAR_RATINGS_META_KEY);
   });
+  await clearWritingRecords(kk);
 }
 
 /** Server mode. */
 export async function resetServerDatabase(kk: KkDb, store: ServerStore): Promise<void> {
   await resetServerData(kk, store);
   await kk.meta.delete(STAR_RATINGS_META_KEY);
+  await clearWritingRecords(kk);
 }

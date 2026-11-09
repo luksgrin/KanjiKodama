@@ -1,6 +1,7 @@
 /** Writing practice: strokes drawn with the mouse along KanjiVG (accepted) and along wrong paths (missed). */
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
-import { checkScreen, openApp } from './helpers/app';
+import { checkScreen, openApp, restoreFile } from './helpers/app';
 import { subjects, subjectsAt } from './helpers/content';
 import { drawStroke, strokesOf, writeKanji } from './helpers/strokes';
 
@@ -141,4 +142,56 @@ test('radicals: practised from a radical page and picked in the self-study panel
   await expect(page.getByTestId('writing-progress')).toContainText(`Radical 1 of ${Math.min(10, radicals.length)}`);
   const ids = new URL(page.url().replace('#', '')).searchParams.get('ids')?.split(',').map(Number) ?? [];
   expect(ids).toEqual(radicals.slice(0, 10));
+});
+
+test('writing progress: a clean recall reaches level 1, shows on the item page, comes due, and survives save and restore', async ({ page, browser }, info) => {
+  await page.addInitScript(() => {
+    // No share sheet: Save falls back to a download.
+    Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true });
+    Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+  });
+  const start = new Date('2026-11-09T12:00:00Z');
+  await page.clock.install({ time: start });
+  const [id] = await level1Kanji(2, 1) as [number];
+  await openApp(page, `/self-study/writing?ids=${id}&mode=recall`);
+  await writeKanji(page);
+  await page.getByTestId('writing-next').click();
+  await expect(page.getByTestId(`writing-level-${id}`)).toHaveText('new → level 1');
+
+  await openApp(page, `/subject/${id}`);
+  await expect(page.getByTestId('writing-line')).toHaveText('✍ Writing: level 1 · 1 clean of 1 · due in 1 day');
+
+  // Not due yet; two days later it is.
+  await openApp(page, '/self-study');
+  await page.getByTestId('writing-scope').selectOption('due');
+  await page.getByTestId('writing-start-button').click();
+  await expect(page.getByTestId('toast')).toContainText('Nothing is due for writing right now');
+  await page.clock.setSystemTime(new Date(start.getTime() + 2 * 86_400_000));
+  await page.getByTestId('writing-start-button').click();
+  await expect(page.getByTestId('writing-screen')).toHaveAttribute('data-subject-id', String(id));
+  expect(new URL(page.url().replace('#', '')).searchParams.get('ids')).toBe(String(id));
+
+  // Weakest first lists it too.
+  await openApp(page, '/self-study');
+  await page.getByTestId('writing-scope').selectOption('weakest');
+  await page.getByTestId('writing-start-button').click();
+  await expect(page.getByTestId('writing-screen')).toHaveAttribute('data-subject-id', String(id));
+
+  // Save the progress file: it carries the record.
+  await openApp(page, '/settings');
+  const download = page.waitForEvent('download');
+  await page.getByTestId('progress-save').click();
+  const path = info.outputPath('writing-progress.json');
+  await (await download).saveAs(path);
+  const saved = JSON.parse(readFileSync(path, 'utf8')) as { writing?: Array<{ id: number; level: number }> };
+  expect(saved.writing).toEqual([expect.objectContaining({ id, level: 1, attempts: 1, clean: 1 })]);
+
+  // Restored in a fresh browser: the record comes back.
+  const fresh = await browser.newPage({ viewport: page.viewportSize() ?? undefined });
+  await fresh.clock.install({ time: start });
+  await openApp(fresh);
+  await restoreFile(fresh, path);
+  await openApp(fresh, `/subject/${id}`);
+  await expect(fresh.getByTestId('writing-line')).toHaveText('✍ Writing: level 1 · 1 clean of 1 · due in 1 day');
+  await fresh.close();
 });

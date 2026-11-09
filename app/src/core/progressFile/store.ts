@@ -49,6 +49,9 @@ import {
 } from './format';
 import { activityJson } from '../stats/file';
 import type { ActivityLog } from '../stats/activity';
+import type { WritingRecord } from '../writing/record';
+
+const WRITING_FIELDS = ['id', 'attempts', 'clean', 'level', 'lastPracticed', 'nextDue'] as const;
 
 /** Everything a progress file holds. */
 export interface ProgressState {
@@ -114,9 +117,10 @@ function isSaved(row: SubjectProgressRow): boolean {
 /**
  * The file text, byte for byte (`JSONObject.toString(1)`). `now` is the `exportedAt`. `activity`, the
  * study activity log, is added as `activity` after `jumps` when it has a day with study
- * (`stats/file.ts`); without it the file is what it always was.
+ * (`stats/file.ts`). `writing`, the writing practice records (core/writing), goes after it as
+ * `writing` when there are any. Without them the file is what it always was.
  */
-export function exportProgress(state: ProgressState, now: number, activity?: ActivityLog): string {
+export function exportProgress(state: ProgressState, now: number, activity?: ActivityLog, writing: readonly WritingRecord[] = []): string {
   const root = new JSONObject();
   root.map.set('format', FORMAT);
   root.map.set('version', TypedNumber.int(VERSION));
@@ -156,6 +160,15 @@ export function exportProgress(state: ProgressState, now: number, activity?: Act
   root.map.set('jumps', jumps);
   const days = activity === undefined ? null : activityJson(activity);
   if (days !== null) root.map.set('activity', days);
+  if (writing.length > 0) {
+    const records = new JSONArray();
+    for (const r of [...writing].sort((a, b) => a.id - b.id)) {
+      const o = new JSONObject();
+      for (const f of WRITING_FIELDS) o.map.set(f, TypedNumber.long(BigInt(r[f])));
+      records.values.push(o);
+    }
+    root.map.set('writing', records);
+  }
   return toIndentedJsonString(root, 1);
 }
 

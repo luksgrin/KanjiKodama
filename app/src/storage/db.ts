@@ -25,6 +25,9 @@
  * - `activity` (key `day`, v4): the study activity log, one row per study day (core
  *   `stats/activity.ts`: `day`, `lessons`, `reviews`, `correct`, `incorrect`, `selfStudy`). Kept by a
  *   reset, a WaniKani import and a mode switch; a progress-file restore merges the file's log in.
+ * - `writing` (key `id`, v5): writing practice records (`WritingRecord` of core `writing/record`), one per
+ *   practised kanji or radical. Local only: never synced, not replaced by a progress restore (merged,
+ *   the later practice wins), cleared by Reset database.
  * - `settings` (key `key`): the settings in use.
  * - `meta` (key `key`): `schemaVersion`, persistence result, last backup time, diagnostics.
  *
@@ -41,10 +44,11 @@ import {
   type SubjectProgressRow,
 } from '../core/progressFile/format';
 import type { ActivityDay } from '../core/stats/activity';
+import type { WritingRecord } from '../core/writing/record';
 
 export const DB_NAME = 'kanjikodama';
 /** The newest schema version (Dexie's `verno`). */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /** A `subjects` row: the subject id and its saved progress columns. */
 export type SubjectRecord = SubjectProgressRow & { id: number };
@@ -73,6 +77,8 @@ export interface TaskRecord {
 export interface ServerSubjectRecord { id: number; object: string; dataUpdatedAt: string | null; data: Record<string, unknown> }
 /** An `activity` row: one study day's counts. */
 export type ActivityRecord = ActivityDay;
+/** A `writing` row: one kanji's or radical's writing practice record. */
+export type WritingRecordRow = WritingRecord;
 export interface SettingRecord { key: string; value: unknown }
 export interface MetaRow { key: string; value: unknown }
 
@@ -120,6 +126,7 @@ export class KkDb extends Dexie {
   tasks!: EntityTable<TaskRecord, 'id'>;
   serverSubjects!: EntityTable<ServerSubjectRecord, 'id'>;
   activity!: EntityTable<ActivityRecord, 'day'>;
+  writing!: EntityTable<WritingRecordRow, 'id'>;
   settings!: EntityTable<SettingRecord, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
 
@@ -154,6 +161,12 @@ export class KkDb extends Dexie {
       .stores({ activity: 'day' })
       .upgrade(async (tx) => {
         await tx.table('meta').put({ key: 'schemaVersion', value: 4 });
+      });
+    // v5: writing practice records; start empty.
+    this.version(5)
+      .stores({ writing: 'id' })
+      .upgrade(async (tx) => {
+        await tx.table('meta').put({ key: 'schemaVersion', value: 5 });
       });
     this.on('populate', (tx) => {
       void tx.table('meta').put({ key: 'schemaVersion', value: SCHEMA_VERSION });

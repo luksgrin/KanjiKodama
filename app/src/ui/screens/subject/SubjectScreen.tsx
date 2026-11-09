@@ -23,6 +23,8 @@ import { useSessionMenu } from '../../components/session/SessionMenu';
 import { useSession } from '../../components/session/useSession';
 import { useToolbar } from '../../shell/toolbar';
 import { readStrokeData } from '../../components/subject/subjectContent';
+import { useWritingRecords } from '../../components/writing/useWritingRecords';
+import { writingLine } from '../../../core/writing';
 import { NUMERIC_COLUMNS, TEXT_COLUMNS, numberOf, type SubjectProgressRow } from '../../../core/progressFile/format';
 import { useApp, useReady } from '../../hooks/useApp';
 import { useNavigate, useRoute } from '../../hooks/useRoute';
@@ -78,6 +80,7 @@ export function SubjectScreen() {
     [learner, subject, local, state.revision]);
 
   // Writing practice for kanji and radicals with stroke order data (not image-only radicals).
+  const writing = useWritingRecords();
   const canWrite = useMemo(() => (subject?.object === 'kanji' || subject?.object === 'radical') && readStrokeData(content.db, subject.id).length > 0, [subject, content.db]);
 
   if (!subject) {
@@ -111,6 +114,9 @@ export function SubjectScreen() {
             <button type="button" className="kk-btn small danger" onClick={() => setDialog('burn')}>Burn</button>
           )}
         </div>
+      )}
+      {canWrite && writing.has(subject.id) && (
+        <p className="kk-subject-writing" data-testid="writing-line">{writingLine(writing.get(subject.id)!, Date.now())}</p>
       )}
       {canWrite && (
         <div className="kk-btn-row">

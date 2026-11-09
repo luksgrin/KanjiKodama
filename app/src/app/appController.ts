@@ -34,6 +34,7 @@ import { backupReminder, saveProgressFile, type BackupReminder } from '../progre
 import { progressFileName } from '../progress/exportFile';
 import { importProgress, previewImport, type ImportPreview } from '../progress/importFile';
 import { loadActivity, saveActivityDays } from '../storage/activityRepo';
+import { loadWritingRecords, writingRecordsForFile } from '../progress/writingStore';
 import { lastSavedStore, type KkDb } from '../storage/db';
 import { ensurePersistence, type PersistenceInfo } from '../storage/persistence';
 import { hydrateLearnerDb, readSnapshot, saveLearnerDb, saveSubjects, snapshotOf, writeSnapshot, type LearnerSnapshot } from '../storage/progressRepo';
@@ -377,7 +378,10 @@ export function createAppController(deps: AppDeps): AppController {
       }
       const learner = hydrateLearnerDb(content.content, content.jlptKanji, snap);
       orphans = orphansOf(snap, learner);
-      const [stored, lastSavedAt, server, activity] = await Promise.all([readPrefs(), saved.getLastSavedAt(), isServerMode(), loadActivity(kk)]);
+      // The writing practice records too: the progress file (written synchronously) includes them.
+      const [stored, lastSavedAt, server, activity] = await Promise.all([
+        readPrefs(), saved.getLastSavedAt(), isServerMode(), loadActivity(kk), loadWritingRecords(kk),
+      ]);
       const prefs = await migratePrefs(stored);
       if (!server) {
         // Local mode: re-lay the order if the curriculum changed, then unlock and level up.
@@ -530,7 +534,7 @@ export function createAppController(deps: AppDeps): AppController {
       const state: ProgressState = { ...emptyProgress(p.curriculum), ...p };
       if (orphans.subjects.size > 0) state.subjects = new Map([...orphans.subjects, ...p.subjects]);
       if (orphans.probation.size > 0) state.probation = new Map([...orphans.probation, ...p.probation]);
-      return { name: progressFileName(now), text: exportProgress(state, now, store.get().activity) };
+      return { name: progressFileName(now), text: exportProgress(state, now, store.get().activity, writingRecordsForFile(kk)) };
     },
 
     async saveProgress() {

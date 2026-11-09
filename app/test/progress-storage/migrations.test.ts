@@ -8,7 +8,7 @@ import { exportProgressFile } from '../../src/progress/exportFile';
 import { loadProgressState } from '../../src/storage/progressRepo';
 import { freshName } from './helpers';
 
-const ALL_TABLES = ['activity', 'jumps', 'levelProgression', 'levelTest', 'meta', 'probation', 'serverSubjects', 'session', 'settings', 'state', 'subjects', 'tasks'];
+const ALL_TABLES = ['activity', 'jumps', 'levelProgression', 'levelTest', 'meta', 'probation', 'serverSubjects', 'session', 'settings', 'state', 'subjects', 'tasks', 'writing'];
 
 const V2_STORES = {
   subjects: 'id', levelProgression: 'id', probation: 'id', jumps: '++seq, at', state: 'key', levelTest: 'id',
@@ -96,6 +96,23 @@ const EARLIER_VERSIONS: Array<{
       expect(await kk.activity.count()).toBe(0);
       const { text } = await exportProgressFile(kk, 1760659200000, 'UTC');
       expect(JSON.parse(text)).not.toHaveProperty('activity');
+    },
+  },
+  {
+    version: 4, // the study activity log
+    stores: { ...V2_STORES, serverSubjects: 'id', activity: 'day' },
+    async seed(db) {
+      await db.table('subjects').put({ ...emptySubjectRow(), id: 440, srsStage: 2, startedAt: 1700000000000, unlockedAt: 1700000000000 });
+      await db.table('meta').put({ key: 'schemaVersion', value: 4 });
+    },
+    async verify(kk) {
+      expect((await kk.subjects.get(440))?.srsStage).toBe(2);
+      // v5: the writing practice table starts empty, so the saved file has no `writing`.
+      expect(await kk.writing.count()).toBe(0);
+      const { text } = await exportProgressFile(kk, 1760659200000, 'UTC');
+      expect(JSON.parse(text)).not.toHaveProperty('writing');
+      await kk.writing.put({ id: 440, attempts: 1, clean: 1, level: 1, lastPracticed: 5, nextDue: 6 });
+      expect((await kk.writing.get(440))?.level).toBe(1);
     },
   },
 ];

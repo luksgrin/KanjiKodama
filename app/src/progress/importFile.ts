@@ -21,6 +21,8 @@ import { PROGRESS_TABLES, type KkDb } from '../storage/db';
 import { restoreIntoDb, type LearnerDb } from '../core/progression';
 import { readActivity, type ActivityDay } from '../core/stats';
 import { mergeActivityDays } from '../storage/activityRepo';
+import { writingFromProgressFile } from '../core/writing';
+import { mergeWritingRecords } from './writingStore';
 
 /** A file that can't be restored; `message` is for the user. Nothing was changed. */
 export class ProgressImportError extends Error {
@@ -106,6 +108,8 @@ export async function importProgress(kk: KkDb, text: string, ctx: ImportContext)
   } catch (e) {
     rethrow(e);
   }
+  // Writing practice records: merged, not replaced (the later practice of each item wins).
+  await mergeWritingRecords(kk, writingFromProgressFile(text, new Set(learner!.table.keys())));
   const userLevel = learner!.progress.userLevel;
   return { userLevel, message: `Progress restored, level ${userLevel}.`, learner: learner!, activity: activity! };
 }

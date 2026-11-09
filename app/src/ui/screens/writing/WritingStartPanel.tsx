@@ -1,21 +1,25 @@
 /**
- * "Writing practice" on the self-study screen: kanji, radicals or both; learned ones or one level; the
- * mode (study: trace; recall: from memory) and how many, then Start opens the writing screen.
+ * "Writing practice" on the self-study screen: kanji, radicals or both; due for writing, weakest first,
+ * learned ones or one level; the mode (study: trace; recall: from memory) and how many, then Start opens
+ * the writing screen.
  */
 import { useMemo, useState } from 'react';
 import { SeededRandom } from '../../../core/rng';
 import { num, progressRow } from '../../../core/progression/db';
 import {
-  selectWritingKanji, WRITING_ROUND_SIZES, type WritingCandidate, type WritingKind, type WritingMode, type WritingScope,
+  dueForWriting, selectFromRecords, selectWritingKanji, weakestForWriting, WRITING_ROUND_SIZES, type WritingCandidate, type WritingKind, type WritingMode, type WritingScope,
 } from '../../../core/writing';
 import { strokeDataIds } from '../../../content/contentFile';
 import { useReady } from '../../hooks/useApp';
 import { useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 import { toast } from '../../shell/toast';
+import { useWritingRecords } from '../../components/writing/useWritingRecords';
 import '../../components/writing/writing.css';
 
 export const NO_WRITING_ITEMS = 'Nothing to practise here yet: finish some lessons first';
+export const NOTHING_DUE = 'Nothing is due for writing right now';
+export const NOTHING_PRACTISED = 'Nothing practised yet: write some first';
 
 /** The "What" choices. */
 const KINDS: Readonly<Record<string, { label: string; kinds: readonly WritingKind[] }>> = {
@@ -25,10 +29,13 @@ const KINDS: Readonly<Record<string, { label: string; kinds: readonly WritingKin
 };
 
 const LEARNED = 'learned';
+const DUE = 'due';
+const WEAKEST = 'weakest';
 
 export function WritingStartPanel() {
   const { learner, content, state } = useReady();
   const navigate = useNavigate();
+  const records = useWritingRecords();
   const userLevel = learner.progress.userLevel;
   const [what, setWhat] = useState<string>('kanji');
   const [scope, setScope] = useState<string>(LEARNED);
@@ -53,12 +60,19 @@ export function WritingStartPanel() {
   const levels = useMemo(() => [...new Set(candidates.map((c) => c.level))].sort((a, b) => a - b), [candidates]);
 
   const start = (): void => {
-    const chosen: WritingScope = scope === LEARNED ? { kind: 'learned' } : { kind: 'level', level: Number(scope) };
-    // Learned items come shuffled; a level comes in lesson order.
-    const ids = selectWritingKanji(candidates, chosen, size, chosen.kind === 'learned' ? new SeededRandom(Date.now()) : null,
-      KINDS[what]!.kinds);
+    const kinds = KINDS[what]!.kinds;
+    let ids: number[];
+    if (scope === DUE || scope === WEAKEST) {
+      // From the writing records: most overdue first, or lowest writing level first.
+      const ordered = scope === DUE ? dueForWriting(records.values(), Date.now()) : weakestForWriting(records.values());
+      ids = selectFromRecords(ordered, candidates, size, kinds);
+    } else {
+      const chosen: WritingScope = scope === LEARNED ? { kind: 'learned' } : { kind: 'level', level: Number(scope) };
+      // Learned items come shuffled; a level comes in lesson order.
+      ids = selectWritingKanji(candidates, chosen, size, chosen.kind === 'learned' ? new SeededRandom(Date.now()) : null, kinds);
+    }
     if (ids.length === 0) {
-      toast(NO_WRITING_ITEMS);
+      toast(scope === DUE ? NOTHING_DUE : scope === WEAKEST ? NOTHING_PRACTISED : NO_WRITING_ITEMS);
       return;
     }
     navigate(paths.writing(ids, mode));
@@ -78,6 +92,8 @@ export function WritingStartPanel() {
         <label>
           <span>Which</span>
           <select className="kk-select" value={scope} onChange={(e) => setScope(e.target.value)} data-testid="writing-scope">
+            <option value={DUE}>Due for writing</option>
+            <option value={WEAKEST}>Weakest first</option>
             <option value={LEARNED}>The ones you&apos;ve learned</option>
             {levels.map((l) => (
               <option key={l} value={String(l)}>Level {l}{l === userLevel ? ' (your level)' : ''}</option>

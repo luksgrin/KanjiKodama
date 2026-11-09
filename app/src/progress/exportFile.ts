@@ -5,7 +5,8 @@
  *
  * Rows kept for subjects the current content no longer has are exported too: a restore ignores
  * unknown ids, and the progress comes back if the subject returns. The study activity log goes in
- * too (`activity`, when it has any day with study).
+ * too (`activity`, when it has any day with study), and the writing practice records (`writing`, when
+ * there are any).
  */
 import { exportProgress } from '../core/progressFile';
 import type { KkDb } from '../storage/db';
@@ -38,6 +39,6 @@ export function progressFileName(now: number, timeZone?: string): string {
 
 /** The file to save: name and text, with `exportedAt` = `now`. */
 export async function exportProgressFile(kk: KkDb, now: number = Date.now(), timeZone?: string): Promise<ProgressFileOut> {
-  const [state, activity] = await Promise.all([loadProgressState(kk), loadActivity(kk)]);
-  return { name: progressFileName(now, timeZone), text: exportProgress(state, now, activity) };
+  const [state, activity, writing] = await Promise.all([loadProgressState(kk), loadActivity(kk), kk.writing.toArray()]);
+  return { name: progressFileName(now, timeZone), text: exportProgress(state, now, activity, writing) };
 }

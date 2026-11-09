@@ -130,3 +130,4 @@
 .kk-writing-result--clean { border-color: var(--color-ok); }
 .kk-writing-result--missed { border-color: var(--color-bad); }
 .kk-writing-result-note { font-size: var(--text-xs); color: var(--color-text-muted); }
+.kk-writing-result-level { font-size: var(--text-xs); color: var(--color-text-toned); }

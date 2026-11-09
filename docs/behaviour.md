@@ -177,6 +177,23 @@ while drawing). Nothing here touches SRS, the progress file or sync.
   the left with Left-handed writing practice (Subject Info settings). On wide screens the prompt and
   buttons sit beside the square, on that side.
 
+**Writing progress**, separate from the review SRS: each practised kanji or radical has a record
+(attempts, clean writes, level 0–5, last practised, next due) in the Dexie `writing` table (schema v5).
+- Writing from memory: a clean write moves the level up one (at most 5); a write with misses moves it
+  down one; with a hint or a stroke filled in, down two (at least 0). A first recall starts from 0.
+  Tracing counts as practice (attempts, clean, last practised) but never moves the level.
+- Next due = the write's time + the interval of the new level: 4 hours, 1 day, 3 days, 1 week, 2 weeks,
+  30 days (levels 0–5). Plain milliseconds, so time zones and daylight saving never shift it.
+- The Self-study panel offers Due for writing (most overdue first) and Weakest first (lowest level,
+  then lowest share of clean writes, then practised longest ago). The summary shows each item's level
+  change ("new → level 1", "level 2 → 3"); a kanji's or radical's page shows
+  "✍ Writing: level 3 · 8 clean of 10 · due in 2 days" once it has been practised.
+- The progress file carries the records as an optional `writing` array after the other fields, only
+  when there are any, so files without writing practice (and the golden outputs) are unchanged.
+  Restoring merges them by subject: the record practised later wins; a file without them leaves them
+  alone. Never synced to WaniKani or OpenKani and not touched by imports; Reset database clears them.
+  Files: `core/writing/record.ts`, `progress/writingStore.ts`.
+
 The tolerances were tuned on simulated careful handwriting over the whole KanjiVG set: practically
 every stroke is accepted and under 1 % of other strokes pass for the expected one
 (`core/writing/writing.test.ts` keeps that true). Files: `core/writing/` (matcher, round, selection),

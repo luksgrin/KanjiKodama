@@ -3,7 +3,8 @@
  * stroke in the writing square; every stroke is checked against KanjiVG (core/writing). Study mode
  * traces over the faint kanji; recall mode shows the meaning and reading and an empty square, with the
  * next stroke as a hint after a miss or on Hint. Self-study only: nothing here touches SRS or sync.
- * At the end, a summary with "Practise the missed ones" and "Again".
+ * Each finished item is recorded in its writing progress (core writing/record); the summary shows the
+ * level changes, with "Practise the missed ones" and "Again".
  */
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ContentSubject } from '../../../core/content';
@@ -15,7 +16,9 @@ import {
 import { readStrokeData } from '../../components/subject/subjectContent';
 import { parseStrokes, type Stroke } from '../../components/subject/strokePaths';
 import { WritingPad } from '../../components/writing/WritingPad';
-import { useReady } from '../../hooks/useApp';
+import { useApp, useReady } from '../../hooks/useApp';
+import { recordWrites } from '../../../progress/writingStore';
+import { useWritingRecords } from '../../components/writing/useWritingRecords';
 import { useNavigate, useRoute } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 import '../../components/writing/writing.css';
@@ -44,6 +47,12 @@ function readingsOf(s: ContentSubject): string {
   return (accepted.length > 0 ? accepted : s.readings.filter((r) => r.primary)).map((r) => r.reading).join('、');
 }
 
+/** A finished item's writing level: before (null: first practice) and after. */
+export interface LevelChange {
+  from: number | null;
+  to: number;
+}
+
 interface Item {
   subject: ContentSubject;
   strokes: Stroke[];
@@ -54,6 +63,10 @@ export function WritingScreen() {
   const { query } = useRoute();
   const { learner, content, state } = useReady();
   const navigate = useNavigate();
+  const kk = useApp().db;
+  const records = useWritingRecords();
+  const recordsRef = useRef(records);
+  recordsRef.current = records;
   const ids = useMemo(() => parseWritingIds(query.get('ids')), [query]);
   const mode: WritingMode = query.get('mode') === 'recall' ? 'recall' : 'study';
   const leftHanded = writingLeftHanded(state.prefs);
@@ -72,6 +85,7 @@ export function WritingScreen() {
 
   const [round, setRound] = useState<WritingState>(() => startWriting(cards, mode));
   const [miss, setMiss] = useState<{ key: number; points: readonly Point[] } | null>(null);
+  const [levels, setLevels] = useState<ReadonlyMap<number, LevelChange>>(new Map());
   // Another set of kanji (or mode) in the address: a new round.
   const roundKey = `${query.get('ids') ?? ''}|${mode}`;
   const [shownKey, setShownKey] = useState(roundKey);
@@ -79,6 +93,7 @@ export function WritingScreen() {
     setShownKey(roundKey);
     setRound(startWriting(cards, mode));
     setMiss(null);
+    setLevels(new Map());
   }
   const roundRef = useRef(round);
   roundRef.current = round;
@@ -98,10 +113,19 @@ export function WritingScreen() {
     const next = applyVerdict(r, verdict);
     roundRef.current = next;
     setRound(next);
-  }, [items]);
+    if (isCardDone(next)) {
+      // The item is written: record it in its writing progress.
+      const result = next.current;
+      const from = recordsRef.current.get(result.id)?.level ?? null;
+      void recordWrites(kk, [result], next.mode, Date.now()).then(([rec]) => {
+        if (rec !== undefined) setLevels((m) => new Map(m).set(result.id, { from, to: rec.level }));
+      });
+    }
+  }, [items, kk]);
 
   const restart = (next: readonly WritingCard[]): void => {
     setMiss(null);
+    setLevels(new Map());
     setRound(startWriting(next, mode));
   };
 
@@ -119,6 +143,7 @@ export function WritingScreen() {
       <WritingSummary
         results={round.results}
         items={items}
+        levels={levels}
         onMissed={() => restart(missedCards(round))}
         onAgain={() => restart(cards)}
         onDone={() => navigate.back()}
@@ -184,8 +209,15 @@ export function WritingScreen() {
   );
 }
 
-function WritingSummary({ results, items, onMissed, onAgain, onDone }: {
+/** "new → level 1", "level 2 → 3", or "level 2" when it stayed (tracing never moves it). */
+export function levelChangeText(c: LevelChange): string {
+  if (c.from === null) return `new → level ${c.to}`;
+  return c.from === c.to ? `level ${c.to}` : `level ${c.from} → ${c.to}`;
+}
+
+function WritingSummary({ results, items, levels, onMissed, onAgain, onDone }: {
   results: readonly WritingResult[];
+  levels: ReadonlyMap<number, LevelChange>;
   items: ReadonlyMap<number, Item>;
   onMissed: () => void;
   onAgain: () => void;
@@ -206,6 +238,9 @@ function WritingSummary({ results, items, onMissed, onAgain, onDone }: {
             <li key={r.id} className={`kk-writing-result ${ok ? 'kk-writing-result--clean' : 'kk-writing-result--missed'}`} data-testid={`writing-result-${r.id}`}>
               <span className="kk-writing-result-kanji" lang="ja">{items.get(r.id)?.subject.characters ?? items.get(r.id)?.subject.slug ?? '?'}</span>
               <span className="kk-writing-result-note">{note}</span>
+              {levels.has(r.id) && (
+                <span className="kk-writing-result-level" data-testid={`writing-level-${r.id}`}>{levelChangeText(levels.get(r.id)!)}</span>
+              )}
             </li>
           );
         })}
