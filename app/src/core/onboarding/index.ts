@@ -13,6 +13,7 @@ import type { CurriculumMode } from '../curriculum';
 import { levelTestStatus } from '../levelTest/status';
 import { sqlNonZero, type LearnerDb } from '../progression/db';
 import type { Preferences } from '../settings';
+import { SETTINGS_MIGRATION_KEYS } from '../settings/migrations';
 
 /** Set once the guide was finished or skipped. */
 export const ONBOARDING_DONE_KEY = 'onboarding_done';
@@ -25,14 +26,21 @@ export const ONBOARDING_DONE_KEY = 'onboarding_done';
 export const ONBOARDING_IGNORED_PREF_PREFIXES: readonly string[] = [
   // The update check (ui/update/updateController.ts: kk_update_last_check, kk_update_later_*).
   'kk_update_',
-  // Font and text size: the font_size_* sliders, and (TODO: the appearance picker's own keys, a
-  // guess until it lands) font_* / text_size*.
+  // Font and text size: the font_size_* sliders and the appearance picker's text_size.
   'font_',
   'text_size',
 ];
 
-/** The same, by exact key: the quiz font choice (ui/theme/quizFonts.ts SELECTED_FONTS_KEY). */
-export const ONBOARDING_IGNORED_PREF_KEYS: readonly string[] = [ONBOARDING_DONE_KEY, 'selected_fonts'];
+/**
+ * The same, by exact key: the appearance picker's font (ui_font), the quiz font choice
+ * (ui/theme/quizFonts.ts SELECTED_FONTS_KEY) and what the one-time changes write at every first start.
+ */
+export const ONBOARDING_IGNORED_PREF_KEYS: readonly string[] = [
+  ONBOARDING_DONE_KEY,
+  'ui_font',
+  'selected_fonts',
+  ...SETTINGS_MIGRATION_KEYS,
+];
 
 /** True when the learner has progress of any kind: an item started, notes, a level, a jump, a test. */
 export function hasProgress(db: LearnerDb): boolean {

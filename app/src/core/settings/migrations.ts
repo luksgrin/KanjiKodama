@@ -9,6 +9,9 @@ import type { Preferences, PreferenceValue } from './index';
 /** Marker: `indicate_kanji_reading_type` was switched on once (it became a default-on setting). */
 export const READING_KIND_ON_APPLIED = 'kanjikodama_reading_kind_on_applied';
 
+/** Every key the one-time changes write: stored by the app itself, not by the learner. */
+export const SETTINGS_MIGRATION_KEYS: readonly string[] = ['indicate_kanji_reading_type', READING_KIND_ON_APPLIED];
+
 /**
  * The settings to write so every one-time change has run: empty when all ran before. Turns
  * `indicate_kanji_reading_type` on once, even where it is stored as off (the old default).

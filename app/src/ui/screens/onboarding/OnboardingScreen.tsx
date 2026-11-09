@@ -31,7 +31,8 @@ import { useFastTravelFlow } from '../fastTravel/fastTravelFlow';
 import { useImportFlow } from '../import/importFlow';
 import { LOCAL_ONLY_MESSAGE } from '../settings/SettingsScreen';
 import { useAlerts } from '../settings/useAlerts';
-import { AppearanceStep, ReadingBadge } from './placeholders';
+import { ReadingKindBadge } from '../../components/session/ReadingKindBadge';
+import { AppearanceStep } from './placeholders';
 import './onboarding.css';
 
 const PATHS: readonly { mode: CurriculumMode; title: string; text: string }[] = [
@@ -124,11 +125,11 @@ function QuizBody() {
       </ul>
       <p>The line under the item says what to type:</p>
       <ul className="kk-ob-types">
-        <li><ReadingBadge kind="meaning" /><span><strong>Meaning:</strong> answer in English.</span></li>
-        <li><ReadingBadge kind="reading" /><span><strong>Reading:</strong> answer in kana. Type romaji and it turns into kana as you go.</span></li>
+        <li><ReadingKindBadge kind="meaning" /><span><strong>Meaning:</strong> answer in English.</span></li>
+        <li><ReadingKindBadge kind="reading" /><span><strong>Reading:</strong> answer in kana. Type romaji and it turns into kana as you go.</span></li>
       </ul>
       <p>A kanji has several readings. The quiz wants the one taught in its lesson: usually the
-        on&apos;yomi <ReadingBadge kind="onyomi" /> (from Chinese), sometimes the kun&apos;yomi <ReadingBadge kind="kunyomi" /> (native Japanese).</p>
+        on&apos;yomi <ReadingKindBadge kind="onyomi" showLabel={false} /> (from Chinese), sometimes the kun&apos;yomi <ReadingKindBadge kind="kunyomi" showLabel={false} /> (native Japanese).</p>
       <p>Type another real reading of that kanji and the card <strong>shakes</strong>: try again, it doesn&apos;t count as wrong.</p>
     </>
   );

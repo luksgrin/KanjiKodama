@@ -50,20 +50,10 @@
   font-size: 24px;
 }
 /* The badges line up with the swatches above them. */
-.kk-ob-types > li > .kk-ob-badge { flex: none; min-width: 72px; text-align: center; }
+.kk-ob-types > li > .kk-kind-badge { flex: none; min-width: 72px; }
 .kk-ob-swatch.radical { background: var(--color-radical); }
 .kk-ob-swatch.kanji { background: var(--color-kanji); }
 .kk-ob-swatch.vocab { background: var(--color-vocab); }
-/* Stand-in for ReadingKindBadge (placeholders.tsx). */
-.kk-ob-badge {
-  display: inline-block;
-  padding: 0 var(--space-1);
-  border: 2px solid var(--color-text);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  line-height: 1.4;
-  white-space: nowrap;
-}
 
 .kk-ob-choices { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-3); }
 .kk-ob-choice {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeContent, type ContentSubject } from '../content';
 import { setLevelTestStatus } from '../levelTest/status';
+import { settingsMigrations } from '../settings/migrations';
 import { createLearnerDb, updateProgress } from '../progression';
 import {
   ONBOARDING_DONE_KEY,
@@ -65,10 +66,16 @@ describe('who sees the getting-started guide', () => {
   });
 
   it('font and text size don\'t count: the guide sets them itself', () => {
-    const appearance = { font_size_question_edit: 26, font_size_subject_info: 18, selected_fonts: '["x"]', text_size: 1.2 };
+    const appearance = { font_size_question_edit: 26, font_size_subject_info: 18, selected_fonts: '["x"]', text_size: '150', ui_font: 'ZEN_MARU_GOTHIC' };
     expect(hasChangedSettings(appearance)).toBe(false);
     expect(needsOnboarding(fresh(), appearance, 'local')).toBe(true);
     expect(hasChangedSettings({ ...appearance, show_timeline: false })).toBe(true);
+  });
+
+  it('what the one-time changes write at the first start doesn\'t count', () => {
+    const firstStart = settingsMigrations({});
+    expect(hasChangedSettings(firstStart)).toBe(false);
+    expect(needsOnboarding(fresh(), firstStart, 'local')).toBe(true);
   });
 
   it('done once finished or skipped', () => {
