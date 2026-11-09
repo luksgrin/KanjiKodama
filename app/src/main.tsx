@@ -6,7 +6,7 @@ import { createAppController } from './app/appController';
 import { loadBrowserContent } from './app/contentLoader';
 import { handleBack } from './app/back';
 import { createHashLocation } from './app/router';
-import { appliedThemeKind, applyTheme, onThemeApplied, storedThemePrefs } from './app/theme';
+import { appliedThemeKind, applyAppearance, applyTheme, onThemeApplied, storedAppearance, storedThemePrefs } from './app/theme';
 import { getPlatform } from './platform';
 import { trackDevicePixelRatio } from './ui/theme/devicePixels';
 import { trackFocusMode } from './ui/theme/focusMode';
@@ -24,10 +24,11 @@ if (BACKGROUND_SYNC) {
     void import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
   }
 
-  // Paint the remembered theme before anything else (and the device pixel size its shadows use).
+  // Paint the remembered theme, text size and font before anything else (and the device pixel size its shadows use).
   trackDevicePixelRatio();
   trackFocusMode();
   applyTheme(storedThemePrefs());
+  applyAppearance(storedAppearance());
 
   const app = createAppController({ db, platform: getPlatform, loadContent: loadBrowserContent });
   const location = createHashLocation();

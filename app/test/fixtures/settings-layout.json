@@ -28,6 +28,7 @@
    "web_password"
   ],
   "display_settings": [
+   "appearance",
    "theme",
    "nightTheme",
    "theme_customization",

@@ -22,7 +22,7 @@ import { useNavigate } from '../../hooks/useRoute';
 import { paths } from '../../routes';
 import { toast } from '../../shell/toast';
 import { AlertDialog, ChoiceList } from './AlertDialog';
-import { FONT_IMPORT_SCREEN, FONT_SELECTION_SCREEN } from './fontScreens';
+import { APPEARANCE_SCREEN, FONT_IMPORT_SCREEN, FONT_SELECTION_SCREEN } from './fontScreens';
 import {
   ENABLE_ADVANCED_WARNING,
   NUMBER_RANGE_MESSAGE,
@@ -321,6 +321,7 @@ export function useSettingWriter(): { write: Write; dialog: ReactNode } {
 export function useScreenLinkActions(): Actions {
   const nav = useNavigate();
   return {
+    appearance: () => nav(`${paths.settings()}?screen=${APPEARANCE_SCREEN}`),
     theme_customization: () => nav(paths.themeCustomization()),
     keyboard_help: () => nav(paths.keyboardHelp()),
     font_selection: () => nav(`${paths.settings()}?screen=${FONT_SELECTION_SCREEN}`),

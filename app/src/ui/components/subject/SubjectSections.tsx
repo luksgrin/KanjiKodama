@@ -8,6 +8,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { Content, ContentSubject } from '../../../core/content';
 import type { Preferences } from '../../../core/settings';
 import type { SrsSystem } from '../../../core/srs';
+import { textScale } from '../../theme/appearance';
 import { PitchAccent } from './PitchAccent';
 import { SubjectChars, subjectGlyphCount } from './SubjectChars';
 import { pitchBlocks, type PitchInfo } from './pitchInfo';
@@ -40,11 +41,11 @@ export interface HeadlineProps {
   pitchInfo?: readonly PitchInfo[] | null;
   /** Audio button(s) slot (the buttons column; vocabulary only). */
   audio?: ReactNode;
-  /** Base font size in px (`font_size_subject_info`, default 16). */
+  /** Base font size in px (`font_size_subject_info`, default 16), before the text size (`text_size`). */
   fontSize?: number;
   /** Largest tile glyph height in px; the tile also fits the screen width minus 80 px. 0 hides the tile. */
   maxFontSize?: number;
-  /** The settings the tile's long press reads (search engines). */
+  /** The settings the tile's long press reads (search engines); also the text size (pitch diagrams). */
   prefs?: Preferences;
 }
 
@@ -121,7 +122,7 @@ export function Headline({
         <WkMarkup as="div" className="kk-headline-meaning" html={meaningHtml(subject)} />
       )}
       {blocks.length > 0
-        ? blocks.map((b, i) => <PitchAccent key={i} kana={b.kana} infos={b.infos} fontSize={fontSize + 4} />)
+        ? blocks.map((b, i) => <PitchAccent key={i} kana={b.kana} infos={b.infos} fontSize={(fontSize + 4) * textScale(prefs)} />)
         : showReadingAnswers &&
           subject.readings.length > 0 && (
             <div className="kk-headline-reading kk-ja" lang="ja">

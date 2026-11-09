@@ -8,6 +8,9 @@
  *
  * Also `slide_animations` (Display settings): `data-slide-animations="off"` on <html> stops the
  * session question slides (`.kk-slide-rtl` / `.kk-slide-ltr`, ui/theme/base.css).
+ *
+ * And the text size and font (`text_size`, `ui_font`; ui/theme/appearance.ts): `data-text-size` and
+ * `data-ui-font` on <html>, mirrored in localStorage like the theme.
  */
 import {
   DARK_THEME_KEY,
@@ -18,6 +21,7 @@ import {
   toolbarColor,
   type ThemePrefs,
 } from '../ui/theme/themes';
+import { DEFAULT_UI_FONT, textScale, uiFont, type UiFont } from '../ui/theme/appearance';
 
 export type ThemeKind = 'light' | 'dark';
 export type { ThemePrefs };
@@ -78,4 +82,46 @@ export function applySlideAnimations(prefs: Readonly<Record<string, unknown>>): 
   const root = document.documentElement;
   if (on) root.removeAttribute('data-slide-animations');
   else root.setAttribute('data-slide-animations', 'off');
+}
+
+const APPEARANCE_KEY = 'kk-appearance';
+
+export interface Appearance {
+  /** `text_size` as a factor. */
+  scale: number;
+  font: UiFont;
+}
+
+export function appearanceFrom(prefs: Readonly<Record<string, unknown>>): Appearance {
+  return { scale: textScale(prefs), font: uiFont(prefs) };
+}
+
+/** The text size and font remembered from the last run (the defaults when there is none). */
+export function storedAppearance(): Appearance {
+  try {
+    const raw = localStorage.getItem(APPEARANCE_KEY);
+    const v: unknown = raw ? JSON.parse(raw) : null;
+    if (v && typeof v === 'object') {
+      const o = v as { text_size?: unknown; ui_font?: unknown };
+      return appearanceFrom({ text_size: o.text_size, ui_font: o.ui_font });
+    }
+  } catch {
+    // unreadable: the defaults
+  }
+  return appearanceFrom({});
+}
+
+/** Puts the text size (`data-text-size`, tokens.css turns it into --kk-ts) and the font (`data-ui-font`) on <html> and remembers them. */
+export function applyAppearance(a: Appearance): void {
+  const root = document.documentElement;
+  const percent = String(Math.round(a.scale * 100));
+  if (a.scale === 1) root.removeAttribute('data-text-size');
+  else root.setAttribute('data-text-size', percent);
+  if (a.font === DEFAULT_UI_FONT) root.removeAttribute('data-ui-font');
+  else root.setAttribute('data-ui-font', a.font);
+  try {
+    localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ text_size: percent, ui_font: a.font }));
+  } catch {
+    // private mode: the setting still applies for this session
+  }
 }

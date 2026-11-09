@@ -22,7 +22,7 @@ import { useFastTravelFlow } from '../fastTravel/fastTravelFlow';
 import { useImportFlow } from '../import/importFlow';
 import { DATA_IMPORT_EXPORT_SCREEN, DATA_IMPORT_EXPORT_TITLE, DataImportExportPage, OtherActionsCategory } from './OtherActions';
 import { ProgressCategory } from './ProgressSection';
-import { FONT_IMPORT_SCREEN, FONT_SCREEN_TITLES, FONT_SELECTION_SCREEN, FontImportPage, FontSelectionPage } from './fontScreens';
+import { APPEARANCE_SCREEN, AppearancePage, FONT_IMPORT_SCREEN, FONT_SCREEN_TITLES, FONT_SELECTION_SCREEN, FontImportPage, FontSelectionPage } from './fontScreens';
 import {
   ADVANCED_CATEGORY_TITLE,
   ADVANCED_GROUPS,
@@ -203,6 +203,8 @@ export function SettingsScreen({ autoStart }: { autoStart?: AutoStart } = {}) {
         <FontSelectionPage />
       ) : screenId === FONT_IMPORT_SCREEN ? (
         <FontImportPage />
+      ) : screenId === APPEARANCE_SCREEN ? (
+        <AppearancePage />
       ) : (
         <>
           <InstallHint />

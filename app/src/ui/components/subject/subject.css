@@ -82,6 +82,9 @@
 .kk-headline-meaning,
 .kk-headline-reading { font-size: 1.25em; line-height: 1.25; padding: var(--fp-top) 0 var(--fp-bottom); }
 .kk-headline-buttons { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2, 8px); max-width: 45%; }
+/* The reveal ("Show more") and audio buttons keep their size at every text size, as the quiz's buttons:
+   a bigger one would not fit the 45 % column. */
+.kk-headline-buttons { --kk-ts: 1; }
 .kk-headline-buttons .kk-reveal-btn { white-space: nowrap; }
 /* Headline (wide layout): the title and the tile centred (tile 4 px below the title), then the
    meanings and readings at the left and the buttons column at the right, 8 px below the tile. */
@@ -104,7 +107,7 @@
   background: color-mix(in srgb, var(--color-text, #2E4756) 16%, var(--color-bg, #EAF7EF));
   color: var(--color-text, #2E4756);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.24);
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   white-space: nowrap;
   cursor: pointer;
 }
@@ -243,7 +246,7 @@
   cursor: pointer;
 }
 span.kk-link-button { cursor: default; }
-.kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; }
+.kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; } /* a glyph: not scaled */
 /* Tile glyphs centre on Roboto's metrics (--font-glyph, fonts.css), not the CJK face's. */
 .kk-item .kk-subject-tile,
 .kk-item .kk-subject-tile .kk-ja,
@@ -256,15 +259,22 @@ span.kk-link-button { cursor: default; }
 .kk-link-progress,
 .kk-link-level { max-width: 100%; color: var(--kk-card-text); text-shadow: var(--color-card-ink-shadow); white-space: nowrap; overflow: hidden; padding: calc(0.9px + var(--fp-top)) 0 calc(0.9px + var(--fp-bottom)); } /* includeFontPadding (measured) */
 /* autoSizeTextType uniform 9..14 sp on one line. */
-.kk-link-meaning { margin-top: 4px; font-size: clamp(9px, calc(100cqi / (var(--mlen, 8) * 0.62)), 14px); }
-.kk-link-reading { font-size: 16px; line-height: 1.25; }
+.kk-link-meaning { margin-top: 4px; font-size: clamp(9px, calc(100cqi / (var(--mlen, 8) * 0.62)), calc(14px * var(--kk-ts))); }
+.kk-link-reading { font-size: calc(16px * var(--kk-ts)); line-height: 1.25; }
 .kk-link-progress,
-.kk-link-level { font-size: 14px; }
+.kk-link-level { font-size: calc(14px * var(--kk-ts)); }
 /* Vocabulary card: characters left, the texts right-aligned at the right. */
 .kk-link--wide .kk-link-button { flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 7px; }
 .kk-link--wide .kk-link-chars { margin-top: 0; flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .kk-link--wide .kk-link-text { align-items: flex-end; text-align: end; flex: 1; }
-.kk-link--wide .kk-link-meaning { margin-top: 0; font-size: 14px; text-overflow: ellipsis; }
+.kk-link--wide .kk-link-meaning { margin-top: 0; font-size: calc(14px * var(--kk-ts)); text-overflow: ellipsis; }
+/* A larger text size: the card texts wrap instead of shrinking or being cut. */
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) :is(.kk-link-meaning, .kk-link-reading, .kk-link-progress, .kk-link-level) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-link-meaning { font-size: calc(14px * var(--kk-ts)); }
 
 /* Stroke order */
 .kk-stroke-diagram {
@@ -308,7 +318,9 @@ span.kk-link-button { cursor: default; }
 .kk-subject-details { border-collapse: collapse; font-size: inherit; margin: 4px auto 0 0; }
 /* detailsTable: each TableRow 2 dp from the top and start, each cell another 2 dp. */
 .kk-subject-details th { text-align: end; font-weight: 700; padding: calc(4px + var(--fp-top)) 0 var(--fp-bottom) 4px; vertical-align: top; white-space: nowrap; }
-.kk-subject-details td { padding: calc(4px + var(--fp-top)) 0 var(--fp-bottom) 2px; }
+.kk-subject-details td { padding: calc(4px + var(--fp-top)) 0 var(--fp-bottom) 2px; overflow-wrap: anywhere; }
+/* A larger text size: the headers wrap too, so the table fits a phone. */
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-subject-details th { white-space: normal; }
 
 /* My notes... (NotesDialog) */
 .kk-notes-dialog { width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 32px); }

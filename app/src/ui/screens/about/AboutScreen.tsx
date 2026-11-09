@@ -17,6 +17,7 @@ const BASE = import.meta.env.BASE_URL;
 const FONTS: readonly { name: string; url: string; author: string; license: string }[] = [
   { name: 'Silkscreen', url: 'https://fonts.google.com/specimen/Silkscreen', author: 'Jason Kottke', license: 'licenses/OFL-silkscreen.txt' },
   { name: 'Pixelify Sans', url: 'https://fonts.google.com/specimen/Pixelify+Sans', author: 'Stefie Justprince', license: 'licenses/OFL-pixelifysans.txt' },
+  { name: 'DotGothic16', url: 'https://fonts.google.com/specimen/DotGothic16', author: 'Fontworks Inc.', license: 'licenses/OFL-dotgothic16.txt' },
   { name: 'Zen Maru Gothic', url: 'https://fonts.google.com/specimen/Zen+Maru+Gothic', author: 'Yoshimichi Ohira', license: 'licenses/OFL-zenmarugothic.txt' },
 ];
 

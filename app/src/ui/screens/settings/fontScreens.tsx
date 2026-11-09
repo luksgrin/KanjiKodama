@@ -1,6 +1,7 @@
 /**
  * Font settings → "Select fonts for quiz questions" and "Import fonts for quiz questions", shown as
- * `/settings?screen=font_selection` / `font_import` with their titles.
+ * `/settings?screen=font_selection` / `font_import` with their titles; also Display settings → "Text size
+ * and font" (`/settings?screen=appearance`, the AppearancePicker).
  *
  * Selection: the intro text, then one row per font (the eight built-in ones, then the imported
  * ones): its name (20 sp), "日本語の書体" in that font (34 sp) and a switch that adds / removes it
@@ -23,15 +24,19 @@ import {
   withFontSelected,
   type QuizFont,
 } from '../../theme/quizFonts';
+import { AppearancePicker } from '../../components/settings/AppearancePicker';
 import { useAlerts } from './useAlerts';
 import './fonts.css';
 
 export const FONT_SELECTION_SCREEN = 'font_selection';
 export const FONT_IMPORT_SCREEN = 'font_import';
+/** Display settings → "Text size and font" (AppearancePicker). */
+export const APPEARANCE_SCREEN = 'appearance';
 /** The activities' `android:label`. */
 export const FONT_SCREEN_TITLES: Readonly<Record<string, string>> = {
   [FONT_SELECTION_SCREEN]: 'Font selection',
   [FONT_IMPORT_SCREEN]: 'Font import',
+  [APPEARANCE_SCREEN]: 'Text size and font',
 };
 
 export const FONT_SAMPLE = '日本語の書体';
@@ -188,6 +193,15 @@ export function FontImportPage() {
         </tbody>
       </table>
       {alerts.node}
+    </div>
+  );
+}
+
+/** Display settings → "Text size and font": the picker with the page padding. */
+export function AppearancePage() {
+  return (
+    <div className="kk-font-page kk-appearance-page" data-testid="appearance-page">
+      <AppearancePicker />
     </div>
   );
 }

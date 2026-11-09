@@ -1,6 +1,8 @@
 /* Base styles and the shared component classes (see README.md). Uses tokens.css only. */
 
-*, *::before, *::after { box-sizing: border-box; }
+/* No ligatures: Pixelify Sans and DotGothic16 draw "fi" / "fl" / "ff" as one glyph that reads as another
+   letter ("fins"). On every element: a `font` shorthand would reset an inherited value. */
+*, *::before, *::after { box-sizing: border-box; font-variant-ligatures: none; }
 
 html {
   -webkit-text-size-adjust: 100%;
@@ -107,7 +109,8 @@ button { font: inherit; color: inherit; }
 .kk-toolbar-title.no-back { padding-left: 16px; }
 .kk-toolbar-title h1 {
   font-family: var(--font-display);
-  font-size: 20px;
+  /* The text size grows the title at most to 115 %: title and subtitle stay inside the 56 px bar. */
+  font-size: calc(20px * min(var(--kk-ts), 1.15));
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.2;
@@ -118,7 +121,7 @@ button { font: inherit; color: inherit; }
 .kk-toolbar-subtitle {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: calc(14px * min(var(--kk-ts), 1.15));
   opacity: 0.8;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -148,7 +151,7 @@ button { font: inherit; color: inherit; }
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   padding: 0 4px;
   outline: none;
 }
@@ -190,7 +193,7 @@ button { font: inherit; color: inherit; }
   gap: 16px;
   text-align: left;
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   letter-spacing: 0;
   white-space: nowrap;
   cursor: pointer;
@@ -271,8 +274,8 @@ button { font: inherit; color: inherit; }
   background: var(--color-toast-bg);
   color: var(--color-toast-fg);
   font-family: system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: calc(14px * var(--kk-ts));
+  line-height: calc(20px * var(--kk-ts));
   text-align: center;
   box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
   pointer-events: none;
@@ -317,7 +320,7 @@ button { font: inherit; color: inherit; }
   color: var(--btn-text);
   margin: 0;
   font-family: var(--font-button);
-  font-size: 15px;
+  font-size: calc(15px * var(--kk-ts));
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
@@ -420,7 +423,7 @@ button { font: inherit; color: inherit; }
 }
 :root.kk-nontouch .kk-btn:focus::before { background-image: linear-gradient(var(--kk-focus-hl), var(--kk-focus-hl)); }
 :root.kk-nontouch .kk-btn:focus:not(:active)::after { box-shadow: inset 0 0 0 999px var(--kk-focus-hl); }
-.kk-btn.small { --kk-btn-h: 40px; padding: 5px 19px 15px; font-size: 13px; }
+.kk-btn.small { --kk-btn-h: 40px; padding: 5px 19px 15px; font-size: calc(13px * var(--kk-ts)); }
 .kk-btn.block { display: flex; width: 100%; }
 /* There is one button style: secondary looks the same. */
 .kk-btn.secondary { --btn-text: var(--btn-secondary-text); }
@@ -470,6 +473,9 @@ button { font: inherit; color: inherit; }
   margin-bottom: var(--space-4);
 }
 .kk-banner-text { flex: 1; min-width: 0; }
+/* A larger text size: the text gets the full width, the buttons go under it at the right. */
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-banner { flex-wrap: wrap; justify-content: flex-end; }
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-banner-text { flex-basis: 100%; }
 .kk-banner.error { background: color-mix(in srgb, var(--color-bad) 25%, var(--color-surface)); border-color: var(--color-bad); }
 .kk-banner.ok { background: color-mix(in srgb, var(--color-ok) 20%, var(--color-surface)); border-color: var(--color-ok); }
 
@@ -511,7 +517,7 @@ a.kk-row { color: inherit; text-decoration: none; }
 }
 .kk-dialog::backdrop { background: rgb(0 0 0 / 0.6); }
 .kk-dialog:focus { outline: none; }
-.kk-dialog h2 { font-family: var(--font-body); font-size: 20px; font-weight: 400; letter-spacing: 0; text-transform: none; line-height: normal; margin: 0 0 15.6px; }
+.kk-dialog h2 { font-family: var(--font-body); font-size: calc(20px * var(--kk-ts)); font-weight: 400; letter-spacing: 0; text-transform: none; line-height: normal; margin: 0 0 15.6px; }
 .kk-dialog-body { margin-bottom: 0; line-height: normal; }
 .kk-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0; margin: 4px -12px 0; }
 /* Button bar buttons: theme font (Pixelify Sans) 14 sp caps in the accent colour, flat. */
@@ -525,7 +531,7 @@ a.kk-row { color: inherit; text-decoration: none; }
   background: transparent;
   color: var(--color-accent);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: calc(14px * var(--kk-ts));
   letter-spacing: 0;
   text-transform: uppercase;
   cursor: pointer;

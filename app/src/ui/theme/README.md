@@ -14,8 +14,19 @@ The KanjiKodama theme (light and dark) as CSS custom properties. `index.css` imp
 - **Fonts** (bundled, OFL, licenses in `public/licenses/`): `--font-body` Pixelify Sans (body Latin),
   `--font-display` Silkscreen (headings, buttons, counters, tabs), `--font-ja` the system CJK font
   (Hiragino on Apple, Noto Sans CJK on Android). Japanese text: mark it `lang="ja"` (or class
-  `ja`); both Latin stacks fall back to `--font-ja`. Zen Maru Gothic stays bundled (About, licence)
-  but nothing draws with it.
+  `ja`); both Latin stacks fall back to `--font-ja`. DotGothic16 and Zen Maru Gothic are the other
+  body fonts (Display settings → Text size and font, `ui_font`): `data-ui-font` on `<html>` swaps
+  `--font-body` in every theme (tokens.css); their line metrics are overridden to Pixelify Sans's 1.2 em
+  line (fonts.css). Ligatures are off everywhere (base.css): Pixelify Sans and DotGothic16 draw "fi" as
+  one glyph.
+- **Text size** (`text_size`, 85 to 150 %): `data-text-size` on `<html>` sets `--kk-ts` (tokens.css).
+  Write every text size as `calc(<px> * var(--kk-ts))` (the `--text-*` tokens already are), and line
+  heights or box heights in px that hold text the same way. Kept at their size: the quiz's question
+  view, type banner, answer field, quick-action and Anki buttons (session.css above "Session fragment
+  slides"), the lesson navigation (`--kk-ts: 1` on `.kk-lesson-nav`), big glyph tiles (item title tile,
+  browse cards, SRS counts), the timeline chart; the toolbar title grows at most to 115 %. A JS size
+  (pitch diagrams) multiplies by `textScale(prefs)` (appearance.ts). `test/e2e/text-size.spec.ts`
+  checks the screens at 85 % and 150 % in each font.
 
 ## Tokens
 

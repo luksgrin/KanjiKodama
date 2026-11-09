@@ -124,3 +124,8 @@ button.kk-pref:focus-visible { outline: 2px solid var(--color-accent); outline-o
 @media (max-width: 359px) {
   .kk-pref, .kk-pref-category-title, .kk-pref-page { padding-left: 56px; }
 }
+
+/* Text size 130 % and up (Display settings → Text size and font): the empty icon column gives its room to
+   the text. */
+:root[data-text-size="130"] :is(.kk-pref, .kk-pref-category-title, .kk-pref-page),
+:root[data-text-size="150"] :is(.kk-pref, .kk-pref-category-title, .kk-pref-page) { padding-left: 16px; }

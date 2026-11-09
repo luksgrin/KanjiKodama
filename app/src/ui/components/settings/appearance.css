@@ -1,0 +1,58 @@
+/* AppearancePicker: the preview in a panel, then two radio lists (the dialog lists' look: a 20 px ring,
+   the accent dot when chosen). Tokens only. */
+.kk-appearance { color: var(--color-text); }
+.kk-appearance-preview {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-pixel) solid var(--color-divider);
+  border-radius: var(--radius-md);
+  font-size: var(--text-lg);
+  line-height: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.kk-appearance-heading {
+  margin: var(--space-4) 0 var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-accent);
+}
+.kk-appearance-list { list-style: none; margin: 0; padding: 0; }
+.kk-appearance-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-1);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.kk-appearance-choice:active { background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+.kk-appearance-choice:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.kk-appearance-choice-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--space-3); }
+.kk-appearance-choice-label { font-size: var(--text-md); line-height: normal; overflow-wrap: anywhere; }
+.kk-appearance-choice-detail { font-size: var(--text-sm); color: var(--color-text-muted); overflow-wrap: anywhere; }
+.kk-appearance-radio {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-control-normal);
+  display: grid;
+  place-items: center;
+}
+.kk-appearance-choice[aria-checked="true"] .kk-appearance-radio { border-color: var(--color-accent); }
+.kk-appearance-choice[aria-checked="true"] .kk-appearance-radio::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}

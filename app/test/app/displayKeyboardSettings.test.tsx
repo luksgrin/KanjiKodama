@@ -73,7 +73,7 @@ describe('Display settings', () => {
   it('lists the rows in order with their defaults', async () => {
     const { el, app } = await render('/settings?screen=display_settings');
     expect(rowTitles(el)).toEqual([
-      'Light Theme', 'Dark Theme', 'Theme Customisation', 'Center caret in quiz answer box', 'Vertical size of the Anki mode buttons',
+      'Text size and font', 'Light Theme', 'Dark Theme', 'Theme Customisation', 'Center caret in quiz answer box', 'Vertical size of the Anki mode buttons',
       'Fix height of main quiz question view', 'Swap the correct/incorrect Anki mode buttons',
       'Use slide animations to transition between quiz questions',
       'Stretch the question view to fill the screen when keyboard input is active',

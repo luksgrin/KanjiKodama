@@ -27,6 +27,8 @@ Written by other screens or by the app itself.
 |---|---|
 | `kanjikodama_server_mode` | Server mode on/off (Progress → Server connection). Default false: local (offline). |
 | `api_base_url` | The WaniKani-compatible server's base URL (Progress → Server connection). |
+| `text_size` | Display settings → Text size and font: the app's text size in percent, `85`, `100` (default), `115`, `130` or `150`. Scales every text except the quiz's question, answer field and buttons (and big glyph tiles); the Font settings sizes are multiplied by it. |
+| `ui_font` | Display settings → Text size and font: the body font, `PIXELIFY_SANS` (default: the theme's own font), `DOTGOTHIC16` or `ZEN_MARU_GOTHIC` (then used in every theme). Toolbar and menus keep Silkscreen; Japanese text, the quiz question and the subject glyphs keep their fonts. |
 | `selected_fonts` | Quiz fonts chosen in Font settings → Select fonts (JSON list). |
 | `theme_customizations_<THEME>` | Per-theme colour overrides from Theme customisation (JSON). |
 | `anki_mode_lesson` / `_review` / `_self_study` | Older whole-session Anki switches (advanced); the per-meaning/reading keys replaced them on the screen. |

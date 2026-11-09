@@ -40,6 +40,8 @@ it online. Moving to another phone? Save your progress to a file on the old one
   how reliable that sound is, and its other kanji in the same sound family.
 - 🖌️ **Stroke order and pitch accent,** plus an Anki-style self-grading mode, self-study
   sessions, star ratings and plenty of display and keyboard settings.
+- 🔎 **Easy on the eyes.** Make the text up to 150 % bigger, or switch from the pixel font to
+  DotGothic16 or the smooth Zen Maru Gothic (Settings → Display settings → Text size and font).
 - 🗾 **Two paths.** Follow WaniKani's 60 levels, or switch to JLPT order (N5 → N1). JLPT order
   includes 259 kanji WaniKani never taught, a placement test, and "fast travel" to jump ahead.
 - 💾 **Your data, your way.** Save and restore progress as a file (Google Drive works too), import
@@ -55,7 +57,7 @@ KanjiKodama is made by [luksgrin](https://github.com/luksgrin), with infinite th
 Flaming Durtles by Ernst Jan Plugge, on which it is based (both Apache License 2.0, see
 [NOTICE](NOTICE)). Lesson content comes from [WaniKani](https://www.wanikani.com/);
 open data from EDRDG (KANJIDIC2, KRADFILE, JMdict) and KanjiVG; fonts Silkscreen,
-Pixelify Sans and Zen Maru Gothic (SIL Open Font License). The app's About screen lists everything.
+Pixelify Sans, DotGothic16 and Zen Maru Gothic (SIL Open Font License). The app's About screen lists everything.
 
 KanjiKodama is not affiliated with or endorsed by Tofugu or WaniKani.
 

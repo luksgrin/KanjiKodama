@@ -287,6 +287,7 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
     id: 'display_settings',
     title: 'Display settings',
     rows: [
+      { type: 'action', key: 'appearance', title: 'Text size and font', summary: 'Bigger or smaller text, and an easier-to-read font' },
       list(LIGHT_THEME_KEY, 'Light Theme', THEME_OPTIONS, DEFAULT_LIGHT_THEME, { entrySummary: '%s theme is currently selected' }),
       list(DARK_THEME_KEY, 'Dark Theme', THEME_OPTIONS, DEFAULT_DARK_THEME, { entrySummary: '%s is used in system wide dark mode' }),
       { type: 'action', key: 'theme_customization', title: 'Theme Customisation', summary: 'Customise colors in the current theme' },

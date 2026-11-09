@@ -13,7 +13,7 @@
   z-index: 2;
   color: #000;
 }
-.kk-kbhelp-banner-text { margin: 0; padding: calc(8px + var(--fp-top)) 8px var(--fp-bottom); font-size: 16px; }
+.kk-kbhelp-banner-text { margin: 0; padding: calc(8px + var(--fp-top)) 8px var(--fp-bottom); font-size: calc(16px * var(--kk-ts)); }
 .kk-kbhelp-banner-actions { display: flex; justify-content: space-between; }
 .kk-kbhelp-banner-btn {
   appearance: none;
@@ -25,7 +25,7 @@
   background: none;
   color: var(--color-primary-dark);
   font: inherit;
-  font-size: 14px;
+  font-size: calc(14px * var(--kk-ts));
   font-weight: var(--font-button-weight, 400);
   text-transform: uppercase;
   cursor: pointer;

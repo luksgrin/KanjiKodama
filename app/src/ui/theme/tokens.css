@@ -124,7 +124,8 @@
   --color-anki-answer-bg: #909000;
 
   /* Fonts: pixel for Latin; Japanese in the system CJK font (Pixelify Sans/Silkscreen fall back to it,
-     Noto Sans CJK on Android; the bundled Zen Maru Gothic is not used). */
+     Noto Sans CJK on Android). DotGothic16 / Zen Maru Gothic replace --font-body when chosen (below);
+     --font-ja stays the system font, for the kanji's exact shapes. */
   --font-ja: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
   --font-body: 'Pixelify Sans', var(--font-ja);
   --font-display: 'Silkscreen', var(--font-ja);
@@ -132,13 +133,16 @@
      centring, the CJK face for the outlines (fonts.css). */
   --font-glyph: 'KK Android Metrics', var(--font-ja);
 
-  /* Type scale (13/14/16/20/26/34 px) */
-  --text-xs: 13px;
-  --text-sm: 14px;
-  --text-md: 16px;
-  --text-lg: 20px;
-  --text-xl: 26px;
-  --text-xxl: 34px;
+  /* Text size (Display settings, `text_size`; data-text-size below sets it, 0.85 to 1.5). Text sizes are
+     calc(<px> * var(--kk-ts)), except the quiz's question, answer field and buttons. */
+  --kk-ts: 1;
+  /* Type scale (13/14/16/20/26/34 px at 100 %) */
+  --text-xs: calc(13px * var(--kk-ts));
+  --text-sm: calc(14px * var(--kk-ts));
+  --text-md: calc(16px * var(--kk-ts));
+  --text-lg: calc(20px * var(--kk-ts));
+  --text-xl: calc(26px * var(--kk-ts));
+  --text-xxl: calc(34px * var(--kk-ts));
 
   /* Spacing and shape */
   --space-1: 4px;
@@ -405,3 +409,14 @@
   --color-anki-text: #E8E8E8;
   --color-anki-answer-bg: #606000;
 }
+
+/* Display settings → Text size and font (`text_size`, `ui_font`; app/theme.ts sets data-text-size and
+   data-ui-font). The text size factor: */
+:root[data-text-size="85"] { --kk-ts: 0.85; }
+:root[data-text-size="115"] { --kk-ts: 1.15; }
+:root[data-text-size="130"] { --kk-ts: 1.3; }
+:root[data-text-size="150"] { --kk-ts: 1.5; }
+/* The chosen body font in every theme. !important: the other themes put their own --font-body on <html>
+   inline. */
+:root[data-ui-font="DOTGOTHIC16"] { --font-body: 'DotGothic16', var(--font-ja) !important; }
+:root[data-ui-font="ZEN_MARU_GOTHIC"] { --font-body: 'Zen Maru Gothic', var(--font-ja) !important; }

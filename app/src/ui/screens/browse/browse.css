@@ -11,7 +11,7 @@
 }
 /* Search results: the tutorial box has no outer margin (edge to edge under the toolbar). */
 .kk-tip.bleed { margin: 0 0 12px; }
-.kk-tip-text { margin: 0; font-size: 16px; white-space: pre-line; padding: var(--fp-top) 0 var(--fp-bottom); }
+.kk-tip-text { margin: 0; font-size: calc(16px * var(--kk-ts)); white-space: pre-line; padding: var(--fp-top) 0 var(--fp-bottom); }
 .kk-tip-actions { display: flex; }
 .kk-tip-btn {
   appearance: none;
@@ -22,7 +22,7 @@
   background: none;
   color: var(--color-toolbar-bg);
   font: inherit;
-  font-size: 14px;
+  font-size: calc(14px * var(--kk-ts));
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -43,7 +43,7 @@
   margin: 0;
   padding-top: 8px;
   font-family: var(--font-body);
-  font-size: 20px;
+  font-size: calc(20px * var(--kk-ts));
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -66,15 +66,16 @@
 .kk-browse-level {
   appearance: none;
   min-width: 0;
-  /* setPadding(6 dp); 16 sp text: 31 px tall. */
+  /* setPadding(6 dp); 16 sp text: 31 px tall (also at a smaller text size). */
   padding: 6px 0;
+  min-height: 31px;
   line-height: 1.17; /* Pixelify Sans at 16 sp on Android: 49 device px at 420 dpi */
   border: 0;
   border-radius: 0;
   background: var(--kk-bar);
   color: var(--kk-muted);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   text-align: center;
   /* shadowDx/Dy/Radius 1/1/3 device pixels. */
   text-shadow: var(--text-shadow-3px);
@@ -92,15 +93,15 @@
   --edit-line: var(--color-edit-line);
   --edit-line-w: 1px;
   box-sizing: border-box;
-  height: 43px;
+  height: calc(18px + 25px * max(var(--kk-ts), 1)); /* never below 43 px (a tap target) */
   margin: 0;
   padding: 7px 4px 11px;
   border: 0;
   border-radius: 0;
   background: linear-gradient(var(--edit-line), var(--edit-line)) no-repeat 4px calc(100% - 10px - var(--edit-line-w) + 1px) / calc(100% - 8px) var(--edit-line-w);
   font: inherit;
-  font-size: 18px;
-  line-height: 25px;
+  font-size: calc(18px * var(--kk-ts));
+  line-height: calc(25px * var(--kk-ts));
   color: var(--color-text);
   min-height: 0;
   min-width: 0;
@@ -114,6 +115,7 @@
 .kk-dialog .kk-preset-name:focus { --edit-line: var(--color-accent); --edit-line-w: 2px; outline: none; }
 .kk-browse-query { display: flex; align-items: baseline; margin-top: 8px; } /* LinearLayout baselineAligned */ /* the field's 4 dp inset is the gap to Search */
 .kk-browse-query input { flex: 1 1 auto; }
+.kk-browse-query > .kk-btn { flex: none; }
 
 /* Advanced search form: a two-column table whose columns shrink to fit (tableColumns.ts sets them).
    Labels with 4 px end margin; text fields 18 px, 2 / 4 characters wide (34.7 / 77 px underline
@@ -128,7 +130,7 @@
   margin-top: 8px;
   color: var(--color-text);
 }
-.kk-adv-label { margin-right: 4px; font-size: 16px; line-height: 1.21; min-width: 0; overflow-wrap: break-word; }
+.kk-adv-label { margin-right: 4px; font-size: calc(16px * var(--kk-ts)); line-height: 1.21; min-width: 0; overflow-wrap: break-word; }
 .kk-adv-value { min-width: 0; display: flex; align-items: center; }
 .kk-table-measure .kk-adv-label { white-space: nowrap; }
 .kk-adv-group { grid-column: 1 / -1; margin-top: 16px; }
@@ -136,10 +138,15 @@
 .kk-adv-switch-cell { align-self: center; }
 .kk-adv-button { justify-self: start; }
 .kk-adv-button.bottom { margin-top: 16px; }
-.kk-search-range { display: flex; align-items: center; min-width: 0; font-size: 16px; }
+/* A larger text size (Display settings → Text size and font): one column, each label above its field
+   (!important: tableColumns.ts sets the two columns inline). */
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-advanced-search { grid-template-columns: minmax(0, 1fr) !important; }
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-adv-switch-label { justify-self: start; text-align: left; }
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-adv-label:not(.kk-adv-group) { margin-top: 8px; }
+.kk-search-range { display: flex; align-items: center; min-width: 0; font-size: calc(16px * var(--kk-ts)); }
 .kk-adv-dash { margin: 0; }
-.kk-advanced-search input.kk-search-number.ems2 { width: 42.7px; } /* 34.7 dp underline + insets */
-.kk-advanced-search input.kk-search-number.ems4 { width: 85px; }
+.kk-advanced-search input.kk-search-number.ems2 { width: calc(34.7px * max(var(--kk-ts), 1) + 8px); } /* 34.7 dp underline + insets */
+.kk-advanced-search input.kk-search-number.ems4 { width: calc(77px * max(var(--kk-ts), 1) + 8px); }
 
 /* SwitchCompat (WK.Switch.Normal): the 20 dp thumb on the 23 x 14 dp track, 27 dp row. */
 .kk-adv-switch { position: relative; display: inline-flex; align-items: center; height: 27px; padding: 0 11px 0 8px; cursor: pointer; }
@@ -163,13 +170,13 @@
   -webkit-appearance: none;
   appearance: none;
   box-sizing: border-box;
-  height: 28px;
+  height: calc(28px * max(var(--kk-ts), 1));
   margin: 0;
   padding: 0 50px 0 4px;
   border: 0;
   border-radius: 0;
   font: inherit;
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   color: var(--color-text);
   background-color: transparent;
   background-image: linear-gradient(45deg, transparent 50%, var(--color-edit-line) 50%), linear-gradient(135deg, var(--color-edit-line) 50%, transparent 50%);
@@ -196,7 +203,7 @@
   margin-top: calc(-1 * var(--main-gutter));
   background: var(--color-bg);
 }
-.kk-num-hits { margin: 4px 8px; font-size: 20px; color: var(--color-text); }
+.kk-num-hits { margin: 4px 8px; font-size: calc(20px * var(--kk-ts)); color: var(--color-text); }
 .kk-results-form { padding: 0 8px 8px; }
 
 .kk-result-header {
@@ -206,6 +213,7 @@
   align-items: center;
   margin: 2px 0;
   padding: 6px 8px 6px 8px;
+  min-height: 40px; /* a smaller text size keeps the tap target */
   border: 0;
   background: var(--color-surface);
   color: var(--color-text);
@@ -215,8 +223,11 @@
 }
 .kk-result-header.sub { padding-left: 24px; }
 .kk-result-arrow { flex: 0 0 auto; fill: var(--color-text); }
-.kk-result-header-title { flex: 0 1 auto; margin-left: 16px; font-size: 26px; line-height: 1.2; overflow-wrap: break-word; min-width: 0; }
-.kk-result-header-details { flex: 1 1 0; margin: 0 0 0 16px; font-size: 16px; text-align: right; min-width: 0; }
+.kk-result-header-title { flex: 0 1 auto; margin-left: 16px; font-size: calc(26px * var(--kk-ts)); line-height: 1.2; overflow-wrap: break-word; min-width: 0; }
+.kk-result-header-details { flex: 1 1 0; margin: 0 0 0 16px; font-size: calc(16px * var(--kk-ts)); text-align: right; min-width: 0; }
+/* A larger text size: the details go under the title when both don't fit on one line. */
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-result-header { flex-wrap: wrap; }
+:root:is([data-text-size="115"], [data-text-size="130"], [data-text-size="150"]) .kk-result-header-details { flex: 1 0 auto; max-width: calc(100% - 16px); }
 
 .kk-result-grid { display: grid; gap: 0; }
 .kk-card-cell { min-width: 0; }
@@ -255,8 +266,8 @@
 .kk-card-progress { display: block; color: var(--card-ink); text-shadow: var(--color-card-ink-shadow); min-width: 0; padding: calc(1.1px + var(--fp-top)) 0 calc(1.1px + var(--fp-bottom)); }
 /* ^ includeFontPadding: every single-line TextView is ~2.2 dp taller than its line (measured). */
 .kk-card-meaning { margin-top: 4px; white-space: nowrap; overflow: hidden; line-height: 1.21; }
-.kk-card-reading { font-family: var(--font-ja); font-size: 16px; line-height: 1.21; word-break: keep-all; overflow-wrap: anywhere; }
-.kk-card-progress { font-size: 14px; line-height: 1.21; overflow-wrap: break-word; }
+.kk-card-reading { font-family: var(--font-ja); font-size: calc(16px * var(--kk-ts)); line-height: 1.21; word-break: keep-all; overflow-wrap: anywhere; }
+.kk-card-progress { font-size: calc(14px * var(--kk-ts)); line-height: 1.21; overflow-wrap: break-word; }
 
 .kk-card.wide { flex-direction: row; align-items: center; text-align: right; }
 .kk-card.wide .kk-card-chars { margin: 0 0 0 4px; flex: 0 1 auto; text-align: left; overflow-wrap: normal; word-break: keep-all; }

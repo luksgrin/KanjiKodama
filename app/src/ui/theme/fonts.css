@@ -1,8 +1,9 @@
 /*
  * Bundled fonts only (no network), all SIL OFL 1.1; licenses in public/licenses/:
- * - Pixelify Sans: body text (Latin)                     OFL-pixelifysans.txt
- * - Silkscreen 400/700: headings, buttons, counters      OFL-silkscreen.txt
- * - Zen Maru Gothic Medium: bundled but not used (Japanese is the system font)
+ * - Pixelify Sans: body text (Latin)                          OFL-pixelifysans.txt
+ * - Silkscreen 400/700: headings, buttons, counters           OFL-silkscreen.txt
+ * - Zen Maru Gothic Medium: body text when chosen (ui_font)   OFL-zenmarugothic.txt
+ * - DotGothic16: body text when chosen (ui_font)              OFL-dotgothic16.txt
  */
 @font-face {
   font-family: 'Pixelify Sans';
@@ -49,9 +50,26 @@
   descent-override: 26.190%;
   line-gap-override: 0%;
 }
+/* The other body fonts (Display settings → Text size and font, ui/theme/appearance.ts). Both have tall
+   line metrics (1.16 + 0.288 em: a 1.45 em "normal" line); these overrides give them Pixelify Sans's
+   1.2 em line, the 0.88 / 0.12 em glyph box centred in it, so a layout keeps its line heights whichever
+   font is chosen. Only their medium / regular weight is bundled: declared 400–500 so bold is
+   synthesised, as Pixelify Sans's is. */
 @font-face {
   font-family: 'Zen Maru Gothic';
   src: url('../../assets/fonts/zen_maru_gothic_medium.ttf') format('truetype');
-  font-weight: 100 900;
+  font-weight: 400 500;
   font-display: block;
+  ascent-override: 98%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'DotGothic16';
+  src: url('../../assets/fonts/dotgothic16_regular.ttf') format('truetype');
+  font-weight: 400 500;
+  font-display: block;
+  ascent-override: 98%;
+  descent-override: 22%;
+  line-gap-override: 0%;
 }

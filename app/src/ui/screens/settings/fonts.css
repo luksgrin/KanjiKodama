@@ -49,7 +49,7 @@
   min-height: 48px;
   padding: 0 16px;
   font-family: var(--font-body); /* Widget.AppCompat.Button.Borderless: 14 sp, all caps, the theme's font */
-  font-size: 14px;
+  font-size: calc(14px * var(--kk-ts));
   text-transform: uppercase;
   cursor: pointer;
 }

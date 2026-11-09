@@ -448,9 +448,11 @@
   padding: var(--space-1) var(--space-1) 0;
   background: var(--color-bg);
 }
+/* The buttons and n/m keep their size at every text size (quiz buttons, ui/theme/appearance.ts). */
+.kk-lesson-nav { --kk-ts: 1; }
 .kk-lesson-nav > .kk-btn { flex: none; } /* 52 px buttons */
 .kk-lesson-space { flex: 1 1 0; }
-.kk-lesson-nav .kk-lesson-progress { font-family: var(--font-body); font-size: 16px; text-align: center; }
+.kk-lesson-nav .kk-lesson-progress { font-family: var(--font-body); font-size: calc(16px * var(--kk-ts)); text-align: center; }
 .kk-lesson .kk-quiz-info { padding: var(--space-2); }
 
 /* Session log. */
@@ -471,7 +473,7 @@
   min-height: 44px;
   padding: 0 var(--space-2);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -499,7 +501,7 @@
   border-top: 7px solid var(--color-text);
 }
 .kk-log-arrow.collapsed { border-top: 0; border-bottom: 7px solid var(--color-text); }
-.kk-log-title { margin-left: var(--space-4); font-size: clamp(19px, 6.5vw, 26px); line-height: 1.15; min-width: 0; }
+.kk-log-title { margin-left: var(--space-4); font-size: calc(clamp(19px, 6.5vw, 26px) * var(--kk-ts)); line-height: 1.15; min-width: 0; }
 .kk-log-details { flex: 1 0 auto; margin: 0 var(--space-2) 0 var(--space-4); text-align: end; white-space: nowrap; }
 .kk-log-list { list-style: none; margin: 0; padding: 0; }
 .kk-log-item {
@@ -523,9 +525,9 @@
   text-align: start;
 }
 button.kk-log-row { cursor: pointer; }
-.kk-log-chars { text-shadow: var(--text-shadow-3px); flex: none; margin-left: 4px; font-family: var(--font-ja); font-size: 24px; }
-.kk-log-unknown { margin-left: 12px; font-family: var(--font-body); font-weight: 700; font-size: 26px; }
-.kk-log-status { flex: 1; display: flex; flex-direction: column; align-items: flex-end; text-align: end; font-size: 14px; }
+.kk-log-chars { text-shadow: var(--text-shadow-3px); flex: none; margin-left: 4px; font-family: var(--font-ja); font-size: calc(24px * var(--kk-ts)); }
+.kk-log-unknown { margin-left: 12px; font-family: var(--font-body); font-weight: 700; font-size: calc(26px * var(--kk-ts)); }
+.kk-log-status { flex: 1; display: flex; flex-direction: column; align-items: flex-end; text-align: end; font-size: calc(14px * var(--kk-ts)); }
 
 /* SessionDialog's overlay: the scrim over the whole app, the dialog centred. */
 .kk-sdialog-layer {
@@ -551,14 +553,14 @@ button.kk-log-row { cursor: pointer; }
   gap: var(--space-2);
   margin: 0 0 15.6px;
   font-family: var(--font-body);
-  font-size: 20px;
+  font-size: calc(20px * var(--kk-ts));
   line-height: normal;
   font-weight: 500;
   letter-spacing: normal;
   text-transform: none;
 }
 .kk-sdialog-icon { flex: none; color: #FF0000; } /* ic_baseline_warning_24px fillColor */
-.kk-sdialog-message { margin: 0; font-size: 16px; line-height: normal; }
+.kk-sdialog-message { margin: 0; font-size: calc(16px * var(--kk-ts)); line-height: normal; }
 .kk-sdialog-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0; margin: 4px -12px 0; }
 .kk-sdialog-spacer { display: none; }
 .kk-sdialog-btn.neutral { margin-right: auto; }
@@ -572,7 +574,7 @@ button.kk-log-row { cursor: pointer; }
   background: transparent;
   color: var(--color-accent);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: calc(14px * var(--kk-ts));
   letter-spacing: 0;
   text-transform: uppercase;
   cursor: pointer;
@@ -587,7 +589,7 @@ button.kk-log-row { cursor: pointer; }
 .kk-check-grid { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
 .kk-check-grid label { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 36px; }
 .kk-num-pair { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
-.kk-num-pair input { width: 6em; min-height: 40px; font-size: 16px; padding: 0 var(--space-2); border: 2px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); }
+.kk-num-pair input { width: 6em; min-height: 40px; font-size: calc(16px * var(--kk-ts)); padding: 0 var(--space-2); border: 2px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); }
 
 
 /* Summary: 8 px padding; Show items · Finish at the top right; the correct /
@@ -596,19 +598,19 @@ button.kk-log-row { cursor: pointer; }
 .kk-summary-buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0 var(--space-1); }
 .kk-summary-buttons > .kk-btn { --kk-btn-h: 48px; padding-left: 19px; padding-right: 19px; }
 .kk-summary-progress { display: block; width: 100%; margin-top: var(--space-1); }
-.kk-summary-table { width: 100%; margin-top: var(--space-4); border-collapse: collapse; font-size: 16px; }
+.kk-summary-table { width: 100%; margin-top: var(--space-4); border-collapse: collapse; font-size: calc(16px * var(--kk-ts)); }
 .kk-summary-table.correct { background: var(--color-answer-correct); }
 .kk-summary-table.incorrect { background: var(--color-answer-incorrect); }
 .kk-summary-table th { width: 1%; padding: 3px 0 3px 4px; font-weight: 400; text-align: right; white-space: nowrap; }
 .kk-summary-table td { padding: 3px 4px 3px 2px; text-align: left; }
 .kk-summary-resurrect { margin-top: var(--space-4); }
-.kk-summary-header { margin: var(--space-4) 0 var(--space-1); font-family: var(--font-body); font-size: 16px; font-weight: 700; letter-spacing: normal; text-transform: none; color: var(--color-text); }
+.kk-summary-header { margin: var(--space-4) 0 var(--space-1); font-family: var(--font-body); font-size: calc(16px * var(--kk-ts)); font-weight: 700; letter-spacing: normal; text-transform: none; color: var(--color-text); }
 .kk-summary-stars { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
-.kk-summary-stars select { min-height: 40px; font-size: 16px; }
+.kk-summary-stars select { min-height: 40px; font-size: calc(16px * var(--kk-ts)); }
 .kk-summary-progress-section { margin-top: var(--space-4); }
 
 /* Self-study start. */
-.kk-self-study-header { margin: var(--space-2) 0 var(--space-1); font-family: var(--font-body); font-size: 20px; font-weight: 400; letter-spacing: normal; text-transform: none; color: var(--color-text); }
+.kk-self-study-header { margin: var(--space-2) 0 var(--space-1); font-family: var(--font-body); font-size: calc(20px * var(--kk-ts)); font-weight: 400; letter-spacing: normal; text-transform: none; color: var(--color-text); }
 .kk-self-study-presets { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-1); }
 .kk-self-study-presets > .kk-btn { --kk-btn-h: 48px; }
 .kk-self-study-divider { border: 0; border-top: 1px solid var(--color-divider); margin: var(--space-2) 0; }

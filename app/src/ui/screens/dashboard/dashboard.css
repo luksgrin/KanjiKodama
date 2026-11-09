@@ -8,7 +8,7 @@
 .kk-upcoming p {
   margin: 0;
   padding: var(--fp-top) 0 var(--fp-bottom);
-  font-size: 16px;
+  font-size: calc(16px * var(--kk-ts));
   text-align: center;
   color: var(--color-text);
 }
@@ -25,11 +25,11 @@
 }
 .kk-dashboard > .kk-available { margin-top: 4px; }
 .kk-available-item { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
-.kk-available-label { font-size: 20px; padding: var(--fp-top) 0 var(--fp-bottom); }
+.kk-available-label { font-size: calc(20px * var(--kk-ts)); padding: var(--fp-top) 0 var(--fp-bottom); }
 /* From 360px wide: labels 26px. */
-@media (min-width: 360px) { .kk-available-label { font-size: 26px; } }
-.kk-available-count { font-size: 34px; line-height: normal; }
-.kk-available-count.small { font-size: 30px; }
+@media (min-width: 360px) { .kk-available-label { font-size: calc(26px * var(--kk-ts)); } }
+.kk-available-count { font-size: calc(34px * var(--kk-ts)); line-height: normal; }
+.kk-available-count.small { font-size: calc(30px * var(--kk-ts)); }
 
 /* Session buttons: one centred row, 10px side margins, 8px above/below. */
 .kk-session-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 12px; margin: 8px 0; }
@@ -84,7 +84,7 @@
   position: absolute;
   top: 8px;
   left: 12px;
-  font-size: 13px;
+  font-size: calc(13px * var(--kk-ts));
   white-space: nowrap;
 }
 .kk-srs-count {
@@ -102,13 +102,13 @@
 .kk-srs-tile.enlightened { background: var(--color-stage-enlightened); }
 .kk-srs-tile.burned { background: var(--color-stage-burned); }
 /* Below ~300px a tile can't hold "Enlightened" at 13px beside the 12dp margin: shrink the margin. */
-@media (max-width: 340px) { .kk-srs-name { left: 6px; font-size: 12px; } }
+@media (max-width: 340px) { .kk-srs-name { left: 6px; font-size: calc(12px * var(--kk-ts)); } }
 /* From 480px wide: the five tiles in one row, 72 px high, 32 px counts, 11 px names. */
 @media (min-width: 480px) {
   .kk-dash-panel.kk-srs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .kk-srs-tile { height: 72px; }
   .kk-srs-count { font-size: 32px; line-height: 72px; }
-  .kk-srs-name { top: 4px; left: 4px; font-size: 11px; }
+  .kk-srs-name { top: 4px; left: 4px; font-size: calc(11px * var(--kk-ts)); }
 }
 
 /* Level progression: tile background, bar left (24dp), label right (Small 14sp). */
@@ -119,7 +119,7 @@
   .kk-lp > * { grid-column: 1 / -1; }
   .kk-lp > .kk-lp-row { display: grid; grid-template-columns: subgrid; align-items: center; }
 }
-.kk-lp-title { font-weight: 700; font-size: 16px; text-align: center; padding: 2px; }
+.kk-lp-title { font-weight: 700; font-size: calc(16px * var(--kk-ts)); text-align: center; padding: 2px; }
 .kk-lp-row {
   appearance: none;
   display: flex;
@@ -138,10 +138,10 @@
 .kk-lp-bar { position: relative; flex: 1 1 auto; display: flex; height: 24px; margin-left: 8px; min-width: 0; }
 .kk-lp-bar > span { display: block; min-width: 1px; }
 .kk-lp-target { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--color-target); }
-.kk-lp-label { flex: 0 0 auto; margin: 0 8px 0 6px; font-size: 14px; white-space: nowrap; }
+.kk-lp-label { flex: 0 0 auto; margin: 0 8px 0 6px; font-size: calc(14px * var(--kk-ts)); white-space: nowrap; }
 .kk-lp-title + .kk-lp-row { margin-top: -4px; }
 .kk-lp-row + .kk-lp-legend { margin-top: -4px; }
-.kk-lp-legend { display: flex; flex-wrap: wrap; align-items: center; font-size: 13px; row-gap: 2px; }
+.kk-lp-legend { display: flex; flex-wrap: wrap; align-items: center; font-size: calc(13px * var(--kk-ts)); row-gap: 2px; }
 .kk-lp-legend i { display: inline-block; width: 8px; height: 8px; }
 .kk-lp-legend i.first { margin: 0 4px 0 8px; }
 .kk-lp-legend i.gap { margin-left: 4px; }
@@ -169,6 +169,7 @@
   /* 4 px margins around a 16 px line (Japanese face: 24 px): 32 px rows, 4 px apart (below the 40 px
      tap floor, e2e exemption in test/e2e/helpers/app.ts). */
   line-height: 1.5;
+  min-height: 32px; /* also at a smaller text size */
 }
 .kk-subject-row.radical { background: var(--color-radical); }
 .kk-subject-row.kanji { background: var(--color-kanji); }
@@ -177,7 +178,7 @@
 .kk-subject-row-extra { flex: 0 0 auto; margin-left: 8px; text-align: right; }
 
 /* JLPT / Joyo / lesson-review breakdown tables. */
-.kk-stage-table { display: table; width: calc(100% - 4px); border-collapse: separate; border-spacing: 0 2px; font-size: 16px; }
+.kk-stage-table { display: table; width: calc(100% - 4px); border-collapse: separate; border-spacing: 0 2px; font-size: calc(16px * var(--kk-ts)); }
 .kk-stage-table caption { font-weight: 700; text-align: center; padding: 4px; caption-side: top; }
 .kk-stage-table th { font-weight: 700; padding: 0 4px; text-align: center; }
 .kk-stage-table td { padding: 0 4px; text-align: center; }

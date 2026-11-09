@@ -185,7 +185,7 @@ export function ItemPage({
   const swap = swapSimilarAndAmalgamations(settings);
 
   return (
-    <article className={`kk-item kk-item--${subject.object}`} style={{ fontSize }} data-subject-id={subject.id}>
+    <article className={`kk-item kk-item--${subject.object}`} style={{ fontSize: `calc(${fontSize}px * var(--kk-ts))` }} data-subject-id={subject.id}>
       <Headline
         subject={subject}
         level={level}

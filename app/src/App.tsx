@@ -5,13 +5,17 @@
 import { useEffect } from 'react';
 import type { AppController } from './app/appController';
 import type { HashLocation } from './app/router';
-import { applySlideAnimations, applyTheme, isThemePrefKey, storedThemePrefs, themePrefsFrom } from './app/theme';
+import { appearanceFrom, applyAppearance, applySlideAnimations, applyTheme, isThemePrefKey, storedThemePrefs, themePrefsFrom } from './app/theme';
+import { TEXT_SIZE_KEY, UI_FONT_KEY } from './ui/theme/appearance';
 import { setAnswerKeyboardPrefs } from './platform/answerKeyboard';
 import { AppProvider, useAppState } from './ui/hooks/useApp';
 import { RouterProvider } from './ui/hooks/useRoute';
 import { AppShell } from './ui/shell/AppShell';
 
-/** Light / Dark Theme and their customisations (app/theme.ts), re-applied when the system switches. */
+/**
+ * Light / Dark Theme and their customisations (app/theme.ts), re-applied when the system switches; the
+ * slide animations, text size and font.
+ */
 function ThemeSync() {
   const state = useAppState();
   const prefs = state.prefs;
@@ -29,6 +33,12 @@ function ThemeSync() {
     return () => mq.removeEventListener('change', onChange);
   }, [key]);
   useEffect(() => applySlideAnimations({ slide_animations: slide }), [slide]);
+  // Text size and font (ui/theme/appearance.ts); until the settings are loaded, main.tsx's remembered ones stay.
+  const textSize = prefs[TEXT_SIZE_KEY];
+  const font = prefs[UI_FONT_KEY];
+  useEffect(() => {
+    if (loaded) applyAppearance(appearanceFrom({ [TEXT_SIZE_KEY]: textSize, [UI_FONT_KEY]: font }));
+  }, [loaded, textSize, font]);
   // Keyboard input settings for the Android answer field's IME flags (platform/answerKeyboard.ts).
   useEffect(() => setAnswerKeyboardPrefs(prefs), [prefs]);
   return null;
