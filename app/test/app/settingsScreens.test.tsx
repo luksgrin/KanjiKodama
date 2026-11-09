@@ -510,6 +510,7 @@ describe('about', () => {
     expect(el.textContent).toContain('Flaming Durtles');
     expect(el.textContent).toContain('KanjiVG');
     expect(el.textContent).toContain('EDRDG');
+    expect($(el, 'about-kanji-dojo')!.querySelector('a')!.getAttribute('href')).toBe('https://github.com/syt0r/Kanji-Dojo');
     expect($(el, 'about-wanikani')).not.toBeNull();
     expect([...$(el, 'about-fonts')!.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toContain('/licenses/OFL-silkscreen.txt');
     expect($(el, 'install-steps')!.textContent).toContain('Add to Home Screen');

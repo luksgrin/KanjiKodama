@@ -84,6 +84,11 @@ export function AboutScreen() {
         KanjiKodama adds a pixel forest look, offline lessons, local level-ups, and parts and sound notes that show how
         phonetic components predict on&apos;yomi readings.
       </p>
+      <p data-testid="about-kanji-dojo">
+        <b>Thank you, <a href="https://github.com/syt0r/Kanji-Dojo" {...ext}>Kanji Dojo</a></b> by syt0r: writing practice,
+        the study garden, search by parts and the pure black theme were inspired by its ideas (written anew for
+        KanjiKodama; no Kanji Dojo code is used).
+      </p>
       {wkContent && (
         <p data-testid="about-wanikani">
           Lesson content is from <a href="https://www.wanikani.com/" {...ext}>WaniKani</a> by{' '}

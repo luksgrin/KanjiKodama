@@ -59,6 +59,10 @@ Flaming Durtles by Ernst Jan Plugge, on which it is based (both Apache License 2
 open data from EDRDG (KANJIDIC2, KRADFILE, JMdict) and KanjiVG; fonts Silkscreen,
 Pixelify Sans, DotGothic16 and Zen Maru Gothic (SIL Open Font License). The app's About screen lists everything.
 
+Thank you also to [Kanji Dojo](https://github.com/syt0r/Kanji-Dojo) by syt0r, whose ideas inspired
+writing practice, the study garden, search by parts and the pure black theme (written anew for
+KanjiKodama; no Kanji Dojo code is used).
+
 KanjiKodama is not affiliated with or endorsed by Tofugu or WaniKani.
 
 Building it yourself, running the tests or making a release: see
