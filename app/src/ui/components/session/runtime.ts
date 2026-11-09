@@ -13,7 +13,8 @@
  * One runtime per app controller (`sessionRuntime(app)`); it resets when the learner object is replaced
  * (a progress restore drops the session) or the mode changes.
  */
-import { closeEnoughMessage, alternativeCandidates, filterAlternatives } from '../../../core/answer/submit';
+import { closeEnoughMessage, alternativeCandidates, filterAlternatives, trimControlChars } from '../../../core/answer/submit';
+import { retryHint, retryHintText } from '../../../core/answer/questionKind';
 import { matchingKanjiLookupCharacters } from '../../../core/answer/matchingKanji';
 import { QUESTION_TYPE_INFO } from '../../../core/answer/questionType';
 import type { AnswerVerdict } from '../../../core/answer/verdict';
@@ -30,6 +31,7 @@ import {
   emptyStoredSession,
   itemFinished,
   levelTestRoundActive,
+  requireOnInKatakana,
   sessionSubject,
   settingsOrdering,
   type Question,
@@ -56,7 +58,8 @@ import { NO_META, loadSession, saveSession, type SessionMeta } from './sessionSt
 /** A short message over the quiz (a toast). */
 export interface SessionToast {
   id: number;
-  kind: 'srs-up' | 'srs-down' | 'close' | 'alternatives' | 'info';
+  /** `retry`: what a shaken answer was and what the question wants (`retryHint`). */
+  kind: 'srs-up' | 'srs-down' | 'close' | 'alternatives' | 'info' | 'retry';
   text: string;
 }
 
@@ -413,6 +416,15 @@ export class SessionRuntime {
     this.floating.toasts = [...this.floating.toasts, { id: ++toastSeq, kind, text }].slice(-3);
   }
 
+  /** After a shake: says what the answer was and what is wanted, replacing the last such toast. */
+  private retryToast(q: Question, subject: ContentSubject, matching: ContentSubject | null): void {
+    const s = this.session;
+    if (s === null) return;
+    const hint = retryHint(q.type, subject, trimControlChars(s.currentAnswer), matching, requireOnInKatakana(this.app.get().prefs));
+    this.floating.toasts = this.floating.toasts.filter((t) => t.kind !== 'retry');
+    if (hint !== null) this.toast('retry', retryHintText(hint));
+  }
+
   /** Drops a toast once shown. */
   dismissToast(id: number): void {
     const before = this.floating.toasts.length;
@@ -484,6 +496,7 @@ export class SessionRuntime {
       this.floating.shownAnswer = s.currentAnswer;
       if (verdict.retry) {
         this.floating.retryCount++;
+        this.retryToast(q, subject, matching);
         return verdict;
       }
       if (!s.answered) return verdict;

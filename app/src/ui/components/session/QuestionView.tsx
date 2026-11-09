@@ -4,10 +4,11 @@
  * button 1 (top right), special button 2 (bottom left), the custom toasts (SRS change, close enough,
  * alternatives), the answered screen's check mark / cross at the right, the subject's characters
  * (inflected when the question has an inflection); below it the question type banner (meaning: white,
- * reading: black, 22 sp) with the question's title. The session menu is in the
- * toolbar (`useSessionMenu`).
+ * reading: black, 22 sp) with the badge of what is asked (`ReadingKindBadge`) and the question's title.
+ * The session menu is in the toolbar (`useSessionMenu`).
  */
 import { useEffect, type ReactNode } from 'react';
+import { questionKind, type QuestionKind } from '../../../core/answer/questionKind';
 import { QUESTION_TYPE_INFO, type QuestionType } from '../../../core/answer/questionType';
 import type { ContentSubject } from '../../../core/content';
 import type { Session } from '../../../core/session';
@@ -23,14 +24,21 @@ import {
   type SessionButtonState,
 } from '../../../core/settings/sessionUi';
 
-/** `Question.getTitle()`: the title with the subject's reading kind when the setting asks for it. */
-export function titleFor(type: QuestionType, subject: ContentSubject, prefs: Preferences): string {
-  return questionTitle(type, indicateKanjiReadingType(prefs) ? kanjiAcceptedReadingType(subject) : null);
-}
 import type { SessionToast } from './runtime';
 import { useQuizFont } from '../../theme/useQuizFont';
 import { useTitleLongPress } from '../subject/TitleActionMode';
 import { SubjectChars, subjectGlyphCount } from '../subject/SubjectChars';
+import { ReadingKindBadge } from './ReadingKindBadge';
+
+/** `Question.getTitle()`: the title with the subject's reading kind when the setting asks for it. */
+export function titleFor(type: QuestionType, subject: ContentSubject, prefs: Preferences): string {
+  return questionTitle(type, indicateKanjiReadingType(prefs) ? kanjiAcceptedReadingType(subject) : null);
+}
+
+/** The banner badge's kind: meaning, on'yomi / kun'yomi / either (when the setting asks for it), reading. */
+export function kindFor(type: QuestionType, subject: ContentSubject, prefs: Preferences): QuestionKind {
+  return questionKind(type, subject, indicateKanjiReadingType(prefs));
+}
 
 /**
  * `QuestionType.getTitle(indicateKanjiReadingType, kanjiAcceptedReadingType)`: the banner and toolbar
@@ -104,11 +112,11 @@ function SrsArrow({ up }: { up: boolean }) {
 
 function Toast({ toast, onDone }: { toast: SessionToast; onDone(id: number): void }) {
   useEffect(() => {
-    const t = setTimeout(() => onDone(toast.id), toast.kind === 'close' ? 5000 : 2750);
+    const t = setTimeout(() => onDone(toast.id), toast.kind === 'close' || toast.kind === 'retry' ? 5000 : 2750);
     return () => clearTimeout(t);
   }, [toast.id, toast.kind, onDone]);
   const arrow = toast.kind === 'srs-up' || toast.kind === 'srs-down' ? <SrsArrow up={toast.kind === 'srs-up'} /> : null;
-  return <div className={`kk-quiz-toast ${toast.kind}`} role="status">{arrow}{arrow !== null ? ' ' : null}{toast.text}</div>;
+  return <div className={`kk-quiz-toast ${toast.kind}`} role="status" data-testid={`quiz-toast-${toast.kind}`}>{arrow}{arrow !== null ? ' ' : null}{toast.text}</div>;
 }
 
 export function QuestionView({
@@ -164,7 +172,8 @@ export function QuestionView({
       </div>
       {questionType !== null && (
         <div className={`kk-quiz-type ${QUESTION_TYPE_INFO[questionType].meaning ? 'meaning' : 'reading'}`} data-testid="question-type">
-          {titleFor(questionType, subject, prefs)}
+          <ReadingKindBadge kind={kindFor(questionType, subject, prefs)} showLabel={false} />
+          <span className="kk-quiz-type-title" data-testid="question-title">{titleFor(questionType, subject, prefs)}</span>
         </div>
       )}
     </>

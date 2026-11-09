@@ -5,6 +5,12 @@ default, title, summary, choices), and `SettingRows.tsx` renders them. Stored ke
 saved settings and settings backups keep working across versions. `app/test/fixtures/settings-layout.json`
 records the screens and their rows in display order; tests check the schema against it.
 
+## Settings that moved
+
+| Key | Change |
+|---|---|
+| `indicate_kanji_reading_type` | Was "Indicate type of reading for kanji quiz" in Other advanced settings, default off and only read with advanced settings on. Now "Show which kind of kanji reading is asked for" in Lesson/review settings, default on, read without advanced settings. Same key and meaning: a value stored as off stays off. See `docs/behaviour.md`, "What the question asks for". |
+
 ## Keys that aren't settings rows
 
 Written by other screens or by the app itself.

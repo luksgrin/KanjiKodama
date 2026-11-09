@@ -11,7 +11,8 @@ export { sessionRuntime, setSessionRuntime, SessionRuntime, type FinishedSession
 export { useActiveSession, useSession, useSessionRuntime } from './useSession';
 export { SessionScreen, sessionPath, type SessionScreenProps } from './SessionScreen';
 export { AnswerField, replayEdit, type AnswerFieldHandle, type AnswerFieldProps } from './AnswerField';
-export { QuestionView, questionHint, questionTitle, titleFor } from './QuestionView';
+export { QuestionView, kindFor, questionHint, questionTitle, titleFor } from './QuestionView';
+export { ReadingKindBadge, type ReadingKindBadgeProps } from './ReadingKindBadge';
 export { Quiz, RichTextView } from './Quiz';
 export { SessionDialog, sessionDialogOpen, type SessionDialogProps } from './SessionDialog';
 export { answerInputAttributes, ankiButtonsHeight, centerCaret, quizQuestionViewHeight, slideAnimations, stretchQuestionView, type AnswerInputAttributes } from './displayPrefs';

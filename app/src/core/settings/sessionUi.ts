@@ -237,9 +237,13 @@ export function uiConfirmWrapupSession(prefs: Preferences): boolean {
   return prefBoolean(prefs, 'ui_confirm_wrapup_session', true);
 }
 
-/** `indicate_kanji_reading_type`, false without `enable_advanced`. */
+/**
+ * `indicate_kanji_reading_type` (Lesson/review settings), default true: a kanji reading question
+ * names the kind of reading its lesson taught (on'yomi / kun'yomi). It used to be an advanced
+ * setting, default false; the key and its meaning are unchanged.
+ */
 export function indicateKanjiReadingType(prefs: Preferences): boolean {
-  return advancedEnabled(prefs) && prefBoolean(prefs, 'indicate_kanji_reading_type', false);
+  return prefBoolean(prefs, 'indicate_kanji_reading_type', true);
 }
 
 /** Which kinds of accepted readings a kanji has. */

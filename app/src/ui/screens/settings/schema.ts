@@ -243,9 +243,6 @@ export const ADVANCED_GROUPS: readonly SettingGroup[] = [
         summary: 'If an incorrect reading is an alternative reading for the kanji, do a shake-and-retry instead of failing',
       })),
       adv(bool('full_session_log', 'Show full session log', false, { summary: 'This may reveal inappropriate hints and answers' })),
-      adv(bool('indicate_kanji_reading_type', 'Indicate type of reading for kanji quiz', false, {
-        summary: "For a kanji reading question, indicate if the question requires an on'yomi or kun'yomi answer",
-      })),
     ],
   },
 ];
@@ -393,6 +390,9 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
       bool('enable_lightning_mode', 'Enable lightning mode', true, { summary: 'Auto-advance to next question on a correct answer' }),
       bool('show_answer_toast', 'Enable a check mark / X animation for a correct / incorrect answer', true),
       bool('enable_srs_indicator', 'Enable SRS indicator', false, { summary: 'Show current SRS stage during reviews' }),
+      bool('indicate_kanji_reading_type', "Show which kind of kanji reading is asked for", true, {
+        summary: "A kanji reading question shows 音 for an on'yomi or 訓 for a kun'yomi answer. Off: just 読 (reading)",
+      }),
       bool('enable_srs_toast', 'Enable SRS up/downgrade toast', true, {
         summary: 'Show a brief notification when an item goes up or down in SRS stage during reviews',
       }),

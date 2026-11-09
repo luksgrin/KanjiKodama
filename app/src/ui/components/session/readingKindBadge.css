@@ -1,0 +1,30 @@
+/*
+ * ReadingKindBadge: what a quiz question asks for (意 meaning, 音 on'yomi, 訓 kun'yomi, 音訓 either,
+ * 読 reading). A glyph tile with a stepped (notched-corner) pixel frame, then the label, both in the
+ * surrounding text colour: it reads on the meaning (light) and reading (dark) banners in every theme,
+ * and on the page elsewhere. No colour of its own, so it never looks like a subject type's colour.
+ */
+.kk-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  flex: none;
+  vertical-align: middle;
+  line-height: 1;
+  white-space: nowrap;
+}
+.kk-kind-badge-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  margin: 2px;
+  padding: 0 0.15em;
+  font-family: var(--font-ja);
+  font-size: 0.82em;
+  font-weight: 700;
+  /* The pixel frame: 2 px on each side, the corners left out. */
+  box-shadow: 0 -2px 0 0 currentColor, 0 2px 0 0 currentColor, -2px 0 0 0 currentColor, 2px 0 0 0 currentColor;
+}
+.kk-kind-badge-label { font-family: var(--font-body); }

@@ -81,6 +81,20 @@ export async function writeReviewSeed(info: TestInfo, seed: ReviewSeed, now = Da
   return { path, due: nRad + nKanji + nVocab, items: rows.length, level: 1 };
 }
 
+/** A learner at the subjects' highest level with exactly these subjects due now (stage 1), nothing else started. */
+export async function writeSubjectsSeed(info: TestInfo, chosen: Subject[], name: string, now = Date.now()): Promise<SeedFile> {
+  const level = Math.max(1, ...chosen.map((s) => s.level));
+  const rows = chosen.map((s) => row(s, 1, now, now - 60_000)).sort((a, b) => a.id - b.id);
+  const file = {
+    format: 'kanjikodama-progress', version: 1, exportedAt: now - HOUR, userLevel: level, levelProgression: [], subjects: rows,
+    curriculum: 'WANIKANI',
+  };
+  const path = info.outputPath(`seed-${name}.json`);
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, JSON.stringify(file, null, 1));
+  return { path, due: rows.length, items: rows.length, level };
+}
+
 export function tmpFile(info: TestInfo, name: string, text: string): string {
   const path = join(info.outputDir, name);
   mkdirSync(info.outputDir, { recursive: true });

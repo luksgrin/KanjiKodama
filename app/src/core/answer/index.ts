@@ -18,6 +18,18 @@ export {
   type QuestionTypeInfo,
 } from './questionType';
 export {
+  QUESTION_KIND_GLYPH,
+  QUESTION_KIND_LABEL,
+  acceptedKanjiReadingKind,
+  questionKind,
+  retryHint,
+  retryHintText,
+  type KindSubject,
+  type QuestionKind,
+  type RetryGiven,
+  type RetryHint,
+} from './questionKind';
+export {
   CLOSE_ENOUGH_ACTIONS,
   NOK_WITH_RETRY,
   NOK_WITHOUT_RETRY,

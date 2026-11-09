@@ -130,11 +130,11 @@ async function message(el: HTMLElement): Promise<string> {
 const checked = (el: HTMLElement, key: string) => $(el, `setting-${key}`)!.getAttribute('aria-checked');
 
 describe('settings schema', () => {
-  it('has the 58 advanced keys (18 as min/max ranges) and no duplicate keys', () => {
+  it('has the 57 advanced keys (18 as min/max ranges) and no duplicate keys', () => {
     const advanced = ADVANCED_GROUPS.flatMap((g) => g.rows).filter((r) => r.type !== 'info');
-    expect(advanced).toHaveLength(58);
+    expect(advanced).toHaveLength(57);
     expect(advanced.filter((r) => r.type === 'range')).toHaveLength(18);
-    expect(new Set(storedKeys(ADVANCED_GROUPS)).size).toBe(76);
+    expect(new Set(storedKeys(ADVANCED_GROUPS)).size).toBe(75);
     const main = SETTINGS_SCREENS.flatMap((g) => g.rows).filter((r) => r.type !== 'info').map((r) => r.key);
     expect(new Set(main).size).toBe(main.length);
   });

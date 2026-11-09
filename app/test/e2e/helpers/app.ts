@@ -97,7 +97,7 @@ export async function questionInfo(page: Page): Promise<QuestionInfo> {
   if (object === undefined) throw new Error('question view without a subject type class');
   return {
     text: (await page.getByTestId('question-text').innerText({ timeout: 10_000 })).trim(),
-    title: (await page.getByTestId('question-type').innerText({ timeout: 10_000 })).trim(),
+    title: (await page.getByTestId('question-title').innerText({ timeout: 10_000 })).trim(),
     object,
   };
 }

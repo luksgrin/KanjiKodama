@@ -25,7 +25,7 @@ describe('quiz screen', () => {
   it('colours the toolbar like the subject and titles it with the question type', async () => {
     const { el } = await renderApp('/reviews', { setup: dueReviews([10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
-    expect(title(el)).toBe(q(el, 'question-type')?.textContent);
+    expect(title(el)).toBe(q(el, 'question-title')?.textContent);
     expect(toolbar(el).getAttribute('style')).toContain('var(--color-kanji)');
     // The answer field: centred underlined field with the hint; the menu is not on the question view.
     const input = el.querySelector<HTMLInputElement>('input.kk-answer')!;

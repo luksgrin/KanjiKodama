@@ -65,6 +65,31 @@ decelerates in from a full screen width while a still copy of the old one accele
 (`exitingFragment.ts`, `SessionScreen.tsx`, `base.css`, `session.css`). Answering a question has no
 transition.
 
+## What the question asks for
+
+The banner under the question starts with a pixel badge for what to type: 意 meaning, 音 on'yomi,
+訓 kun'yomi, 音訓 either (a kanji whose lesson taught both kinds; none in the current content), 読 a
+reading (vocabulary). The
+banner's colour (light: meaning, dark: reading) and the question view's colour (blue radical, pink
+kanji, purple vocabulary: the subject type) are unchanged. The badge is drawn in the banner's text
+colour, so it works in every theme and doesn't rely on colour.
+
+A kanji reading question asks for the reading its lesson taught (`accepted_answer`). Another real
+reading of the same kanji is not wrong: the answer field shakes and you try again. The shake now
+comes with a hint over the question that says what the answer was and what is wanted, for example
+"That's a kun'yomi (訓). We're looking for the on'yomi (音)." The same goes for a reading typed into a
+meaning question ("That's a reading. We're looking for the meaning (意).") and, for single-kanji
+vocabulary with "Soft-reject on single-kanji vocabulary", the kanji's reading.
+
+"Show which kind of kanji reading is asked for" (Lesson/review settings, on by default) shows 音 / 訓
+on kanji reading questions and names the kind in the title ("Kanji On'yomi"). Off, they show 読
+"Kanji Reading". The retry hint always names the kind: the shake already tells you the answer was
+another reading. The badge is the same in lessons, reviews, self-study and Anki mode (the banner is
+shared).
+
+Files: `core/answer/questionKind.ts` (the kind and the hint; `checkAnswer`'s verdicts are unchanged),
+`components/session/ReadingKindBadge.tsx`, `QuestionView.tsx`, `runtime.ts` (`retryToast`).
+
 ## Keyboard diagnostics (hidden)
 
 For tracking down a keyboard that hides on a particular phone:

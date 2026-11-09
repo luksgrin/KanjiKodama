@@ -211,6 +211,15 @@
 .kk-quiz-toast-arrow { display: inline-block; vertical-align: text-bottom; }
 .kk-quiz-toast.alternatives { margin-top: 74px; }
 .kk-quiz-toast.close { animation-duration: 5s; }
+/* The retry hint ("That's a kun'yomi (訓). We're looking for the on'yomi (音)."): smaller, may wrap. */
+.kk-quiz-toast.retry {
+  background: var(--color-custom-toast-bg);
+  color: var(--color-custom-toast-fg);
+  font-size: 16px;
+  line-height: 1.25;
+  text-align: center;
+  animation-duration: 5s;
+}
 @keyframes kk-toast-fade {
   0% { opacity: 0; }
   15% { opacity: 1; }
@@ -229,8 +238,14 @@
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.24);
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* The kind badge (ReadingKindBadge, glyph only) before the title, both centred. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
+.kk-quiz-type-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.kk-quiz-type .kk-kind-badge-glyph { height: 1.15em; min-width: 1.15em; font-size: 0.8em; }
 /* The Anki screen's question type: 16 px. */
 .kk-quiz-question.anki + .kk-quiz-type { font-size: 16px; }
 .kk-quiz-type.meaning { background: var(--color-q-meaning-bg); color: var(--color-q-meaning-fg); }

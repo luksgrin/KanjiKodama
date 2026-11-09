@@ -95,6 +95,7 @@
    "enable_lightning_mode",
    "show_answer_toast",
    "enable_srs_indicator",
+   "indicate_kanji_reading_type",
    "enable_srs_toast",
    "enable_alternatives_toast",
    "enable_haptic_feedback_success",
@@ -212,8 +213,7 @@
    "special_button_3",
    "dont_know_button",
    "shake_on_matching_kanji",
-   "full_session_log",
-   "indicate_kanji_reading_type"
+   "full_session_log"
   ]
  }
 }

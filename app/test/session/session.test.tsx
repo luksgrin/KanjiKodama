@@ -3,7 +3,7 @@ import 'fake-indexeddb/auto';
 import { act } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeContent } from '../../src/core/content';
-import { titleFor } from '../../src/ui/components/session/QuestionView';
+import { kindFor, titleFor } from '../../src/ui/components/session/QuestionView';
 import { testSubjects } from './helpers';
 import { num, progressRow } from '../../src/core/progression';
 import { KkDb } from '../../src/storage/db';
@@ -54,7 +54,7 @@ describe('lessons', () => {
     // The quiz: both radical names.
     for (let i = 0; i < 2; i++) {
       await waitFor(() => q(el, 'submit'), 'question');
-      expect(q(el, 'question-type')?.textContent).toBe('Radical Name');
+      expect(q(el, 'question-title')?.textContent).toBe('Radical Name');
       await answer(el, rightAnswer(el));
       await waitFor(() => q(el, 'next'), 'answered');
       expect(q(el, 'answer-frame')?.classList.contains('correct')).toBe(true);
@@ -333,7 +333,7 @@ describe('reviews', () => {
     const { el, app } = await renderApp('/reviews', { setup: dueReviews([1, 2, 10]), prefs: { enable_lightning_mode: false } });
     await waitFor(() => q(el, 'submit'), 'question');
     // The toolbar in the subject colour with the question title; the session menu has its entries.
-    expect(toolbarTitle(el)).toBe(q(el, 'question-type')?.textContent);
+    expect(toolbarTitle(el)).toBe(q(el, 'question-title')?.textContent);
     await click(q(el, 'toolbar-overflow'));
     const labels = [...q(el, 'toolbar-menu')!.querySelectorAll('[role^="menuitem"]')].map((b) => b.textContent);
     for (const l of ['Settings', 'Download audio', 'Browse/search...', 'Session log...', 'Abandon session', 'Wrap up session', 'My notes...', 'About...']) {
@@ -360,17 +360,31 @@ describe('reviews', () => {
 });
 
 describe('question title', () => {
-  it('names the reading kind with indicate_kanji_reading_type (advanced only), as QuestionType.getTitle', () => {
+  it('names the reading kind with indicate_kanji_reading_type (default on, not advanced), as QuestionType.getTitle', () => {
     const kanji = makeContent(testSubjects(), []).byId.get(10)!;
-    expect(titleFor('WANIKANI_KANJI_READING', kanji, {})).toBe('Kanji Reading');
-    expect(titleFor('WANIKANI_KANJI_READING', kanji, { indicate_kanji_reading_type: true })).toBe('Kanji Reading');
-    const on = { enable_advanced: true, indicate_kanji_reading_type: true };
-    expect(titleFor('WANIKANI_KANJI_READING', kanji, on)).toBe("Kanji On'yomi");
+    expect(titleFor('WANIKANI_KANJI_READING', kanji, {})).toBe("Kanji On'yomi");
+    expect(titleFor('WANIKANI_KANJI_READING', kanji, { indicate_kanji_reading_type: false })).toBe('Kanji Reading');
+    expect(titleFor('WANIKANI_KANJI_READING', kanji, { enable_advanced: true, indicate_kanji_reading_type: false })).toBe('Kanji Reading');
     const kun = { ...kanji, readings: [{ reading: 'ふた', primary: true, accepted_answer: true, type: 'kunyomi' }] };
-    expect(titleFor('WANIKANI_KANJI_READING', kun, on)).toBe("Kanji Kun'yomi");
+    expect(titleFor('WANIKANI_KANJI_READING', kun, {})).toBe("Kanji Kun'yomi");
     const both = { ...kanji, readings: [...kanji.readings, ...kun.readings] };
-    expect(titleFor('WANIKANI_KANJI_READING', both, on)).toBe('Kanji Reading');
-    expect(titleFor('WANIKANI_KANJI_MEANING', kanji, on)).toBe('Kanji Meaning');
+    expect(titleFor('WANIKANI_KANJI_READING', both, {})).toBe('Kanji Reading');
+    expect(titleFor('WANIKANI_KANJI_MEANING', kanji, {})).toBe('Kanji Meaning');
+  });
+
+  it('puts the kind badge before the title: 音 / 訓 / 音訓 / 読 / 意', () => {
+    const kanji = makeContent(testSubjects(), []).byId.get(10)!;
+    const kun = { ...kanji, readings: [{ reading: 'ふた', primary: true, accepted_answer: true, type: 'kunyomi' }] };
+    const both = { ...kanji, readings: [...kanji.readings, ...kun.readings] };
+    expect(kindFor('WANIKANI_KANJI_READING', kanji, {})).toBe('onyomi');
+    expect(kindFor('WANIKANI_KANJI_READING', kun, {})).toBe('kunyomi');
+    expect(kindFor('WANIKANI_KANJI_READING', both, {})).toBe('both');
+    expect(kindFor('WANIKANI_KANJI_READING', kanji, { indicate_kanji_reading_type: false })).toBe('reading');
+    expect(kindFor('WANIKANI_KANJI_ONYOMI', kanji, { indicate_kanji_reading_type: false })).toBe('onyomi');
+    expect(kindFor('WANIKANI_KANJI_KUNYOMI', kanji, {})).toBe('kunyomi');
+    expect(kindFor('WANIKANI_VOCAB_READING', kanji, {})).toBe('reading');
+    expect(kindFor('WANIKANI_KANJI_MEANING', kanji, {})).toBe('meaning');
+    expect(kindFor('WANIKANI_RADICAL_NAME', kanji, {})).toBe('meaning');
   });
 });
 
@@ -414,7 +428,7 @@ describe('self-study and the level test', () => {
     const search = [...el.querySelectorAll('button')].find((b) => b.textContent === 'Start') as HTMLElement;
     await click(search);
     await waitFor(() => q(el, 'submit'), 'self-study question');
-    expect(toolbarTitle(el)).toBe(q(el, 'question-type')?.textContent);
+    expect(toolbarTitle(el)).toBe(q(el, 'question-title')?.textContent);
     for (let guard = 0; guard < 20 && !q(el, 'summary'); guard++) {
       await answer(el, rightAnswer(el));
       await waitFor(() => q(el, 'next'), 'answered');
@@ -433,7 +447,7 @@ describe('self-study and the level test', () => {
     await waitFor(() => q(el, 'level-test-message')?.textContent?.startsWith('This test estimates'), 'intro');
     await click([...el.querySelectorAll('button')].find((b) => b.textContent === 'Start round 1') as HTMLElement);
     await waitFor(() => q(el, 'submit'), 'round 1 question');
-    expect(toolbarTitle(el)).toBe(q(el, 'question-type')?.textContent);
+    expect(toolbarTitle(el)).toBe(q(el, 'question-title')?.textContent);
     for (let guard = 0; guard < 10 && !q(el, 'summary'); guard++) {
       await answer(el, rightAnswer(el));
       await waitFor(() => q(el, 'next'), 'answered');
