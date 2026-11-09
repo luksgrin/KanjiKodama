@@ -1,5 +1,5 @@
 /** Texts of the study garden (dashboard panel and screen). */
-import { dayNumber, dayTotal, weekday, type ActivityDay } from '../../../core/stats';
+import { dayTotal, weekday, type ActivityDay } from '../../../core/stats';
 
 export const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
 export const WEEKDAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
@@ -35,9 +35,4 @@ export function dayDetail(day: ActivityDay | undefined): string {
   if (day.reviews > 0) parts.push(`${plural(day.reviews, 'review')} (${Math.floor((day.correct * 100) / day.reviews)} % right)`);
   if (day.selfStudy > 0) parts.push(`${day.selfStudy} self-study`);
   return parts.join(', ');
-}
-
-/** Whether `key` is valid and not after `today`. */
-export function notAfter(key: string, today: string): boolean {
-  return dayNumber(key) <= dayNumber(today);
 }
