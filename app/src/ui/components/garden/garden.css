@@ -42,7 +42,7 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  font-size: 12px;
+  font-size: calc(12px * var(--kk-ts));
   color: var(--color-text-toned);
   min-width: 0;
 }
@@ -64,8 +64,8 @@
   padding: 8px 4px;
   min-width: 0;
 }
-.kk-garden-stat-value { font-size: 28px; line-height: 1.1; }
-.kk-garden-stat-label { font-size: 13px; color: var(--color-text-muted); text-align: center; }
+.kk-garden-stat-value { font-size: calc(28px * var(--kk-ts)); line-height: 1.1; }
+.kk-garden-stat-label { font-size: calc(13px * var(--kk-ts)); color: var(--color-text-muted); text-align: center; }
 
 .kk-garden-tabs { display: flex; justify-content: center; gap: 8px; }
 .kk-garden-tabs .kk-btn[aria-pressed='false'] { opacity: 0.7; }
@@ -76,14 +76,14 @@
   justify-content: space-between;
   gap: 8px;
 }
-.kk-garden-nav h2 { margin: 0; font-size: 18px; text-align: center; flex: 1; min-width: 0; }
+.kk-garden-nav h2 { margin: 0; font-size: calc(18px * var(--kk-ts)); text-align: center; flex: 1; min-width: 0; }
 .kk-garden-nav button {
   appearance: none;
   border: 0;
   background: none;
   color: var(--color-text);
   font: inherit;
-  font-size: 22px;
+  font-size: calc(22px * var(--kk-ts));
   min-width: 44px;
   min-height: 44px;
   cursor: pointer;
@@ -98,7 +98,7 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px 0;
 }
-.kk-garden-wd { text-align: center; font-size: 12px; color: var(--color-text-toned); }
+.kk-garden-wd { text-align: center; font-size: calc(12px * var(--kk-ts)); color: var(--color-text-toned); }
 .kk-garden-cell {
   appearance: none;
   display: flex;
@@ -112,7 +112,7 @@
   background: none;
   color: var(--color-text);
   font: inherit;
-  font-size: 12px;
+  font-size: calc(12px * var(--kk-ts));
   cursor: pointer;
 }
 .kk-garden-cell .kk-garden-sprite { width: 100%; max-width: 40px; height: auto; }
@@ -141,7 +141,7 @@
   cursor: pointer;
   min-width: 0;
 }
-.kk-garden-mini-name { font-size: 13px; margin-bottom: 2px; text-align: center; }
+.kk-garden-mini-name { font-size: calc(13px * var(--kk-ts)); margin-bottom: 2px; text-align: center; }
 .kk-garden-mini-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -159,9 +159,9 @@
 .kk-garden-totals { margin: 0; display: grid; grid-template-columns: auto auto; gap: 2px 12px; justify-content: start; }
 .kk-garden-totals dt { color: var(--color-text-muted); }
 .kk-garden-totals dd { margin: 0; text-align: right; }
-.kk-garden-section-title { margin: 0 0 4px; font-size: 16px; }
+.kk-garden-section-title { margin: 0 0 4px; font-size: calc(16px * var(--kk-ts)); }
 .kk-garden-note { margin: 0 0 6px; }
 .kk-garden-note.after { margin: 6px 0 0; }
 
 .kk-garden-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0; padding: 0; list-style: none; }
-.kk-garden-legend li { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+.kk-garden-legend li { display: flex; align-items: center; gap: 4px; font-size: calc(13px * var(--kk-ts)); }
