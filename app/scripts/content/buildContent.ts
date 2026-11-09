@@ -1,7 +1,7 @@
 /**
  * The content builder: WaniKani content (private variant only), extra kanji, Parts/Sound, the JLPT
- * kanji list and the reference data of `res/raw/` → one SQLite file plus its manifest. Table layout:
- * `src/content/contentFile.ts`. Same inputs give the same bytes (no timestamps, fixed row order).
+ * kanji list, RADKFILE's parts and the reference data of `res/raw/` → one SQLite file plus its
+ * manifest. Table layout: `src/content/contentFile.ts`. Same inputs give the same bytes (no timestamps, fixed row order).
  *
  * What it adds to the WaniKani content:
  * - the extra kanji (ids from 100000, WaniKani level 61, kanji components resolved to radicals by
@@ -15,6 +15,7 @@ import { createHash } from 'node:crypto';
 import type { Database, SqlJsStatic, SqlValue } from 'sql.js';
 import { makeContent, type Content, type ContentSubject } from '../../src/core/content';
 import { curriculumLayout, parseJlptKanjiTsv } from '../../src/core/curriculum';
+import { buildPartIndex, parseRadicalsTsv } from '../../src/core/search/parts';
 import { mergeExtraContent } from '../../src/content/extraContent';
 import { readContent } from '../../src/content/readContent';
 import { withReferenceData, type ReferenceTables } from '../../src/content/referenceData';
@@ -43,6 +44,8 @@ export interface ContentInputs {
   soundComponents: InputFile;
   extraKanji: InputFile;
   jlptKanjiTsv: InputFile;
+  /** `radicals.tsv`: RADKFILE's parts and their kanji, for search by parts. */
+  radicalsTsv: InputFile;
   strokeData: InputFile;
   pitchInfo: InputFile;
   kanjiJlptLevels: InputFile;
@@ -255,6 +258,12 @@ export function buildContent(SQL: SqlJsStatic, inputs: ContentInputs): BuiltCont
     const jlptKanjiCount = insertAll(out, 'jlpt_kanji', ['characters', 'level'],
       [...jlptKanji.entries()].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
 
+    // --- search by parts: RADKFILE's parts, keeping the kanji this file has ---------------------
+    const kanjiChars = new Set(content.subjects.flatMap((s) => (s.object === 'kanji' && s.characters !== null ? [s.characters] : [])));
+    const parts = buildPartIndex(parseRadicalsTsv(text(inputs.radicalsTsv)), (k) => kanjiChars.has(k));
+    const radicalCount = insertAll(out, 'radical', ['ordinal', 'glyph', 'strokes', 'kanji'],
+      parts.entries.map((e, i) => [i, e.glyph, e.strokes, e.kanji]));
+
     // --- Parts/Sound --------------------------------------------------------------------------
     const soundCounts: Record<string, number> = {};
     for (const t of SOUND_TABLES) {
@@ -292,7 +301,7 @@ export function buildContent(SQL: SqlJsStatic, inputs: ContentInputs): BuiltCont
     if (isPrivate) sources[inputs.wkContent!.name] = sourceInfo(inputs.wkContent!, wkTag);
     sources[inputs.extraKanji.name] = sourceInfo(inputs.extraKanji, extraVersion);
     sources[inputs.soundComponents.name] = sourceInfo(inputs.soundComponents, soundVersion);
-    for (const f of [inputs.jlptKanjiTsv, inputs.strokeData, inputs.pitchInfo, inputs.kanjiJlptLevels, inputs.vocabJlptLevels,
+    for (const f of [inputs.jlptKanjiTsv, inputs.radicalsTsv, inputs.strokeData, inputs.pitchInfo, inputs.kanjiJlptLevels, inputs.vocabJlptLevels,
       inputs.kanjidicFreq, inputs.joyoGrades]) {
       sources[f.name] = sourceInfo(f);
     }
@@ -325,6 +334,7 @@ export function buildContent(SQL: SqlJsStatic, inputs: ContentInputs): BuiltCont
         titleImages: titleImageCount,
         jlptLevels: layout.blocks.length,
         jlptKanji: jlptKanjiCount,
+        radicals: radicalCount,
         ...Object.fromEntries(Object.entries(soundCounts).map(([k, v]) => [k.replace(/_(\w)/g, (_m, c: string) => c.toUpperCase()), v])),
       },
       sources,

@@ -119,12 +119,14 @@ SHA-256 digest must be `1574375e279257ca59935c981e3e3727ce244ba727b38a5fc49a2b75
 - `content/inputs/` (committed, open data): `sound-components.db` (components and sound series),
   `jlpt-kanji.tsv` (the JLPT level of each kanji, with corrections in `content/jlpt_overrides.yaml`),
   `extra-kanji.db` (the JLPT kanji WaniKani lacks: KANJIDIC2 meanings and readings, JMdict words,
-  Tatoeba sentences, and the mnemonics in `content/mnemonics/extra-*.yaml`), `raw/` (stroke order,
+  Tatoeba sentences, and the mnemonics in `content/mnemonics/extra-*.yaml`), `radicals.tsv`
+  (RADKFILE's parts, their stroke counts and the kanji containing each, for search by parts; the
+  build keeps only the kanji the content has), `raw/` (stroke order,
   pitch accent, JLPT levels, frequency and Jōyō grades; `reference-data/` holds the scripts that
   made them) and `drawable/` (the radical images WaniKani has no
   character for).
 
-The first three come from the content pipeline. `export-extra` also reads
+The first four come from the content pipeline. `export-extra` also reads
 `content/private/wk-content.db` to know which kanji are missing, and `export-extra --brief FILE`
 writes what a mnemonic writer needs:
 
@@ -134,6 +136,7 @@ uv sync
 uv run kanjikodama-content export-sound
 uv run kanjikodama-content export-jlpt
 uv run kanjikodama-content export-extra
+uv run kanjikodama-content export-radicals
 uv run pytest
 ```
 

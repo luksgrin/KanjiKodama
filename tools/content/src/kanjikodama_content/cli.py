@@ -97,6 +97,17 @@ def export_jlpt(
     export(out or REPO_DIR / "content/inputs/jlpt-kanji.tsv")
 
 
+@app.command("export-radicals")
+def export_radicals(
+    out: Annotated[Path | None, typer.Option(help="Output file.")] = None,
+) -> None:
+    """Export RADKFILE's parts and their kanji for the offline app's search by parts."""
+    from .config import REPO_DIR
+    from .export_radicals import export
+
+    export(out or REPO_DIR / "content/inputs/radicals.tsv")
+
+
 @app.command("export-extra")
 def export_extra(
     brief: Annotated[Path | None, typer.Option(help="Write a JSON brief for mnemonic writers here instead.")] = None,

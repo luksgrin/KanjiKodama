@@ -20,6 +20,7 @@ const LOADERS: Readonly<Record<Exclude<RouteName, 'dashboard'>, Loader>> = {
   subject: () => import('./subject/SubjectScreen').then((m) => m.SubjectScreen),
   browse: () => import('./browse/BrowseScreen').then((m) => m.BrowseScreen),
   searchResults: () => import('./browse/SearchResultsScreen').then((m) => m.SearchResultsScreen),
+  partsSearch: () => import('./browse/PartsSearchScreen').then((m) => m.PartsSearchScreen),
   selfStudy: () => import('./selfStudy/SelfStudyScreen').then((m) => m.SelfStudyScreen),
   selfStudyQuiz: () => import('./selfStudy/SelfStudyQuizScreen').then((m) => m.SelfStudyQuizScreen),
   settings: () => import('./settings/SettingsScreen').then((m) => m.SettingsScreen),

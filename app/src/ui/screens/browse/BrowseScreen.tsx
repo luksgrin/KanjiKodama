@@ -3,7 +3,8 @@
  * the tutorial banner (yellow, DISMISS; `browse_overview_dismissed`), "Search presets:" with the preset
  * choice and Search / Delete (only when presets exist), "Choose a level to browse:" with the level
  * table (`render`: round(width / 40 dp) columns, at most 10, 6..9 become 5; mint cells, the user's
- * level in the highlight colour), "Keyword search:" (Query + Search) and "Advanced search:" (the form).
+ * level in the highlight colour), "Search by parts:" (opens the radical picker), "Keyword search:"
+ * (Query + Search) and "Advanced search:" (the form).
  * Toolbar title "Browse / search".
  */
 import { useEffect, useState, type FormEvent } from 'react';
@@ -134,6 +135,13 @@ export function BrowseScreen() {
             {level}
           </button>
         ))}
+      </div>
+      <hr className="kk-browse-divider" />
+
+      <h2 className="kk-browse-heading">Search by parts:</h2>
+      <div className="kk-browse-parts">
+        <p className="kk-browse-parts-text">Find a kanji by the parts you see in it.</p>
+        <button type="button" className="kk-btn" data-testid="browse-parts" onClick={() => navigate(paths.partsSearch())}>Pick parts</button>
       </div>
       <hr className="kk-browse-divider" />
 

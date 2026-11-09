@@ -20,10 +20,13 @@
  * - `title_image`: `id` → JSON `TitleImage` (`content/titleImages.ts`), the radicals drawn as an image
  *   instead of a character; optional (older files lack it: the slug is shown instead).
  * - `kanji_part`, `kanji_sound`, `series`, `series_member`: `sound-components.db` (Parts/Sound), as is.
+ * - `radical`: `ordinal` → `glyph`, `strokes`, `kanji` (one string): RADKFILE's parts (`radicals.tsv`)
+ *   with the kanji of this file containing each, for search by parts; optional (older files lack it).
  * - `content_meta`: `key` → `value` (`schemaVersion`, `variant`, source versions).
  */
 import type { Database, SqlJsStatic } from 'sql.js';
 import type { Content } from '../core/content';
+import type { PartEntry } from '../core/search/parts';
 import { readContent } from './readContent';
 import { readTitleImages, registerTitleImages, type TitleImage } from './titleImages';
 
@@ -128,6 +131,17 @@ export function strokeData(db: Database, id: number): string | null {
 export function pitchInfo(db: Database, id: number): string | null {
   const r = all(db, 'SELECT data FROM pitch_info WHERE id = ?', [id])[0];
   return r === undefined ? null : String(r[0]);
+}
+
+/** The `radical` table (search by parts), in its order; empty when the file has none. */
+export function radicalEntries(db: Database): PartEntry[] {
+  const has = all(db, "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'radical'").length > 0;
+  if (!has) return [];
+  return all(db, 'SELECT glyph, strokes, kanji FROM radical ORDER BY ordinal').map(([g, n, k]) => ({
+    glyph: String(g),
+    strokes: Number(n),
+    kanji: String(k),
+  }));
 }
 
 async function sha256Hex(bytes: Uint8Array): Promise<string | null> {

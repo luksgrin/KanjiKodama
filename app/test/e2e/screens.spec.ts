@@ -1,7 +1,7 @@
 /** Curriculum switch, browse/search, item page, settings and its Advanced gate, About. */
 import { expect, test } from '@playwright/test';
 import { checkScreen, openApp, tab, toolbarBack } from './helpers/app';
-import { subjectsAt } from './helpers/content';
+import { subjects, subjectsAt } from './helpers/content';
 import { kanaToRomaji } from './helpers/romaji';
 
 test('curriculum switch WaniKani → JLPT and back (dialogs over Settings)', async ({ page }, info) => {
@@ -69,6 +69,56 @@ test('browse by level and search by romaji; item page', async ({ page }, info) =
   await expect(page.locator('.kk-main')).toContainText(kanji.characters!);
   await checkScreen(page, info, '33-item-page');
   await checkScreen(page, info, '33-item-page-full', { fullPage: true });
+});
+
+test('search by parts: two parts narrow the kanji down, impossible parts are disabled, a result opens', async ({ page }, info) => {
+  // 休 (person + tree): open data (RADKFILE), and a kanji of the content.
+  const kyuu = (await subjects()).find((s) => s.object === 'kanji' && s.characters === '休' && s.hiddenAt === 0)!;
+  expect(kyuu).toBeDefined();
+  await openApp(page, '/browse');
+  await page.getByTestId('browse-parts').click();
+  await expect(page).toHaveURL(/#\/browse\/parts$/);
+  await expect(page.getByTestId('parts-bar')).toContainText('Tap the parts');
+  // Nothing picked: every part is available.
+  await expect(page.locator('[data-testid^="part-"]:disabled')).toHaveCount(0);
+  await expect(page.getByTestId('part-雨')).toBeEnabled();
+
+  await page.getByTestId('part-亻').click();
+  await expect(page.getByTestId('part-亻')).toHaveAttribute('aria-pressed', 'true');
+  const personOnly = Number((await page.getByTestId('parts-count').innerText()).match(/\d+/)![0]);
+  expect(personOnly).toBeGreaterThan(10);
+  await page.getByTestId('part-木').click();
+  await expect(page.getByTestId('part-木')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page).toHaveURL(/#\/browse\/parts\?p=/);
+  const both = Number((await page.getByTestId('parts-count').innerText()).match(/\d+/)![0]);
+  expect(both).toBeGreaterThan(0);
+  expect(both).toBeLessThan(personOnly);
+  // Parts that no kanji with 亻 and 木 contains can't be picked; the picked ones stay enabled.
+  await expect(page.getByTestId('part-雨')).toBeDisabled();
+  await expect(page.getByTestId('part-魚')).toBeDisabled();
+  await expect(page.getByTestId('part-亻')).toBeEnabled();
+  expect(await page.locator('[data-testid^="part-"]:disabled').count()).toBeGreaterThan(150);
+  await expect(page.getByTestId('parts-results-heading')).toContainText(`${both} kanji found`);
+  // Few kanji left: the bar under the toolbar lists them too.
+  if (both <= 8) await expect(page.getByTestId(`parts-quick-${kyuu.id}`)).toBeVisible();
+  const hit = page.getByTestId(`result-${kyuu.id}`);
+  await expect(hit).toBeVisible();
+  await checkScreen(page, info, '34-parts-search');
+
+  await hit.click();
+  await expect(page).toHaveURL(new RegExp(`#/subject/${kyuu.id}$`));
+  await expect(page.locator('.kk-main')).toContainText('休');
+  // Back: the selection is still there.
+  await toolbarBack(page);
+  await expect(page.getByTestId('part-木')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId(`result-${kyuu.id}`)).toBeVisible();
+  // Tapping a selected part in the bar drops it; Clear drops them all.
+  await page.getByTestId('parts-bar').getByRole('button', { name: 'Remove 木' }).click();
+  await expect(page.getByTestId('part-木')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByTestId('parts-count')).toContainText(`${personOnly} kanji`);
+  await page.getByTestId('parts-bar').getByRole('button', { name: 'Clear' }).click();
+  await expect(page.getByTestId('parts-bar')).toContainText('Tap the parts');
+  await expect(page.getByTestId('parts-results')).toHaveCount(0);
 });
 
 test('settings: sub-screens, list dialogs, Advanced gate', async ({ page }, info) => {

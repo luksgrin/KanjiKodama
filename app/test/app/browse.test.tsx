@@ -49,6 +49,8 @@ beforeAll(async () => {
     CREATE TABLE kanji_sound (literal TEXT, phonetic TEXT, series_reading TEXT, series_id INTEGER, actual_reading TEXT, match TEXT);
     CREATE TABLE series (id INTEGER, reliability TEXT, core_members TEXT);
     CREATE TABLE series_member (series_id INTEGER, literal TEXT, reading TEXT, match TEXT);`);
+  // Search by parts: 口 and 亅 have no kanji of this content, so the picker drops them.
+  db.run("INSERT INTO radical (ordinal, glyph, strokes, kanji) VALUES (0, '一', 1, '一'), (1, '亅', 1, '了'), (2, '口', 3, '口')");
   for (const s of subjects()) {
     const t = extraSearchTargets(s.characters ?? '', s.meanings, s.readings);
     db.run('INSERT INTO subject (id, object, level, characters, meaningMnemonic, searchTarget, smallSearchTarget) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -194,7 +196,7 @@ describe('browse and search', () => {
     const { el, app } = await render('/browse');
     expect(el.querySelector('[data-testid="toolbar"] h1')?.textContent).toBe('Browse / search');
     expect(el.querySelector('[data-testid="browse-tutorial"]')?.textContent).toContain('From this screen you can search the subject database');
-    expect([...el.querySelectorAll('.kk-browse-heading')].map((h) => h.textContent)).toEqual(['Choose a level to browse:', 'Keyword search:', 'Advanced search:']);
+    expect([...el.querySelectorAll('.kk-browse-heading')].map((h) => h.textContent)).toEqual(['Choose a level to browse:', 'Search by parts:', 'Keyword search:', 'Advanced search:']);
     expect(el.querySelectorAll('.kk-browse-level')).toHaveLength(2);
     expect(el.querySelector('[data-testid="browse-level-1"]')?.getAttribute('aria-current')).toBe('true');
     await click(button(el.querySelector('[data-testid="browse-tutorial"]')!, 'Dismiss'));
@@ -210,6 +212,24 @@ describe('browse and search', () => {
     expect(items).toEqual(['Refine search', 'Save preset', 'Start self-study quiz']);
     await click(el.querySelector('[data-testid="menu-search_result_refine"]')!);
     expect(el.querySelector('.kk-results-form .kk-advanced-search')).not.toBeNull();
+    app.dispose();
+  });
+
+  it('searches by parts: the picker, the result card, the item page', async () => {
+    const { el, app, location } = await render('/browse');
+    await click(el.querySelector('[data-testid="browse-parts"]')!);
+    expect(location.get()).toBe('/browse/parts');
+    expect(el.querySelector('[data-testid="toolbar"] h1')?.textContent).toBe('Parts');
+    expect([...el.querySelectorAll('[data-testid^="part-"]')].map((b) => b.textContent)).toEqual(['一']);
+    expect(el.querySelector('[data-testid="parts-results"]')).toBeNull();
+    await click(el.querySelector('[data-testid="part-一"]')!);
+    expect(location.get()).toBe(`/browse/parts?p=${encodeURIComponent('一')}`);
+    expect(el.querySelector('[data-testid="part-一"]')?.getAttribute('aria-pressed')).toBe('true');
+    expect(el.querySelector('[data-testid="parts-count"]')?.textContent).toBe('1 kanji');
+    // Few enough left: the bar shows the kanji itself.
+    expect(el.querySelector('[data-testid="parts-quick-10"]')?.textContent).toBe('一');
+    await click(el.querySelector('[data-testid="result-10"]')!);
+    expect(location.get()).toBe('/subject/10');
     app.dispose();
   });
 

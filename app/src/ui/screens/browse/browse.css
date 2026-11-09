@@ -273,3 +273,104 @@
 .kk-card.wide .kk-card-chars { margin: 0 0 0 4px; flex: 0 1 auto; text-align: left; overflow-wrap: normal; word-break: keep-all; }
 .kk-card.wide .kk-card-side { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-end; margin: 0 4px; min-width: 0; }
 .kk-card.wide .kk-card-meaning { margin-top: 0; max-width: 100%; }
+
+/* Browse: the "Search by parts" entry. */
+.kk-browse-parts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.kk-browse-parts-text { flex: 1 1 12em; margin: 0; font-size: 16px; color: var(--color-text); min-width: 0; overflow-wrap: break-word; }
+
+/* Search by parts: the bar (selected parts, count, Clear) stays under the toolbar; the parts wrap in
+   rows, each stroke count starting with its number; parts that can't lead to a match are greyed out.
+   Everything wraps, so large text and narrow screens never scroll sideways. */
+.kk-parts { display: flex; flex-direction: column; color: var(--color-text); }
+.kk-parts-bar {
+  position: sticky;
+  top: calc(var(--safe-top) + var(--toolbar-height));
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: calc(-1 * var(--main-gutter)) calc(-1 * var(--main-gutter)) 8px;
+  padding: 8px var(--main-gutter);
+  min-height: 56px;
+  box-sizing: border-box;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-divider);
+}
+.kk-parts-hint { margin: 0; font-size: 16px; min-width: 0; overflow-wrap: break-word; }
+.kk-parts-selected { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.kk-parts-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.kk-parts-count {
+  appearance: none;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-kanji);
+  color: var(--color-on-subject);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.kk-parts-count:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
+/* The few kanji left, on their own line of the bar. */
+.kk-parts-quick { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; min-width: 0; }
+.kk-parts-quick-kanji {
+  appearance: none;
+  box-sizing: border-box;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  background: var(--color-kanji);
+  color: var(--color-kanji-fg);
+  font-family: var(--font-ja);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.kk-parts-quick-kanji:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
+
+.kk-parts-grid { display: flex; flex-direction: column; gap: 6px; }
+.kk-parts-group { display: flex; flex-wrap: wrap; gap: 4px; }
+.kk-parts-strokes,
+.kk-part {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  font-size: 22px;
+  line-height: 1;
+}
+.kk-parts-strokes {
+  background: var(--color-toolbar-bg);
+  color: var(--color-toolbar-fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+.kk-part {
+  appearance: none;
+  border: 2px solid transparent;
+  background: var(--color-radical);
+  color: var(--color-radical-fg);
+  font-family: var(--font-ja);
+  cursor: pointer;
+}
+.kk-part.selected { background: var(--color-radical-strong); border-color: var(--color-text); }
+.kk-part:disabled { background: var(--color-stage-locked); color: var(--color-text); opacity: 0.35; cursor: default; }
+.kk-part:focus-visible { outline: 2px solid var(--color-text); outline-offset: 1px; }
+
+.kk-parts-results { display: flex; flex-direction: column; margin-top: 8px; }
+/* Jumping to the results leaves them below the bar. */
+.kk-parts-results > .kk-browse-heading { scroll-margin-top: calc(var(--safe-top) + var(--toolbar-height) + 72px); overflow-wrap: break-word; }
+/* Columns of about 88 px (as the results screen's (width + 10) / 90). */
+.kk-parts-result-grid { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); margin: 8px -2px 0; }
+.kk-parts-more,
+.kk-parts-empty { margin: 8px 0; font-size: 16px; overflow-wrap: break-word; }

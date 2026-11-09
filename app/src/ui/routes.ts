@@ -7,7 +7,7 @@ import type { RouteDef } from '../app/router';
 export type RouteName =
   | 'dashboard' | 'lessons' | 'reviews' | 'summary' | 'subject' | 'browse' | 'selfStudy'
   | 'settings' | 'curriculum' | 'fastTravel' | 'levelTest' | 'import' | 'server' | 'audio' | 'about'
-  | 'advancedSettings' | 'searchResults' | 'selfStudyQuiz' | 'keyboardHelp' | 'themeCustomization' | 'welcome' | 'stats';
+  | 'advancedSettings' | 'searchResults' | 'partsSearch' | 'selfStudyQuiz' | 'keyboardHelp' | 'themeCustomization' | 'welcome' | 'stats';
 
 export interface AppRoute extends RouteDef<RouteName> {
   /** Top bar title. */
@@ -24,6 +24,7 @@ export const ROUTES: readonly AppRoute[] = [
   { name: 'subject', pattern: '/subject/:id', title: 'Item' },
   { name: 'browse', pattern: '/browse', title: 'Browse', tab: true },
   { name: 'searchResults', pattern: '/browse/results', title: 'Search results' },
+  { name: 'partsSearch', pattern: '/browse/parts', title: 'Search by parts' },
   { name: 'selfStudy', pattern: '/self-study', title: 'Self-study', tab: true },
   { name: 'selfStudyQuiz', pattern: '/self-study/quiz', title: 'Self-study' },
   { name: 'settings', pattern: '/settings', title: 'Settings', tab: true },
@@ -72,6 +73,8 @@ export const paths = {
   /** `t`: 0 level, 1 keyword, 2 advanced (JSON); `q`: the level, query or parameters; `preset`: its name. */
   searchResults: (t: number = 0, q: string = '1', preset?: string) =>
     `/browse/results?${new URLSearchParams({ t: String(t), q, ...(preset === undefined ? {} : { preset }) }).toString()}`,
+  /** `p`: the selected parts, one after another (`formatPartSelection`). */
+  partsSearch: (p: string = '') => (p === '' ? '/browse/parts' : `/browse/parts?${new URLSearchParams({ p }).toString()}`),
 } as const satisfies Record<RouteName, (...a: never[]) => string>;
 
 /**

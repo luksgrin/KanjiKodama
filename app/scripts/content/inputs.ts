@@ -12,7 +12,7 @@ import type { ContentInputs, InputFile } from './buildContent';
 /** The repository root (`app/..`). */
 export const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
-/** sound-components.db, extra-kanji.db, jlpt-kanji.tsv. */
+/** sound-components.db, extra-kanji.db, jlpt-kanji.tsv, radicals.tsv. */
 export const ASSETS_DIR = join(REPO_ROOT, 'content/inputs');
 /** Reference data (strokes, pitch, JLPT levels, frequency, Jōyō grades). */
 export const RAW_DIR = join(REPO_ROOT, 'content/inputs/raw');
@@ -40,6 +40,7 @@ export function readInputs(variant: ContentVariant): ContentInputs {
     soundComponents: input(ASSETS_DIR, 'sound-components.db'),
     extraKanji: input(ASSETS_DIR, 'extra-kanji.db'),
     jlptKanjiTsv: input(ASSETS_DIR, 'jlpt-kanji.tsv'),
+    radicalsTsv: input(ASSETS_DIR, 'radicals.tsv'),
     strokeData: input(RAW_DIR, 'stroke_data.json'),
     pitchInfo: input(RAW_DIR, 'pitch_info.json'),
     kanjiJlptLevels: input(RAW_DIR, 'kanji_jlpt_levels.json'),

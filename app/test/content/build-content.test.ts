@@ -12,7 +12,7 @@ import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildContent, type BuiltContent } from '../../scripts/content/buildContent';
 import { RAW_DIR, readInputs, WK_CONTENT_PATH } from '../../scripts/content/inputs';
-import { CONTENT_MANIFEST_FILE, loadContentFile, pitchInfo, readContentFile, strokeData, type LoadedContent } from '../../src/content/contentFile';
+import { CONTENT_MANIFEST_FILE, loadContentFile, pitchInfo, radicalEntries, readContentFile, strokeData, type LoadedContent } from '../../src/content/contentFile';
 import { withReferenceData, type ReferenceTables } from '../../src/content/referenceData';
 import { TITLE_IMAGE_IDS, titleImageOf } from '../../src/content/titleImages';
 import { curriculumLayout } from '../../src/core/curriculum';
@@ -115,6 +115,17 @@ describe.skipIf(!HAS_WK)('content builder: private variant', () => {
     expect(titleImageOf({ id: 1, object: 'radical' })).toBeNull();
   });
 
+  it("stores RADKFILE's parts with the content's kanji (every kanji but 々 has parts)", () => {
+    const entries = radicalEntries(db);
+    expect(built.manifest.counts.radicals).toBe(entries.length);
+    expect(entries.length).toBeGreaterThan(230);
+    const kanji = new Set(loaded.content.subjects.flatMap((s) => (s.object === 'kanji' && s.characters !== null ? [s.characters] : [])));
+    const covered = new Set(entries.flatMap((e) => Array.from(e.kanji)));
+    expect([...covered].every((k) => kanji.has(k))).toBe(true);
+    expect([...kanji].filter((k) => !covered.has(k))).toEqual(['々']);
+    expect(entries.find((e) => e.glyph === '亻')).toMatchObject({ strokes: 2 });
+  });
+
   it('stores the WaniKani order as the subject table holds it', () => {
     for (const s of loaded.content.subjects) {
       expect(loaded.wkOrder.get(s.id)).toEqual([s.level, s.lessonPosition]);
@@ -204,6 +215,11 @@ describe('content builder: public variant', () => {
     expect(Buffer.from(built.bytes).includes('wanikani.com')).toBe(false);
     expect(built.manifest.counts.titleImages).toBe(0);
     expect(loaded.titleImages!.size).toBe(0);
+    // Search by parts over the extra kanji only.
+    const extraKanji = new Set(loaded.content.subjects.flatMap((s) => (s.object === 'kanji' ? [s.characters] : [])));
+    const parts = radicalEntries(loaded.db);
+    expect(parts.length).toBeGreaterThan(50);
+    expect(parts.every((e) => Array.from(e.kanji).every((k) => extraKanji.has(k)))).toBe(true);
   });
 
   it('passes the leak check', () => {

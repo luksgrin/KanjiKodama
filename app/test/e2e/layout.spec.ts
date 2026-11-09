@@ -48,6 +48,14 @@ test('main screens', async ({ page }, info) => {
   await tab(page, 'Browse');
   await checkScreen(page, info, 'L05-browse', { strict: true });
   await checkScreen(page, info, 'L05-browse-full', { strict: true, fullPage: true });
+  await page.getByTestId('browse-parts').click();
+  await expect(page.getByTestId('parts-picker')).toBeVisible();
+  await checkScreen(page, info, 'L05-parts', { strict: true });
+  await page.getByTestId('part-亻').click();
+  await page.getByTestId('part-木').click();
+  await expect(page.getByTestId('parts-results')).toBeVisible();
+  await checkScreen(page, info, 'L05-parts-results-full', { strict: true, fullPage: true });
+  await openApp(page, '/browse');
   await page.getByTestId('browse-level-1').click();
   await expect(page.getByTestId('num-hits')).toBeVisible();
   await checkScreen(page, info, 'L06-search-results', { strict: true });

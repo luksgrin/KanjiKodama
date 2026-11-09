@@ -98,7 +98,7 @@ export function AboutScreen() {
       )}
       <p>
         Kanji component and reading data comes from <a href="https://www.edrdg.org/" {...ext}>EDRDG</a> (KANJIDIC2,
-        KRADFILE, JMdict; CC BY-SA 4.0) and stroke diagrams from{' '}
+        KRADFILE/RADKFILE, JMdict; CC BY-SA 4.0) and stroke diagrams from{' '}
         <a href="https://github.com/KanjiVG/kanjivg" {...ext}>KanjiVG</a> (CC BY-SA 3.0).
       </p>
       <p className="kk-about-list-head">This app uses these Open Source components:</p>

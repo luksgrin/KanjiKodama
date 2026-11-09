@@ -152,6 +152,23 @@ The log holds counts only: lessons, reviews (right / wrong) and self-study, per 
 - Never uploaded in server mode, and never imported from WaniKani. A reset keeps it, like the fast-travel jumps.
 - A restore merges the file's log into the device's (each count the larger of the two), so restoring an older file never erases study days, and restoring the same file twice counts nothing twice.
 
+## Search by parts
+
+Browse → "Search by parts" opens a radical picker: RADKFILE's ~240 parts, grouped by stroke count
+(each group starts with its number). Picking parts keeps the kanji containing all of them; parts
+that no longer occur in any of those kanji are greyed out and can't be tapped. The bar under the
+toolbar stays in view while scrolling: the picked parts (tap one to drop it), the number of kanji
+found (tap to jump to them) and Clear. The kanji appear below the parts as result cards in the
+current curriculum's order (at most 120: pick more parts to see the rest), and open their kanji page.
+Only kanji the curriculum shows count, the JLPT extras included when it shows them. The selection
+is in the URL (`#/browse/parts?p=…`), so going back from a kanji page keeps it.
+
+Some parts have no character of their own in RADKFILE, which writes them with a stand-in kanji
+(化 for 亻, 込 for 辶, …); the picker shows the real part (`export_radicals.py`, `DISPLAY`).
+
+Files: `core/search/parts.ts`, `screens/browse/PartsSearchScreen.tsx`, `content/inputs/radicals.tsv`
+(`kanjikodama-content export-radicals`), the content file's `radical` table.
+
 ## Known limits
 
 - Long paragraphs occasionally break a line one word earlier or later than a native Android text view
