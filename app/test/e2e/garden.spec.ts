@@ -72,13 +72,24 @@ test('reviews grow the garden; the calendar travels in the progress file', async
   await fresh.close();
 });
 
-test('the garden screen fits narrow phones in both views, without study', async ({ page }, info) => {
+test('the garden screen fits narrow phones in both views, without study; weeks can start on Monday', async ({ page }, info) => {
   await openApp(page, '/stats');
   await expect(page.getByTestId('streak-current')).toHaveText('0');
+  await expect(page.getByTestId('garden-wd-0')).toHaveText('S');
+
   await noHorizontalScroll(page, 'garden month');
   await page.getByTestId('garden-prev').click();
   await page.getByTestId('garden-view-year').click();
   await expect(page.getByTestId('garden-year').locator('.kk-garden-mini')).toHaveCount(12);
   await noHorizontalScroll(page, 'garden year');
   await checkScreen(page, info, '84-garden-year-empty', { strict: true, fullPage: true });
+
+  // Weeks from Monday (Dashboard settings).
+  await openApp(page, '/settings?screen=dashboard_settings');
+  await page.getByTestId('setting-garden_week_start').click();
+  await page.getByTestId('choice-garden_week_start-MONDAY').click();
+  await expect(page.getByTestId('setting-garden_week_start')).toContainText('Monday');
+  await openApp(page, '/stats');
+  await expect(page.getByTestId('garden-wd-0')).toHaveText('M');
+  await expect(page.getByTestId('garden-wd-6')).toHaveText('S');
 });

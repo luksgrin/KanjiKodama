@@ -12,6 +12,7 @@ import {
   mergeActivity,
   studyDay,
   studyDayStartHour,
+  gardenWeekStart,
   showStudyGarden,
   weekday,
   type ActivityDay,
@@ -100,6 +101,13 @@ describe('settings', () => {
     expect(studyDayStartHour({ study_day_start_hour: '24' })).toBe(4);
     expect(studyDayStartHour({ study_day_start_hour: 'x' })).toBe(4);
     expect(studyDayStartHour({ study_day_start_hour: -1 })).toBe(4);
+  });
+
+  it('garden_week_start: Sunday unless Monday', () => {
+    expect(gardenWeekStart({})).toBe(0);
+    expect(gardenWeekStart({ garden_week_start: 'MONDAY' })).toBe(1);
+    expect(gardenWeekStart({ garden_week_start: 'SUNDAY' })).toBe(0);
+    expect(gardenWeekStart({ garden_week_start: 'x' })).toBe(0);
   });
 
   it('show_study_garden: default on', () => {

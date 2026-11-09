@@ -61,7 +61,8 @@
    "show_critical_condition",
    "show_burned_items",
    "show_study_garden",
-   "study_day_start_hour"
+   "study_day_start_hour",
+   "garden_week_start"
   ],
   "subject_info_settings": [
    "hide_lesson_readings",

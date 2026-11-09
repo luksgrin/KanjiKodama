@@ -4,7 +4,7 @@
  * item); each cell grows with the day's total: soil → sprout → sapling → tree → blossoming tree.
  */
 
-import { addDays, dayNumber, dayTotal, daysFromCivil, dayKeyOfNumber, weekday, type ActivityDay, type ActivityLog } from './activity';
+import { addDays, dayNumber, dayTotal, daysFromCivil, dayKeyOfNumber, weekday, type ActivityDay, type ActivityLog, type WeekStart } from './activity';
 
 /** 0 soil (nothing), 1 sprout, 2 sapling, 3 tree, 4 blossoming tree. */
 export type GardenLevel = 0 | 1 | 2 | 3 | 4;
@@ -64,7 +64,7 @@ export interface GardenCell {
   isFuture: boolean;
 }
 
-/** A month: weeks of seven cells, Sunday first; days of the neighbouring months are null. */
+/** A month: weeks of seven cells, from the week start; days of the neighbouring months are null. */
 export interface GardenMonth {
   year: number;
   /** 1–12. */
@@ -78,12 +78,12 @@ function cell(log: ActivityLog, day: string, today: string): GardenCell {
   return { day, total, level: isFuture ? 0 : gardenLevel(total), isToday: day === today, isFuture };
 }
 
-/** `month` (1–12) of `year` as a calendar. */
-export function gardenMonth(log: ActivityLog, year: number, month: number, today: string): GardenMonth {
+/** `month` (1–12) of `year` as a calendar, weeks starting on `weekStart` (0 Sunday, 1 Monday). */
+export function gardenMonth(log: ActivityLog, year: number, month: number, today: string, weekStart: WeekStart = 0): GardenMonth {
   const first = daysFromCivil(year, month, 1);
   const next = month === 12 ? daysFromCivil(year + 1, 1, 1) : daysFromCivil(year, month + 1, 1);
   const weeks: (GardenCell | null)[][] = [];
-  let week: (GardenCell | null)[] = new Array<GardenCell | null>(weekday(dayKeyOfNumber(first))).fill(null);
+  let week: (GardenCell | null)[] = new Array<GardenCell | null>((weekday(dayKeyOfNumber(first)) - weekStart + 7) % 7).fill(null);
   for (let n = first; n < next; n++) {
     week.push(cell(log, dayKeyOfNumber(n), today));
     if (week.length === 7) {
@@ -96,8 +96,8 @@ export function gardenMonth(log: ActivityLog, year: number, month: number, today
 }
 
 /** The twelve months of `year`. */
-export function gardenYear(log: ActivityLog, year: number, today: string): GardenMonth[] {
-  return Array.from({ length: 12 }, (_, i) => gardenMonth(log, year, i + 1, today));
+export function gardenYear(log: ActivityLog, year: number, today: string, weekStart: WeekStart = 0): GardenMonth[] {
+  return Array.from({ length: 12 }, (_, i) => gardenMonth(log, year, i + 1, today, weekStart));
 }
 
 /** The `n` days up to and including `today`, oldest first (the dashboard's strip). */

@@ -43,6 +43,14 @@ export function studyDayStartHour(prefs: Preferences): number {
   return Number.isInteger(n) && n >= 0 && n <= 23 ? n : DEFAULT_DAY_START_HOUR;
 }
 
+/** The first day of the calendar's weeks: 0 Sunday, 1 Monday. */
+export type WeekStart = 0 | 1;
+
+/** `garden_week_start` (`SUNDAY` / `MONDAY`), default Sunday: the garden calendar's first weekday. */
+export function gardenWeekStart(prefs: Preferences): WeekStart {
+  return prefs.garden_week_start === 'MONDAY' ? 1 : 0;
+}
+
 /** `show_study_garden`, default true: the garden panel on the dashboard. */
 export function showStudyGarden(prefs: Preferences): boolean {
   const v = prefs.show_study_garden;

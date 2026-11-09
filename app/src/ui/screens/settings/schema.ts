@@ -139,6 +139,7 @@ const NOTIFICATION_CATEGORIES: Options = [
 const STUDY_DAY_START_HOURS: Options = [
   ['0', 'Midnight'], ['1', '1 AM'], ['2', '2 AM'], ['3', '3 AM'], ['4', '4 AM'], ['5', '5 AM'], ['6', '6 AM'],
 ];
+const WEEK_STARTS: Options = [['SUNDAY', 'Sunday'], ['MONDAY', 'Monday']];
 const TIME_LINE_CHART_STYLES: Options = [['SRS_STAGE', 'SRS Stage'], ['NEXT_SRS_STAGE', 'Next SRS Stage'], ['ITEM_TYPE', 'Item type']];
 const TIME_LINE_CHART_GRID_STYLES: Options = [['OFF', 'Off'], ['FOR_BARS', 'Scaled for bars'], ['FOR_WATERFALL', 'Scaled for cumulative review count']];
 const TIME_LINE_CHART_SIZES: Options = [
@@ -342,6 +343,7 @@ export const SETTINGS_SCREENS: readonly SettingGroup[] = [
       bool('show_burned_items', 'Show recently burned items', true),
       bool('show_study_garden', 'Show study garden', true, { summary: 'Your study streak and the last week as a pixel garden; tap it for the calendar' }),
       list('study_day_start_hour', 'A new study day starts at', STUDY_DAY_START_HOURS, '4'),
+      list('garden_week_start', 'Study garden weeks start on', WEEK_STARTS, 'SUNDAY'),
     ],
   },
   {

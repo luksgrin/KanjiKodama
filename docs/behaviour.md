@@ -143,7 +143,7 @@ The log holds counts only: lessons, reviews (right / wrong) and self-study, per 
 
 **Display:**
 - The dashboard panel (Dashboard settings → "Show study garden", on) shows the streak and the last seven days as pixel plants, which grow with the day's total: soil, sprout (1+), sapling (20+), tree (60+), blossoming tree (150+).
-- A tap opens the Garden screen (`/stats`): a month or year calendar, the current and best streak, the totals of the period and of all time, and a legend.
+- A tap opens the Garden screen (`/stats`): a month or year calendar, the current and best streak, the totals of the period and of all time, and a legend. Weeks start on Sunday, or on Monday with Dashboard settings → "Study garden weeks start on" (`garden_week_start`).
 - The streak counts days in a row with study up to today. When nothing is done yet today, it counts up to yesterday ("study today to keep it").
 
 **Progress file:** the log goes in as an optional `activity` list after `jumps`, only when there is a study day, so a file without study history is unchanged.

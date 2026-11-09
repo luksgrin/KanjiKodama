@@ -3,6 +3,11 @@ import { dayTotal, weekday, type ActivityDay } from '../../../core/stats';
 
 export const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
 export const WEEKDAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
+
+/** The calendar's column headings from the week start (0 Sunday, 1 Monday). */
+export function weekdayHeadings(weekStart: number): string[] {
+  return Array.from({ length: 7 }, (_, i) => WEEKDAY_LETTERS[(i + weekStart) % 7]!);
+}
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
 /** "1 day", "3 days". */

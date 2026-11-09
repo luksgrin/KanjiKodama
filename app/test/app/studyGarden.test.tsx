@@ -83,6 +83,16 @@ describe('study garden', () => {
     app.dispose();
   });
 
+  it('weeks from Monday with the setting', async () => {
+    const { el, app } = await render('/stats', { prefs: { garden_week_start: 'MONDAY' } });
+    expect([0, 1, 6].map((i) => $(el, `garden-wd-${i}`)?.textContent)).toEqual(['M', 'T', 'S']);
+    // October 2026 starts on a Thursday and ends on a Saturday: three blanks before, one after.
+    expect($(el, 'garden-month')?.querySelectorAll(':scope > span:not(.kk-garden-wd)')).toHaveLength(4);
+    const cells = [...$(el, 'garden-month')!.children].filter((c) => !c.classList.contains('kk-garden-wd'));
+    expect(cells[3]?.getAttribute('data-testid')).toBe('garden-cell-2026-10-01');
+    app.dispose();
+  });
+
   it('the screen: streaks, the month, a day\'s details, the year and the totals', async () => {
     const { el, app } = await render('/stats');
     expect($(el, 'streak-current')?.textContent).toBe('2');
@@ -96,6 +106,10 @@ describe('study garden', () => {
     expect($(el, 'garden-detail')?.textContent).toBe('Fri 23 Oct 2026: 25 reviews (80 % right)');
     expect($(el, 'garden-period-totals')?.textContent).toContain('Study days6');
     expect($(el, 'garden-all-totals')?.textContent).toContain('Study days7');
+
+    // Weeks from Sunday by default: October 2026 starts on a Thursday.
+    expect($(el, 'garden-wd-0')?.textContent).toBe('S');
+    expect($(el, 'garden-month')?.querySelectorAll(':scope > span:not(.kk-garden-wd)')).toHaveLength(4);
 
     await click($(el, 'garden-prev'));
     expect($(el, 'garden-title')?.textContent).toBe('September 2026');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptyDay, type ActivityDay } from './activity';
+import { emptyDay, weekday, type ActivityDay } from './activity';
 import { activityTotals, busiestDay, gardenLevel, gardenMonth, gardenYear, recentDays, streaks } from './garden';
 
 function log(...days: [string, number][]): Map<string, ActivityDay> {
@@ -64,6 +64,31 @@ describe('calendar', () => {
     expect(m.weeks[0]!.slice(0, 4)).toEqual([null, null, null, null]);
     expect(m.weeks[0]![4]!.day).toBe('2026-10-01');
     expect(m.weeks.flat().filter((c) => c !== null)).toHaveLength(31);
+  });
+
+  it('weeks from Monday', () => {
+    // November 2026 starts on a Sunday: the last day of the first Monday week.
+    const m = gardenMonth(new Map(), 2026, 11, '2026-11-09', 1);
+    expect(m.weeks).toHaveLength(6);
+    expect(m.weeks[0]!.map((c) => c?.day ?? null)).toEqual([null, null, null, null, null, null, '2026-11-01']);
+    expect(m.weeks[1]![0]!.day).toBe('2026-11-02'); // a Monday
+    expect(m.weeks[5]!.map((c) => c?.day ?? null)).toEqual(['2026-11-30', null, null, null, null, null, null]);
+    // October 2026 starts on a Thursday: three blanks from Monday, four from Sunday.
+    expect(gardenMonth(new Map(), 2026, 10, '2026-11-09', 1).weeks[0]!.indexOf(null)).toBe(0);
+    expect(gardenMonth(new Map(), 2026, 10, '2026-11-09', 1).weeks[0]!.filter((c) => c === null)).toHaveLength(3);
+    expect(gardenMonth(new Map(), 2026, 10, '2026-11-09', 0).weeks[0]!.filter((c) => c === null)).toHaveLength(4);
+    // A month starting on a Monday has no blanks from Monday (June 2026).
+    expect(gardenMonth(new Map(), 2026, 6, '2026-11-09', 1).weeks[0]![0]!.day).toBe('2026-06-01');
+  });
+
+  it('every week column is one weekday, whatever the start', () => {
+    for (const start of [0, 1] as const) {
+      for (const m of gardenYear(new Map(), 2026, '2026-11-09', start)) {
+        for (const w of m.weeks) {
+          w.forEach((c, i) => { if (c !== null) expect(weekday(c.day)).toBe((i + start) % 7); });
+        }
+      }
+    }
   });
 
   it('a year: twelve months, February of a leap year included', () => {

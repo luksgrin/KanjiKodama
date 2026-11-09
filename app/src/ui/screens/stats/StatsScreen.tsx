@@ -14,6 +14,7 @@ import {
   dayTotal,
   daysFromCivil,
   gardenMonth,
+  gardenWeekStart,
   gardenYear,
   streaks,
   studyDayStartHour,
@@ -21,10 +22,11 @@ import {
   type ActivityTotals,
   type GardenLevel,
   type GardenMonth,
+  type WeekStart,
 } from '../../../core/stats';
 import { localStudyDay } from '../../../app/studyDay';
 import { GardenSprite, gardenLevelName } from '../../components/garden/GardenSprite';
-import { MONTH_NAMES, WEEKDAY_LETTERS, dayDetail, days, longDay } from '../../components/garden/gardenText';
+import { MONTH_NAMES, dayDetail, days, longDay, weekdayHeadings } from '../../components/garden/gardenText';
 import { useReady } from '../../hooks/useApp';
 
 type View = 'month' | 'year';
@@ -50,10 +52,12 @@ function Totals({ title, totals, testId }: { title: string; totals: ActivityTota
   );
 }
 
-function MonthView({ month, log, selected, onSelect }: { month: GardenMonth; log: ActivityLog; selected: string | null; onSelect: (day: string) => void }) {
+function MonthView({ month, log, selected, onSelect, weekStart }: {
+  month: GardenMonth; log: ActivityLog; selected: string | null; onSelect: (day: string) => void; weekStart: WeekStart;
+}) {
   return (
     <div className="kk-garden-month" role="group" aria-label={`${MONTH_NAMES[month.month - 1]} ${month.year}`} data-testid="garden-month">
-      {WEEKDAY_LETTERS.map((l, i) => <span key={i} className="kk-garden-wd" aria-hidden="true">{l}</span>)}
+      {weekdayHeadings(weekStart).map((l, i) => <span key={i} className="kk-garden-wd" aria-hidden="true" data-testid={`garden-wd-${i}`}>{l}</span>)}
       {month.weeks.flat().map((c, i) => (c === null
         ? <span key={`b${i}`} aria-hidden="true" />
         : (
@@ -100,6 +104,7 @@ export function StatsScreen() {
   const { state } = useReady();
   const { activity, now, prefs } = state;
   const today = localStudyDay(now, prefs);
+  const weekStart = gardenWeekStart(prefs);
   const [ty, tm] = [Number(today.slice(0, 4)), Number(today.slice(5, 7))];
   const [view, setView] = useState<View>('month');
   const [year, setYear] = useState(ty);
@@ -109,8 +114,8 @@ export function StatsScreen() {
   const s = useMemo(() => streaks(activity, today), [activity, today]);
   const all = useMemo(() => activityTotals(activity), [activity]);
   const first = useMemo(() => firstStudyDay(activity), [activity]);
-  const shownMonth = useMemo(() => gardenMonth(activity, year, month, today), [activity, year, month, today]);
-  const shownYear = useMemo(() => gardenYear(activity, year, today), [activity, year, today]);
+  const shownMonth = useMemo(() => gardenMonth(activity, year, month, today, weekStart), [activity, year, month, today, weekStart]);
+  const shownYear = useMemo(() => gardenYear(activity, year, today, weekStart), [activity, year, today, weekStart]);
   const periodTotals = useMemo(() => (view === 'month'
     ? activityTotals(activity, firstDayOf(year, month), lastDayOf(year, month))
     : activityTotals(activity, `${String(year).padStart(4, '0')}-01-01`, `${String(year).padStart(4, '0')}-12-31`)), [activity, view, year, month]);
@@ -162,7 +167,7 @@ export function StatsScreen() {
           <button type="button" onClick={() => step(1)} aria-label={nextLabel} disabled={atEnd} data-testid="garden-next">›</button>
         </div>
         {view === 'month'
-          ? <MonthView month={shownMonth} log={activity} selected={selected} onSelect={setSelected} />
+          ? <MonthView month={shownMonth} log={activity} selected={selected} onSelect={setSelected} weekStart={weekStart} />
           : <YearView months={shownYear} onOpen={(m) => { setMonth(m); setView('month'); }} />}
         {view === 'month' && (
           <p className="kk-garden-detail" aria-live="polite" data-testid="garden-detail">
