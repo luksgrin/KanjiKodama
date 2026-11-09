@@ -149,6 +149,7 @@ describe('the CSS', () => {
       'ui/components/subject/subject.css: font-size: 64px;', // the item title tile (its inline size wins)
       'ui/components/subject/subject.css: .kk-link-chars { text-shadow: var(--text-shadow-3px-glyph); margin-top: 4px; font-size: 24px; line-height: 1; } /* a glyph: not scaled */',
       'ui/screens/browse/browse.css: font-size: 24px;', // browse card glyphs (fitted to the card)
+      'ui/screens/onboarding/onboarding.css: font-size: 24px;', // the guide's subject-colour glyph swatches (48 px tall)
       'ui/screens/themeCustomization/themeCustomization.css: .kk-tc-cell.subject .kk-tc-sample { height: 38px; font-size: 26px; line-height: 38px; }',
       'ui/screens/dashboard/dashboard.css: font-size: 34px;', // SRS counts in their 84 px tiles
       'ui/screens/dashboard/dashboard.css: .kk-srs-count { font-size: 32px; line-height: 72px; }',

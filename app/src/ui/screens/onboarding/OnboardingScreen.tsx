@@ -32,7 +32,7 @@ import { useImportFlow } from '../import/importFlow';
 import { LOCAL_ONLY_MESSAGE } from '../settings/SettingsScreen';
 import { useAlerts } from '../settings/useAlerts';
 import { ReadingKindBadge } from '../../components/session/ReadingKindBadge';
-import { AppearanceStep } from './placeholders';
+import { AppearancePicker } from '../../components/settings/AppearancePicker';
 import './onboarding.css';
 
 const PATHS: readonly { mode: CurriculumMode; title: string; text: string }[] = [
@@ -246,7 +246,7 @@ export function OnboardingScreen() {
         {step === 'appearance' && (
           <>
             <p>Pick the font and text size that read best for you. The rest of this guide uses them.</p>
-            <AppearanceStep />
+            <AppearancePicker />
           </>
         )}
         {step === 'quiz' && <QuizBody />}
