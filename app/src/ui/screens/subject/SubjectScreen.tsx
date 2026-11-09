@@ -77,8 +77,8 @@ export function SubjectScreen() {
   const canBurn = useMemo(() => subject !== undefined && local && isBurnable(learner, subject.id),
     [learner, subject, local, state.revision]);
 
-  // Writing practice for kanji with stroke order data.
-  const canWrite = useMemo(() => subject?.object === 'kanji' && readStrokeData(content.db, subject.id).length > 0, [subject, content.db]);
+  // Writing practice for kanji and radicals with stroke order data (not image-only radicals).
+  const canWrite = useMemo(() => (subject?.object === 'kanji' || subject?.object === 'radical') && readStrokeData(content.db, subject.id).length > 0, [subject, content.db]);
 
   if (!subject) {
     return <p className="kk-muted kk-subject-missing">No such item.</p>;

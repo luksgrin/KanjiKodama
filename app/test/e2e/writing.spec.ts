@@ -1,7 +1,7 @@
 /** Writing practice: strokes drawn with the mouse along KanjiVG (accepted) and along wrong paths (missed). */
 import { expect, test } from '@playwright/test';
 import { checkScreen, openApp } from './helpers/app';
-import { subjectsAt } from './helpers/content';
+import { subjects, subjectsAt } from './helpers/content';
 import { drawStroke, strokesOf, writeKanji } from './helpers/strokes';
 
 /** Level 1 kanji with stroke data and at least `minStrokes` strokes. */
@@ -90,7 +90,7 @@ test('the self-study screen starts a round: nothing learned yet, then a level', 
   const panel = page.getByTestId('writing-start');
   await expect(panel).toBeVisible();
   await page.getByTestId('writing-start-button').click();
-  await expect(page.getByTestId('toast')).toContainText('No kanji to practise here yet');
+  await expect(page.getByTestId('toast')).toContainText('Nothing to practise here yet');
 
   await page.getByTestId('writing-scope').selectOption('1');
   await page.getByTestId('writing-size').selectOption('5');
@@ -103,4 +103,42 @@ test('the self-study screen starts a round: nothing learned yet, then a level', 
   const level1 = (await subjectsAt(1, 'kanji')).map((s) => String(s.id));
   expect(ids).toEqual(level1.filter((id) => ids.includes(id)).slice(0, 5)); // lesson order
   expect(ids).toHaveLength(5);
+});
+
+test('radicals: practised from a radical page and picked in the self-study panel; image-only radicals are skipped', async ({ page }) => {
+  const radicals: number[] = [];
+  for (const s of await subjectsAt(1, 'radical')) {
+    if ((await strokesOf(s.id).catch(() => [])).length > 0) radicals.push(s.id);
+  }
+  expect(radicals.length).toBeGreaterThan(1);
+  const id = radicals[0]!;
+  await openApp(page, `/subject/${id}`);
+  await page.getByTestId('practise-writing').click();
+  await expect(page.getByTestId('writing-screen')).toHaveAttribute('data-subject-id', String(id));
+  await expect(page.getByTestId('writing-progress')).toContainText('Radical 1 of 1');
+  await writeKanji(page);
+  await expect(page.getByTestId('writing-message')).toContainText('Well written!');
+
+  // An image-only radical (no characters, no stroke data) in the address is left out.
+  let imageOnly: number | null = null;
+  for (const s of await subjects()) {
+    if (s.object === 'radical' && s.characters === null && (await strokesOf(s.id).catch(() => [])).length === 0) {
+      imageOnly = s.id;
+      break;
+    }
+  }
+  expect(imageOnly).not.toBeNull();
+  await openApp(page, `/self-study/writing?ids=${imageOnly},${id}&mode=study`);
+  await expect(page.getByTestId('writing-progress')).toContainText('Radical 1 of 1');
+  await openApp(page, `/self-study/writing?ids=${imageOnly}&mode=study`);
+  await expect(page.getByTestId('writing-empty')).toBeVisible();
+
+  // The panel: level 1's radicals, in lesson order.
+  await openApp(page, '/self-study');
+  await page.getByTestId('writing-kind').selectOption('radical');
+  await page.getByTestId('writing-scope').selectOption('1');
+  await page.getByTestId('writing-start-button').click();
+  await expect(page.getByTestId('writing-progress')).toContainText(`Radical 1 of ${Math.min(10, radicals.length)}`);
+  const ids = new URL(page.url().replace('#', '')).searchParams.get('ids')?.split(',').map(Number) ?? [];
+  expect(ids).toEqual(radicals.slice(0, 10));
 });

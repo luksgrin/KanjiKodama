@@ -6,7 +6,7 @@ import { SeededRandom } from '../rng';
 import {
   applyVerdict, currentCard, isCardDone, isClean, isFinished, judgeStroke, MAX_MISSES_PER_STROKE, missedCards, nextCard,
   polylineLength, requestHint, resample, selectWritingKanji, startWriting, type Point, type StrokeVerdict,
-  type WritingCandidate,
+  type WritingCandidate, type WritingKind,
 } from './index';
 
 // KanjiVG stroke data, the same file the content build reads.
@@ -202,9 +202,18 @@ describe('practice round', () => {
 });
 
 describe('selectWritingKanji', () => {
-  const c = (id: number, level: number, position: number, started: boolean, strokeCount = 3): WritingCandidate =>
-    ({ id, level, position, started, strokeCount });
-  const all = [c(5, 2, 1, true), c(4, 1, 2, true), c(3, 1, 1, false), c(2, 2, 2, false), c(1, 1, 3, true, 0)];
+  const c = (id: number, level: number, position: number, started: boolean, strokeCount = 3, kind: WritingKind = 'kanji'): WritingCandidate =>
+    ({ id, kind, level, position, started, strokeCount });
+  const all = [c(5, 2, 1, true), c(4, 1, 2, true), c(3, 1, 1, false), c(2, 2, 2, false), c(1, 1, 3, true, 0),
+    // Radicals: one learned, one not, one image-only (no strokes).
+    c(10, 1, 5, true, 2, 'radical'), c(11, 2, 1, false, 4, 'radical'), c(12, 1, 6, true, 0, 'radical')];
+
+  it('kanji only by default; radicals, or both, on request; image-only radicals never', () => {
+    expect(selectWritingKanji(all, { kind: 'learned' }, 10, null, ['radical'])).toEqual([10]);
+    expect(selectWritingKanji(all, { kind: 'learned' }, 10, null, ['kanji', 'radical'])).toEqual([10, 4, 5]);
+    expect(selectWritingKanji(all, { kind: 'level', level: 2 }, 10, null, ['kanji', 'radical'])).toEqual([11, 5, 2]);
+    expect(selectWritingKanji(all, { kind: 'level', level: 1 }, 10, null, ['radical'])).toEqual([10]);
+  });
 
   it('learned: lesson done and with strokes, in curriculum order', () => {
     expect(selectWritingKanji(all, { kind: 'learned' }, 10, null)).toEqual([4, 5]);

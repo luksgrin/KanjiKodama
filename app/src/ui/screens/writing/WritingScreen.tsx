@@ -1,5 +1,5 @@
 /**
- * Writing practice (route `/self-study/writing?ids=1,2,3&mode=study|recall`): write each kanji stroke by
+ * Writing practice (route `/self-study/writing?ids=1,2,3&mode=study|recall`): write each kanji or radical stroke by
  * stroke in the writing square; every stroke is checked against KanjiVG (core/writing). Study mode
  * traces over the faint kanji; recall mode shows the meaning and reading and an empty square, with the
  * next stroke as a hint after a miss or on Hint. Self-study only: nothing here touches SRS or sync.
@@ -143,7 +143,7 @@ export function WritingScreen() {
     <div className={`kk-writing${leftHanded ? ' kk-writing--left' : ''}`} data-testid="writing-screen" data-mode={mode} data-subject-id={s.id}>
       <div className="kk-writing-head">
         <p className="kk-writing-progress" data-testid="writing-progress">
-          Kanji {round.index + 1} of {round.cards.length} · stroke {Math.min(round.stroke + 1, item.strokes.length)} of {item.strokes.length}
+          {s.object === 'radical' ? 'Radical' : 'Kanji'} {round.index + 1} of {round.cards.length} · stroke {Math.min(round.stroke + 1, item.strokes.length)} of {item.strokes.length}
         </p>
         <div className="kk-writing-prompt" data-testid="writing-prompt">
           {showKanji && s.characters !== null && <div className="kk-writing-prompt-kanji" lang="ja">{s.characters}</div>}
@@ -204,7 +204,7 @@ function WritingSummary({ results, items, onMissed, onAgain, onDone }: {
             .filter((x) => x !== '').join(', ');
           return (
             <li key={r.id} className={`kk-writing-result ${ok ? 'kk-writing-result--clean' : 'kk-writing-result--missed'}`} data-testid={`writing-result-${r.id}`}>
-              <span className="kk-writing-result-kanji" lang="ja">{items.get(r.id)?.subject.characters ?? '?'}</span>
+              <span className="kk-writing-result-kanji" lang="ja">{items.get(r.id)?.subject.characters ?? items.get(r.id)?.subject.slug ?? '?'}</span>
               <span className="kk-writing-result-note">{note}</span>
             </li>
           );

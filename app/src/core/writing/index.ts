@@ -8,4 +8,4 @@ export {
   applyVerdict, currentCard, isCardDone, isClean, isFinished, MAX_MISSES_PER_STROKE, missedCards, nextCard,
   requestHint, startWriting, type WritingCard, type WritingMode, type WritingResult, type WritingState,
 } from './practice';
-export { selectWritingKanji, WRITING_ROUND_SIZES, type WritingCandidate, type WritingScope } from './selection';
+export { selectWritingKanji, WRITING_ROUND_SIZES, type WritingCandidate, type WritingKind, type WritingScope } from './selection';

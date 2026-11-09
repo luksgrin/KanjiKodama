@@ -153,8 +153,10 @@ The log holds counts only: lessons, reviews (right / wrong) and self-study, per 
 - A restore merges the file's log into the device's (each count the larger of the two), so restoring an older file never erases study days, and restoring the same file twice counts nothing twice.
 ## Writing practice
 
-Self-study → Writing practice (learned kanji, shuffled, or one level in lesson order; 5–50 of them),
-or Practise writing on a kanji's page. Each kanji is written stroke by stroke in a square over
+Self-study → Writing practice (kanji, radicals or both; learned ones, shuffled, or one level in lesson
+order, radicals first; 5–50 of them), or Practise writing on a kanji's or radical's page. Image-only
+radicals (no characters, no KanjiVG strokes) are never offered and are skipped if named in the
+address. Each item is written stroke by stroke in a square over
 KanjiVG's 109×109 box; finger, stylus and mouse all draw (pointer events, the page never scrolls
 while drawing). Nothing here touches SRS, the progress file or sync.
 

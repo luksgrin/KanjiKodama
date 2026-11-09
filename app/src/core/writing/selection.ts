@@ -1,41 +1,48 @@
 /**
- * Which kanji a writing practice round uses. Pure: the screen passes every kanji with what it needs
- * from the learner's progress.
+ * Which kanji and radicals a writing practice round uses. Pure: the screen passes every candidate with
+ * what it needs from the learner's progress.
  */
 import { shuffleInPlace, type SeededRandom } from '../rng';
 
+/** What can be written: subjects with KanjiVG strokes. */
+export type WritingKind = 'kanji' | 'radical';
+
 export interface WritingCandidate {
   readonly id: number;
-  /** The kanji's level in the current curriculum. */
+  readonly kind: WritingKind;
+  /** Its level in the current curriculum. */
   readonly level: number;
   /** In curriculum order within the level. */
   readonly position: number;
   /** Its lesson is done. */
   readonly started: boolean;
+  /** 0 without stroke data (image-only radicals): never selected. */
   readonly strokeCount: number;
 }
 
 export type WritingScope =
-  /** Kanji whose lesson is done. */
+  /** Items whose lesson is done. */
   | { readonly kind: 'learned' }
-  /** Every kanji of one level, learned or not. */
+  /** Every item of one level, learned or not. */
   | { readonly kind: 'level'; readonly level: number };
 
 export const WRITING_ROUND_SIZES = [5, 10, 20, 50] as const;
 
 /**
- * The kanji of a scope that have stroke data: shuffled (`rnd`), or in curriculum order without it; at
- * most `limit`.
+ * The candidates of the given kinds in a scope that have stroke data: shuffled (`rnd`), or in
+ * curriculum order without it (radicals before kanji within a level, as in lessons); at most `limit`.
  */
 export function selectWritingKanji(
   candidates: readonly WritingCandidate[],
   scope: WritingScope,
   limit: number,
   rnd: Pick<SeededRandom, 'nextInt'> | null,
+  kinds: readonly WritingKind[] = ['kanji'],
 ): number[] {
-  const matching = candidates.filter((c) => c.strokeCount > 0
+  const matching = candidates.filter((c) => c.strokeCount > 0 && kinds.includes(c.kind)
     && (scope.kind === 'learned' ? c.started : c.level === scope.level));
-  matching.sort((a, b) => a.level - b.level || a.position - b.position || a.id - b.id);
+  const kindOrder = (k: WritingKind): number => (k === 'radical' ? 0 : 1);
+  matching.sort((a, b) => a.level - b.level || kindOrder(a.kind) - kindOrder(b.kind) || a.position - b.position || a.id - b.id);
   if (rnd !== null) shuffleInPlace(matching, rnd);
   return matching.slice(0, Math.max(0, limit)).map((c) => c.id);
 }

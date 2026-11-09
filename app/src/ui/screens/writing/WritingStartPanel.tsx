@@ -1,12 +1,12 @@
 /**
- * "Writing practice" on the self-study screen: which kanji (learned ones, or one level), the mode
- * (study: trace; recall: from memory) and how many, then Start opens the writing screen.
+ * "Writing practice" on the self-study screen: kanji, radicals or both; learned ones or one level; the
+ * mode (study: trace; recall: from memory) and how many, then Start opens the writing screen.
  */
 import { useMemo, useState } from 'react';
 import { SeededRandom } from '../../../core/rng';
 import { num, progressRow } from '../../../core/progression/db';
 import {
-  selectWritingKanji, WRITING_ROUND_SIZES, type WritingCandidate, type WritingMode, type WritingScope,
+  selectWritingKanji, WRITING_ROUND_SIZES, type WritingCandidate, type WritingKind, type WritingMode, type WritingScope,
 } from '../../../core/writing';
 import { strokeDataIds } from '../../../content/contentFile';
 import { useReady } from '../../hooks/useApp';
@@ -15,7 +15,14 @@ import { paths } from '../../routes';
 import { toast } from '../../shell/toast';
 import '../../components/writing/writing.css';
 
-export const NO_WRITING_KANJI = 'No kanji to practise here yet: finish some kanji lessons first';
+export const NO_WRITING_ITEMS = 'Nothing to practise here yet: finish some lessons first';
+
+/** The "What" choices. */
+const KINDS: Readonly<Record<string, { label: string; kinds: readonly WritingKind[] }>> = {
+  kanji: { label: 'Kanji', kinds: ['kanji'] },
+  radical: { label: 'Radicals', kinds: ['radical'] },
+  both: { label: 'Kanji and radicals', kinds: ['radical', 'kanji'] },
+};
 
 const LEARNED = 'learned';
 
@@ -23,20 +30,23 @@ export function WritingStartPanel() {
   const { learner, content, state } = useReady();
   const navigate = useNavigate();
   const userLevel = learner.progress.userLevel;
+  const [what, setWhat] = useState<string>('kanji');
   const [scope, setScope] = useState<string>(LEARNED);
   const [mode, setMode] = useState<WritingMode>('study');
   const [size, setSize] = useState<number>(10);
 
   const withStrokes = useMemo(() => strokeDataIds(content.db), [content.db]);
   const candidates = useMemo<WritingCandidate[]>(() => learner.content.subjects
-    .filter((s) => s.object === 'kanji' && s.hiddenAt === 0)
+    .filter((s) => (s.object === 'kanji' || s.object === 'radical') && s.hiddenAt === 0)
     .map((s) => {
       const row = learner.table.get(s.id);
       return {
         id: s.id,
+        kind: s.object === 'radical' ? 'radical' as const : 'kanji' as const,
         level: row?.level ?? s.level,
         position: row?.lessonPosition ?? s.lessonPosition,
         started: num(progressRow(learner, s.id), 'startedAt') !== 0,
+        // Image-only radicals have no stroke data: never offered.
         strokeCount: withStrokes.has(s.id) ? 1 : 0,
       };
     }), [learner, withStrokes, state.revision]);
@@ -44,10 +54,11 @@ export function WritingStartPanel() {
 
   const start = (): void => {
     const chosen: WritingScope = scope === LEARNED ? { kind: 'learned' } : { kind: 'level', level: Number(scope) };
-    // Learned kanji come shuffled; a level comes in lesson order.
-    const ids = selectWritingKanji(candidates, chosen, size, chosen.kind === 'learned' ? new SeededRandom(Date.now()) : null);
+    // Learned items come shuffled; a level comes in lesson order.
+    const ids = selectWritingKanji(candidates, chosen, size, chosen.kind === 'learned' ? new SeededRandom(Date.now()) : null,
+      KINDS[what]!.kinds);
     if (ids.length === 0) {
-      toast(NO_WRITING_KANJI);
+      toast(NO_WRITING_ITEMS);
       return;
     }
     navigate(paths.writing(ids, mode));
@@ -56,12 +67,18 @@ export function WritingStartPanel() {
   return (
     <section className="kk-panel kk-writing-start-panel" data-testid="writing-start">
       <h2>Writing practice</h2>
-      <p className="kk-small kk-muted">Write kanji stroke by stroke; each stroke is checked as you go. Doesn&apos;t affect your progress.</p>
+      <p className="kk-small kk-muted">Write kanji and radicals stroke by stroke; each stroke is checked as you go. Doesn&apos;t affect your progress.</p>
       <div className="kk-writing-options">
         <label>
-          <span>Kanji</span>
+          <span>What</span>
+          <select className="kk-select" value={what} onChange={(e) => setWhat(e.target.value)} data-testid="writing-kind">
+            {Object.entries(KINDS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>Which</span>
           <select className="kk-select" value={scope} onChange={(e) => setScope(e.target.value)} data-testid="writing-scope">
-            <option value={LEARNED}>Kanji you&apos;ve learned</option>
+            <option value={LEARNED}>The ones you&apos;ve learned</option>
             {levels.map((l) => (
               <option key={l} value={String(l)}>Level {l}{l === userLevel ? ' (your level)' : ''}</option>
             ))}
